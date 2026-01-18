@@ -2,18 +2,25 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
 import { PropertyGrid } from "@/components/property-grid";
-import { PropertyFilters } from "@/components/property-filters";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Property, PropertyFilter } from "@shared/schema";
-import { Search, MapPin, Building2, SlidersHorizontal, X } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Search, X, ChevronDown } from "lucide-react";
+
+const MIN_PRICE = 1000000;
+const MAX_PRICE = 50000000;
+const MIN_AREA = 20;
+const MAX_AREA = 500;
 
 export default function Home() {
-  const [filters, setFilters] = useState<PropertyFilter>({});
-  const [searchQuery, setSearchQuery] = useState("");
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<PropertyFilter>({
+    minPrice: MIN_PRICE,
+    maxPrice: MAX_PRICE,
+    minArea: MIN_AREA,
+    maxArea: MAX_AREA,
+  });
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties"],
@@ -24,51 +31,34 @@ export default function Home() {
     return uniqueCities.sort();
   }, [properties]);
 
-  const propertyTypes = useMemo(() => {
-    const uniqueTypes = [...new Set(properties.map((p) => p.propertyType))];
-    return uniqueTypes.sort();
+  const zones = useMemo(() => {
+    const uniqueZones = [...new Set(properties.map((p) => p.state))];
+    return uniqueZones.sort();
   }, [properties]);
 
   const filteredProperties = useMemo(() => {
     let result = properties;
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.location.toLowerCase().includes(query) ||
-          p.city.toLowerCase().includes(query) ||
-          p.developmentName?.toLowerCase().includes(query)
-      );
-    }
-
-    if (filters.minPrice) {
+    if (filters.minPrice && filters.minPrice > MIN_PRICE) {
       result = result.filter((p) => parseFloat(p.price) >= filters.minPrice!);
     }
-    if (filters.maxPrice) {
+    if (filters.maxPrice && filters.maxPrice < MAX_PRICE) {
       result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
     }
     if (filters.minBedrooms) {
       result = result.filter((p) => p.bedrooms >= filters.minBedrooms!);
     }
-    if (filters.minBathrooms) {
-      result = result.filter((p) => p.bathrooms >= filters.minBathrooms!);
-    }
-    if (filters.minArea) {
+    if (filters.minArea && filters.minArea > MIN_AREA) {
       result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
     }
-    if (filters.maxArea) {
+    if (filters.maxArea && filters.maxArea < MAX_AREA) {
       result = result.filter((p) => parseFloat(p.area) <= filters.maxArea!);
     }
     if (filters.city) {
       result = result.filter((p) => p.city === filters.city);
     }
     if (filters.propertyType) {
-      result = result.filter((p) => p.propertyType === filters.propertyType);
-    }
-    if (filters.status) {
-      result = result.filter((p) => p.status === filters.status);
+      result = result.filter((p) => p.state === filters.propertyType);
     }
 
     return result.sort((a, b) => {
@@ -76,132 +66,247 @@ export default function Home() {
       if (!a.featured && b.featured) return 1;
       return 0;
     });
-  }, [properties, filters, searchQuery]);
+  }, [properties, filters]);
 
-  const activeFiltersCount = Object.values(filters).filter(Boolean).length;
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'minPrice' && value === MIN_PRICE) return false;
+    if (key === 'maxPrice' && value === MAX_PRICE) return false;
+    if (key === 'minArea' && value === MIN_AREA) return false;
+    if (key === 'maxArea' && value === MAX_AREA) return false;
+    return Boolean(value);
+  }).length;
+
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const handlePriceChange = (values: number[]) => {
+    setFilters(prev => ({
+      ...prev,
+      minPrice: values[0],
+      maxPrice: values[1],
+    }));
+  };
+
+  const handleAreaChange = (values: number[]) => {
+    setFilters(prev => ({
+      ...prev,
+      minArea: values[0],
+      maxArea: values[1],
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      minPrice: MIN_PRICE,
+      maxPrice: MAX_PRICE,
+      minArea: MIN_AREA,
+      maxArea: MAX_AREA,
+    });
+  };
+
+  const featuredImages = properties.slice(0, 3).map(p => p.images[0]).filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmIzNDkiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-40"></div>
-        <div className="container mx-auto px-4 py-16 md:py-24 relative">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <div className="flex items-center justify-center gap-2 text-primary mb-4">
-              <Building2 className="w-6 h-6" />
-              <span className="text-sm font-semibold uppercase tracking-wider">Desarrollos Inmobiliarios</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-              Encuentra tu{" "}
-              <span className="text-primary">hogar ideal</span>{" "}
-              en México
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Explora nuestra exclusiva selección de departamentos y desarrollos inmobiliarios en las mejores ubicaciones del país.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mt-8">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar por ubicación, desarrollo o tipo..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 text-base bg-card"
-                  data-testid="input-search"
-                />
+      <section className="bg-background py-12 lg:py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            <div className="space-y-8">
+              <div>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
+                  Analicemos mejores opciones de inversión en{" "}
+                  <span className="text-primary">México</span>...
+                </h1>
               </div>
-              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="h-12 lg:hidden" data-testid="button-mobile-filters">
-                    <SlidersHorizontal className="w-5 h-5 mr-2" />
-                    Filtros
-                    {activeFiltersCount > 0 && (
-                      <Badge variant="secondary" className="ml-2">
-                        {activeFiltersCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[320px] sm:w-[400px] overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Filtros de búsqueda</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6">
-                    <PropertyFilters
-                      filters={filters}
-                      onFilterChange={setFilters}
-                      cities={cities}
-                      propertyTypes={propertyTypes}
-                    />
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Select
+                    value={filters.status || ""}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, status: value || undefined }))}
+                  >
+                    <SelectTrigger className="w-full h-12 bg-card border-border" data-testid="select-objetivo">
+                      <SelectValue placeholder="¿Cuál es tu Objetivo?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Inversión</SelectItem>
+                      <SelectItem value="reserved">Vivienda</SelectItem>
+                      <SelectItem value="sold">Renta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Select
+                    value={filters.city || ""}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, city: value || undefined }))}
+                  >
+                    <SelectTrigger className="w-full h-12 bg-card border-border" data-testid="select-city">
+                      <SelectValue placeholder="Ciudad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Select
+                    value={filters.propertyType || ""}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, propertyType: value || undefined }))}
+                  >
+                    <SelectTrigger className="w-full h-12 bg-card border-border" data-testid="select-zona">
+                      <SelectValue placeholder="Zona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {zones.map((zone) => (
+                        <SelectItem key={zone} value={zone}>
+                          {zone}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm text-muted-foreground">Precio</Label>
+                  <Slider
+                    min={MIN_PRICE}
+                    max={MAX_PRICE}
+                    step={100000}
+                    value={[filters.minPrice || MIN_PRICE, filters.maxPrice || MAX_PRICE]}
+                    onValueChange={handlePriceChange}
+                    className="mt-2"
+                    data-testid="slider-price"
+                  />
+                  <div className="text-sm text-muted-foreground">
+                    {formatPrice(filters.minPrice || MIN_PRICE)} a {formatPrice(filters.maxPrice || MAX_PRICE)}
                   </div>
-                </SheetContent>
-              </Sheet>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm text-muted-foreground">Tamaño</Label>
+                  <Slider
+                    min={MIN_AREA}
+                    max={MAX_AREA}
+                    step={5}
+                    value={[filters.minArea || MIN_AREA, filters.maxArea || MAX_AREA]}
+                    onValueChange={handleAreaChange}
+                    className="mt-2"
+                    data-testid="slider-area"
+                  />
+                  <div className="text-sm text-muted-foreground">
+                    {filters.minArea || MIN_AREA} a {filters.maxArea || MAX_AREA} m²
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Select
+                    value={filters.minBedrooms?.toString() || ""}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, minBedrooms: value ? parseInt(value) : undefined }))}
+                  >
+                    <SelectTrigger className="w-full h-12 bg-card border-border" data-testid="select-recamaras">
+                      <SelectValue placeholder="Recámaras" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1+ Recámara</SelectItem>
+                      <SelectItem value="2">2+ Recámaras</SelectItem>
+                      <SelectItem value="3">3+ Recámaras</SelectItem>
+                      <SelectItem value="4">4+ Recámaras</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="w-full h-12 mt-4"
+                  data-testid="button-search"
+                >
+                  <Search className="w-5 h-5 mr-2" />
+                  Buscar
+                </Button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 pt-4">
-              <Badge variant="outline" className="bg-card/50 hover-elevate cursor-pointer">
-                <MapPin className="w-3 h-3 mr-1" />
-                Monterrey
-              </Badge>
-              <Badge variant="outline" className="bg-card/50 hover-elevate cursor-pointer">
-                <MapPin className="w-3 h-3 mr-1" />
-                Ciudad de México
-              </Badge>
-              <Badge variant="outline" className="bg-card/50 hover-elevate cursor-pointer">
-                <MapPin className="w-3 h-3 mr-1" />
-                Guadalajara
-              </Badge>
-              <Badge variant="outline" className="bg-card/50 hover-elevate cursor-pointer">
-                <MapPin className="w-3 h-3 mr-1" />
-                Querétaro
-              </Badge>
+            <div className="relative hidden lg:block">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3">
+                  {featuredImages[0] && (
+                    <div className="relative aspect-[4/5] rounded-md overflow-hidden">
+                      <img
+                        src={featuredImages[0]}
+                        alt="Propiedad destacada"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-3 right-3 bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-medium">
+                        290+ Votos Positivos
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3 pt-8">
+                  {featuredImages[1] && (
+                    <div className="relative aspect-square rounded-md overflow-hidden">
+                      <img
+                        src={featuredImages[1]}
+                        alt="Propiedad destacada"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  {featuredImages[2] && (
+                    <div className="relative aspect-square rounded-md overflow-hidden">
+                      <img
+                        src={featuredImages[2]}
+                        alt="Propiedad destacada"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex gap-8">
-          <aside className="hidden lg:block w-80 shrink-0">
-            <PropertyFilters
-              filters={filters}
-              onFilterChange={setFilters}
-              cities={cities}
-              propertyTypes={propertyTypes}
-            />
-          </aside>
-
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold" data-testid="text-results-title">
-                  Propiedades Disponibles
-                </h2>
-                <p className="text-muted-foreground" data-testid="text-results-count">
-                  {filteredProperties.length} {filteredProperties.length === 1 ? "propiedad encontrada" : "propiedades encontradas"}
-                </p>
-              </div>
-
-              {activeFiltersCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setFilters({})}
-                  className="text-muted-foreground"
-                  data-testid="button-clear-filters"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Limpiar filtros
-                </Button>
-              )}
-            </div>
-
-            <PropertyGrid properties={filteredProperties} isLoading={isLoading} />
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold" data-testid="text-results-title">
+              Propiedades Disponibles
+            </h2>
+            <p className="text-muted-foreground" data-testid="text-results-count">
+              {filteredProperties.length} {filteredProperties.length === 1 ? "propiedad encontrada" : "propiedades encontradas"}
+            </p>
           </div>
+
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              className="text-muted-foreground"
+              data-testid="button-clear-filters"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Limpiar filtros
+            </Button>
+          )}
         </div>
+
+        <PropertyGrid properties={filteredProperties} isLoading={isLoading} />
       </main>
 
       <footer className="border-t bg-card mt-16">
