@@ -116,13 +116,7 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-            <Link href="/login">
-              <Button variant="outline" size="sm" data-testid="button-login">
-                Iniciar sesión
-              </Button>
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </header>
