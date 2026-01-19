@@ -149,6 +149,8 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Ver Más Feature**: Home page now shows only 4 properties with a "Ver Más Departamentos" button that navigates to a dedicated /propiedades page preserving active filters in URL
+- **Dedicated Properties Page**: New /propiedades route with full property listing and all filters (city, zone, bedrooms, price, area, delivery, down payment)
 - **Delivery Time Filter**: New "Entrega" slider filters properties by delivery timeline in 3-month increments (trimestres: 0-36 meses)
 - **Down Payment Filter**: New "Enganche" slider filters properties by down payment percentage in 5% increments (5-50%)
 - **Admin Property Form**: New fields for deliveryMonths and downPayment with step validation
