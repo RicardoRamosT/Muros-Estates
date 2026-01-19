@@ -156,7 +156,7 @@ export const properties = pgTable("properties", {
   developmentType: text("development_type").notNull(),
   address: text("address").notNull(),
   bedrooms: text("bedrooms").notNull(),
-  bathrooms: integer("bathrooms").notNull(),
+  bathrooms: text("bathrooms").notNull(),
   area: decimal("area", { precision: 10, scale: 2 }).notNull(),
   floor: integer("floor"),
   parking: integer("parking").default(0),
@@ -232,13 +232,24 @@ export const BEDROOM_OPTIONS = [
 
 export type BedroomType = typeof BEDROOM_OPTIONS[number];
 
+// Bathroom options for filter
+export const BATHROOM_OPTIONS = [
+  "1",
+  "1.5",
+  "2",
+  "2.5",
+  "3",
+  "3.5",
+] as const;
+
+export type BathroomType = typeof BATHROOM_OPTIONS[number];
+
 // Filter schemas
 export const propertyFilterSchema = z.object({
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
-  bedrooms: z.string().optional(),
-  minBathrooms: z.number().optional(),
-  maxBathrooms: z.number().optional(),
+  bedrooms: z.array(z.string()).optional(),
+  bathrooms: z.array(z.string()).optional(),
   minArea: z.number().optional(),
   maxArea: z.number().optional(),
   minDeliveryMonths: z.number().optional(),

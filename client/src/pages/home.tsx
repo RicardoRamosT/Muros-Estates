@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BEDROOM_OPTIONS, BATHROOM_OPTIONS } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import type { Property, PropertyFilter, ContactFormInput } from "@shared/schema";
@@ -128,8 +131,11 @@ export default function Home() {
     if (filters.maxPrice && filters.maxPrice < priceRange.max) {
       result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
     }
-    if (filters.bedrooms) {
-      result = result.filter((p) => p.bedrooms === filters.bedrooms);
+    if (filters.bedrooms && filters.bedrooms.length > 0) {
+      result = result.filter((p) => filters.bedrooms!.includes(p.bedrooms));
+    }
+    if (filters.bathrooms && filters.bathrooms.length > 0) {
+      result = result.filter((p) => filters.bathrooms!.includes(p.bathrooms));
     }
     if (filters.minArea && filters.minArea > areaRange.min) {
       result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
@@ -173,7 +179,8 @@ export default function Home() {
     if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) count++;
     if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) count++;
     if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) count++;
-    if (filters.bedrooms) count++;
+    if (filters.bedrooms && filters.bedrooms.length > 0) count++;
+    if (filters.bathrooms && filters.bathrooms.length > 0) count++;
     if (filters.city) count++;
     if (filters.zone) count++;
     return count;
@@ -446,26 +453,73 @@ export default function Home() {
               </Select>
             )}
 
-            <Select
-              value={filters.bedrooms || "all"}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value === "all" ? undefined : value }))}
-            >
-              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-bedrooms">
-                <SelectValue placeholder="Recámaras" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="Loft">Loft</SelectItem>
-                <SelectItem value="1">1</SelectItem>
-                <SelectItem value="1 +Flex">1 +Flex</SelectItem>
-                <SelectItem value="2">2</SelectItem>
-                <SelectItem value="2 +Flex">2 +Flex</SelectItem>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="3 +Flex">3 +Flex</SelectItem>
-                <SelectItem value="4">4</SelectItem>
-                <SelectItem value="4 +Flex">4 +Flex</SelectItem>
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-40 bg-white/10 border-white/20 text-white hover:bg-white/20 justify-between" data-testid="select-bedrooms">
+                  {filters.bedrooms && filters.bedrooms.length > 0 
+                    ? `${filters.bedrooms.length} selec.` 
+                    : "Recámaras"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-3">
+                <div className="space-y-2">
+                  {BEDROOM_OPTIONS.map((option) => (
+                    <div key={option} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`bed-${option}`}
+                        checked={filters.bedrooms?.includes(option) || false}
+                        onCheckedChange={(checked) => {
+                          setFilters(prev => {
+                            const current = prev.bedrooms || [];
+                            if (checked) {
+                              return { ...prev, bedrooms: [...current, option] };
+                            } else {
+                              return { ...prev, bedrooms: current.filter(b => b !== option) };
+                            }
+                          });
+                        }}
+                        data-testid={`checkbox-bed-${option}`}
+                      />
+                      <label htmlFor={`bed-${option}`} className="text-sm cursor-pointer">{option}</label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-40 bg-white/10 border-white/20 text-white hover:bg-white/20 justify-between" data-testid="select-bathrooms">
+                  {filters.bathrooms && filters.bathrooms.length > 0 
+                    ? `${filters.bathrooms.length} selec.` 
+                    : "Baños"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-3">
+                <div className="space-y-2">
+                  {BATHROOM_OPTIONS.map((option) => (
+                    <div key={option} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`bath-${option}`}
+                        checked={filters.bathrooms?.includes(option) || false}
+                        onCheckedChange={(checked) => {
+                          setFilters(prev => {
+                            const current = prev.bathrooms || [];
+                            if (checked) {
+                              return { ...prev, bathrooms: [...current, option] };
+                            } else {
+                              return { ...prev, bathrooms: current.filter(b => b !== option) };
+                            }
+                          });
+                        }}
+                        data-testid={`checkbox-bath-${option}`}
+                      />
+                      <label htmlFor={`bath-${option}`} className="text-sm cursor-pointer">{option}</label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             <div className="flex items-center gap-2 flex-1 min-w-[320px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Precio:</span>

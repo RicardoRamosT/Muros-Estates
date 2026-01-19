@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Property, PropertyFilter } from "@shared/schema";
+import { BEDROOM_OPTIONS, BATHROOM_OPTIONS } from "@shared/schema";
 import { CITIES, getZonesByCity, ZONES_MONTERREY, ZONES_CDMX } from "@shared/constants";
 import { X, Home, SlidersHorizontal } from "lucide-react";
 
@@ -98,7 +101,8 @@ export default function Properties() {
       if (searchParams.get("maxPrice")) initialFilters.maxPrice = parseInt(searchParams.get("maxPrice")!);
       if (searchParams.get("minArea")) initialFilters.minArea = parseInt(searchParams.get("minArea")!);
       if (searchParams.get("maxArea")) initialFilters.maxArea = parseInt(searchParams.get("maxArea")!);
-      if (searchParams.get("bedrooms")) initialFilters.bedrooms = searchParams.get("bedrooms")!;
+      if (searchParams.get("bedrooms")) initialFilters.bedrooms = searchParams.get("bedrooms")!.split(",");
+      if (searchParams.get("bathrooms")) initialFilters.bathrooms = searchParams.get("bathrooms")!.split(",");
       if (searchParams.get("minDeliveryMonths")) initialFilters.minDeliveryMonths = parseInt(searchParams.get("minDeliveryMonths")!);
       if (searchParams.get("maxDeliveryMonths")) initialFilters.maxDeliveryMonths = parseInt(searchParams.get("maxDeliveryMonths")!);
       if (searchParams.get("minDownPayment")) initialFilters.minDownPayment = parseInt(searchParams.get("minDownPayment")!);
@@ -143,8 +147,11 @@ export default function Properties() {
       result = result.filter((p) => p.zone === filters.zone);
     }
 
-    if (filters.bedrooms) {
-      result = result.filter((p) => p.bedrooms === filters.bedrooms);
+    if (filters.bedrooms && filters.bedrooms.length > 0) {
+      result = result.filter((p) => filters.bedrooms!.includes(p.bedrooms));
+    }
+    if (filters.bathrooms && filters.bathrooms.length > 0) {
+      result = result.filter((p) => filters.bathrooms!.includes(p.bathrooms));
     }
 
     if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
@@ -251,26 +258,76 @@ export default function Properties() {
 
             <div className="space-y-2">
               <Label className="text-sm font-medium">Recámaras</Label>
-              <Select
-                value={filters.bedrooms || "all"}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value === "all" ? undefined : value }))}
-              >
-                <SelectTrigger data-testid="select-bedrooms">
-                  <SelectValue placeholder="Cualquiera" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Cualquiera</SelectItem>
-                  <SelectItem value="Loft">Loft</SelectItem>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="1 +Flex">1 +Flex</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="2 +Flex">2 +Flex</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="3 +Flex">3 +Flex</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="4 +Flex">4 +Flex</SelectItem>
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between" data-testid="select-bedrooms">
+                    {filters.bedrooms && filters.bedrooms.length > 0 
+                      ? `${filters.bedrooms.length} seleccionadas` 
+                      : "Cualquiera"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-3">
+                  <div className="space-y-2">
+                    {BEDROOM_OPTIONS.map((option) => (
+                      <div key={option} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`prop-bed-${option}`}
+                          checked={filters.bedrooms?.includes(option) || false}
+                          onCheckedChange={(checked) => {
+                            setFilters(prev => {
+                              const current = prev.bedrooms || [];
+                              if (checked) {
+                                return { ...prev, bedrooms: [...current, option] };
+                              } else {
+                                return { ...prev, bedrooms: current.filter(b => b !== option) };
+                              }
+                            });
+                          }}
+                          data-testid={`checkbox-bed-${option}`}
+                        />
+                        <label htmlFor={`prop-bed-${option}`} className="text-sm cursor-pointer">{option}</label>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Baños</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between" data-testid="select-bathrooms">
+                    {filters.bathrooms && filters.bathrooms.length > 0 
+                      ? `${filters.bathrooms.length} seleccionados` 
+                      : "Cualquiera"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-3">
+                  <div className="space-y-2">
+                    {BATHROOM_OPTIONS.map((option) => (
+                      <div key={option} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`prop-bath-${option}`}
+                          checked={filters.bathrooms?.includes(option) || false}
+                          onCheckedChange={(checked) => {
+                            setFilters(prev => {
+                              const current = prev.bathrooms || [];
+                              if (checked) {
+                                return { ...prev, bathrooms: [...current, option] };
+                              } else {
+                                return { ...prev, bathrooms: current.filter(b => b !== option) };
+                              }
+                            });
+                          }}
+                          data-testid={`checkbox-bath-${option}`}
+                        />
+                        <label htmlFor={`prop-bath-${option}`} className="text-sm cursor-pointer">{option}</label>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
