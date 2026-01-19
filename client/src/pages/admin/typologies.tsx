@@ -1,7 +1,7 @@
 import { Header } from "@/components/header";
 import { TypologySpreadsheet } from "@/components/typology-spreadsheet";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TableProperties } from "lucide-react";
+import { DevelopmentMediaUploader } from "@/components/development-media-uploader";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function AdminTypologies() {
   return (
@@ -17,6 +17,8 @@ export default function AdminTypologies() {
             </p>
           </div>
         </div>
+        
+        <DevelopmentMediaUploader />
         
         <Card className="flex-1 flex flex-col overflow-hidden">
           <CardContent className="p-0 flex-1 overflow-hidden">

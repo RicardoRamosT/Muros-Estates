@@ -6,7 +6,8 @@ import {
   developmentAssignments, type DevelopmentAssignment, type InsertDevelopmentAssignment,
   clientFollowUps, type ClientFollowUp, type InsertClientFollowUp,
   typologies, type Typology, type InsertTypology,
-  documents, type Document, type InsertDocument
+  documents, type Document, type InsertDocument,
+  developmentMedia, type DevelopmentMedia, type InsertDevelopmentMedia
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -75,6 +76,12 @@ export interface IStorage {
   createDocument(doc: InsertDocument): Promise<Document>;
   updateDocument(id: string, doc: Partial<InsertDocument>): Promise<Document | undefined>;
   deleteDocument(id: string): Promise<boolean>;
+  
+  // Development Media
+  getDevelopmentMedia(development?: string): Promise<DevelopmentMedia[]>;
+  createDevelopmentMedia(media: InsertDevelopmentMedia): Promise<DevelopmentMedia>;
+  updateDevelopmentMedia(id: string, data: Partial<InsertDevelopmentMedia>): Promise<DevelopmentMedia | undefined>;
+  deleteDevelopmentMedia(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -370,6 +377,31 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string): Promise<boolean> {
     await db.delete(documents).where(eq(documents.id, id));
+    return true;
+  }
+
+  // Development Media
+  async getDevelopmentMedia(development?: string): Promise<DevelopmentMedia[]> {
+    if (development) {
+      return db.select().from(developmentMedia)
+        .where(eq(developmentMedia.development, development))
+        .orderBy(developmentMedia.order);
+    }
+    return db.select().from(developmentMedia).orderBy(developmentMedia.order);
+  }
+
+  async createDevelopmentMedia(media: InsertDevelopmentMedia): Promise<DevelopmentMedia> {
+    const [item] = await db.insert(developmentMedia).values(media as any).returning();
+    return item;
+  }
+
+  async updateDevelopmentMedia(id: string, data: Partial<InsertDevelopmentMedia>): Promise<DevelopmentMedia | undefined> {
+    const [item] = await db.update(developmentMedia).set(data as any).where(eq(developmentMedia.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteDevelopmentMedia(id: string): Promise<boolean> {
+    await db.delete(developmentMedia).where(eq(developmentMedia.id, id));
     return true;
   }
 }

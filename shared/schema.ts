@@ -450,3 +450,26 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
+
+// Development Media - images and videos for developments (shown on public pages)
+export const developmentMedia = pgTable("development_media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  development: text("development").notNull(), // Development name (from DEVELOPMENTS constant)
+  developer: text("developer").notNull(), // Developer name (from DEVELOPERS constant)
+  type: text("type").notNull(), // "image" or "video"
+  url: text("url").notNull(), // File path/URL
+  order: integer("order").default(0), // Display order
+  isPrimary: boolean("is_primary").default(false), // Primary image for cards
+  
+  // Meta
+  uploadedBy: varchar("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDevelopmentMediaSchema = createInsertSchema(developmentMedia).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDevelopmentMedia = z.infer<typeof insertDevelopmentMediaSchema>;
+export type DevelopmentMedia = typeof developmentMedia.$inferSelect;

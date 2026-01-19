@@ -7,9 +7,10 @@ import { Link } from "wouter";
 interface TypologyCardProps {
   typology: Typology;
   index: number;
+  imageUrl?: string;
 }
 
-export function TypologyCard({ typology, index }: TypologyCardProps) {
+export function TypologyCard({ typology, index, imageUrl }: TypologyCardProps) {
   const formatPrice = (price: string | number | null) => {
     if (!price) return "Consultar";
     const num = typeof price === "string" ? parseFloat(price) : price;
@@ -38,9 +39,17 @@ export function TypologyCard({ typology, index }: TypologyCardProps) {
         data-testid={`card-typology-${typology.id}`}
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-          <div className="w-full h-full flex items-center justify-center">
-            <Building2 className="w-16 h-16 text-primary/30" />
-          </div>
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Building2 className="w-16 h-16 text-primary/30" />
+            </div>
+          )}
           
           <div className="absolute top-3 left-3 flex gap-2">
             <Badge variant="default" data-testid={`badge-available-${typology.id}`}>
