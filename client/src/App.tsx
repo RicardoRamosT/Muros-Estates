@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Properties from "@/pages/properties";
 import PropertyDetail from "@/pages/property-detail";
+import TypologyDetail from "@/pages/typology-detail";
 import Login from "@/pages/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import PropertyEdit from "@/pages/admin/property-edit";
@@ -45,6 +46,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/propiedades" component={Properties} />
+      <Route path="/tipologia/:id" component={TypologyDetail} />
       <Route path="/property/:id" component={PropertyDetail} />
       <Route path="/login" component={Login} />
       <Route path="/admin">

@@ -1,0 +1,283 @@
+import { useRoute, Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Header } from "@/components/header";
+import { FloatingContactForm } from "@/components/floating-contact-form";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Typology } from "@shared/schema";
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Bed, 
+  Bath, 
+  Maximize, 
+  Car, 
+  Building2, 
+  Calendar,
+  Percent,
+  Home,
+  Loader2
+} from "lucide-react";
+
+export default function TypologyDetail() {
+  const [, params] = useRoute("/tipologia/:id");
+  const typologyId = params?.id;
+
+  const { data: allTypologies = [], isLoading: isLoadingAll } = useQuery<Typology[]>({
+    queryKey: ["/api/public/typologies"],
+  });
+
+  const typology = allTypologies.find(t => t.id === typologyId);
+  const isLoading = isLoadingAll;
+  const notFound = !isLoading && !typology;
+
+  const formatPrice = (price: string | number | null) => {
+    if (!price) return "Consultar";
+    const num = typeof price === "string" ? parseFloat(price) : price;
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
+
+  const formatArea = (area: string | number | null) => {
+    if (!area) return "N/A";
+    const num = typeof area === "string" ? parseFloat(area) : area;
+    return `${num.toLocaleString("es-MX")} m²`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-16 text-center" data-testid="not-found-state">
+          <Building2 className="w-20 h-20 text-muted-foreground mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2" data-testid="text-not-found-title">Departamento no encontrado</h1>
+          <p className="text-muted-foreground mb-6">
+            El departamento que buscas no existe o ya no está disponible.
+          </p>
+          <Link href="/propiedades">
+            <Button data-testid="button-view-all">Ver todos los departamentos</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!typology) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  const title = typology.type 
+    ? `${typology.development} - Tipo ${typology.type}`
+    : typology.development;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <section className="bg-primary py-6">
+        <div className="container mx-auto px-4">
+          <Link href="/propiedades">
+            <Button variant="ghost" size="sm" className="text-white/70 hover:text-white gap-2 mb-4" data-testid="button-back">
+              <ArrowLeft className="w-4 h-4" />
+              Volver a departamentos
+            </Button>
+          </Link>
+          <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-title">
+            {title}
+          </h1>
+          <p className="text-white/70 mt-1">{typology.developer}</p>
+        </div>
+      </section>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden flex items-center justify-center">
+              <Building2 className="w-24 h-24 text-primary/30" />
+              <div className="absolute top-4 left-4">
+                <Badge variant="default">Disponible</Badge>
+              </div>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Home className="w-5 h-5" />
+                  Características
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-testid="characteristics-grid">
+                  {typology.bedrooms !== null && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="feature-bedrooms">
+                      <Bed className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Recámaras</p>
+                        <p className="font-semibold">{typology.bedrooms}</p>
+                      </div>
+                    </div>
+                  )}
+                  {typology.bathrooms !== null && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="feature-bathrooms">
+                      <Bath className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Baños</p>
+                        <p className="font-semibold">{typology.bathrooms}</p>
+                      </div>
+                    </div>
+                  )}
+                  {typology.size && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="feature-size">
+                      <Maximize className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Tamaño</p>
+                        <p className="font-semibold">{formatArea(typology.size)}</p>
+                      </div>
+                    </div>
+                  )}
+                  {typology.parkingSpots !== null && typology.parkingSpots > 0 && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                      <Car className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Estacionamiento</p>
+                        <p className="font-semibold">{typology.parkingSpots} lugares</p>
+                      </div>
+                    </div>
+                  )}
+                  {typology.level !== null && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                      <Building2 className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nivel</p>
+                        <p className="font-semibold">Piso {typology.level}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Ubicación
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="font-semibold text-lg" data-testid="text-zone">{typology.zone}</p>
+                  <p className="text-muted-foreground" data-testid="text-city">{typology.city}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {(typology.livingRoom || typology.diningRoom || typology.kitchen || typology.balcony || typology.terrace || typology.laundry || typology.serviceRoom || typology.storage) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribución</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {typology.livingRoom && <Badge variant="outline">Sala</Badge>}
+                    {typology.diningRoom && <Badge variant="outline">Comedor</Badge>}
+                    {typology.kitchen && <Badge variant="outline">Cocina</Badge>}
+                    {typology.balcony && <Badge variant="outline">Balcón</Badge>}
+                    {typology.terrace && <Badge variant="outline">Terraza</Badge>}
+                    {typology.laundry && <Badge variant="outline">Cuarto de lavado</Badge>}
+                    {typology.serviceRoom && <Badge variant="outline">Cuarto de servicio</Badge>}
+                    {typology.storage && <Badge variant="outline">Bodega</Badge>}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            <Card className="sticky top-4">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Precio</p>
+                    <p className="text-3xl font-bold text-primary" data-testid="text-price">
+                      {formatPrice(typology.finalPrice || typology.price)}
+                    </p>
+                    {typology.pricePerM2 && (
+                      <p className="text-sm text-muted-foreground">
+                        {formatPrice(typology.pricePerM2)} / m²
+                      </p>
+                    )}
+                  </div>
+
+                  {typology.downPaymentPercent && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Percent className="w-4 h-4 text-primary" />
+                      <span>Enganche desde {typology.downPaymentPercent}%</span>
+                    </div>
+                  )}
+
+                  {typology.deliveryDate && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      <span>Entrega: {typology.deliveryDate}</span>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t space-y-3">
+                    <Button className="w-full" size="lg" data-testid="button-contact">
+                      Solicitar información
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Un asesor te contactará en breve
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Desarrollo</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="font-semibold">{typology.development}</p>
+                <p className="text-sm text-muted-foreground">Por {typology.developer}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+
+      <footer className="border-t bg-card mt-12">
+        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Muros. Todos los derechos reservados.</p>
+        </div>
+      </footer>
+
+      <FloatingContactForm />
+    </div>
+  );
+}
