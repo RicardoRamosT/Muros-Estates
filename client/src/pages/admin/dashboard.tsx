@@ -179,20 +179,20 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Panel de control de Muros</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
-                Tipologías
+                Desarrollos
               </CardTitle>
               <Building2 className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="pt-0">
-              <p className="text-2xl font-bold" data-testid="stat-total">
-                {typologyStats.total}
+              <p className="text-2xl font-bold text-primary" data-testid="stat-developments">
+                {typologyStats.developments}
               </p>
               <p className="text-xs text-muted-foreground">
-                {typologyStats.active} activas
+                {typologyStats.total} unidades
               </p>
             </CardContent>
           </Card>
@@ -209,21 +209,6 @@ export default function AdminDashboard() {
                 {formatCurrency(typologyStats.totalValue)}
               </p>
               <p className="text-xs text-muted-foreground">MXN inventario</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Desarrollos
-              </CardTitle>
-              <TrendingUp className="w-4 h-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-2xl font-bold text-primary" data-testid="stat-developments">
-                {typologyStats.developments}
-              </p>
-              <p className="text-xs text-muted-foreground">proyectos</p>
             </CardContent>
           </Card>
 
@@ -290,7 +275,7 @@ export default function AdminDashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Activity className="w-5 h-5 text-primary" />
-                Tipologías por Desarrollo
+                Unidades por Desarrollo
               </CardTitle>
             </CardHeader>
             <CardContent>
