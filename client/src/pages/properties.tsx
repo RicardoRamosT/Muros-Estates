@@ -1,32 +1,34 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { Header } from "@/components/header";
-import { PropertyGrid } from "@/components/property-grid";
+import { TypologyGrid } from "@/components/typology-grid";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Property, PropertyFilter } from "@shared/schema";
-import { BEDROOM_OPTIONS, BATHROOM_OPTIONS } from "@shared/schema";
+import type { Typology } from "@shared/schema";
 import { CITIES, getZonesByCity, ZONES_MONTERREY, ZONES_CDMX } from "@shared/constants";
-import { X, Home, SlidersHorizontal } from "lucide-react";
+import { X, Home, SlidersHorizontal, Wifi } from "lucide-react";
 import { FloatingContactForm } from "@/components/floating-contact-form";
+import { usePublicTypologies } from "@/hooks/use-public-typologies";
+import { Badge } from "@/components/ui/badge";
 
 const DEFAULT_MIN_PRICE = 1000000;
 const DEFAULT_MAX_PRICE = 50000000;
 const DEFAULT_MIN_AREA = 20;
 const DEFAULT_MAX_AREA = 500;
-const DEFAULT_MIN_DELIVERY = 0;
-const DEFAULT_MAX_DELIVERY = 36;
-const DEFAULT_MIN_DOWN_PAYMENT = 5;
-const DEFAULT_MAX_DOWN_PAYMENT = 50;
 const PRICE_STEP = 100000;
 const AREA_STEP = 5;
-const DELIVERY_STEP = 3;
-const DOWN_PAYMENT_STEP = 5;
+
+interface TypologyFilter {
+  city?: string;
+  zone?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minArea?: number;
+  maxArea?: number;
+  bedrooms?: number[];
+}
 
 function formatPrice(value: number): string {
   if (value >= 1000000) {
@@ -42,59 +44,41 @@ export default function Properties() {
     window.scrollTo(0, 0);
   }, []);
   
-  const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ["/api/properties"],
-  });
+  const { typologies, isLoading, isConnected } = usePublicTypologies();
 
   const priceRange = useMemo(() => {
-    if (properties.length === 0) {
+    if (typologies.length === 0) {
       return { min: DEFAULT_MIN_PRICE, max: DEFAULT_MAX_PRICE };
     }
-    const prices = properties.map(p => parseFloat(p.price));
+    const prices = typologies
+      .filter(t => t.finalPrice || t.price)
+      .map(t => parseFloat(t.finalPrice || t.price || "0"));
+    if (prices.length === 0) return { min: DEFAULT_MIN_PRICE, max: DEFAULT_MAX_PRICE };
     const minPrice = Math.floor(Math.min(...prices) / PRICE_STEP) * PRICE_STEP;
     const maxPrice = Math.ceil(Math.max(...prices) / PRICE_STEP) * PRICE_STEP;
-    return { min: minPrice, max: maxPrice };
-  }, [properties]);
+    return { min: minPrice || DEFAULT_MIN_PRICE, max: maxPrice || DEFAULT_MAX_PRICE };
+  }, [typologies]);
 
   const areaRange = useMemo(() => {
-    if (properties.length === 0) {
+    if (typologies.length === 0) {
       return { min: DEFAULT_MIN_AREA, max: DEFAULT_MAX_AREA };
     }
-    const areas = properties.map(p => parseFloat(p.area));
+    const areas = typologies
+      .filter(t => t.size)
+      .map(t => parseFloat(t.size || "0"));
+    if (areas.length === 0) return { min: DEFAULT_MIN_AREA, max: DEFAULT_MAX_AREA };
     const minArea = Math.floor(Math.min(...areas) / AREA_STEP) * AREA_STEP;
     const maxArea = Math.ceil(Math.max(...areas) / AREA_STEP) * AREA_STEP;
-    return { min: minArea, max: maxArea };
-  }, [properties]);
+    return { min: minArea || DEFAULT_MIN_AREA, max: maxArea || DEFAULT_MAX_AREA };
+  }, [typologies]);
 
-  const deliveryRange = useMemo(() => {
-    const propsWithDelivery = properties.filter(p => p.deliveryMonths !== null && p.deliveryMonths !== undefined);
-    if (propsWithDelivery.length === 0) {
-      return { min: DEFAULT_MIN_DELIVERY, max: DEFAULT_MAX_DELIVERY };
-    }
-    const months = propsWithDelivery.map(p => p.deliveryMonths!);
-    const minMonths = Math.floor(Math.min(...months) / DELIVERY_STEP) * DELIVERY_STEP;
-    const maxMonths = Math.ceil(Math.max(...months) / DELIVERY_STEP) * DELIVERY_STEP;
-    return { min: Math.max(0, minMonths), max: Math.max(maxMonths, DELIVERY_STEP) };
-  }, [properties]);
-
-  const downPaymentRange = useMemo(() => {
-    const propsWithDP = properties.filter(p => p.downPayment !== null && p.downPayment !== undefined);
-    if (propsWithDP.length === 0) {
-      return { min: DEFAULT_MIN_DOWN_PAYMENT, max: DEFAULT_MAX_DOWN_PAYMENT };
-    }
-    const payments = propsWithDP.map(p => p.downPayment!);
-    const minDP = Math.floor(Math.min(...payments) / DOWN_PAYMENT_STEP) * DOWN_PAYMENT_STEP;
-    const maxDP = Math.ceil(Math.max(...payments) / DOWN_PAYMENT_STEP) * DOWN_PAYMENT_STEP;
-    return { min: Math.max(5, minDP), max: Math.max(maxDP, 10) };
-  }, [properties]);
-
-  const [filters, setFilters] = useState<PropertyFilter>({});
+  const [filters, setFilters] = useState<TypologyFilter>({});
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (!initialized) {
       const searchParams = new URLSearchParams(window.location.search);
-      const initialFilters: PropertyFilter = {};
+      const initialFilters: TypologyFilter = {};
       
       if (searchParams.get("city")) initialFilters.city = searchParams.get("city")!;
       if (searchParams.get("zone")) initialFilters.zone = searchParams.get("zone")!;
@@ -102,12 +86,9 @@ export default function Properties() {
       if (searchParams.get("maxPrice")) initialFilters.maxPrice = parseInt(searchParams.get("maxPrice")!);
       if (searchParams.get("minArea")) initialFilters.minArea = parseInt(searchParams.get("minArea")!);
       if (searchParams.get("maxArea")) initialFilters.maxArea = parseInt(searchParams.get("maxArea")!);
-      if (searchParams.get("bedrooms")) initialFilters.bedrooms = searchParams.get("bedrooms")!.split(",");
-      if (searchParams.get("bathrooms")) initialFilters.bathrooms = searchParams.get("bathrooms")!.split(",");
-      if (searchParams.get("minDeliveryMonths")) initialFilters.minDeliveryMonths = parseInt(searchParams.get("minDeliveryMonths")!);
-      if (searchParams.get("maxDeliveryMonths")) initialFilters.maxDeliveryMonths = parseInt(searchParams.get("maxDeliveryMonths")!);
-      if (searchParams.get("minDownPayment")) initialFilters.minDownPayment = parseInt(searchParams.get("minDownPayment")!);
-      if (searchParams.get("maxDownPayment")) initialFilters.maxDownPayment = parseInt(searchParams.get("maxDownPayment")!);
+      if (searchParams.get("bedrooms")) {
+        initialFilters.bedrooms = searchParams.get("bedrooms")!.split(",").map(Number);
+      }
       
       setFilters(initialFilters);
       setInitialized(true);
@@ -121,55 +102,62 @@ export default function Properties() {
     return [...ZONES_MONTERREY, ...ZONES_CDMX];
   }, [filters.city]);
 
-  const sliderFilteredProperties = useMemo(() => {
-    let result = properties;
+  const sliderFilteredTypologies = useMemo(() => {
+    let result = typologies;
 
     if (filters.minPrice && filters.minPrice > priceRange.min) {
-      result = result.filter((p) => parseFloat(p.price) >= filters.minPrice!);
+      result = result.filter((t) => {
+        const price = parseFloat(t.finalPrice || t.price || "0");
+        return price >= filters.minPrice!;
+      });
     }
     if (filters.maxPrice && filters.maxPrice < priceRange.max) {
-      result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
+      result = result.filter((t) => {
+        const price = parseFloat(t.finalPrice || t.price || "0");
+        return price <= filters.maxPrice!;
+      });
     }
     if (filters.minArea && filters.minArea > areaRange.min) {
-      result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
+      result = result.filter((t) => {
+        const area = parseFloat(t.size || "0");
+        return area >= filters.minArea!;
+      });
     }
     if (filters.maxArea && filters.maxArea < areaRange.max) {
-      result = result.filter((p) => parseFloat(p.area) <= filters.maxArea!);
-    }
-    if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
-      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths >= filters.minDeliveryMonths!);
-    }
-    if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) {
-      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths <= filters.maxDeliveryMonths!);
-    }
-    if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) {
-      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment >= filters.minDownPayment!);
-    }
-    if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) {
-      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment <= filters.maxDownPayment!);
+      result = result.filter((t) => {
+        const area = parseFloat(t.size || "0");
+        return area <= filters.maxArea!;
+      });
     }
 
     return result;
-  }, [properties, filters, priceRange, areaRange, deliveryRange, downPaymentRange]);
+  }, [typologies, filters, priceRange, areaRange]);
 
-  const filteredProperties = useMemo(() => {
-    let result = sliderFilteredProperties;
+  const filteredTypologies = useMemo(() => {
+    let result = sliderFilteredTypologies;
 
     if (filters.bedrooms && filters.bedrooms.length > 0) {
-      result = result.filter((p) => filters.bedrooms!.includes(p.bedrooms));
-    }
-    if (filters.bathrooms && filters.bathrooms.length > 0) {
-      result = result.filter((p) => filters.bathrooms!.includes(p.bathrooms));
+      result = result.filter((t) => t.bedrooms !== null && filters.bedrooms!.includes(t.bedrooms));
     }
     if (filters.city) {
-      result = result.filter((p) => p.city === filters.city);
+      result = result.filter((t) => t.city === filters.city);
     }
     if (filters.zone) {
-      result = result.filter((p) => p.zone === filters.zone);
+      result = result.filter((t) => t.zone === filters.zone);
     }
 
     return result;
-  }, [sliderFilteredProperties, filters]);
+  }, [sliderFilteredTypologies, filters]);
+
+  const bedroomOptions = useMemo(() => {
+    const beds = new Set<number>();
+    typologies.forEach(t => {
+      if (t.bedrooms !== null && t.bedrooms !== undefined) {
+        beds.add(t.bedrooms);
+      }
+    });
+    return Array.from(beds).sort((a, b) => a - b);
+  }, [typologies]);
 
   const clearFilters = () => {
     setFilters({});
@@ -193,12 +181,18 @@ export default function Properties() {
                     Inicio
                   </Button>
                 </Link>
+                {isConnected && (
+                  <Badge variant="outline" className="text-white/70 border-white/30 gap-1">
+                    <Wifi className="w-3 h-3" />
+                    En vivo
+                  </Badge>
+                )}
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-white" data-testid="text-page-title">
                 Todos los Departamentos
               </h1>
               <p className="text-white/70 mt-1" data-testid="text-results-count">
-                {filteredProperties.length} {filteredProperties.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
+                {filteredTypologies.length} {filteredTypologies.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -211,7 +205,7 @@ export default function Properties() {
 
       <section className="sticky top-0 z-40 bg-card border-b shadow-sm py-4">
         <div className="container mx-auto px-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 Precio: {formatPrice(filters.minPrice || priceRange.min)} - {formatPrice(filters.maxPrice || priceRange.max)}
@@ -243,102 +237,63 @@ export default function Properties() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Entrega: {filters.minDeliveryMonths ?? deliveryRange.min} - {filters.maxDeliveryMonths ?? deliveryRange.max} meses
-              </Label>
-              <Slider
-                value={[filters.minDeliveryMonths ?? deliveryRange.min, filters.maxDeliveryMonths ?? deliveryRange.max]}
-                min={deliveryRange.min}
-                max={deliveryRange.max}
-                step={DELIVERY_STEP}
-                onValueChange={([min, max]) => setFilters(prev => ({ ...prev, minDeliveryMonths: min, maxDeliveryMonths: max }))}
-                className="py-2"
-                data-testid="slider-delivery"
-              />
+              <Label className="text-sm font-medium">Ciudad</Label>
+              <Select 
+                value={filters.city || ""} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, city: value || undefined, zone: undefined }))}
+              >
+                <SelectTrigger data-testid="select-city">
+                  <SelectValue placeholder="Todas las ciudades" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas las ciudades</SelectItem>
+                  {CITIES.map((city) => (
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Enganche: {filters.minDownPayment ?? downPaymentRange.min} - {filters.maxDownPayment ?? downPaymentRange.max}%
-              </Label>
-              <Slider
-                value={[filters.minDownPayment ?? downPaymentRange.min, filters.maxDownPayment ?? downPaymentRange.max]}
-                min={downPaymentRange.min}
-                max={downPaymentRange.max}
-                step={DOWN_PAYMENT_STEP}
-                onValueChange={([min, max]) => setFilters(prev => ({ ...prev, minDownPayment: min, maxDownPayment: max }))}
-                className="py-2"
-                data-testid="slider-downpayment"
-              />
+              <Label className="text-sm font-medium">Zona</Label>
+              <Select 
+                value={filters.zone || ""} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value || undefined }))}
+              >
+                <SelectTrigger data-testid="select-zone">
+                  <SelectValue placeholder="Todas las zonas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas las zonas</SelectItem>
+                  {availableZones.map((zone) => (
+                    <SelectItem key={zone} value={zone}>{zone}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {hasActiveFilters && (
-              <Button 
-                variant="outline" 
-                onClick={clearFilters}
-                className="gap-1"
-                data-testid="button-clear-filters"
-              >
-                <X className="w-4 h-4" />
-                Limpiar
-              </Button>
+              <div>
+                <Button 
+                  variant="outline" 
+                  onClick={clearFilters}
+                  className="w-full gap-2"
+                  data-testid="button-clear-filters"
+                >
+                  <X className="w-4 h-4" />
+                  Limpiar filtros
+                </Button>
+              </div>
             )}
           </div>
 
-          <div className="bg-muted rounded-lg p-4 space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="font-semibold text-sm">Ciudades:</span>
-              <div className="flex flex-wrap gap-2">
-                {CITIES.map((city) => {
-                  const isSelected = filters.city === city;
-                  const count = sliderFilteredProperties.filter(p => p.city === city).length;
-                  const isDisabled = count === 0 && !isSelected;
-                  return (
-                    <Button
-                      key={city}
-                      size="sm"
-                      variant={isSelected ? "default" : "outline"}
-                      onClick={() => setFilters(prev => ({
-                        ...prev,
-                        city: isSelected ? undefined : city,
-                        zone: undefined
-                      }))}
-                      className={count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}
-                      disabled={isDisabled}
-                      data-testid={`btn-city-${city}`}
-                    >
-                      {city} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
-                    </Button>
-                  );
-                })}
-              </div>
-              {filters.city && (
-                <>
-                  <span className="font-semibold text-sm ml-4">Zona:</span>
-                  <Select
-                    value={filters.zone || "all"}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
-                  >
-                    <SelectTrigger className="w-40" data-testid="select-zone">
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {availableZones.map((zone) => (
-                        <SelectItem key={zone} value={zone}>{zone}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
-
+          <div className="border-t pt-4">
             <div className="flex flex-wrap items-center gap-3">
               <span className="font-semibold text-sm">Recámaras:</span>
               <div className="flex flex-wrap gap-2">
-                {BEDROOM_OPTIONS.map((option) => {
+                {bedroomOptions.map((option) => {
                   const isSelected = filters.bedrooms?.includes(option) || false;
-                  const count = sliderFilteredProperties.filter(p => p.bedrooms === option).length;
+                  const count = sliderFilteredTypologies.filter(t => t.bedrooms === option).length;
                   const isDisabled = count === 0 && !isSelected;
                   return (
                     <Button
@@ -365,45 +320,12 @@ export default function Properties() {
                 })}
               </div>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="font-semibold text-sm">Baños:</span>
-              <div className="flex flex-wrap gap-2">
-                {BATHROOM_OPTIONS.map((option) => {
-                  const isSelected = filters.bathrooms?.includes(option) || false;
-                  const count = sliderFilteredProperties.filter(p => p.bathrooms === option).length;
-                  const isDisabled = count === 0 && !isSelected;
-                  return (
-                    <Button
-                      key={option}
-                      size="sm"
-                      variant={isSelected ? "default" : "outline"}
-                      onClick={() => {
-                        setFilters(prev => {
-                          const current = prev.bathrooms || [];
-                          if (isSelected) {
-                            return { ...prev, bathrooms: current.filter(b => b !== option) };
-                          } else {
-                            return { ...prev, bathrooms: [...current, option] };
-                          }
-                        });
-                      }}
-                      className={count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}
-                      disabled={isDisabled}
-                      data-testid={`btn-bath-${option}`}
-                    >
-                      {option} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       <main className="container mx-auto px-4 py-12">
-        <PropertyGrid properties={filteredProperties} isLoading={isLoading} />
+        <TypologyGrid typologies={filteredTypologies} isLoading={isLoading} />
       </main>
 
       <footer className="border-t bg-card">

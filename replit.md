@@ -174,6 +174,13 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Typologies as Primary Data Source for Public Pages**: Critical architecture change where public pages (home.tsx, properties.tsx) now use typologies instead of properties table:
+  - Created `/api/public/typologies` endpoint (no auth) returning only active typologies (active=true)
+  - New `usePublicTypologies` hook with WebSocket integration for real-time updates
+  - TypologyGrid and TypologyCard components for displaying apartment listings
+  - Filters work with typology fields: size (m²), finalPrice/price, bedrooms, city, zone
+  - Live badge shows "En vivo" when WebSocket connected for real-time sync
+  - Admin Excel spreadsheet changes instantly reflect on public apartment listings
 - **Excel-Style Column Filters**: Complete redesign of typology spreadsheet filters:
   - Each column header is a clickable dropdown with filter options
   - Sort options: A-Z / Z-A for text columns, menor a mayor / mayor a menor for numeric columns
