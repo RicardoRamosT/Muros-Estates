@@ -11,8 +11,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import type { Property, PropertyFilter, ContactFormInput } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, getZonesByCity } from "@shared/constants";
-import { Search, X, Send, Loader2, Phone, Mail, User } from "lucide-react";
+import { Search, X, Send, Loader2, Phone, Mail, User, Building2, MapPin, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import heroImage1 from "@assets/stock_images/modern_luxury_apartm_2088b0db.jpg";
+import heroImage2 from "@assets/stock_images/modern_luxury_apartm_93f36c98.jpg";
+import heroImage3 from "@assets/stock_images/modern_luxury_apartm_f001d689.jpg";
+import buildingImage1 from "@assets/stock_images/luxury_apartment_bui_f72ea198.jpg";
+import buildingImage2 from "@assets/stock_images/luxury_apartment_bui_ef09dbeb.jpg";
 
 const MIN_PRICE = 1000000;
 const MAX_PRICE = 50000000;
@@ -161,39 +166,111 @@ export default function Home() {
     contactMutation.mutate(contactForm);
   };
 
-  const featuredImages = properties.slice(0, 3).map(p => p.images[0]).filter(Boolean);
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <section className="bg-background py-12 lg:py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+      <section className="relative min-h-[85vh] flex items-center">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroImage1})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-                  Analicemos mejores opciones de inversión en{" "}
-                  <span className="text-primary">México</span>...
+              <div className="space-y-4">
+                <span className="inline-block px-4 py-2 bg-secondary/20 text-secondary rounded-full text-sm font-medium border border-secondary/30">
+                  Expertos en Desarrollos Inmobiliarios
+                </span>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                  Tu próximo hogar o inversión en{" "}
+                  <span className="text-secondary">México</span>
                 </h1>
-                <p className="mt-4 text-lg text-muted-foreground">
-                  Déjanos tus datos y un asesor especializado te contactará
+                <p className="text-xl text-gray-300 max-w-lg">
+                  Encuentra los mejores departamentos en desarrollos de primera calidad. 
+                  Asesoría personalizada sin costo.
                 </p>
               </div>
 
-              <Card className="border-primary/20">
-                <CardContent className="pt-6">
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-3 text-white/90">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">+50</p>
+                    <p className="text-sm text-gray-400">Desarrollos</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-white/90">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">2 Ciudades</p>
+                    <p className="text-sm text-gray-400">MTY y CDMX</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-white/90">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">100%</p>
+                    <p className="text-sm text-gray-400">Verificados</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hidden lg:grid grid-cols-3 gap-3 pt-4">
+                <div className="relative aspect-[4/3] rounded-lg overflow-hidden group">
+                  <img
+                    src={heroImage2}
+                    alt="Interior de departamento de lujo"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+                <div className="relative aspect-[4/3] rounded-lg overflow-hidden group">
+                  <img
+                    src={heroImage3}
+                    alt="Sala moderna de departamento"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+                <div className="relative aspect-[4/3] rounded-lg overflow-hidden group">
+                  <img
+                    src={buildingImage1}
+                    alt="Edificio residencial moderno"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:pl-8">
+              <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+                <CardContent className="p-8">
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-foreground">Recibe asesoría gratuita</h2>
+                    <p className="text-muted-foreground mt-1">Un experto te contactará en menos de 24 horas</p>
+                  </div>
+                  
                   <form onSubmit={handleContactSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Nombre *</Label>
+                      <Label htmlFor="name" className="text-foreground">Nombre completo *</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           id="name"
-                          placeholder="Tu nombre completo"
+                          placeholder="¿Cómo te llamas?"
                           value={contactForm.name}
                           onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="pl-10 h-12"
+                          className="pl-11 h-12 bg-muted/50"
                           required
                           data-testid="input-contact-name"
                         />
@@ -201,16 +278,16 @@ export default function Home() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono *</Label>
+                      <Label htmlFor="phone" className="text-foreground">Teléfono *</Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           id="phone"
                           type="tel"
-                          placeholder="Tu número de teléfono"
+                          placeholder="10 dígitos"
                           value={contactForm.phone}
                           onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
-                          className="pl-10 h-12"
+                          className="pl-11 h-12 bg-muted/50"
                           required
                           data-testid="input-contact-phone"
                         />
@@ -218,33 +295,33 @@ export default function Home() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email (opcional)</Label>
+                      <Label htmlFor="email" className="text-foreground">Email (opcional)</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="tu@email.com"
                           value={contactForm.email}
                           onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                          className="pl-10 h-12"
+                          className="pl-11 h-12 bg-muted/50"
                           data-testid="input-contact-email"
                         />
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="interest">Interés</Label>
+                      <Label htmlFor="interest" className="text-foreground">¿Cuál es tu objetivo?</Label>
                       <Select
                         value={contactForm.interest}
                         onValueChange={(value) => setContactForm(prev => ({ ...prev, interest: value }))}
                       >
-                        <SelectTrigger className="h-12" data-testid="select-contact-interest">
-                          <SelectValue placeholder="¿Cuál es tu objetivo?" />
+                        <SelectTrigger className="h-12 bg-muted/50" data-testid="select-contact-interest">
+                          <SelectValue placeholder="Selecciona una opción" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="inversion">Inversión</SelectItem>
-                          <SelectItem value="vivienda">Vivienda</SelectItem>
+                          <SelectItem value="vivienda">Vivienda propia</SelectItem>
                           <SelectItem value="renta">Renta</SelectItem>
                         </SelectContent>
                       </Select>
@@ -253,7 +330,7 @@ export default function Home() {
                     <Button 
                       type="submit"
                       size="lg" 
-                      className="w-full h-12"
+                      className="w-full h-14 text-lg font-semibold mt-2"
                       disabled={contactMutation.isPending}
                       data-testid="button-contact-submit"
                     >
@@ -264,54 +341,19 @@ export default function Home() {
                       )}
                       Quiero que me contacten
                     </Button>
+                    
+                    <p className="text-xs text-center text-muted-foreground pt-2">
+                      Al enviar aceptas nuestro aviso de privacidad. Sin compromiso.
+                    </p>
                   </form>
                 </CardContent>
               </Card>
-            </div>
-
-            <div className="relative hidden lg:block">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-3">
-                  {featuredImages[0] && (
-                    <div className="relative aspect-[4/5] rounded-md overflow-hidden">
-                      <img
-                        src={featuredImages[0]}
-                        alt="Propiedad destacada"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-3 right-3 bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-medium">
-                        290+ Votos Positivos
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-3 pt-8">
-                  {featuredImages[1] && (
-                    <div className="relative aspect-square rounded-md overflow-hidden">
-                      <img
-                        src={featuredImages[1]}
-                        alt="Propiedad destacada"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  {featuredImages[2] && (
-                    <div className="relative aspect-square rounded-md overflow-hidden">
-                      <img
-                        src={featuredImages[2]}
-                        alt="Propiedad destacada"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-muted/50 py-8 border-y">
+      <section className="bg-muted/50 py-6 border-y sticky top-0 z-40 backdrop-blur-sm bg-background/95">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
@@ -403,13 +445,13 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+      <main className="container mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold" data-testid="text-results-title">
+            <h2 className="text-3xl font-bold" data-testid="text-results-title">
               Departamentos Disponibles
             </h2>
-            <p className="text-muted-foreground" data-testid="text-results-count">
+            <p className="text-muted-foreground mt-1" data-testid="text-results-count">
               {filteredProperties.length} {filteredProperties.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
             </p>
           </div>
@@ -418,7 +460,59 @@ export default function Home() {
         <PropertyGrid properties={filteredProperties} isLoading={isLoading} />
       </main>
 
-      <footer className="border-t bg-card mt-16">
+      <section className="bg-primary py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-white">
+                ¿Por qué elegir Muros?
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Desarrollos Verificados</h3>
+                    <p className="text-white/70">Trabajamos únicamente con desarrolladores certificados y proyectos de primera calidad.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Asesoría sin costo</h3>
+                    <p className="text-white/70">Nuestros expertos te guían en todo el proceso sin ningún cargo adicional.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Las mejores ubicaciones</h3>
+                    <p className="text-white/70">Propiedades en zonas de alto potencial de plusvalía en Monterrey y CDMX.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <img
+                src={buildingImage2}
+                alt="Edificio de departamentos moderno"
+                className="rounded-lg shadow-2xl"
+              />
+              <div className="absolute -bottom-6 -left-6 bg-secondary text-secondary-foreground p-6 rounded-lg shadow-xl">
+                <p className="text-3xl font-bold">+500</p>
+                <p className="text-sm">Clientes satisfechos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t bg-card">
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">

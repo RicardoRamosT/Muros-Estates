@@ -114,6 +114,9 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Professional Hero Redesign**: Full-width hero with luxury apartment background images, dark gradient overlay, statistics badges (+50 Desarrollos, 2 Ciudades, 100% Verificados), preview image gallery, and glass-effect contact form
+- **New "Why Choose Muros" Section**: Green-themed section with benefits and building imagery
+- **Sticky Filter Bar**: Filters now stick to top when scrolling for easy access
 - **Authentication System**: Implemented native username/password authentication with bcrypt, session management, and role-based access control
 - **Database Migration**: Migrated from in-memory storage to PostgreSQL with Drizzle ORM
 - **Lead Capture**: Added contact form in home page hero that creates client records in the database
