@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Header } from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -311,12 +312,14 @@ export default function AdminDocuments() {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">Documentos</h1>
-          <p className="text-muted-foreground">Gestiona los documentos para asesores y clientes</p>
-        </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="container mx-auto p-4 space-y-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold" data-testid="text-page-title">Documentos</h1>
+            <p className="text-muted-foreground">Gestiona los documentos para asesores y clientes</p>
+          </div>
         
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -575,6 +578,7 @@ export default function AdminDocuments() {
       )}
         </>
       )}
+      </div>
     </div>
   );
 }
