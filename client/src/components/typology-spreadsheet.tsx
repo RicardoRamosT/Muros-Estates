@@ -825,7 +825,9 @@ export function TypologySpreadsheet() {
   
   const getMergedRow = (row: Typology): Typology => {
     const pending = pendingChanges.get(row.id);
-    return pending ? { ...row, ...pending } as Typology : row;
+    const merged = pending ? { ...row, ...pending } : row;
+    const calculated = calculateFields(merged);
+    return { ...merged, ...calculated } as Typology;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;
