@@ -63,7 +63,7 @@ export function Header() {
         </div>
         
         <div className="flex items-center gap-2">
-          {isAuthenticated ? (
+          {isAuthenticated && isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2" data-testid="button-user-menu">
@@ -77,17 +77,8 @@ export function Header() {
                 </div>
                 <DropdownMenuSeparator />
                 
-                {!isAdmin && (
-                  <Link href="/admin">
-                    <DropdownMenuItem data-testid="menu-admin">
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
-                      Administración
-                    </DropdownMenuItem>
-                  </Link>
-                )}
-                
                 <div className="md:hidden">
-                  {isAdmin && visibleLinks.map((link) => {
+                  {visibleLinks.map((link) => {
                     const Icon = link.icon;
                     return (
                       <Link key={link.href} href={link.href}>
@@ -98,7 +89,7 @@ export function Header() {
                       </Link>
                     );
                   })}
-                  {isAdmin && <DropdownMenuSeparator />}
+                  <DropdownMenuSeparator />
                 </div>
                 
                 <Link href="/">
@@ -116,7 +107,7 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : null}
+          )}
         </div>
       </div>
     </header>
