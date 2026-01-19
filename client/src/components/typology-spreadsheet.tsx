@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
@@ -594,6 +593,35 @@ export function TypologySpreadsheet() {
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
   const wsRef = useRef<WebSocket | null>(null);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+  
+  const syncScrollFromTop = useCallback(() => {
+    if (topScrollRef.current && contentScrollRef.current) {
+      contentScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  }, []);
+  
+  const syncScrollFromContent = useCallback(() => {
+    if (topScrollRef.current && contentScrollRef.current) {
+      topScrollRef.current.scrollLeft = contentScrollRef.current.scrollLeft;
+    }
+  }, []);
+  
+  useEffect(() => {
+    const updateWidth = () => {
+      if (contentScrollRef.current) {
+        setContentWidth(contentScrollRef.current.scrollWidth);
+      }
+    };
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    if (contentScrollRef.current) {
+      observer.observe(contentScrollRef.current);
+    }
+    return () => observer.disconnect();
+  }, [expandedSections]);
   
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
@@ -857,7 +885,20 @@ export function TypologySpreadsheet() {
         </div>
       </div>
       
-      <ScrollArea className="flex-1">
+      <div 
+        ref={topScrollRef}
+        onScroll={syncScrollFromTop}
+        className="overflow-x-auto overflow-y-hidden border-b bg-muted/30"
+        style={{ height: "12px" }}
+      >
+        <div style={{ width: contentWidth, height: "1px" }} />
+      </div>
+      
+      <div 
+        ref={contentScrollRef}
+        onScroll={syncScrollFromContent}
+        className="flex-1 overflow-auto"
+      >
         <div className="min-w-max">
           <div className="sticky top-0 z-20 flex bg-background border-b">
             <div className="w-12 flex-shrink-0 border-r bg-muted/50" />
@@ -970,8 +1011,7 @@ export function TypologySpreadsheet() {
             </div>
           )}
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      </div>
     </div>
   );
 }
