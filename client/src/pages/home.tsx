@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BEDROOM_OPTIONS, BATHROOM_OPTIONS } from "@shared/schema";
 import type { Property, PropertyFilter } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, getZonesByCity } from "@shared/constants";
-import { Search, X, Building2, MapPin, Shield, ArrowRight, Star, CheckCircle } from "lucide-react";
+import { Search, X, Building2, MapPin, Shield, ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
 import heroImage1 from "@assets/stock_images/modern_luxury_apartm_2088b0db.jpg";
 import heroImage2 from "@assets/stock_images/modern_luxury_apartm_93f36c98.jpg";
@@ -222,11 +222,6 @@ export default function Home() {
         
         <div className="container mx-auto px-4 relative z-10 py-20">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center gap-2 bg-secondary/20 backdrop-blur-sm text-secondary px-4 py-2 rounded-full text-sm font-medium">
-              <Star className="w-4 h-4" />
-              La plataforma #1 en desarrollos inmobiliarios
-            </div>
-            
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
               Encuentra tu{" "}
               <span className="text-secondary">departamento ideal</span>
