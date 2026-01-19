@@ -35,6 +35,18 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
   - Delivery date and value proposition
 - **Development Assignments**: Links asesores to developments
 - **Client Follow-ups**: Tracks asesor interactions with clients
+- **Typologies**: Excel-like spreadsheet for property unit data with 50+ fields organized in 10 sections:
+  - Generales: City, Zone, Developer, Development, Type, Level, View
+  - Precio: Size (m²), Price, Discount%, Discount Amount, Final Price (calc), Price/m² (calc)
+  - Distribución: Bedrooms, Flex, Bathrooms, Living/Dining/Kitchen, Balcony, Terrace, Laundry, Service, Parking, Storage
+  - Esquema de Pago: Initial%, Initial Amount, Construction%, Monthly Payment, Down Payment%, Remaining, Delivery Date
+  - Gastos Post-Entrega: ISA%, Notary, Equipment, Furniture, Total (calc)
+  - Crédito Hipotecario: Amount, Start Date, Years, Interest%, Monthly Payment, End Date, Total (calc)
+  - Mantenimiento: $/m², Initial, Date, Total (calc)
+  - Renta: Initial, Start/End Dates, Rate%, Final, Months, Total (calc)
+  - Inversión: Total, Net, Monthly, Rate (all calculated)
+  - Plusvalía: Rate%, Days, Years, Months, Total Years, Total, Final Value (calc)
+  - Cap/Promo: Capital Semilla (Seed Capital), Promo flags
 
 ### User Roles and Permissions
 - **Admin**: Full access, creates all user types, manages everything
@@ -94,6 +106,7 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 - `/admin` - Dashboard with statistics and property management table
 - `/admin/properties/new` - Create new property form with visual amenity selector
 - `/admin/properties/:id` - Edit existing property form
+- `/admin/tipologias` - Excel-like spreadsheet for managing typologies with real-time sync
 
 ## API Endpoints
 
@@ -132,6 +145,16 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 - `POST /api/upload` - Upload images and videos (multipart/form-data)
 - `GET /uploads/:filename` - Serve uploaded files with security headers
 
+### Typologies (Admin/Actualizador)
+- `GET /api/typologies` - List all typologies
+- `GET /api/typologies/:id` - Get single typology
+- `POST /api/typologies` - Create typology
+- `PUT /api/typologies/:id` - Update typology (broadcasts via WebSocket)
+- `DELETE /api/typologies/:id` - Delete typology (admin only)
+
+### WebSocket
+- `ws://host/ws` - Real-time typology updates (create/update/delete broadcasts)
+
 ## Brand Colors (Muros)
 - **Primary**: Medium Blue (#0C83C6) - HSL: 202 89% 41%
 - **Secondary**: Golden/Orange (#FFB549) - HSL: 43 76% 53%
@@ -150,6 +173,15 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Typologies Spreadsheet**: New Excel-like interface at /admin/tipologias with:
+  - 50+ editable fields organized in 10 collapsible sections
+  - Inline editing for text, numbers, dropdowns, checkboxes, and dates
+  - Automatic calculated fields (Precio Final, Precio/M², totals, mortgage, investment metrics)
+  - Column filters for each field
+  - Real-time WebSocket synchronization between multiple users
+  - Role-based access (admin, actualizador)
+- **WebSocket Server**: Native ws library integration for real-time typology updates
+- **Enhanced Header Navigation**: Role-based admin navigation with Dashboard, Tipologías, and Usuarios links
 - **Ver Más Feature**: Home page now shows only 4 properties with a "Ver Más Departamentos" button that navigates to a dedicated /propiedades page preserving active filters in URL
 - **Dedicated Properties Page**: New /propiedades route with full property listing and all filters (city, zone, bedrooms, price, area, delivery, down payment)
 - **Delivery Time Filter**: New "Entrega" slider filters properties by delivery timeline in 3-month increments (trimestres: 0-36 meses)
