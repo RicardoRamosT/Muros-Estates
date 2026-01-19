@@ -174,6 +174,12 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Individual Typology Media System**: Migrated media from development-based to typology-based architecture:
+  - Each typology row now has its own dedicated image/video section instead of sharing by development
+  - Schema: `development_media` table uses required `typologyId` foreign key (cascade delete), removed deprecated `development`/`developer` columns
+  - API: GET/POST `/api/development-media` now use `typologyId` parameter
+  - UI: Media uploader displays all individual typologies (27+ rows) with media count badges per row
+  - Upload/delete functionality operates at the individual typology level
 - **Typologies as Primary Data Source for Public Pages**: Critical architecture change where public pages (home.tsx, properties.tsx) now use typologies instead of properties table:
   - Created `/api/public/typologies` endpoint (no auth) returning only active typologies (active=true)
   - New `usePublicTypologies` hook with WebSocket integration for real-time updates
