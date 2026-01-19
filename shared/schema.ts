@@ -3,15 +3,81 @@ import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb } f
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Permission structure for each section: { view: boolean, edit: boolean }
+// Field-level permissions: which fields a user can edit
+export const fieldPermissionsSchema = z.record(z.string(), z.boolean()).optional();
+
+// Permission structure for each section: { view, edit, fields (optional) }
+export const sectionPermissionSchema = z.object({
+  view: z.boolean(),
+  edit: z.boolean(),
+  fields: fieldPermissionsSchema,
+});
+
 export const permissionsSchema = z.object({
-  propiedades: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
-  desarrollos: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
-  clientes: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
-  usuarios: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
+  propiedades: sectionPermissionSchema.optional(),
+  desarrollos: sectionPermissionSchema.optional(),
+  clientes: sectionPermissionSchema.optional(),
+  usuarios: sectionPermissionSchema.optional(),
 }).optional();
 
 export type UserPermissions = z.infer<typeof permissionsSchema>;
+export type FieldPermissions = z.infer<typeof fieldPermissionsSchema>;
+
+// Editable fields per section (for UI and validation)
+export const EDITABLE_FIELDS = {
+  propiedades: [
+    { key: "title", label: "Título" },
+    { key: "description", label: "Descripción" },
+    { key: "price", label: "Precio" },
+    { key: "city", label: "Ciudad" },
+    { key: "zone", label: "Zona" },
+    { key: "developer", label: "Desarrollador" },
+    { key: "developmentName", label: "Nombre del desarrollo" },
+    { key: "developmentType", label: "Tipo de desarrollo" },
+    { key: "address", label: "Dirección" },
+    { key: "bedrooms", label: "Recámaras" },
+    { key: "bathrooms", label: "Baños" },
+    { key: "area", label: "Área (m²)" },
+    { key: "floor", label: "Piso" },
+    { key: "parking", label: "Estacionamientos" },
+    { key: "deliveryDate", label: "Fecha de entrega" },
+    { key: "status", label: "Estado" },
+    { key: "featured", label: "Destacado" },
+    { key: "images", label: "Imágenes" },
+    { key: "videos", label: "Videos" },
+    { key: "amenities", label: "Amenidades" },
+    { key: "efficiency", label: "Eficiencia" },
+    { key: "otherFeatures", label: "Otras características" },
+    { key: "value", label: "Propuesta de valor" },
+  ],
+  desarrollos: [
+    { key: "developer", label: "Desarrollador" },
+    { key: "developmentName", label: "Nombre" },
+    { key: "developmentType", label: "Tipo" },
+    { key: "city", label: "Ciudad" },
+    { key: "zone", label: "Zona" },
+  ],
+  clientes: [
+    { key: "name", label: "Nombre" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Teléfono" },
+    { key: "interest", label: "Interés" },
+    { key: "notes", label: "Notas" },
+    { key: "status", label: "Estado" },
+    { key: "source", label: "Origen" },
+    { key: "assignedTo", label: "Asignado a" },
+    { key: "developmentInterest", label: "Desarrollo de interés" },
+  ],
+  usuarios: [
+    { key: "name", label: "Nombre" },
+    { key: "username", label: "Usuario" },
+    { key: "email", label: "Email" },
+    { key: "password", label: "Contraseña" },
+    { key: "role", label: "Rol" },
+    { key: "active", label: "Activo" },
+    { key: "permissions", label: "Permisos" },
+  ],
+} as const;
 
 // User roles: admin, perfilador, asesor, actualizador
 export const users = pgTable("users", {
