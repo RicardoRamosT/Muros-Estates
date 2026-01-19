@@ -451,11 +451,12 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
 
-// Development Media - images and videos for developments (shown on public pages)
+// Development Media - images and videos for typologies (shown on public pages)
 export const developmentMedia = pgTable("development_media", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  development: text("development").notNull(), // Development name (from DEVELOPMENTS constant)
-  developer: text("developer").notNull(), // Developer name (from DEVELOPERS constant)
+  typologyId: varchar("typology_id").references(() => typologies.id, { onDelete: "cascade" }), // Link to specific typology
+  development: text("development"), // Development name (legacy, optional)
+  developer: text("developer"), // Developer name (legacy, optional)
   type: text("type").notNull(), // "image" or "video"
   url: text("url").notNull(), // File path/URL
   order: integer("order").default(0), // Display order
