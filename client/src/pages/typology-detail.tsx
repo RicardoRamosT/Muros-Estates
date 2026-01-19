@@ -245,15 +245,6 @@ export default function TypologyDetail() {
                       <span>Entrega: {typology.deliveryDate}</span>
                     </div>
                   )}
-
-                  <div className="pt-4 border-t space-y-3">
-                    <Button className="w-full" size="lg" data-testid="button-contact">
-                      Solicitar información
-                    </Button>
-                    <p className="text-xs text-center text-muted-foreground">
-                      Un asesor te contactará en breve
-                    </p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -277,7 +268,13 @@ export default function TypologyDetail() {
         </div>
       </footer>
 
-      <FloatingContactForm />
+      <FloatingContactForm 
+        showInterestButton={true}
+        propertyInterest={{
+          title: title,
+          developmentName: `${typology.developer} - ${typology.zone}, ${typology.city}`
+        }}
+      />
     </div>
   );
 }
