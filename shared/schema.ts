@@ -217,6 +217,118 @@ export const insertClientFollowUpSchema = createInsertSchema(clientFollowUps).om
 export type InsertClientFollowUp = z.infer<typeof insertClientFollowUpSchema>;
 export type ClientFollowUp = typeof clientFollowUps.$inferSelect;
 
+// Typologies (Excel-like spreadsheet for property units)
+export const typologies = pgTable("typologies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // GENERALES
+  city: text("city").notNull(),
+  zone: text("zone").notNull(),
+  developer: text("developer").notNull(),
+  development: text("development").notNull(),
+  type: text("type"), // Tipo (e.g., A, B, C)
+  level: integer("level"), // Nivel/Piso
+  view: text("view"), // Vista (Norte, Sur, Este, Oeste)
+  
+  // PRECIO
+  size: decimal("size", { precision: 10, scale: 2 }), // Tamaño m²
+  price: decimal("price", { precision: 14, scale: 2 }), // Precio base
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // Bonc% / Descuento %
+  discountAmount: decimal("discount_amount", { precision: 14, scale: 2 }), // Monto descuento
+  finalPrice: decimal("final_price", { precision: 14, scale: 2 }), // Precio Final (calculado)
+  pricePerM2: decimal("price_per_m2", { precision: 12, scale: 2 }), // Precio/M² (calculado)
+  
+  // DISTRIBUCIÓN
+  bedrooms: integer("bedrooms"),
+  flex: integer("flex"),
+  bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }),
+  livingRoom: boolean("living_room").default(true), // Sala
+  diningRoom: boolean("dining_room").default(true), // Comedor
+  kitchen: boolean("kitchen").default(true), // Cocina
+  balcony: decimal("balcony", { precision: 5, scale: 2 }), // Balcón m²
+  terrace: decimal("terrace", { precision: 5, scale: 2 }), // Terraza m²
+  laundry: boolean("laundry").default(false), // Lavandería
+  serviceRoom: boolean("service_room").default(false), // Cuarto de servicio
+  parkingSpots: integer("parking_spots").default(1), // Cajones
+  storage: boolean("storage").default(false), // Bodega
+  
+  // ESQUEMA DE PAGO
+  initialPercent: decimal("initial_percent", { precision: 5, scale: 2 }), // Inicial %
+  initialAmount: decimal("initial_amount", { precision: 14, scale: 2 }), // Monto Inicial
+  duringConstructionPercent: decimal("during_construction_percent", { precision: 5, scale: 2 }), // En Plazo %
+  duringConstructionAmount: decimal("during_construction_amount", { precision: 14, scale: 2 }), // Monto Plazo
+  paymentMonths: integer("payment_months"), // Meses
+  monthlyPayment: decimal("monthly_payment", { precision: 12, scale: 2 }), // Mensualidad
+  downPaymentPercent: decimal("down_payment_percent", { precision: 5, scale: 2 }), // Enganche %
+  remainingAmount: decimal("remaining_amount", { precision: 14, scale: 2 }), // Resto
+  deliveryDate: text("delivery_date"), // Entrega
+  
+  // GASTOS DESPUÉS DE LA ENTREGA
+  isaPercent: decimal("isa_percent", { precision: 5, scale: 2 }), // ISA %
+  notaryFees: decimal("notary_fees", { precision: 12, scale: 2 }), // Notaría
+  equipmentCost: decimal("equipment_cost", { precision: 12, scale: 2 }), // Equipo
+  furnitureCost: decimal("furniture_cost", { precision: 12, scale: 2 }), // Muebles
+  totalPostDeliveryCosts: decimal("total_post_delivery_costs", { precision: 14, scale: 2 }), // Total (calculado)
+  
+  // CRÉDITO HIPOTECARIO
+  mortgageAmount: decimal("mortgage_amount", { precision: 14, scale: 2 }), // Monto
+  mortgageStartDate: text("mortgage_start_date"), // Inicia
+  mortgageYears: integer("mortgage_years"), // Años
+  mortgageMonthlyPayment: decimal("mortgage_monthly_payment", { precision: 12, scale: 2 }), // Mensualidad
+  mortgageEndDate: text("mortgage_end_date"), // Termina
+  mortgageTotal: decimal("mortgage_total", { precision: 14, scale: 2 }), // Total
+  mortgageInterestPercent: decimal("mortgage_interest_percent", { precision: 5, scale: 2 }), // Tasa %
+  
+  // MANTENIMIENTO
+  maintenanceM2: decimal("maintenance_m2", { precision: 10, scale: 2 }), // M²
+  maintenanceInitial: decimal("maintenance_initial", { precision: 12, scale: 2 }), // Inicial
+  maintenanceDate: text("maintenance_date"), // Fecha
+  maintenanceTotal: decimal("maintenance_total", { precision: 12, scale: 2 }), // Total
+  
+  // RENTA
+  rentInitial: decimal("rent_initial", { precision: 12, scale: 2 }), // Renta inicial
+  rentStartDate: text("rent_start_date"), // Fecha inicio
+  rentRatePercent: decimal("rent_rate_percent", { precision: 5, scale: 2 }), // Tasa anual %
+  rentFinal: decimal("rent_final", { precision: 12, scale: 2 }), // Renta final
+  rentEndDate: text("rent_end_date"), // Fecha fin
+  rentMonths: integer("rent_months"), // Meses
+  rentTotal: decimal("rent_total", { precision: 14, scale: 2 }), // Total renta
+  
+  // INVERSIÓN
+  investmentTotal: decimal("investment_total", { precision: 14, scale: 2 }), // Total inversión
+  investmentNet: decimal("investment_net", { precision: 14, scale: 2 }), // Neta
+  investmentMonthly: decimal("investment_monthly", { precision: 12, scale: 2 }), // Mensual
+  investmentRate: decimal("investment_rate", { precision: 5, scale: 2 }), // Tasa %
+  
+  // PLUSVALÍA
+  appreciationRate: decimal("appreciation_rate", { precision: 5, scale: 2 }), // Tasa plusvalía %
+  appreciationDays: integer("appreciation_days"), // Días
+  appreciationYears: integer("appreciation_years"), // Años
+  appreciationMonths: integer("appreciation_months"), // Meses adicionales
+  appreciationTotalYears: decimal("appreciation_total_years", { precision: 5, scale: 2 }), // Años totales
+  appreciationTotal: decimal("appreciation_total", { precision: 14, scale: 2 }), // Total plusvalía
+  finalValue: decimal("final_value", { precision: 14, scale: 2 }), // Monto Final
+  
+  // CAPITAL SEMILLA / PROMO
+  hasSeedCapital: boolean("has_seed_capital").default(false), // Capital Semilla
+  hasPromo: boolean("has_promo").default(false), // Promo
+  
+  // Meta
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: varchar("created_by").references(() => users.id),
+  updatedBy: varchar("updated_by").references(() => users.id),
+});
+
+export const insertTypologySchema = createInsertSchema(typologies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTypology = z.infer<typeof insertTypologySchema>;
+export type Typology = typeof typologies.$inferSelect;
+
 // Bedroom options for filter
 export const BEDROOM_OPTIONS = [
   "Loft",
