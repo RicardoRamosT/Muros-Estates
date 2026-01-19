@@ -41,6 +41,8 @@ const propertyFormSchema = z.object({
   floor: z.string().optional(),
   parking: z.string().optional(),
   deliveryDate: z.string().optional(),
+  deliveryMonths: z.string().optional(),
+  downPayment: z.string().optional(),
   status: z.string().min(1, "El estado es requerido"),
   featured: z.boolean().default(false),
   value: z.string().optional(),
@@ -92,6 +94,8 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
       floor: property?.floor?.toString() || "",
       parking: property?.parking?.toString() || "",
       deliveryDate: property?.deliveryDate || "",
+      deliveryMonths: property?.deliveryMonths?.toString() || "",
+      downPayment: property?.downPayment?.toString() || "",
       status: property?.status || "available",
       featured: property?.featured || false,
       value: property?.value || "",
@@ -115,6 +119,8 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
       floor: data.floor ? parseInt(data.floor) : null,
       parking: data.parking ? parseInt(data.parking) : 0,
       deliveryDate: data.deliveryDate || null,
+      deliveryMonths: data.deliveryMonths ? parseInt(data.deliveryMonths) : null,
+      downPayment: data.downPayment ? parseInt(data.downPayment) : null,
       status: data.status,
       featured: data.featured,
       images: images,
@@ -425,6 +431,36 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
                     <FormControl>
                       <Input placeholder="ej. Diciembre 2025" {...field} data-testid="input-delivery-date" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="deliveryMonths"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Entrega (meses)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="ej. 6" min="0" step="3" {...field} data-testid="input-delivery-months" />
+                    </FormControl>
+                    <FormDescription>Meses hasta la entrega (en trimestres: 3, 6, 9...)</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="downPayment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Enganche (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="ej. 10" min="5" max="100" step="5" {...field} data-testid="input-down-payment" />
+                    </FormControl>
+                    <FormDescription>Porcentaje de enganche (incrementos de 5%)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
