@@ -173,11 +173,20 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Excel-Style Column Filters**: Complete redesign of typology spreadsheet filters:
+  - Each column header is a clickable dropdown with filter options
+  - Sort options: A-Z / Z-A for text columns, menor a mayor / mayor a menor for numeric columns
+  - Search box to filter values within the dropdown
+  - Checkbox list showing all unique values from the data (e.g., Monterrey, CDMX for Ciudad)
+  - "(Seleccionar todo)" option for bulk select/deselect
+  - Visual indicator (highlighted header) when filter is active
+  - Filter count badge and "Limpiar filtros" button in toolbar
+  - Values sorted appropriately (alphabetically for text, numerically for numbers)
 - **Typologies Spreadsheet**: New Excel-like interface at /admin/tipologias with:
   - 50+ editable fields organized in 10 collapsible sections
   - Inline editing for text, numbers, dropdowns, checkboxes, and dates
   - Automatic calculated fields (Precio Final, Precio/M², totals, mortgage, investment metrics)
-  - Column filters for each field
+  - Excel-style column filters with sort, search, and value checkboxes
   - Real-time WebSocket synchronization between multiple users
   - Role-based access (admin, actualizador)
 - **WebSocket Server**: Native ws library integration for real-time typology updates
