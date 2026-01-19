@@ -19,29 +19,47 @@ import heroImage3 from "@assets/stock_images/modern_luxury_apartm_f001d689.jpg";
 import buildingImage1 from "@assets/stock_images/luxury_apartment_bui_f72ea198.jpg";
 import buildingImage2 from "@assets/stock_images/luxury_apartment_bui_ef09dbeb.jpg";
 
-const MIN_PRICE = 1000000;
-const MAX_PRICE = 50000000;
-const MIN_AREA = 20;
-const MAX_AREA = 500;
+const DEFAULT_MIN_PRICE = 1000000;
+const DEFAULT_MAX_PRICE = 50000000;
+const DEFAULT_MIN_AREA = 20;
+const DEFAULT_MAX_AREA = 500;
+const PRICE_STEP = 100000;
+const AREA_STEP = 5;
 
 export default function Home() {
   const { toast } = useToast();
-  const [filters, setFilters] = useState<PropertyFilter>({
-    minPrice: MIN_PRICE,
-    maxPrice: MAX_PRICE,
-    minArea: MIN_AREA,
-    maxArea: MAX_AREA,
+  
+  const { data: properties = [], isLoading } = useQuery<Property[]>({
+    queryKey: ["/api/properties"],
   });
+
+  const priceRange = useMemo(() => {
+    if (properties.length === 0) {
+      return { min: DEFAULT_MIN_PRICE, max: DEFAULT_MAX_PRICE };
+    }
+    const prices = properties.map(p => parseFloat(p.price));
+    const minPrice = Math.floor(Math.min(...prices) / PRICE_STEP) * PRICE_STEP;
+    const maxPrice = Math.ceil(Math.max(...prices) / PRICE_STEP) * PRICE_STEP;
+    return { min: minPrice, max: maxPrice };
+  }, [properties]);
+
+  const areaRange = useMemo(() => {
+    if (properties.length === 0) {
+      return { min: DEFAULT_MIN_AREA, max: DEFAULT_MAX_AREA };
+    }
+    const areas = properties.map(p => parseFloat(p.area));
+    const minArea = Math.floor(Math.min(...areas) / AREA_STEP) * AREA_STEP;
+    const maxArea = Math.ceil(Math.max(...areas) / AREA_STEP) * AREA_STEP;
+    return { min: minArea, max: maxArea };
+  }, [properties]);
+
+  const [filters, setFilters] = useState<PropertyFilter>({});
 
   const [contactForm, setContactForm] = useState<ContactFormInput>({
     name: "",
     phone: "",
     email: "",
     interest: "",
-  });
-
-  const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ["/api/properties"],
   });
 
   const contactMutation = useMutation({
@@ -75,19 +93,19 @@ export default function Home() {
   const filteredProperties = useMemo(() => {
     let result = properties;
 
-    if (filters.minPrice && filters.minPrice > MIN_PRICE) {
+    if (filters.minPrice && filters.minPrice > priceRange.min) {
       result = result.filter((p) => parseFloat(p.price) >= filters.minPrice!);
     }
-    if (filters.maxPrice && filters.maxPrice < MAX_PRICE) {
+    if (filters.maxPrice && filters.maxPrice < priceRange.max) {
       result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
     }
     if (filters.minBedrooms) {
       result = result.filter((p) => p.bedrooms >= filters.minBedrooms!);
     }
-    if (filters.minArea && filters.minArea > MIN_AREA) {
+    if (filters.minArea && filters.minArea > areaRange.min) {
       result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
     }
-    if (filters.maxArea && filters.maxArea < MAX_AREA) {
+    if (filters.maxArea && filters.maxArea < areaRange.max) {
       result = result.filter((p) => parseFloat(p.area) <= filters.maxArea!);
     }
     if (filters.city) {
@@ -102,15 +120,19 @@ export default function Home() {
       if (!a.featured && b.featured) return 1;
       return 0;
     });
-  }, [properties, filters]);
+  }, [properties, filters, priceRange, areaRange]);
 
-  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === 'minPrice' && value === MIN_PRICE) return false;
-    if (key === 'maxPrice' && value === MAX_PRICE) return false;
-    if (key === 'minArea' && value === MIN_AREA) return false;
-    if (key === 'maxArea' && value === MAX_AREA) return false;
-    return Boolean(value);
-  }).length;
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.minPrice && filters.minPrice > priceRange.min) count++;
+    if (filters.maxPrice && filters.maxPrice < priceRange.max) count++;
+    if (filters.minArea && filters.minArea > areaRange.min) count++;
+    if (filters.maxArea && filters.maxArea < areaRange.max) count++;
+    if (filters.minBedrooms) count++;
+    if (filters.city) count++;
+    if (filters.zone) count++;
+    return count;
+  }, [filters, priceRange, areaRange]);
 
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -145,12 +167,7 @@ export default function Home() {
   };
 
   const handleClearFilters = () => {
-    setFilters({
-      minPrice: MIN_PRICE,
-      maxPrice: MAX_PRICE,
-      minArea: MIN_AREA,
-      maxArea: MAX_AREA,
-    });
+    setFilters({});
   };
 
   const handleContactSubmit = (e: React.FormEvent) => {
@@ -384,19 +401,35 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-2 flex-1 min-w-[280px]">
               <span className="text-sm text-muted-foreground whitespace-nowrap">Precio:</span>
               <Slider
-                min={MIN_PRICE}
-                max={MAX_PRICE}
-                step={100000}
-                value={[filters.minPrice || MIN_PRICE, filters.maxPrice || MAX_PRICE]}
+                min={priceRange.min}
+                max={priceRange.max}
+                step={PRICE_STEP}
+                value={[filters.minPrice || priceRange.min, filters.maxPrice || priceRange.max]}
                 onValueChange={handlePriceChange}
                 className="flex-1"
                 data-testid="slider-price"
               />
               <span className="text-sm text-muted-foreground whitespace-nowrap">
-                {formatPrice(filters.minPrice || MIN_PRICE)} - {formatPrice(filters.maxPrice || MAX_PRICE)}
+                {formatPrice(filters.minPrice || priceRange.min)} - {formatPrice(filters.maxPrice || priceRange.max)}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 min-w-[200px]">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Tamaño:</span>
+              <Slider
+                min={areaRange.min}
+                max={areaRange.max}
+                step={AREA_STEP}
+                value={[filters.minArea || areaRange.min, filters.maxArea || areaRange.max]}
+                onValueChange={handleAreaChange}
+                className="flex-1 min-w-[100px]"
+                data-testid="slider-area"
+              />
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {filters.minArea || areaRange.min} - {filters.maxArea || areaRange.max} m²
               </span>
             </div>
 
