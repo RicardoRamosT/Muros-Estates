@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Trash2, Save, X, 
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
-  ArrowUp01, ArrowDown10, Filter, Check
+  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -592,6 +592,7 @@ export function TypologySpreadsheet() {
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -753,8 +754,11 @@ export function TypologySpreadsheet() {
   };
   
   const handleDeleteRow = (id: string) => {
-    if (confirm("¿Eliminar esta tipología?")) {
+    if (pendingDeleteId === id) {
       deleteMutation.mutate(id);
+      setPendingDeleteId(null);
+    } else {
+      setPendingDeleteId(id);
     }
   };
   
@@ -987,11 +991,20 @@ export function TypologySpreadsheet() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-destructive hover:text-destructive"
+                    className={cn(
+                      "h-6 w-6",
+                      pendingDeleteId === row.id 
+                        ? "text-amber-500 hover:text-amber-600" 
+                        : "text-destructive hover:text-destructive"
+                    )}
                     onClick={() => handleDeleteRow(row.id)}
                     data-testid={`button-delete-${row.id}`}
                   >
-                    <Trash2 className="w-3 h-3" />
+                    {pendingDeleteId === row.id ? (
+                      <CornerDownRight className="w-3 h-3" />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
                   </Button>
                 </div>
                 <div 
