@@ -128,8 +128,8 @@ export default function Home() {
     if (filters.maxPrice && filters.maxPrice < priceRange.max) {
       result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
     }
-    if (filters.minBedrooms) {
-      result = result.filter((p) => p.bedrooms >= filters.minBedrooms!);
+    if (filters.bedrooms) {
+      result = result.filter((p) => p.bedrooms === filters.bedrooms);
     }
     if (filters.minArea && filters.minArea > areaRange.min) {
       result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
@@ -173,7 +173,7 @@ export default function Home() {
     if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) count++;
     if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) count++;
     if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) count++;
-    if (filters.minBedrooms) count++;
+    if (filters.bedrooms) count++;
     if (filters.city) count++;
     if (filters.zone) count++;
     return count;
@@ -447,18 +447,23 @@ export default function Home() {
             )}
 
             <Select
-              value={filters.minBedrooms?.toString() || "all"}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, minBedrooms: value === "all" ? undefined : parseInt(value) }))}
+              value={filters.bedrooms || "all"}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value === "all" ? undefined : value }))}
             >
               <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-bedrooms">
                 <SelectValue placeholder="Recámaras" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="1">1+ Recámara</SelectItem>
-                <SelectItem value="2">2+ Recámaras</SelectItem>
-                <SelectItem value="3">3+ Recámaras</SelectItem>
-                <SelectItem value="4">4+ Recámaras</SelectItem>
+                <SelectItem value="Loft">Loft</SelectItem>
+                <SelectItem value="1">1</SelectItem>
+                <SelectItem value="1 +Flex">1 +Flex</SelectItem>
+                <SelectItem value="2">2</SelectItem>
+                <SelectItem value="2 +Flex">2 +Flex</SelectItem>
+                <SelectItem value="3">3</SelectItem>
+                <SelectItem value="3 +Flex">3 +Flex</SelectItem>
+                <SelectItem value="4">4</SelectItem>
+                <SelectItem value="4 +Flex">4 +Flex</SelectItem>
               </SelectContent>
             </Select>
 

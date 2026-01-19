@@ -98,7 +98,7 @@ export default function Properties() {
       if (searchParams.get("maxPrice")) initialFilters.maxPrice = parseInt(searchParams.get("maxPrice")!);
       if (searchParams.get("minArea")) initialFilters.minArea = parseInt(searchParams.get("minArea")!);
       if (searchParams.get("maxArea")) initialFilters.maxArea = parseInt(searchParams.get("maxArea")!);
-      if (searchParams.get("minBedrooms")) initialFilters.minBedrooms = parseInt(searchParams.get("minBedrooms")!);
+      if (searchParams.get("bedrooms")) initialFilters.bedrooms = searchParams.get("bedrooms")!;
       if (searchParams.get("minDeliveryMonths")) initialFilters.minDeliveryMonths = parseInt(searchParams.get("minDeliveryMonths")!);
       if (searchParams.get("maxDeliveryMonths")) initialFilters.maxDeliveryMonths = parseInt(searchParams.get("maxDeliveryMonths")!);
       if (searchParams.get("minDownPayment")) initialFilters.minDownPayment = parseInt(searchParams.get("minDownPayment")!);
@@ -143,8 +143,8 @@ export default function Properties() {
       result = result.filter((p) => p.zone === filters.zone);
     }
 
-    if (filters.minBedrooms) {
-      result = result.filter((p) => p.bedrooms >= filters.minBedrooms!);
+    if (filters.bedrooms) {
+      result = result.filter((p) => p.bedrooms === filters.bedrooms);
     }
 
     if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
@@ -252,18 +252,23 @@ export default function Properties() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Recámaras</Label>
               <Select
-                value={filters.minBedrooms?.toString() || "all"}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, minBedrooms: value === "all" ? undefined : parseInt(value) }))}
+                value={filters.bedrooms || "all"}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value === "all" ? undefined : value }))}
               >
                 <SelectTrigger data-testid="select-bedrooms">
                   <SelectValue placeholder="Cualquiera" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Cualquiera</SelectItem>
-                  <SelectItem value="1">1+</SelectItem>
-                  <SelectItem value="2">2+</SelectItem>
-                  <SelectItem value="3">3+</SelectItem>
-                  <SelectItem value="4">4+</SelectItem>
+                  <SelectItem value="Loft">Loft</SelectItem>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="1 +Flex">1 +Flex</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="2 +Flex">2 +Flex</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="3 +Flex">3 +Flex</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="4 +Flex">4 +Flex</SelectItem>
                 </SelectContent>
               </Select>
             </div>

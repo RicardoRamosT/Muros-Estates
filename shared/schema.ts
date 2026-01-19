@@ -155,7 +155,7 @@ export const properties = pgTable("properties", {
   developmentName: text("development_name").notNull(),
   developmentType: text("development_type").notNull(),
   address: text("address").notNull(),
-  bedrooms: integer("bedrooms").notNull(),
+  bedrooms: text("bedrooms").notNull(),
   bathrooms: integer("bathrooms").notNull(),
   area: decimal("area", { precision: 10, scale: 2 }).notNull(),
   floor: integer("floor"),
@@ -217,12 +217,26 @@ export const insertClientFollowUpSchema = createInsertSchema(clientFollowUps).om
 export type InsertClientFollowUp = z.infer<typeof insertClientFollowUpSchema>;
 export type ClientFollowUp = typeof clientFollowUps.$inferSelect;
 
+// Bedroom options for filter
+export const BEDROOM_OPTIONS = [
+  "Loft",
+  "1",
+  "1 +Flex",
+  "2",
+  "2 +Flex",
+  "3",
+  "3 +Flex",
+  "4",
+  "4 +Flex",
+] as const;
+
+export type BedroomType = typeof BEDROOM_OPTIONS[number];
+
 // Filter schemas
 export const propertyFilterSchema = z.object({
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
-  minBedrooms: z.number().optional(),
-  maxBedrooms: z.number().optional(),
+  bedrooms: z.string().optional(),
   minBathrooms: z.number().optional(),
   maxBathrooms: z.number().optional(),
   minArea: z.number().optional(),
