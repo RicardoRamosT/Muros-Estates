@@ -192,7 +192,7 @@ export default function Home() {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage1})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
