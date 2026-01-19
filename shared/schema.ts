@@ -3,20 +3,68 @@ import { pgTable, text, varchar, integer, decimal, boolean, timestamp } from "dr
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User roles: admin, perfilador, asesor, actualizador
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  name: text("name").notNull(),
+  email: text("email"),
+  role: text("role").notNull().default("asesor"),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Sessions for authentication
+export const sessions = pgTable("sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSessionSchema = createInsertSchema(sessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSession = z.infer<typeof insertSessionSchema>;
+export type Session = typeof sessions.$inferSelect;
+
+// Clients (leads) from contact form or manually created
+export const clients = pgTable("clients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone").notNull(),
+  interest: text("interest"),
+  notes: text("notes"),
+  status: text("status").notNull().default("nuevo"),
+  source: text("source").notNull().default("web"),
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  developmentInterest: text("development_interest"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clients.$inferSelect;
+
+// Properties (developments)
 export const properties = pgTable("properties", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -52,6 +100,42 @@ export const insertPropertySchema = createInsertSchema(properties).omit({
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
 export type Property = typeof properties.$inferSelect;
 
+// Development assignments (perfilador assigns developments to asesores)
+export const developmentAssignments = pgTable("development_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  developmentId: varchar("development_id").notNull().references(() => properties.id),
+  asesorId: varchar("asesor_id").notNull().references(() => users.id),
+  assignedBy: varchar("assigned_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDevelopmentAssignmentSchema = createInsertSchema(developmentAssignments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDevelopmentAssignment = z.infer<typeof insertDevelopmentAssignmentSchema>;
+export type DevelopmentAssignment = typeof developmentAssignments.$inferSelect;
+
+// Client follow-ups (asesor marks interest/status)
+export const clientFollowUps = pgTable("client_follow_ups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  action: text("action").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertClientFollowUpSchema = createInsertSchema(clientFollowUps).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertClientFollowUp = z.infer<typeof insertClientFollowUpSchema>;
+export type ClientFollowUp = typeof clientFollowUps.$inferSelect;
+
+// Filter schemas
 export const propertyFilterSchema = z.object({
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
@@ -70,3 +154,21 @@ export const propertyFilterSchema = z.object({
 });
 
 export type PropertyFilter = z.infer<typeof propertyFilterSchema>;
+
+// Login schema
+export const loginSchema = z.object({
+  username: z.string().min(1, "Usuario requerido"),
+  password: z.string().min(1, "Contraseña requerida"),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+
+// Contact form schema
+export const contactFormSchema = z.object({
+  name: z.string().min(1, "Nombre requerido"),
+  phone: z.string().min(10, "Teléfono debe tener al menos 10 dígitos"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  interest: z.string().optional(),
+});
+
+export type ContactFormInput = z.infer<typeof contactFormSchema>;

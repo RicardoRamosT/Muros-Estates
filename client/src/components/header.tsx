@@ -1,14 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Building2, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import logoPath from "@assets/logo_chico_1768777992425.jpg";
 
 export function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const isAdmin = location.startsWith("/admin");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -26,15 +24,6 @@ export function Header() {
               data-testid="nav-search"
             >
               Buscar Propiedades
-            </Button>
-          </Link>
-          <Link href="/admin">
-            <Button 
-              variant={isAdmin ? "secondary" : "ghost"} 
-              data-testid="nav-admin"
-            >
-              <Building2 className="w-4 h-4 mr-2" />
-              Administración
             </Button>
           </Link>
         </nav>
@@ -60,17 +49,6 @@ export function Header() {
               data-testid="mobile-nav-search"
             >
               Buscar Propiedades
-            </Button>
-          </Link>
-          <Link href="/admin">
-            <Button 
-              variant={isAdmin ? "secondary" : "ghost"} 
-              className="w-full justify-start"
-              onClick={() => setMobileMenuOpen(false)}
-              data-testid="mobile-nav-admin"
-            >
-              <Building2 className="w-4 h-4 mr-2" />
-              Administración
             </Button>
           </Link>
         </div>

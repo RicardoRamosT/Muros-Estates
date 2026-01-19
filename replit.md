@@ -1,24 +1,29 @@
 # Muros - Plataforma Inmobiliaria
 
 ## Overview
-Muros is a Spanish (Mexico) real estate web platform for a company specializing exclusively in apartment developments (departamentos). The platform features an administrative dashboard for managing listings with comprehensive apartment-specific details and a public-facing search interface with advanced filtering capabilities. Design follows Zillow/Airbnb inspiration with Muros brand identity.
+Muros is a Spanish (Mexico) real estate web platform for a company specializing exclusively in apartment developments (departamentos). The platform features an administrative dashboard for managing listings and clients with role-based access control, and a public-facing interface with a lead capture form and property search. Design follows Zillow/Airbnb inspiration with Muros brand identity.
 
 ## Architecture
 
 ### Frontend (React + TypeScript)
 - **Framework**: React with Vite
-- **Routing**: Wouter
+- **Routing**: Wouter with protected routes
 - **State Management**: TanStack React Query
+- **Authentication**: Custom AuthProvider with session token management
 - **UI Components**: Shadcn/UI with custom Muros brand theming
 - **Styling**: Tailwind CSS with custom design tokens
 - **Fonts**: Montserrat (headings), Open Sans (body)
 
 ### Backend (Express + TypeScript)
 - **Framework**: Express.js
-- **Storage**: In-memory storage with sample data
-- **API**: RESTful endpoints for property CRUD operations
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: bcrypt password hashing, session-based auth with Authorization header tokens
+- **API**: RESTful endpoints with role-based access control middleware
 
 ### Data Model
+- **Users**: Staff accounts with roles (admin, perfilador, asesor, actualizador)
+- **Sessions**: Authentication sessions with expiration
+- **Clients**: Leads from contact form (source: "web") or manually created (source: "manual")
 - **Properties**: Apartments with full details including:
   - Developer and Development information
   - City/Zone location (Monterrey with 18 zones, CDMX with 8 zones)
@@ -28,7 +33,14 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
   - 4 security/other features (Video Vigilancia, Accesos independientes, etc.)
   - Price, bedrooms, bathrooms, area, floor, parking
   - Delivery date and value proposition
-- **Users**: Basic user authentication schema (not implemented in MVP)
+- **Development Assignments**: Links asesores to developments
+- **Client Follow-ups**: Tracks asesor interactions with clients
+
+### User Roles and Permissions
+- **Admin**: Full access, creates all user types, manages everything
+- **Perfilador**: Assigns developments to asesores
+- **Asesor**: Views assigned clients/developments, marks client interest/follow-ups
+- **Actualizador**: Creates and edits property/development data
 
 ### Constants Structure (shared/constants.ts)
 - **Developers**: 13 developers (IDEI, PLATE, Create, Proyectos 9, Grupo Verzache, etc.)
@@ -43,20 +55,47 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 ## Pages
 
 ### Public Pages
-- `/` - Home page with hero section, city/zone cascading filters, property grid
+- `/` - Home page with lead capture form in hero, search filters, property grid
 - `/property/:id` - Property detail page with image gallery, amenity icons, contact info
+- `/login` - Admin login page
 
-### Admin Pages  
+### Admin Pages (Protected)
 - `/admin` - Dashboard with statistics and property management table
 - `/admin/properties/new` - Create new property form with visual amenity selector
 - `/admin/properties/:id` - Edit existing property form
 
 ## API Endpoints
-- `GET /api/properties` - Get all properties
-- `GET /api/properties/:id` - Get single property
-- `POST /api/properties` - Create property
-- `PUT /api/properties/:id` - Update property
-- `DELETE /api/properties/:id` - Delete property
+
+### Authentication (Public)
+- `POST /api/auth/login` - Login with username/password, returns session token
+- `POST /api/auth/logout` - Invalidate session
+- `GET /api/auth/me` - Get current user (requires auth)
+
+### Contact Form (Public)
+- `POST /api/contact` - Submit lead form, creates client record
+
+### Properties (Mixed)
+- `GET /api/properties` - Get all properties (public)
+- `GET /api/properties/:id` - Get single property (public)
+- `POST /api/properties` - Create property (admin, actualizador)
+- `PUT /api/properties/:id` - Update property (admin, actualizador)
+- `DELETE /api/properties/:id` - Delete property (admin only)
+
+### Clients (Protected)
+- `GET /api/clients` - List clients (admin, perfilador see all; asesor sees assigned)
+- `GET /api/clients/:id` - Get single client
+- `POST /api/clients` - Create client manually
+- `PUT /api/clients/:id` - Update client
+
+### Users (Admin Only)
+- `GET /api/users` - List all users
+- `POST /api/users` - Create user
+- `PUT /api/users/:id` - Update user
+
+### Assignments (Perfilador/Admin)
+- `GET /api/assignments` - List development assignments
+- `POST /api/assignments` - Assign development to asesor
+- `DELETE /api/assignments/:id` - Remove assignment
 
 ## Brand Colors (Muros)
 - **Primary**: Deep forest green (#1A4D2E) - HSL: 147 48% 21%
@@ -75,6 +114,15 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Authentication System**: Implemented native username/password authentication with bcrypt, session management, and role-based access control
+- **Database Migration**: Migrated from in-memory storage to PostgreSQL with Drizzle ORM
+- **Lead Capture**: Added contact form in home page hero that creates client records in the database
+- **Protected Routes**: Admin pages now require authentication, redirecting to login page
+- **API Security**: All protected endpoints use Authorization header with session tokens
+- **User Management**: Admin can create users with different roles (perfilador, asesor, actualizador)
+- **Admin Credentials**: Default admin account: username "admin", password "admin123"
+
+### Previous Changes
 - Comprehensive schema refactor: city/zone replaces location/state
 - Added developer, developmentName, developmentType fields
 - Added deliveryDate, efficiency, otherFeatures, value fields
