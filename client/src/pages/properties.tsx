@@ -239,14 +239,14 @@ export default function Properties() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Ciudad</Label>
               <Select 
-                value={filters.city || ""} 
-                onValueChange={(value) => setFilters(prev => ({ ...prev, city: value || undefined, zone: undefined }))}
+                value={filters.city || "all"} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, city: value === "all" ? undefined : value, zone: undefined }))}
               >
                 <SelectTrigger data-testid="select-city">
                   <SelectValue placeholder="Todas las ciudades" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las ciudades</SelectItem>
+                  <SelectItem value="all">Todas las ciudades</SelectItem>
                   {CITIES.map((city) => (
                     <SelectItem key={city} value={city}>{city}</SelectItem>
                   ))}
@@ -257,14 +257,14 @@ export default function Properties() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Zona</Label>
               <Select 
-                value={filters.zone || ""} 
-                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value || undefined }))}
+                value={filters.zone || "all"} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
               >
                 <SelectTrigger data-testid="select-zone">
                   <SelectValue placeholder="Todas las zonas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las zonas</SelectItem>
+                  <SelectItem value="all">Todas las zonas</SelectItem>
                   {availableZones.map((zone) => (
                     <SelectItem key={zone} value={zone}>{zone}</SelectItem>
                   ))}
