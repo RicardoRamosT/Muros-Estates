@@ -405,43 +405,41 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             />
           </div>
           
-          <ScrollArea className="max-h-48">
-            <div className="px-2 pb-2">
-              <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={handleSelectAll}
-                  data-testid={`select-all-${column.key}`}
-                />
-                <span className="text-sm font-medium">(Seleccionar todo)</span>
-              </label>
+          <div className="max-h-48 overflow-y-auto px-2 pb-2">
+            <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                data-testid={`select-all-${column.key}`}
+              />
+              <span className="text-sm font-medium">(Seleccionar todo)</span>
+            </label>
+            
+            {filteredValues.map((value) => {
+              const isChecked = selectedValues.size === 0 || selectedValues.has(value);
+              const displayValue = column.format ? formatValue(value, column.format) : value;
               
-              {filteredValues.map((value) => {
-                const isChecked = selectedValues.size === 0 || selectedValues.has(value);
-                const displayValue = column.format ? formatValue(value, column.format) : value;
-                
-                return (
-                  <label
-                    key={value}
-                    className="flex items-center gap-2 py-1 cursor-pointer hover:bg-muted px-1 rounded"
-                  >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => handleToggleValue(value)}
-                      data-testid={`filter-value-${column.key}-${value}`}
-                    />
-                    <span className="text-sm truncate">{displayValue}</span>
-                  </label>
-                );
-              })}
-              
-              {filteredValues.length === 0 && (
-                <p className="text-sm text-muted-foreground py-2 text-center">
-                  Sin resultados
-                </p>
-              )}
-            </div>
-          </ScrollArea>
+              return (
+                <label
+                  key={value}
+                  className="flex items-center gap-2 py-1 cursor-pointer hover:bg-muted px-1 rounded"
+                >
+                  <Checkbox
+                    checked={isChecked}
+                    onCheckedChange={() => handleToggleValue(value)}
+                    data-testid={`filter-value-${column.key}-${value}`}
+                  />
+                  <span className="text-sm truncate">{displayValue}</span>
+                </label>
+              );
+            })}
+            
+            {filteredValues.length === 0 && (
+              <p className="text-sm text-muted-foreground py-2 text-center">
+                Sin resultados
+              </p>
+            )}
+          </div>
           
           <div className="border-t p-2 flex justify-end gap-2">
             <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
