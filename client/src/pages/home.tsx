@@ -122,7 +122,7 @@ export default function Home() {
     return [...ZONES_MONTERREY, ...ZONES_CDMX];
   }, [filters.city]);
 
-  const filteredProperties = useMemo(() => {
+  const sliderFilteredProperties = useMemo(() => {
     let result = properties;
 
     if (filters.minPrice && filters.minPrice > priceRange.min) {
@@ -131,23 +131,11 @@ export default function Home() {
     if (filters.maxPrice && filters.maxPrice < priceRange.max) {
       result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
     }
-    if (filters.bedrooms && filters.bedrooms.length > 0) {
-      result = result.filter((p) => filters.bedrooms!.includes(p.bedrooms));
-    }
-    if (filters.bathrooms && filters.bathrooms.length > 0) {
-      result = result.filter((p) => filters.bathrooms!.includes(p.bathrooms));
-    }
     if (filters.minArea && filters.minArea > areaRange.min) {
       result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
     }
     if (filters.maxArea && filters.maxArea < areaRange.max) {
       result = result.filter((p) => parseFloat(p.area) <= filters.maxArea!);
-    }
-    if (filters.city) {
-      result = result.filter((p) => p.city === filters.city);
-    }
-    if (filters.zone) {
-      result = result.filter((p) => p.zone === filters.zone);
     }
     if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
       result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths >= filters.minDeliveryMonths!);
@@ -162,12 +150,31 @@ export default function Home() {
       result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment <= filters.maxDownPayment!);
     }
 
+    return result;
+  }, [properties, filters, priceRange, areaRange, deliveryRange, downPaymentRange]);
+
+  const filteredProperties = useMemo(() => {
+    let result = sliderFilteredProperties;
+
+    if (filters.bedrooms && filters.bedrooms.length > 0) {
+      result = result.filter((p) => filters.bedrooms!.includes(p.bedrooms));
+    }
+    if (filters.bathrooms && filters.bathrooms.length > 0) {
+      result = result.filter((p) => filters.bathrooms!.includes(p.bathrooms));
+    }
+    if (filters.city) {
+      result = result.filter((p) => p.city === filters.city);
+    }
+    if (filters.zone) {
+      result = result.filter((p) => p.zone === filters.zone);
+    }
+
     return result.sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
       return 0;
     });
-  }, [properties, filters, priceRange, areaRange]);
+  }, [sliderFilteredProperties, filters]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -409,119 +416,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-primary/95 py-6">
-        <div className="container mx-auto px-4">
+      <section className="bg-primary/95 py-4">
+        <div className="container mx-auto px-4 space-y-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Search className="w-5 h-5 text-secondary" />
               <span className="font-semibold text-white">Filtros:</span>
             </div>
             
-            <Select
-              value={filters.city || "all"}
-              onValueChange={(value) => handleCityChange(value === "all" ? "" : value)}
-            >
-              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-city">
-                <SelectValue placeholder="Ciudad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {CITIES.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {filters.city && (
-              <Select
-                value={filters.zone || "all"}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
-              >
-                <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-zone">
-                  <SelectValue placeholder="Zona" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {availableZones.map((zone) => (
-                    <SelectItem key={zone} value={zone}>
-                      {zone}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-40 bg-white/10 border-white/20 text-white hover:bg-white/20 justify-between" data-testid="select-bedrooms">
-                  {filters.bedrooms && filters.bedrooms.length > 0 
-                    ? `${filters.bedrooms.length} selec.` 
-                    : "Recámaras"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-3">
-                <div className="space-y-2">
-                  {BEDROOM_OPTIONS.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`bed-${option}`}
-                        checked={filters.bedrooms?.includes(option) || false}
-                        onCheckedChange={(checked) => {
-                          setFilters(prev => {
-                            const current = prev.bedrooms || [];
-                            if (checked) {
-                              return { ...prev, bedrooms: [...current, option] };
-                            } else {
-                              return { ...prev, bedrooms: current.filter(b => b !== option) };
-                            }
-                          });
-                        }}
-                        data-testid={`checkbox-bed-${option}`}
-                      />
-                      <label htmlFor={`bed-${option}`} className="text-sm cursor-pointer">{option}</label>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-40 bg-white/10 border-white/20 text-white hover:bg-white/20 justify-between" data-testid="select-bathrooms">
-                  {filters.bathrooms && filters.bathrooms.length > 0 
-                    ? `${filters.bathrooms.length} selec.` 
-                    : "Baños"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-3">
-                <div className="space-y-2">
-                  {BATHROOM_OPTIONS.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`bath-${option}`}
-                        checked={filters.bathrooms?.includes(option) || false}
-                        onCheckedChange={(checked) => {
-                          setFilters(prev => {
-                            const current = prev.bathrooms || [];
-                            if (checked) {
-                              return { ...prev, bathrooms: [...current, option] };
-                            } else {
-                              return { ...prev, bathrooms: current.filter(b => b !== option) };
-                            }
-                          });
-                        }}
-                        data-testid={`checkbox-bath-${option}`}
-                      />
-                      <label htmlFor={`bath-${option}`} className="text-sm cursor-pointer">{option}</label>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <div className="flex items-center gap-2 flex-1 min-w-[320px]">
+            <div className="flex items-center gap-2 flex-1 min-w-[280px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Precio:</span>
               <Slider
                 min={priceRange.min}
@@ -529,7 +432,7 @@ export default function Home() {
                 step={PRICE_STEP}
                 value={[filters.minPrice || priceRange.min, filters.maxPrice || priceRange.max]}
                 onValueChange={handlePriceChange}
-                className="flex-1 min-w-[120px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
+                className="flex-1 min-w-[100px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
                 data-testid="slider-price"
               />
               <span className="text-sm text-white/80 whitespace-nowrap">
@@ -537,7 +440,7 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 min-w-[220px]">
+            <div className="flex items-center gap-2 min-w-[200px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Tamaño:</span>
               <Slider
                 min={areaRange.min}
@@ -553,7 +456,7 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 min-w-[180px]">
+            <div className="flex items-center gap-2 min-w-[160px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Entrega:</span>
               <Slider
                 min={deliveryRange.min}
@@ -569,7 +472,7 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 min-w-[180px]">
+            <div className="flex items-center gap-2 min-w-[160px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Enganche:</span>
               <Slider
                 min={downPaymentRange.min}
@@ -595,6 +498,119 @@ export default function Home() {
               <X className="w-4 h-4 mr-1" />
               Limpiar
             </Button>
+          </div>
+
+          <div className="bg-white/10 rounded-lg p-4 space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-white text-sm">Ciudades:</span>
+              <div className="flex flex-wrap gap-2">
+                {CITIES.map((city) => {
+                  const isSelected = filters.city === city;
+                  const count = sliderFilteredProperties.filter(p => p.city === city).length;
+                  const isDisabled = count === 0 && !isSelected;
+                  return (
+                    <Button
+                      key={city}
+                      size="sm"
+                      variant={isSelected ? "secondary" : "outline"}
+                      onClick={() => handleCityChange(isSelected ? "" : city)}
+                      className={`${isSelected ? '' : 'bg-white/5 border-white/30 text-white hover:bg-white/20'} ${count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}`}
+                      disabled={isDisabled}
+                      data-testid={`btn-city-${city}`}
+                    >
+                      {city} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+              {filters.city && (
+                <>
+                  <span className="font-semibold text-white text-sm ml-4">Zona:</span>
+                  <Select
+                    value={filters.zone || "all"}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
+                  >
+                    <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-zone">
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {availableZones.map((zone) => (
+                        <SelectItem key={zone} value={zone}>
+                          {zone}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-white text-sm">Recámaras:</span>
+              <div className="flex flex-wrap gap-2">
+                {BEDROOM_OPTIONS.map((option) => {
+                  const isSelected = filters.bedrooms?.includes(option) || false;
+                  const count = sliderFilteredProperties.filter(p => p.bedrooms === option).length;
+                  const isDisabled = count === 0 && !isSelected;
+                  return (
+                    <Button
+                      key={option}
+                      size="sm"
+                      variant={isSelected ? "secondary" : "outline"}
+                      onClick={() => {
+                        setFilters(prev => {
+                          const current = prev.bedrooms || [];
+                          if (isSelected) {
+                            return { ...prev, bedrooms: current.filter(b => b !== option) };
+                          } else {
+                            return { ...prev, bedrooms: [...current, option] };
+                          }
+                        });
+                      }}
+                      className={`${isSelected ? '' : 'bg-white/5 border-white/30 text-white hover:bg-white/20'} ${count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}`}
+                      disabled={isDisabled}
+                      data-testid={`btn-bed-${option}`}
+                    >
+                      {option} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-white text-sm">Baños:</span>
+              <div className="flex flex-wrap gap-2">
+                {BATHROOM_OPTIONS.map((option) => {
+                  const isSelected = filters.bathrooms?.includes(option) || false;
+                  const count = sliderFilteredProperties.filter(p => p.bathrooms === option).length;
+                  const isDisabled = count === 0 && !isSelected;
+                  return (
+                    <Button
+                      key={option}
+                      size="sm"
+                      variant={isSelected ? "secondary" : "outline"}
+                      onClick={() => {
+                        setFilters(prev => {
+                          const current = prev.bathrooms || [];
+                          if (isSelected) {
+                            return { ...prev, bathrooms: current.filter(b => b !== option) };
+                          } else {
+                            return { ...prev, bathrooms: [...current, option] };
+                          }
+                        });
+                      }}
+                      className={`${isSelected ? '' : 'bg-white/5 border-white/30 text-white hover:bg-white/20'} ${count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}`}
+                      disabled={isDisabled}
+                      data-testid={`btn-bath-${option}`}
+                    >
+                      {option} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </section>

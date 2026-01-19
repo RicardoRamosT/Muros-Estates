@@ -120,32 +120,39 @@ export default function Properties() {
     return [...ZONES_MONTERREY, ...ZONES_CDMX];
   }, [filters.city]);
 
-  const filteredProperties = useMemo(() => {
+  const sliderFilteredProperties = useMemo(() => {
     let result = properties;
 
     if (filters.minPrice && filters.minPrice > priceRange.min) {
       result = result.filter((p) => parseFloat(p.price) >= filters.minPrice!);
     }
-
     if (filters.maxPrice && filters.maxPrice < priceRange.max) {
       result = result.filter((p) => parseFloat(p.price) <= filters.maxPrice!);
     }
-
     if (filters.minArea && filters.minArea > areaRange.min) {
       result = result.filter((p) => parseFloat(p.area) >= filters.minArea!);
     }
-
     if (filters.maxArea && filters.maxArea < areaRange.max) {
       result = result.filter((p) => parseFloat(p.area) <= filters.maxArea!);
     }
-
-    if (filters.city) {
-      result = result.filter((p) => p.city === filters.city);
+    if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
+      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths >= filters.minDeliveryMonths!);
+    }
+    if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) {
+      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths <= filters.maxDeliveryMonths!);
+    }
+    if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) {
+      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment >= filters.minDownPayment!);
+    }
+    if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) {
+      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment <= filters.maxDownPayment!);
     }
 
-    if (filters.zone) {
-      result = result.filter((p) => p.zone === filters.zone);
-    }
+    return result;
+  }, [properties, filters, priceRange, areaRange, deliveryRange, downPaymentRange]);
+
+  const filteredProperties = useMemo(() => {
+    let result = sliderFilteredProperties;
 
     if (filters.bedrooms && filters.bedrooms.length > 0) {
       result = result.filter((p) => filters.bedrooms!.includes(p.bedrooms));
@@ -153,25 +160,15 @@ export default function Properties() {
     if (filters.bathrooms && filters.bathrooms.length > 0) {
       result = result.filter((p) => filters.bathrooms!.includes(p.bathrooms));
     }
-
-    if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
-      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths >= filters.minDeliveryMonths!);
+    if (filters.city) {
+      result = result.filter((p) => p.city === filters.city);
     }
-
-    if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) {
-      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths <= filters.maxDeliveryMonths!);
-    }
-
-    if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) {
-      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment >= filters.minDownPayment!);
-    }
-
-    if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) {
-      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment <= filters.maxDownPayment!);
+    if (filters.zone) {
+      result = result.filter((p) => p.zone === filters.zone);
     }
 
     return result;
-  }, [properties, filters, priceRange, areaRange, deliveryRange, downPaymentRange]);
+  }, [sliderFilteredProperties, filters]);
 
   const clearFilters = () => {
     setFilters({});
@@ -212,124 +209,8 @@ export default function Properties() {
       </section>
 
       <section className="sticky top-0 z-40 bg-card border-b shadow-sm py-4">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Ciudad</Label>
-              <Select
-                value={filters.city || "all"}
-                onValueChange={(value) => {
-                  setFilters(prev => ({
-                    ...prev,
-                    city: value === "all" ? undefined : value,
-                    zone: undefined
-                  }));
-                }}
-              >
-                <SelectTrigger data-testid="select-city">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {CITIES.map((city) => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Zona</Label>
-              <Select
-                value={filters.zone || "all"}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
-              >
-                <SelectTrigger data-testid="select-zone">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {availableZones.map((zone) => (
-                    <SelectItem key={zone} value={zone}>{zone}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Recámaras</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between" data-testid="select-bedrooms">
-                    {filters.bedrooms && filters.bedrooms.length > 0 
-                      ? `${filters.bedrooms.length} seleccionadas` 
-                      : "Cualquiera"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-48 p-3">
-                  <div className="space-y-2">
-                    {BEDROOM_OPTIONS.map((option) => (
-                      <div key={option} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`prop-bed-${option}`}
-                          checked={filters.bedrooms?.includes(option) || false}
-                          onCheckedChange={(checked) => {
-                            setFilters(prev => {
-                              const current = prev.bedrooms || [];
-                              if (checked) {
-                                return { ...prev, bedrooms: [...current, option] };
-                              } else {
-                                return { ...prev, bedrooms: current.filter(b => b !== option) };
-                              }
-                            });
-                          }}
-                          data-testid={`checkbox-bed-${option}`}
-                        />
-                        <label htmlFor={`prop-bed-${option}`} className="text-sm cursor-pointer">{option}</label>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Baños</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between" data-testid="select-bathrooms">
-                    {filters.bathrooms && filters.bathrooms.length > 0 
-                      ? `${filters.bathrooms.length} seleccionados` 
-                      : "Cualquiera"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-48 p-3">
-                  <div className="space-y-2">
-                    {BATHROOM_OPTIONS.map((option) => (
-                      <div key={option} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`prop-bath-${option}`}
-                          checked={filters.bathrooms?.includes(option) || false}
-                          onCheckedChange={(checked) => {
-                            setFilters(prev => {
-                              const current = prev.bathrooms || [];
-                              if (checked) {
-                                return { ...prev, bathrooms: [...current, option] };
-                              } else {
-                                return { ...prev, bathrooms: current.filter(b => b !== option) };
-                              }
-                            });
-                          }}
-                          data-testid={`checkbox-bath-${option}`}
-                        />
-                        <label htmlFor={`prop-bath-${option}`} className="text-sm cursor-pointer">{option}</label>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 Precio: {formatPrice(filters.minPrice || priceRange.min)} - {formatPrice(filters.maxPrice || priceRange.max)}
@@ -401,6 +282,121 @@ export default function Properties() {
                 Limpiar
               </Button>
             )}
+          </div>
+
+          <div className="bg-muted rounded-lg p-4 space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-sm">Ciudades:</span>
+              <div className="flex flex-wrap gap-2">
+                {CITIES.map((city) => {
+                  const isSelected = filters.city === city;
+                  const count = sliderFilteredProperties.filter(p => p.city === city).length;
+                  const isDisabled = count === 0 && !isSelected;
+                  return (
+                    <Button
+                      key={city}
+                      size="sm"
+                      variant={isSelected ? "default" : "outline"}
+                      onClick={() => setFilters(prev => ({
+                        ...prev,
+                        city: isSelected ? undefined : city,
+                        zone: undefined
+                      }))}
+                      className={count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}
+                      disabled={isDisabled}
+                      data-testid={`btn-city-${city}`}
+                    >
+                      {city} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+              {filters.city && (
+                <>
+                  <span className="font-semibold text-sm ml-4">Zona:</span>
+                  <Select
+                    value={filters.zone || "all"}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
+                  >
+                    <SelectTrigger className="w-40" data-testid="select-zone">
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {availableZones.map((zone) => (
+                        <SelectItem key={zone} value={zone}>{zone}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-sm">Recámaras:</span>
+              <div className="flex flex-wrap gap-2">
+                {BEDROOM_OPTIONS.map((option) => {
+                  const isSelected = filters.bedrooms?.includes(option) || false;
+                  const count = sliderFilteredProperties.filter(p => p.bedrooms === option).length;
+                  const isDisabled = count === 0 && !isSelected;
+                  return (
+                    <Button
+                      key={option}
+                      size="sm"
+                      variant={isSelected ? "default" : "outline"}
+                      onClick={() => {
+                        setFilters(prev => {
+                          const current = prev.bedrooms || [];
+                          if (isSelected) {
+                            return { ...prev, bedrooms: current.filter(b => b !== option) };
+                          } else {
+                            return { ...prev, bedrooms: [...current, option] };
+                          }
+                        });
+                      }}
+                      className={count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}
+                      disabled={isDisabled}
+                      data-testid={`btn-bed-${option}`}
+                    >
+                      {option} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-semibold text-sm">Baños:</span>
+              <div className="flex flex-wrap gap-2">
+                {BATHROOM_OPTIONS.map((option) => {
+                  const isSelected = filters.bathrooms?.includes(option) || false;
+                  const count = sliderFilteredProperties.filter(p => p.bathrooms === option).length;
+                  const isDisabled = count === 0 && !isSelected;
+                  return (
+                    <Button
+                      key={option}
+                      size="sm"
+                      variant={isSelected ? "default" : "outline"}
+                      onClick={() => {
+                        setFilters(prev => {
+                          const current = prev.bathrooms || [];
+                          if (isSelected) {
+                            return { ...prev, bathrooms: current.filter(b => b !== option) };
+                          } else {
+                            return { ...prev, bathrooms: [...current, option] };
+                          }
+                        });
+                      }}
+                      className={count === 0 && !isSelected ? 'opacity-40 cursor-not-allowed' : ''}
+                      disabled={isDisabled}
+                      data-testid={`btn-bath-${option}`}
+                    >
+                      {option} {count > 0 && <span className="ml-1 text-xs opacity-70">({count})</span>}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </section>
