@@ -14,6 +14,7 @@ import PropertyEdit from "@/pages/admin/property-edit";
 import AdminUsers from "@/pages/admin/users";
 import AdminUserNew from "@/pages/admin/user-new";
 import AdminUserEdit from "@/pages/admin/user-edit";
+import AdminTypologies from "@/pages/admin/typologies";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ component: Component, allowedRoles }: { component: React.ComponentType; allowedRoles?: string[] }) {
@@ -59,6 +60,9 @@ function Router() {
       </Route>
       <Route path="/admin/users">
         {() => <ProtectedRoute component={AdminUsers} allowedRoles={["admin"]} />}
+      </Route>
+      <Route path="/admin/tipologias">
+        {() => <ProtectedRoute component={AdminTypologies} allowedRoles={["admin", "actualizador"]} />}
       </Route>
       <Route component={NotFound} />
     </Switch>
