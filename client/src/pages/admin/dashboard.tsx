@@ -134,56 +134,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Acceso Rápido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link href="/admin/tipologias">
-                <Card className="hover-elevate cursor-pointer">
-                  <CardContent className="flex items-center gap-4 py-6">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <TableProperties className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Tipologías</p>
-                      <p className="text-sm text-muted-foreground">Gestiona unidades y precios</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/admin/users">
-                <Card className="hover-elevate cursor-pointer">
-                  <CardContent className="flex items-center gap-4 py-6">
-                    <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-secondary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Usuarios</p>
-                      <p className="text-sm text-muted-foreground">Administra el equipo</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/">
-                <Card className="hover-elevate cursor-pointer">
-                  <CardContent className="flex items-center gap-4 py-6">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Ver Sitio</p>
-                      <p className="text-sm text-muted-foreground">Vista pública del sitio</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        
       </main>
     </div>
   );
