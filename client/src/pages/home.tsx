@@ -547,9 +547,6 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-results-title">
                 Departamentos Disponibles
               </h2>
-              <p className="text-white/70 mt-1" data-testid="text-results-count">
-                {filteredProperties.length} {filteredProperties.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
-              </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="bg-secondary rounded-xl px-6 py-3 text-center">
