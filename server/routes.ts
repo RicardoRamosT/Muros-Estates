@@ -4,6 +4,44 @@ import { storage } from "./storage";
 import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Configure multer for file uploads
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storageConfig = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
+  },
+});
+
+const upload = multer({
+  storage: storageConfig,
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit for videos
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
+    const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Tipo de archivo no permitido"));
+    }
+  },
+});
 
 declare global {
   namespace Express {
@@ -53,6 +91,33 @@ export async function registerRoutes(
   
   // Seed admin user on startup
   await seedAdminUser();
+  
+  // Serve uploaded files statically
+  app.use("/uploads", (req, res, next) => {
+    const filePath = path.join(uploadDir, req.path);
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).json({ error: "Archivo no encontrado" });
+    }
+  });
+  
+  // ============ FILE UPLOAD ROUTES ============
+  
+  app.post("/api/upload", requireAuth, requireRole("admin", "actualizador"), upload.array("files", 20), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No se enviaron archivos" });
+      }
+      
+      const urls = files.map(file => `/uploads/${file.filename}`);
+      res.json({ urls });
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      res.status(500).json({ error: "Error al subir archivos" });
+    }
+  });
   
   // ============ AUTH ROUTES ============
   
