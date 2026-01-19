@@ -359,6 +359,10 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <div className="flex flex-col">
+          <div className="px-3 py-2 border-b bg-muted/50">
+            <span className="text-sm font-semibold">{column.label}</span>
+            {column.calculated && <span className="text-xs text-muted-foreground ml-1">(calculado)</span>}
+          </div>
           <button
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left"
             onClick={() => { onSortChange("asc"); setOpen(false); }}
