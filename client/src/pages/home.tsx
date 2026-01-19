@@ -341,7 +341,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-primary/95 py-6 sticky top-0 z-40 backdrop-blur-sm shadow-lg">
+      <section className="bg-primary/95 py-6">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
