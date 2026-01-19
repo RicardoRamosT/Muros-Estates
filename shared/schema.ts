@@ -41,6 +41,8 @@ export const EDITABLE_FIELDS = {
     { key: "floor", label: "Piso" },
     { key: "parking", label: "Estacionamientos" },
     { key: "deliveryDate", label: "Fecha de entrega" },
+    { key: "deliveryMonths", label: "Entrega (meses)" },
+    { key: "downPayment", label: "Enganche (%)" },
     { key: "status", label: "Estado" },
     { key: "featured", label: "Destacado" },
     { key: "images", label: "Imágenes" },
@@ -159,6 +161,8 @@ export const properties = pgTable("properties", {
   floor: integer("floor"),
   parking: integer("parking").default(0),
   deliveryDate: text("delivery_date"),
+  deliveryMonths: integer("delivery_months"), // Months until delivery (for filtering)
+  downPayment: integer("down_payment"), // Down payment percentage (e.g., 10, 15, 20)
   status: text("status").notNull().default("available"),
   featured: boolean("featured").default(false),
   images: text("images").array().notNull(),
@@ -223,6 +227,10 @@ export const propertyFilterSchema = z.object({
   maxBathrooms: z.number().optional(),
   minArea: z.number().optional(),
   maxArea: z.number().optional(),
+  minDeliveryMonths: z.number().optional(),
+  maxDeliveryMonths: z.number().optional(),
+  minDownPayment: z.number().optional(),
+  maxDownPayment: z.number().optional(),
   city: z.string().optional(),
   zone: z.string().optional(),
   developer: z.string().optional(),
