@@ -11,7 +11,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import type { Property, PropertyFilter, ContactFormInput } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, getZonesByCity } from "@shared/constants";
-import { Search, X, Send, Loader2, Phone, Mail, User, Building2, MapPin, Shield } from "lucide-react";
+import { Search, X, Send, Loader2, Phone, Mail, User, Building2, MapPin, Shield, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import heroImage1 from "@assets/stock_images/modern_luxury_apartm_2088b0db.jpg";
 import heroImage2 from "@assets/stock_images/modern_luxury_apartm_93f36c98.jpg";
@@ -565,7 +566,24 @@ export default function Home() {
       </section>
 
       <main className="container mx-auto px-4 py-12">
-        <PropertyGrid properties={filteredProperties} isLoading={isLoading} />
+        <PropertyGrid properties={filteredProperties} isLoading={isLoading} limit={4} />
+        
+        {filteredProperties.length > 4 && (
+          <div className="flex justify-center mt-8">
+            <Link
+              href={`/propiedades?${new URLSearchParams(
+                Object.entries(filters)
+                  .filter(([_, v]) => v !== undefined && v !== null && v !== "")
+                  .map(([k, v]) => [k, String(v)])
+              ).toString()}`}
+            >
+              <Button size="lg" className="gap-2" data-testid="button-view-more">
+                Ver Más Departamentos
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+        )}
       </main>
 
       <section className="bg-primary py-16">

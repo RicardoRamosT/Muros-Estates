@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
+import Properties from "@/pages/properties";
 import PropertyDetail from "@/pages/property-detail";
 import Login from "@/pages/login";
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -41,6 +42,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/propiedades" component={Properties} />
       <Route path="/property/:id" component={PropertyDetail} />
       <Route path="/login" component={Login} />
       <Route path="/admin">

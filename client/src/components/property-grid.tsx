@@ -5,9 +5,11 @@ import { Building2, Loader2 } from "lucide-react";
 interface PropertyGridProps {
   properties: Property[];
   isLoading?: boolean;
+  limit?: number;
 }
 
-export function PropertyGrid({ properties, isLoading }: PropertyGridProps) {
+export function PropertyGrid({ properties, isLoading, limit }: PropertyGridProps) {
+  const displayProperties = limit ? properties.slice(0, limit) : properties;
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -17,7 +19,7 @@ export function PropertyGrid({ properties, isLoading }: PropertyGridProps) {
     );
   }
 
-  if (properties.length === 0) {
+  if (displayProperties.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center" data-testid="empty-state">
         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -32,8 +34,8 @@ export function PropertyGrid({ properties, isLoading }: PropertyGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" data-testid="property-grid">
-      {properties.map((property) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6" data-testid="property-grid">
+      {displayProperties.map((property) => (
         <PropertyCard key={property.id} property={property} />
       ))}
     </div>
