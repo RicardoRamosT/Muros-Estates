@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,18 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageCircle, X, Send, Loader2, User, Phone, Mail } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, User, Phone, Mail, Heart, Building2 } from "lucide-react";
 
-export function FloatingContactForm() {
-  const [isOpen, setIsOpen] = useState(true);
+interface FloatingContactFormProps {
+  propertyInterest?: {
+    title: string;
+    developmentName: string;
+  };
+  showInterestButton?: boolean;
+}
+
+export function FloatingContactForm({ propertyInterest, showInterestButton }: FloatingContactFormProps = {}) {
+  const [isOpen, setIsOpen] = useState(!showInterestButton);
   const { toast } = useToast();
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -24,6 +32,15 @@ export function FloatingContactForm() {
     email: "",
     interest: "",
   });
+
+  useEffect(() => {
+    if (propertyInterest && isOpen) {
+      setContactForm(prev => ({
+        ...prev,
+        interest: `Interesado en: ${propertyInterest.title} - ${propertyInterest.developmentName}`
+      }));
+    }
+  }, [propertyInterest, isOpen]);
 
   const contactMutation = useMutation({
     mutationFn: async (data: typeof contactForm) => {
@@ -73,14 +90,25 @@ export function FloatingContactForm() {
           className="rounded-full shadow-lg gap-2 px-6"
           data-testid="button-open-contact"
         >
-          <MessageCircle className="w-5 h-5" />
-          Asesoría Gratis
+          {showInterestButton ? (
+            <>
+              <Heart className="w-5 h-5" />
+              Me Interesa
+            </>
+          ) : (
+            <>
+              <MessageCircle className="w-5 h-5" />
+              Asesoría Gratis
+            </>
+          )}
         </Button>
       ) : (
         <Card className="w-72 shadow-2xl border-0 animate-in slide-in-from-bottom-4" data-testid="card-floating-contact">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-sm" data-testid="text-floating-title">Asesoría Gratuita</h3>
+              <h3 className="font-semibold text-sm" data-testid="text-floating-title">
+                {propertyInterest ? "¿Te interesa este departamento?" : "Asesoría Gratuita"}
+              </h3>
               <Button
                 variant="ghost"
                 size="icon"
@@ -91,6 +119,16 @@ export function FloatingContactForm() {
                 <X className="w-4 h-4" />
               </Button>
             </div>
+
+            {propertyInterest && (
+              <div className="bg-primary/10 rounded-lg p-2.5 mb-3 flex items-start gap-2">
+                <Building2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-medium text-xs truncate">{propertyInterest.title}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{propertyInterest.developmentName}</p>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="space-y-1">
@@ -142,22 +180,24 @@ export function FloatingContactForm() {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="float-interest" className="text-xs">Objetivo</Label>
-                <Select
-                  value={contactForm.interest}
-                  onValueChange={(value) => setContactForm(prev => ({ ...prev, interest: value }))}
-                >
-                  <SelectTrigger className="h-9 text-sm" data-testid="select-float-interest">
-                    <SelectValue placeholder="Selecciona" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inversion">Inversión</SelectItem>
-                    <SelectItem value="vivienda">Vivienda propia</SelectItem>
-                    <SelectItem value="renta">Renta</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {!propertyInterest && (
+                <div className="space-y-1">
+                  <Label htmlFor="float-interest" className="text-xs">Objetivo</Label>
+                  <Select
+                    value={contactForm.interest}
+                    onValueChange={(value) => setContactForm(prev => ({ ...prev, interest: value }))}
+                  >
+                    <SelectTrigger className="h-9 text-sm" data-testid="select-float-interest">
+                      <SelectValue placeholder="Selecciona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inversion">Inversión</SelectItem>
+                      <SelectItem value="vivienda">Vivienda propia</SelectItem>
+                      <SelectItem value="renta">Renta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <Button
                 type="submit"
@@ -171,7 +211,7 @@ export function FloatingContactForm() {
                 ) : (
                   <Send className="w-4 h-4 mr-1" />
                 )}
-                Enviar
+                {propertyInterest ? "Solicitar Información" : "Enviar"}
               </Button>
 
               <p className="text-[10px] text-center text-muted-foreground">

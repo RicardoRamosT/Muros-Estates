@@ -399,7 +399,15 @@ export default function PropertyDetail() {
         </div>
       </div>
 
-      <FloatingContactForm />
+      {property && (
+        <FloatingContactForm 
+          propertyInterest={{
+            title: property.title,
+            developmentName: property.developmentName
+          }}
+          showInterestButton={true}
+        />
+      )}
     </div>
   );
 }
