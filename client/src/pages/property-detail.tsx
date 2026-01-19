@@ -234,42 +234,42 @@ export default function PropertyDetail() {
                 <CardTitle>Características</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Bed className="w-6 h-6 text-primary" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Bed className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold" data-testid="text-bedrooms">{property.bedrooms}</p>
-                      <p className="text-sm text-muted-foreground">Recámaras</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Bath className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold" data-testid="text-bathrooms">{property.bathrooms}</p>
-                      <p className="text-sm text-muted-foreground">Baños</p>
+                    <div className="min-w-0">
+                      <p className="text-xl font-bold" data-testid="text-bedrooms">{property.bedrooms}</p>
+                      <p className="text-xs text-muted-foreground">Recámaras</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Maximize className="w-6 h-6 text-primary" />
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Bath className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold" data-testid="text-area">{formatArea(property.area)}</p>
-                      <p className="text-sm text-muted-foreground">Superficie</p>
+                    <div className="min-w-0">
+                      <p className="text-xl font-bold" data-testid="text-bathrooms">{property.bathrooms}</p>
+                      <p className="text-xs text-muted-foreground">Baños</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Maximize className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xl font-bold" data-testid="text-area">{formatArea(property.area)}</p>
+                      <p className="text-xs text-muted-foreground">Superficie</p>
                     </div>
                   </div>
                   {property.parking !== null && property.parking > 0 && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Car className="w-6 h-6 text-primary" />
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Car className="w-5 h-5 text-primary" />
                       </div>
-                      <div>
-                        <p className="text-2xl font-bold" data-testid="text-parking">{property.parking}</p>
-                        <p className="text-sm text-muted-foreground">Estacionamientos</p>
+                      <div className="min-w-0">
+                        <p className="text-xl font-bold" data-testid="text-parking">{property.parking}</p>
+                        <p className="text-xs text-muted-foreground">Estac.</p>
                       </div>
                     </div>
                   )}
@@ -277,29 +277,29 @@ export default function PropertyDetail() {
 
                 <Separator className="my-6" />
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tipo de Desarrollo</p>
-                      <p className="font-medium">{property.developmentType}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg border">
+                    <Building2 className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Tipo</p>
+                      <p className="font-medium text-sm truncate">{property.developmentType}</p>
                     </div>
                   </div>
                   {property.floor && (
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-5 h-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Piso</p>
-                        <p className="font-medium">{property.floor}</p>
+                    <div className="flex items-center gap-3 p-3 rounded-lg border">
+                      <Layers className="w-5 h-5 text-muted-foreground shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground">Piso</p>
+                        <p className="font-medium text-sm">{property.floor}</p>
                       </div>
                     </div>
                   )}
                   {property.deliveryDate && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Fecha de Entrega</p>
-                        <p className="font-medium">{property.deliveryDate}</p>
+                    <div className="flex items-center gap-3 p-3 rounded-lg border">
+                      <Calendar className="w-5 h-5 text-muted-foreground shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground">Entrega</p>
+                        <p className="font-medium text-sm">{property.deliveryDate}</p>
                       </div>
                     </div>
                   )}
