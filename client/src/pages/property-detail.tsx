@@ -1,11 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { Property } from "@shared/schema";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import type { Property, ContactFormInput } from "@shared/schema";
 import { AMENITIES, getAmenityById } from "@shared/constants";
 import { 
   ArrowLeft, 
@@ -23,13 +27,42 @@ import {
   Heart,
   Loader2,
   Zap,
-  Shield
+  Shield,
+  Send,
+  User
 } from "lucide-react";
 import { useState } from "react";
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
+  const { toast } = useToast();
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+  });
+
+  const contactMutation = useMutation({
+    mutationFn: async (data: ContactFormInput) => {
+      const res = await apiRequest("POST", "/api/contact", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Solicitud enviada",
+        description: "Un asesor te contactará pronto sobre esta propiedad.",
+      });
+      setContactForm({ name: "", phone: "", email: "" });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error al enviar la solicitud",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data: property, isLoading, error } = useQuery<Property>({
     queryKey: [`/api/properties/${id}`],
@@ -376,31 +409,108 @@ export default function PropertyDetail() {
           <div className="space-y-6">
             <Card className="sticky top-20">
               <CardHeader>
-                <CardTitle>Contactar Asesor</CardTitle>
+                <CardTitle>¿Te interesa este departamento?</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  ¿Interesado en esta propiedad? Contáctanos para agendar una visita o recibir más información.
-                </p>
+              <CardContent>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!contactForm.name || !contactForm.phone) {
+                      toast({
+                        title: "Campos requeridos",
+                        description: "Por favor ingresa tu nombre y teléfono",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    contactMutation.mutate({
+                      ...contactForm,
+                      interest: `Interesado en: ${property.title} - ${property.developmentName}`,
+                    });
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-name">Nombre completo *</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="contact-name"
+                        placeholder="Tu nombre"
+                        className="pl-10"
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                        data-testid="input-contact-name"
+                      />
+                    </div>
+                  </div>
 
-                <div className="space-y-3">
-                  <Button className="w-full" size="lg" data-testid="button-call">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Llamar Ahora
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-phone">Teléfono *</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="contact-phone"
+                        type="tel"
+                        placeholder="81 1234 5678"
+                        className="pl-10"
+                        value={contactForm.phone}
+                        onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
+                        data-testid="input-contact-phone"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-email">Correo electrónico</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        placeholder="tu@email.com"
+                        className="pl-10"
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                        data-testid="input-contact-email"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Desarrollo de interés:</p>
+                    <p className="font-medium text-sm">{property.developmentName}</p>
+                    <p className="text-xs text-muted-foreground">{property.developer}</p>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={contactMutation.isPending}
+                    data-testid="button-submit-contact"
+                  >
+                    {contactMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Solicitar Información
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" className="w-full" size="lg" data-testid="button-email">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Enviar Mensaje
-                  </Button>
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Oficina Principal</p>
-                  <p className="font-medium">81.2139.1200</p>
-                  <p className="text-sm text-muted-foreground">Lun - Vie: 9:00 - 18:00</p>
-                </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-1">¿Prefieres llamar?</p>
+                    <p className="font-medium">81.2139.1200</p>
+                    <p className="text-xs text-muted-foreground">Lun - Vie: 9:00 - 18:00</p>
+                  </div>
+                </form>
               </CardContent>
             </Card>
 
