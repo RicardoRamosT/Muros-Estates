@@ -36,6 +36,7 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 - **Development Assignments**: Links asesores to developments
 - **Client Follow-ups**: Tracks asesor interactions with clients
 - **Typologies**: Excel-like spreadsheet for property unit data with 50+ fields organized in 10 sections:
+  - Fixed columns: # (row ID 1,2,3...), Activo (Sí/No status badge)
   - Generales: City, Zone, Developer, Development, Type, Level, View
   - Precio: Size (m²), Price, Discount%, Discount Amount, Final Price (calc), Price/m² (calc)
   - Distribución: Bedrooms, Flex, Bathrooms, Living/Dining/Kitchen, Balcony, Terrace, Laundry, Service, Parking, Storage

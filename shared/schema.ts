@@ -328,6 +328,9 @@ export const typologies = pgTable("typologies", {
   hasSeedCapital: boolean("has_seed_capital").default(false), // Capital Semilla
   hasPromo: boolean("has_promo").default(false), // Promo
   
+  // ESTADO
+  active: boolean("active").default(true), // Si el desarrollo está activo
+  
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

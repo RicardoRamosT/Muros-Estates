@@ -911,6 +911,12 @@ export function TypologySpreadsheet() {
         <div className="min-w-max">
           <div className="sticky top-0 z-20 flex bg-background border-b">
             <div className="w-12 flex-shrink-0 border-r bg-muted/50" />
+            <div className="w-12 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
+              <span className="text-xs font-medium text-muted-foreground">#</span>
+            </div>
+            <div className="w-16 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
+              <span className="text-xs font-medium text-muted-foreground">Activo</span>
+            </div>
             
             {SECTIONS.map((section) => (
               <Collapsible
@@ -985,6 +991,29 @@ export function TypologySpreadsheet() {
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
+                </div>
+                <div 
+                  className="w-12 flex-shrink-0 border-r flex items-center justify-center text-sm text-muted-foreground"
+                  data-testid={`cell-index-${row.id}`}
+                >
+                  {rowIndex + 1}
+                </div>
+                <div 
+                  className="w-16 flex-shrink-0 border-r flex items-center justify-center"
+                  data-testid={`cell-active-${row.id}`}
+                >
+                  <button
+                    onClick={() => handleCellChange(row.id, "active", mergedRow.active === false)}
+                    className={cn(
+                      "text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover-elevate transition-colors",
+                      mergedRow.active !== false 
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    )}
+                    data-testid={`toggle-active-${row.id}`}
+                  >
+                    {mergedRow.active !== false ? "Sí" : "No"}
+                  </button>
                 </div>
                 
                 {SECTIONS.map((section) => (
