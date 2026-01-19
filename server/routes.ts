@@ -1,12 +1,26 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
-import type { User } from "@shared/schema";
+import type { User, Typology } from "@shared/schema";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { WebSocketServer, WebSocket } from "ws";
+
+// WebSocket clients set for real-time updates
+const wsClients = new Set<WebSocket>();
+
+// Broadcast typology update to all connected clients
+function broadcastTypologyUpdate(action: "create" | "update" | "delete", typology: Typology | { id: string }) {
+  const message = JSON.stringify({ type: "typology", action, data: typology });
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -107,6 +121,24 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  // Set up WebSocket server for real-time typology updates
+  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+  
+  wss.on("connection", (ws) => {
+    console.log("WebSocket client connected");
+    wsClients.add(ws);
+    
+    ws.on("close", () => {
+      console.log("WebSocket client disconnected");
+      wsClients.delete(ws);
+    });
+    
+    ws.on("error", (error) => {
+      console.error("WebSocket error:", error);
+      wsClients.delete(ws);
+    });
+  });
   
   // Seed admin user on startup
   await seedAdminUser();
@@ -579,6 +611,104 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching asesores:", error);
       res.status(500).json({ error: "Error al obtener asesores" });
+    }
+  });
+  
+  // ============ TYPOLOGY ROUTES (Admin, Actualizador) ============
+  
+  app.get("/api/typologies", requireAuth, requireRole("admin", "actualizador", "asesor"), async (req, res) => {
+    try {
+      const typologies = await storage.getAllTypologies();
+      res.json(typologies);
+    } catch (error) {
+      console.error("Error fetching typologies:", error);
+      res.status(500).json({ error: "Error al obtener tipologías" });
+    }
+  });
+  
+  app.get("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador", "asesor"), async (req, res) => {
+    try {
+      const typology = await storage.getTypology(req.params.id as string);
+      if (!typology) {
+        return res.status(404).json({ error: "Tipología no encontrada" });
+      }
+      res.json(typology);
+    } catch (error) {
+      console.error("Error fetching typology:", error);
+      res.status(500).json({ error: "Error al obtener tipología" });
+    }
+  });
+  
+  app.post("/api/typologies", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const validationResult = insertTypologySchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Datos inválidos", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const typologyData = {
+        ...validationResult.data,
+        createdBy: req.user!.id,
+        updatedBy: req.user!.id,
+      };
+      
+      const typology = await storage.createTypology(typologyData);
+      
+      // Broadcast to all connected clients
+      broadcastTypologyUpdate("create", typology);
+      
+      res.status(201).json(typology);
+    } catch (error) {
+      console.error("Error creating typology:", error);
+      res.status(500).json({ error: "Error al crear tipología" });
+    }
+  });
+  
+  app.put("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      
+      const updateData = {
+        ...req.body,
+        updatedBy: req.user!.id,
+      };
+      
+      const typology = await storage.updateTypology(id, updateData);
+      
+      if (!typology) {
+        return res.status(404).json({ error: "Tipología no encontrada" });
+      }
+      
+      // Broadcast to all connected clients
+      broadcastTypologyUpdate("update", typology);
+      
+      res.json(typology);
+    } catch (error) {
+      console.error("Error updating typology:", error);
+      res.status(500).json({ error: "Error al actualizar tipología" });
+    }
+  });
+  
+  app.delete("/api/typologies/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const deleted = await storage.deleteTypology(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Tipología no encontrada" });
+      }
+      
+      // Broadcast to all connected clients
+      broadcastTypologyUpdate("delete", { id });
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting typology:", error);
+      res.status(500).json({ error: "Error al eliminar tipología" });
     }
   });
 

@@ -4,7 +4,8 @@ import {
   clients, type Client, type InsertClient,
   sessions, type Session, type InsertSession,
   developmentAssignments, type DevelopmentAssignment, type InsertDevelopmentAssignment,
-  clientFollowUps, type ClientFollowUp, type InsertClientFollowUp
+  clientFollowUps, type ClientFollowUp, type InsertClientFollowUp,
+  typologies, type Typology, type InsertTypology
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -49,6 +50,13 @@ export interface IStorage {
   // Client Follow-ups
   createFollowUp(followUp: InsertClientFollowUp): Promise<ClientFollowUp>;
   getFollowUpsByClient(clientId: string): Promise<ClientFollowUp[]>;
+  
+  // Typologies
+  getAllTypologies(): Promise<Typology[]>;
+  getTypology(id: string): Promise<Typology | undefined>;
+  createTypology(typology: InsertTypology): Promise<Typology>;
+  updateTypology(id: string, typology: Partial<InsertTypology>): Promise<Typology | undefined>;
+  deleteTypology(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -210,6 +218,34 @@ export class DatabaseStorage implements IStorage {
 
   async getFollowUpsByClient(clientId: string): Promise<ClientFollowUp[]> {
     return db.select().from(clientFollowUps).where(eq(clientFollowUps.clientId, clientId)).orderBy(desc(clientFollowUps.createdAt));
+  }
+
+  // Typologies
+  async getAllTypologies(): Promise<Typology[]> {
+    return db.select().from(typologies).orderBy(desc(typologies.createdAt));
+  }
+
+  async getTypology(id: string): Promise<Typology | undefined> {
+    const [typology] = await db.select().from(typologies).where(eq(typologies.id, id));
+    return typology || undefined;
+  }
+
+  async createTypology(insertTypology: InsertTypology): Promise<Typology> {
+    const [typology] = await db.insert(typologies).values(insertTypology as any).returning();
+    return typology;
+  }
+
+  async updateTypology(id: string, typologyData: Partial<InsertTypology>): Promise<Typology | undefined> {
+    const [typology] = await db.update(typologies).set({
+      ...typologyData,
+      updatedAt: new Date(),
+    } as any).where(eq(typologies.id, id)).returning();
+    return typology || undefined;
+  }
+
+  async deleteTypology(id: string): Promise<boolean> {
+    await db.delete(typologies).where(eq(typologies.id, id));
+    return true;
   }
 }
 
