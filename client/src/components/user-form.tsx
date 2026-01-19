@@ -47,6 +47,7 @@ const userFormSchema = z.object({
     desarrollos: permissionSectionSchema,
     clientes: permissionSectionSchema,
     usuarios: permissionSectionSchema,
+    documentos: permissionSectionSchema,
   }),
 });
 
@@ -70,6 +71,7 @@ const SECTIONS = [
   { key: "desarrollos", label: "Desarrollos" },
   { key: "clientes", label: "Clientes" },
   { key: "usuarios", label: "Usuarios" },
+  { key: "documentos", label: "Documentos" },
 ] as const;
 
 type SectionKey = typeof SECTIONS[number]["key"];
@@ -165,6 +167,7 @@ export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps)
         desarrollos: getInitialSectionPermissions("desarrollos"),
         clientes: getInitialSectionPermissions("clientes"),
         usuarios: getInitialSectionPermissions("usuarios"),
+        documentos: getInitialSectionPermissions("documentos"),
       },
     },
   });
@@ -181,29 +184,26 @@ export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps)
   const toggleAllFieldsView = (sectionKey: SectionKey, value: boolean) => {
     const fields = EDITABLE_FIELDS[sectionKey];
     fields.forEach(field => {
-      const currentEdit = form.getValues(`permissions.${sectionKey}.fields.${field.key}.edit`) ?? true;
-      form.setValue(`permissions.${sectionKey}.fields.${field.key}`, { 
-        view: value, 
-        edit: value ? currentEdit : false 
-      });
+      const fieldPath = `permissions.${sectionKey}.fields.${field.key}` as const;
+      const currentEdit = (form.getValues(fieldPath as any) as FieldPermission | undefined)?.edit ?? true;
+      form.setValue(fieldPath as any, { view: value, edit: value ? currentEdit : false });
     });
   };
 
   const toggleAllFieldsEdit = (sectionKey: SectionKey, value: boolean) => {
     const fields = EDITABLE_FIELDS[sectionKey];
     fields.forEach(field => {
-      const currentView = form.getValues(`permissions.${sectionKey}.fields.${field.key}.view`) ?? true;
-      form.setValue(`permissions.${sectionKey}.fields.${field.key}`, { 
-        view: value ? true : currentView,
-        edit: value 
-      });
+      const fieldPath = `permissions.${sectionKey}.fields.${field.key}` as const;
+      const currentView = (form.getValues(fieldPath as any) as FieldPermission | undefined)?.view ?? true;
+      form.setValue(fieldPath as any, { view: value ? true : currentView, edit: value });
     });
   };
 
   const toggleAllFields = (sectionKey: SectionKey, viewValue: boolean, editValue: boolean) => {
     const fields = EDITABLE_FIELDS[sectionKey];
     fields.forEach(field => {
-      form.setValue(`permissions.${sectionKey}.fields.${field.key}`, { view: viewValue, edit: editValue });
+      const fieldPath = `permissions.${sectionKey}.fields.${field.key}` as const;
+      form.setValue(fieldPath as any, { view: viewValue, edit: editValue });
     });
   };
 
@@ -226,6 +226,10 @@ export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps)
         usuarios: {
           ...deriveSectionPermissions(data.permissions.usuarios.fields!),
           fields: data.permissions.usuarios.fields,
+        },
+        documentos: {
+          ...deriveSectionPermissions(data.permissions.documentos.fields!),
+          fields: data.permissions.documentos.fields,
         },
       },
     };

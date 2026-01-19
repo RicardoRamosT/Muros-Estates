@@ -23,6 +23,7 @@ export const permissionsSchema = z.object({
   desarrollos: sectionPermissionSchema.optional(),
   clientes: sectionPermissionSchema.optional(),
   usuarios: sectionPermissionSchema.optional(),
+  documentos: sectionPermissionSchema.optional(),
 }).optional();
 
 export type UserPermissions = z.infer<typeof permissionsSchema>;
@@ -83,6 +84,14 @@ export const EDITABLE_FIELDS = {
     { key: "role", label: "Rol" },
     { key: "active", label: "Activo" },
     { key: "permissions", label: "Permisos" },
+  ],
+  documentos: [
+    { key: "upload", label: "Subir documentos" },
+    { key: "download", label: "Descargar documentos" },
+    { key: "delete", label: "Eliminar documentos" },
+    { key: "clientes", label: "Contenido de Clientes" },
+    { key: "desarrolladores", label: "Contenido de Desarrolladores" },
+    { key: "uploadContent", label: "Contenido de Upload" },
   ],
 } as const;
 
@@ -401,3 +410,40 @@ export const contactFormSchema = z.object({
 });
 
 export type ContactFormInput = z.infer<typeof contactFormSchema>;
+
+// Documents - file storage for employees
+export const documents = pgTable("documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // File name
+  originalName: text("original_name").notNull(), // Original uploaded file name
+  fileUrl: text("file_url").notNull(), // Storage path/URL
+  fileSize: integer("file_size"), // Size in bytes
+  mimeType: text("mime_type"), // File MIME type
+  
+  // Category hierarchy
+  category: text("category").notNull(), // clientes, desarrolladores, upload
+  subcategory: text("subcategory"), // Level 2 folder
+  folder: text("folder"), // Level 3 folder
+  subfolder: text("subfolder"), // Level 4 folder (if needed)
+  
+  // Associations
+  developerId: text("developer_id"), // Developer name (from DEVELOPERS constant)
+  developmentId: text("development_id"), // Development name (from DEVELOPMENTS constant)
+  clientId: varchar("client_id").references(() => clients.id, { onDelete: "set null" }),
+  asesorId: varchar("asesor_id").references(() => users.id, { onDelete: "set null" }),
+  
+  // Meta
+  description: text("description"),
+  uploadedBy: varchar("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;

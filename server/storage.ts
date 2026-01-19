@@ -5,10 +5,11 @@ import {
   sessions, type Session, type InsertSession,
   developmentAssignments, type DevelopmentAssignment, type InsertDevelopmentAssignment,
   clientFollowUps, type ClientFollowUp, type InsertClientFollowUp,
-  typologies, type Typology, type InsertTypology
+  typologies, type Typology, type InsertTypology,
+  documents, type Document, type InsertDocument
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -60,6 +61,19 @@ export interface IStorage {
   deleteTypology(id: string): Promise<boolean>;
   deleteTypologyByPropertyId(propertyId: string): Promise<boolean>;
   syncPropertiesToTypologies(): Promise<void>;
+  
+  // Documents
+  getAllDocuments(): Promise<Document[]>;
+  getDocument(id: string): Promise<Document | undefined>;
+  getDocumentsByCategory(category: string): Promise<Document[]>;
+  getDocumentsByDeveloper(developerId: string): Promise<Document[]>;
+  getDocumentsByDevelopment(developmentId: string): Promise<Document[]>;
+  getDocumentsByClient(clientId: string): Promise<Document[]>;
+  getDocumentsByAsesor(asesorId: string): Promise<Document[]>;
+  searchDocuments(query: string): Promise<Document[]>;
+  createDocument(doc: InsertDocument): Promise<Document>;
+  updateDocument(id: string, doc: Partial<InsertDocument>): Promise<Document | undefined>;
+  deleteDocument(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -293,6 +307,65 @@ export class DatabaseStorage implements IStorage {
     }
     
     console.log(`Synced ${allProperties.length} properties to typologies`);
+  }
+  
+  // Documents
+  async getAllDocuments(): Promise<Document[]> {
+    return db.select().from(documents).orderBy(desc(documents.createdAt));
+  }
+
+  async getDocument(id: string): Promise<Document | undefined> {
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc || undefined;
+  }
+
+  async getDocumentsByCategory(category: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.category, category)).orderBy(desc(documents.createdAt));
+  }
+
+  async getDocumentsByDeveloper(developerId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.developerId, developerId)).orderBy(desc(documents.createdAt));
+  }
+
+  async getDocumentsByDevelopment(developmentId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.developmentId, developmentId)).orderBy(desc(documents.createdAt));
+  }
+
+  async getDocumentsByClient(clientId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.clientId, clientId)).orderBy(desc(documents.createdAt));
+  }
+
+  async getDocumentsByAsesor(asesorId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.asesorId, asesorId)).orderBy(desc(documents.createdAt));
+  }
+
+  async searchDocuments(query: string): Promise<Document[]> {
+    const searchTerm = `%${query}%`;
+    return db.select().from(documents).where(
+      or(
+        ilike(documents.name, searchTerm),
+        ilike(documents.originalName, searchTerm),
+        ilike(documents.description, searchTerm)
+      )
+    ).orderBy(desc(documents.createdAt));
+  }
+
+  async createDocument(insertDoc: InsertDocument): Promise<Document> {
+    const [doc] = await db.insert(documents).values(insertDoc as any).returning();
+    return doc;
+  }
+
+  async updateDocument(id: string, docData: Partial<InsertDocument>): Promise<Document | undefined> {
+    const [doc] = await db.update(documents).set({
+      ...docData,
+      updatedAt: new Date(),
+    } as any).where(eq(documents.id, id)).returning();
+    return doc || undefined;
+  }
+
+  async deleteDocument(id: string): Promise<boolean> {
+    await db.delete(documents).where(eq(documents.id, id));
+    return true;
   }
 }
 

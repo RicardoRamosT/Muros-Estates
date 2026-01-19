@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -526,7 +526,7 @@ export async function registerRoutes(
       };
       
       const typology = await storage.createTypology(typologyData);
-      broadcastTypologyUpdate({ type: "create", typology });
+      broadcastTypologyUpdate("create", typology);
       
       res.status(201).json(property);
     } catch (error) {
@@ -574,7 +574,7 @@ export async function registerRoutes(
         
         const updatedTypology = await storage.updateTypology(existingTypology.id, typologyData);
         if (updatedTypology) {
-          broadcastTypologyUpdate({ type: "update", typology: updatedTypology });
+          broadcastTypologyUpdate("update", updatedTypology);
         }
       }
       
@@ -600,7 +600,7 @@ export async function registerRoutes(
       
       // Broadcast typology deletion (cascade delete handles the DB side)
       if (existingTypology) {
-        broadcastTypologyUpdate({ type: "delete", id: existingTypology.id });
+        broadcastTypologyUpdate("delete", { id: existingTypology.id });
       }
       
       res.status(204).send();
@@ -765,6 +765,230 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting typology:", error);
       res.status(500).json({ error: "Error al eliminar tipología" });
+    }
+  });
+
+  // ============ DOCUMENT ROUTES ============
+  
+  // Configure multer for document uploads with more file types
+  const documentUploadDir = path.join(process.cwd(), "uploads/documents");
+  if (!fs.existsSync(documentUploadDir)) {
+    fs.mkdirSync(documentUploadDir, { recursive: true });
+  }
+  
+  const documentStorageConfig = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, documentUploadDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      cb(null, "doc-" + uniqueSuffix + ext);
+    },
+  });
+  
+  const documentAllowedExtensions: Record<string, string[]> = {
+    ".jpg": ["image/jpeg"],
+    ".jpeg": ["image/jpeg"],
+    ".png": ["image/png"],
+    ".gif": ["image/gif"],
+    ".webp": ["image/webp"],
+    ".pdf": ["application/pdf"],
+    ".doc": ["application/msword"],
+    ".docx": ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+    ".xls": ["application/vnd.ms-excel"],
+    ".xlsx": ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+    ".ppt": ["application/vnd.ms-powerpoint"],
+    ".pptx": ["application/vnd.openxmlformats-officedocument.presentationml.presentation"],
+    ".txt": ["text/plain"],
+    ".csv": ["text/csv"],
+    ".zip": ["application/zip"],
+    ".mp4": ["video/mp4"],
+    ".webm": ["video/webm"],
+    ".mov": ["video/quicktime"],
+  };
+  
+  const documentUpload = multer({
+    storage: documentStorageConfig,
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB limit
+      files: 10,
+    },
+    fileFilter: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const allowedMimes = documentAllowedExtensions[ext];
+      
+      if (!allowedMimes) {
+        cb(new Error("Extensión de archivo no permitida"));
+        return;
+      }
+      
+      if (!allowedMimes.includes(file.mimetype)) {
+        cb(new Error("El tipo MIME no coincide con la extensión del archivo"));
+        return;
+      }
+      
+      cb(null, true);
+    },
+  });
+  
+  // Get all documents (with filters)
+  app.get("/api/documents", requireAuth, async (req, res) => {
+    try {
+      const { category, developer, development, client, asesor, search } = req.query;
+      
+      let docs;
+      if (search && typeof search === "string") {
+        docs = await storage.searchDocuments(search);
+      } else if (category && typeof category === "string") {
+        docs = await storage.getDocumentsByCategory(category);
+      } else if (developer && typeof developer === "string") {
+        docs = await storage.getDocumentsByDeveloper(developer);
+      } else if (development && typeof development === "string") {
+        docs = await storage.getDocumentsByDevelopment(development);
+      } else if (client && typeof client === "string") {
+        docs = await storage.getDocumentsByClient(client);
+      } else if (asesor && typeof asesor === "string") {
+        docs = await storage.getDocumentsByAsesor(asesor);
+      } else {
+        docs = await storage.getAllDocuments();
+      }
+      
+      res.json(docs);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ error: "Error al obtener documentos" });
+    }
+  });
+  
+  // Get single document
+  app.get("/api/documents/:id", requireAuth, async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const doc = await storage.getDocument(id);
+      if (!doc) {
+        return res.status(404).json({ error: "Documento no encontrado" });
+      }
+      res.json(doc);
+    } catch (error) {
+      console.error("Error fetching document:", error);
+      res.status(500).json({ error: "Error al obtener documento" });
+    }
+  });
+  
+  // Upload document
+  app.post("/api/documents", requireAuth, documentUpload.single("file"), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: "No se proporcionó ningún archivo" });
+      }
+      
+      const documentData = {
+        name: req.body.name || file.originalname,
+        originalName: file.originalname,
+        fileUrl: `/uploads/documents/${file.filename}`,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        category: req.body.category,
+        subcategory: req.body.subcategory || null,
+        folder: req.body.folder || null,
+        subfolder: req.body.subfolder || null,
+        developerId: req.body.developerId || null,
+        developmentId: req.body.developmentId || null,
+        clientId: req.body.clientId || null,
+        asesorId: req.body.asesorId || null,
+        description: req.body.description || null,
+        uploadedBy: req.user!.id,
+      };
+      
+      const validationResult = insertDocumentSchema.safeParse(documentData);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Datos inválidos", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const doc = await storage.createDocument(validationResult.data);
+      res.status(201).json(doc);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ error: "Error al subir documento" });
+    }
+  });
+  
+  // Update document metadata
+  app.put("/api/documents/:id", requireAuth, async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const doc = await storage.updateDocument(id, {
+        name: req.body.name,
+        description: req.body.description,
+        category: req.body.category,
+        subcategory: req.body.subcategory,
+        folder: req.body.folder,
+        subfolder: req.body.subfolder,
+        developerId: req.body.developerId,
+        developmentId: req.body.developmentId,
+        clientId: req.body.clientId,
+        asesorId: req.body.asesorId,
+      });
+      
+      if (!doc) {
+        return res.status(404).json({ error: "Documento no encontrado" });
+      }
+      
+      res.json(doc);
+    } catch (error) {
+      console.error("Error updating document:", error);
+      res.status(500).json({ error: "Error al actualizar documento" });
+    }
+  });
+  
+  // Delete document
+  app.delete("/api/documents/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      
+      // Get the document to delete the file
+      const doc = await storage.getDocument(id);
+      if (!doc) {
+        return res.status(404).json({ error: "Documento no encontrado" });
+      }
+      
+      // Delete the file from disk
+      const filePath = path.join(process.cwd(), doc.fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      
+      await storage.deleteDocument(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ error: "Error al eliminar documento" });
+    }
+  });
+  
+  // Download document
+  app.get("/api/documents/:id/download", requireAuth, async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const doc = await storage.getDocument(id);
+      if (!doc) {
+        return res.status(404).json({ error: "Documento no encontrado" });
+      }
+      
+      const filePath = path.join(process.cwd(), doc.fileUrl);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "Archivo no encontrado en el servidor" });
+      }
+      
+      res.download(filePath, doc.originalName);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ error: "Error al descargar documento" });
     }
   });
 

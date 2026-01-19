@@ -160,3 +160,78 @@ export function getZonesByCity(city: string): readonly string[] {
   if (city === "CDMX") return ZONES_CDMX;
   return ALL_ZONES;
 }
+
+// Document Categories and Folder Structure
+export const DOCUMENT_CATEGORIES = {
+  clientes: {
+    label: "Contenido de Clientes",
+    icon: "Users",
+    folders: {
+      documentos_identidad: { label: "Documentos de Identidad" },
+      cotizaciones: { label: "Cotizaciones" },
+      ofertas_compra: { label: "Ofertas de Compra" },
+      ejercicios: { label: "Ejercicios" },
+    },
+  },
+  desarrolladores: {
+    label: "Contenido de Desarrolladores",
+    icon: "Building2",
+    folders: {
+      acta_constitutiva: { label: "Acta Constitutiva" },
+      ine_representante: { label: "INE Representante Legal" },
+      otros_desarrollador: { label: "Otros" },
+    },
+    developmentFolders: {
+      permisos: { label: "Permisos" },
+      lineamientos: { label: "Lineamientos Técnicos" },
+      oferta_compra: { label: "Oferta de Compra" },
+      checklist: { label: "Checklist" },
+      otros_desarrollo: { label: "Otros" },
+    },
+  },
+  upload: {
+    label: "Contenido de Upload",
+    icon: "Upload",
+    folders: {
+      archivo: {
+        label: "Archivo",
+        subfolders: {
+          imagenes: { label: "Imágenes" },
+          precios: { label: "Precios" },
+          ejercicios: { label: "Ejercicios" },
+        },
+      },
+      brochures_flyers: {
+        label: "Brochures y Flyers",
+        subfolders: {
+          brochures: { label: "Brochures" },
+          flyers: { label: "Flyers" },
+          acabados: { label: "Acabados" },
+          equipamiento: { label: "Equipamiento" },
+        },
+      },
+      promos: {
+        label: "Promos",
+        subfolders: {
+          promociones: { label: "Promociones" },
+        },
+      },
+      renders_layouts: {
+        label: "Renders y Layouts",
+        subfolders: {
+          renders: { label: "Renders" },
+          fotos: { label: "Fotos" },
+          planos: { label: "Planos" },
+        },
+      },
+      videos: {
+        label: "Videos",
+        subfolders: {
+          video: { label: "Video" },
+        },
+      },
+    },
+  },
+} as const;
+
+export type DocumentCategory = keyof typeof DOCUMENT_CATEGORIES;
