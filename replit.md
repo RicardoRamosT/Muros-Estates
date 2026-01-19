@@ -97,6 +97,10 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 - `POST /api/assignments` - Assign development to asesor
 - `DELETE /api/assignments/:id` - Remove assignment
 
+### File Uploads (Admin/Actualizador)
+- `POST /api/upload` - Upload images and videos (multipart/form-data)
+- `GET /uploads/:filename` - Serve uploaded files with security headers
+
 ## Brand Colors (Muros)
 - **Primary**: Deep forest green (#1A4D2E) - HSL: 147 48% 21%
 - **Secondary**: Golden accent (#D4AF37) - HSL: 43 76% 53%
@@ -114,6 +118,8 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **File Upload System**: Upload images and videos directly from device in property form with secure server-side validation
+- **Video Support**: Properties now support video uploads with preview and controls
 - **Dynamic Filter Sliders**: Price slider (incrementos $100,000) and area slider (incrementos 5 m²) now automatically adjust min/max based on available properties
 - **Professional Hero Redesign**: Full-width hero with luxury apartment background images, dark gradient overlay, statistics badges (+50 Desarrollos, 2 Ciudades, 100% Verificados), preview image gallery, and glass-effect contact form
 - **New "Why Choose Muros" Section**: Green-themed section with benefits and building imagery
