@@ -284,6 +284,23 @@ export async function registerRoutes(
   app.delete("/api/users/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const id = req.params.id as string;
+      
+      // Prevent self-deletion
+      if (id === req.user!.id) {
+        return res.status(400).json({ error: "No puedes eliminar tu propia cuenta" });
+      }
+      
+      // Check if user exists
+      const userToDelete = await storage.getUser(id);
+      if (!userToDelete) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+      
+      // Prevent deletion of admin users
+      if (userToDelete.role === "admin") {
+        return res.status(403).json({ error: "No se puede eliminar un usuario administrador" });
+      }
+      
       await storage.deleteUser(id);
       res.status(204).send();
     } catch (error) {

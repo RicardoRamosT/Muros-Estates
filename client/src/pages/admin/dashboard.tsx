@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { Property } from "@shared/schema";
-import { Plus, Building2, DollarSign, TrendingUp, Search, BarChart3 } from "lucide-react";
+import { Plus, Building2, DollarSign, TrendingUp, Search, BarChart3, Users } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -104,12 +104,20 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold" data-testid="text-page-title">Administración</h1>
             <p className="text-muted-foreground">Gestiona tus propiedades y desarrollos</p>
           </div>
-          <Link href="/admin/properties/new">
-            <Button data-testid="button-add-property">
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva Propiedad
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/admin/users">
+              <Button variant="outline" data-testid="button-manage-users">
+                <Users className="w-4 h-4 mr-2" />
+                Usuarios
+              </Button>
+            </Link>
+            <Link href="/admin/properties/new">
+              <Button data-testid="button-add-property">
+                <Plus className="w-4 h-4 mr-2" />
+                Nueva Propiedad
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
