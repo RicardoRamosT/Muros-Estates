@@ -433,18 +433,16 @@ export default function Home() {
               </span>
             </div>
 
-            {activeFiltersCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearFilters}
-                className="text-white/80 hover:text-white hover:bg-white/10"
-                data-testid="button-clear-filters"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Limpiar
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              className={`text-white/80 hover:text-white hover:bg-white/10 transition-opacity ${activeFiltersCount > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+              data-testid="button-clear-filters"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Limpiar
+            </Button>
           </div>
         </div>
       </section>
