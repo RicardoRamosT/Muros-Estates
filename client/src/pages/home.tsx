@@ -341,19 +341,19 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-muted/50 py-6 border-y sticky top-0 z-40 backdrop-blur-sm bg-background/95">
+      <section className="bg-primary/95 py-6 sticky top-0 z-40 backdrop-blur-sm shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <Search className="w-5 h-5 text-primary" />
-              <span className="font-semibold">Filtros:</span>
+              <Search className="w-5 h-5 text-secondary" />
+              <span className="font-semibold text-white">Filtros:</span>
             </div>
             
             <Select
               value={filters.city || "all"}
               onValueChange={(value) => handleCityChange(value === "all" ? "" : value)}
             >
-              <SelectTrigger className="w-40 bg-card" data-testid="select-city">
+              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-city">
                 <SelectValue placeholder="Ciudad" />
               </SelectTrigger>
               <SelectContent>
@@ -371,7 +371,7 @@ export default function Home() {
                 value={filters.zone || "all"}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
               >
-                <SelectTrigger className="w-40 bg-card" data-testid="select-zone">
+                <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-zone">
                   <SelectValue placeholder="Zona" />
                 </SelectTrigger>
                 <SelectContent>
@@ -389,7 +389,7 @@ export default function Home() {
               value={filters.minBedrooms?.toString() || "all"}
               onValueChange={(value) => setFilters(prev => ({ ...prev, minBedrooms: value === "all" ? undefined : parseInt(value) }))}
             >
-              <SelectTrigger className="w-40 bg-card" data-testid="select-bedrooms">
+              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white" data-testid="select-bedrooms">
                 <SelectValue placeholder="Recámaras" />
               </SelectTrigger>
               <SelectContent>
@@ -402,33 +402,33 @@ export default function Home() {
             </Select>
 
             <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">Precio:</span>
+              <span className="text-sm text-white/80 whitespace-nowrap">Precio:</span>
               <Slider
                 min={priceRange.min}
                 max={priceRange.max}
                 step={PRICE_STEP}
                 value={[filters.minPrice || priceRange.min, filters.maxPrice || priceRange.max]}
                 onValueChange={handlePriceChange}
-                className="flex-1"
+                className="flex-1 [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
                 data-testid="slider-price"
               />
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
+              <span className="text-sm text-white/80 whitespace-nowrap">
                 {formatPrice(filters.minPrice || priceRange.min)} - {formatPrice(filters.maxPrice || priceRange.max)}
               </span>
             </div>
 
             <div className="flex items-center gap-2 min-w-[200px]">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">Tamaño:</span>
+              <span className="text-sm text-white/80 whitespace-nowrap">Tamaño:</span>
               <Slider
                 min={areaRange.min}
                 max={areaRange.max}
                 step={AREA_STEP}
                 value={[filters.minArea || areaRange.min, filters.maxArea || areaRange.max]}
                 onValueChange={handleAreaChange}
-                className="flex-1 min-w-[100px]"
+                className="flex-1 min-w-[100px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
                 data-testid="slider-area"
               />
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
+              <span className="text-sm text-white/80 whitespace-nowrap">
                 {filters.minArea || areaRange.min} - {filters.maxArea || areaRange.max} m²
               </span>
             </div>
@@ -438,7 +438,7 @@ export default function Home() {
                 variant="ghost"
                 size="sm"
                 onClick={handleClearFilters}
-                className="text-muted-foreground"
+                className="text-white/80 hover:text-white hover:bg-white/10"
                 data-testid="button-clear-filters"
               >
                 <X className="w-4 h-4 mr-1" />
