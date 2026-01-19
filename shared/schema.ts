@@ -1,7 +1,17 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Permission structure for each section: { view: boolean, edit: boolean }
+export const permissionsSchema = z.object({
+  propiedades: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
+  desarrollos: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
+  clientes: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
+  usuarios: z.object({ view: z.boolean(), edit: z.boolean() }).optional(),
+}).optional();
+
+export type UserPermissions = z.infer<typeof permissionsSchema>;
 
 // User roles: admin, perfilador, asesor, actualizador
 export const users = pgTable("users", {
@@ -12,6 +22,7 @@ export const users = pgTable("users", {
   email: text("email"),
   role: text("role").notNull().default("asesor"),
   active: boolean("active").default(true),
+  permissions: jsonb("permissions").$type<UserPermissions>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

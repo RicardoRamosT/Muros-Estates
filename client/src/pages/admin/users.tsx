@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { UserPermissions } from "@shared/schema";
 
 interface User {
   id: string;
@@ -29,6 +30,7 @@ interface User {
   email: string | null;
   role: string;
   active: boolean | null;
+  permissions?: UserPermissions;
   createdAt: string | null;
 }
 

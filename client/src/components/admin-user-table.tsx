@@ -2,8 +2,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal, Trash2, Loader2, UserCheck, UserX } from "lucide-react";
-import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Edit, MoreHorizontal, Trash2, Loader2, UserCheck, UserX, Eye, Pencil } from "lucide-react";
+import type { UserPermissions } from "@shared/schema";
 
 interface User {
   id: string;
@@ -12,7 +13,49 @@ interface User {
   email: string | null;
   role: string;
   active: boolean | null;
+  permissions?: UserPermissions;
   createdAt: string | null;
+}
+
+const SECTION_LABELS: Record<string, string> = {
+  propiedades: "Propiedades",
+  desarrollos: "Desarrollos",
+  clientes: "Clientes",
+  usuarios: "Usuarios",
+};
+
+function PermissionsSummary({ permissions }: { permissions?: UserPermissions }) {
+  if (!permissions) {
+    return <span className="text-muted-foreground text-xs">Sin permisos</span>;
+  }
+
+  const sections = Object.entries(permissions).filter(([_, perms]) => perms?.view || perms?.edit);
+  
+  if (sections.length === 0) {
+    return <span className="text-muted-foreground text-xs">Sin permisos</span>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {sections.map(([section, perms]) => (
+        <Tooltip key={section}>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+              {SECTION_LABELS[section]?.[0] || section[0].toUpperCase()}
+              {perms?.view && <Eye className="w-2.5 h-2.5 ml-0.5 inline" />}
+              {perms?.edit && <Pencil className="w-2.5 h-2.5 ml-0.5 inline" />}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="font-medium">{SECTION_LABELS[section]}</p>
+            <p className="text-xs">
+              {perms?.view && "Ver"}{perms?.view && perms?.edit && " + "}{perms?.edit && "Editar"}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      ))}
+    </div>
+  );
 }
 
 interface AdminUserTableProps {
@@ -59,6 +102,7 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
             <TableHead>Usuario</TableHead>
             <TableHead>Email</TableHead>
             <TableHead className="text-center">Rol</TableHead>
+            <TableHead className="text-center">Permisos</TableHead>
             <TableHead className="text-center">Estado</TableHead>
             <TableHead className="w-20"></TableHead>
           </TableRow>
@@ -81,6 +125,9 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
                   <Badge variant={role.variant} data-testid={`badge-role-${user.id}`}>
                     {role.label}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <PermissionsSummary permissions={user.permissions} />
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge 
