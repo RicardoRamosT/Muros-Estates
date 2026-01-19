@@ -43,13 +43,35 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 - **Actualizador**: Creates and edits property/development data
 
 ### Granular Permissions System
-Users can have fine-grained permissions beyond their base role. Stored as JSONB with format:
+Users have two-level fine-grained permissions beyond their base role. Stored as JSONB with format:
 ```typescript
-{ sectionName: { view: boolean, edit: boolean } }
+{ 
+  sectionName: { 
+    view: boolean, 
+    edit: boolean, 
+    fields: { fieldKey: boolean, ... } 
+  } 
+}
 ```
-Available sections: propiedades, desarrollos, clientes, usuarios
 
-Admins can set per-section view/edit permissions when creating or editing users. Permissions are displayed in the users table as compact badges showing section abbreviations with eye (view) and pencil (edit) icons.
+**Section-level permissions**:
+- Available sections: propiedades, desarrollos, clientes, usuarios
+- Admins set view/edit per-section when creating/editing users
+- Displayed in users table as compact badges with eye (view) and pencil (edit) icons
+
+**Field-level permissions** (within each section):
+- propiedades: 23 fields (title, description, price, images, videos, amenities, etc.)
+- clientes: 9 fields (name, email, phone, status, etc.)
+- desarrollos: 5 fields (developer, developmentName, city, zone, developmentType)
+- usuarios: 7 fields (username, name, email, role, password, active, permissions)
+- Controlled via collapsible section with "Todos" and "Ninguno" bulk actions
+- Default: all fields enabled when edit is checked
+- Fields defined in EDITABLE_FIELDS constant in shared/schema.ts
+
+### User Management Pages
+- `/admin/users` - User list with search, filter, and action buttons
+- `/admin/users/new` - Full-page form to create new users
+- `/admin/users/:id` - Full-page form to edit existing users
 
 ### Constants Structure (shared/constants.ts)
 - **Developers**: 13 developers (IDEI, PLATE, Create, Proyectos 9, Grupo Verzache, etc.)
