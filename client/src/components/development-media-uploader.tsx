@@ -298,6 +298,7 @@ export function DevelopmentMediaUploader() {
                   <table className="w-full text-sm">
                     <thead className="bg-muted">
                       <tr>
+                        <th className="text-center px-2 py-2 font-medium w-12">ID</th>
                         <th className="text-left px-4 py-2 font-medium">Desarrollo</th>
                         <th className="text-left px-4 py-2 font-medium hidden md:table-cell">Desarrollador</th>
                         <th className="text-left px-4 py-2 font-medium hidden sm:table-cell">Ciudad</th>
@@ -313,6 +314,9 @@ export function DevelopmentMediaUploader() {
                           onClick={() => setSelectedDevelopment(dev)}
                           data-testid={`row-development-${index}`}
                         >
+                          <td className="px-2 py-3 text-center text-muted-foreground text-sm">
+                            {index + 1}
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
                               <Building2 className="w-4 h-4 text-primary shrink-0" />
