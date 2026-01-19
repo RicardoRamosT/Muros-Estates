@@ -149,9 +149,12 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 The application runs on port 5000 using the `npm run dev` command.
 
 ## Recent Changes (January 2026)
+- **Delivery Time Filter**: New "Entrega" slider filters properties by delivery timeline in 3-month increments (trimestres: 0-36 meses)
+- **Down Payment Filter**: New "Enganche" slider filters properties by down payment percentage in 5% increments (5-50%)
+- **Admin Property Form**: New fields for deliveryMonths and downPayment with step validation
 - **File Upload System**: Upload images and videos directly from device in property form with secure server-side validation
 - **Video Support**: Properties now support video uploads with preview and controls
-- **Dynamic Filter Sliders**: Price slider (incrementos $100,000) and area slider (incrementos 5 m²) now automatically adjust min/max based on available properties
+- **Dynamic Filter Sliders**: Price, area, delivery, and down payment sliders now automatically adjust min/max based on available properties
 - **Professional Hero Redesign**: Full-width hero with luxury apartment background images, dark gradient overlay, statistics badges (+50 Desarrollos, 2 Ciudades, 100% Verificados), preview image gallery, and glass-effect contact form
 - **New "Why Choose Muros" Section**: Green-themed section with benefits and building imagery
 - **Sticky Filter Bar**: Filters now stick to top when scrolling for easy access
