@@ -3,8 +3,13 @@ import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb } f
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Field-level permissions: which fields a user can edit
-export const fieldPermissionsSchema = z.record(z.string(), z.boolean()).optional();
+// Field-level permissions: each field has view and edit boolean
+export const fieldPermissionSchema = z.object({
+  view: z.boolean(),
+  edit: z.boolean(),
+});
+
+export const fieldPermissionsSchema = z.record(z.string(), fieldPermissionSchema).optional();
 
 // Permission structure for each section: { view, edit, fields (optional) }
 export const sectionPermissionSchema = z.object({
