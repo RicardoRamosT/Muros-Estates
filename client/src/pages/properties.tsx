@@ -34,6 +34,10 @@ function formatPrice(value: number): string {
 export default function Properties() {
   const [location] = useLocation();
   
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   const { data: properties = [], isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties"],
   });
