@@ -281,6 +281,17 @@ export async function registerRoutes(
     }
   });
   
+  app.delete("/api/users/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      await storage.deleteUser(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ error: "Error al eliminar usuario" });
+    }
+  });
+  
   // ============ CLIENT ROUTES ============
   
   // Public endpoint for contact form
