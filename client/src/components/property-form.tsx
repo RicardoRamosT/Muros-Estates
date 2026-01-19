@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Save, X, Plus, Trash2 } from "lucide-react";
+import { Loader2, Save, X, Plus, Trash2, Upload, Video, Image as ImageIcon } from "lucide-react";
 import type { InsertProperty, Property } from "@shared/schema";
 import { 
   DEVELOPERS, 
@@ -21,8 +21,9 @@ import {
   OTHER_FEATURES,
   getZonesByCity 
 } from "@shared/constants";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 const propertyFormSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
@@ -55,12 +56,19 @@ interface PropertyFormProps {
 }
 
 export function PropertyForm({ property, onSubmit, isLoading, onCancel }: PropertyFormProps) {
+  const { toast } = useToast();
   const [images, setImages] = useState<string[]>(property?.images || []);
+  const [videos, setVideos] = useState<string[]>(property?.videos || []);
   const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(property?.amenities || []);
   const [selectedEfficiency, setSelectedEfficiency] = useState<string[]>(property?.efficiency || []);
   const [selectedOtherFeatures, setSelectedOtherFeatures] = useState<string[]>(property?.otherFeatures || []);
   const [selectedCity, setSelectedCity] = useState<string>(property?.city || "");
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const availableZones = useMemo(() => {
     return getZonesByCity(selectedCity);
@@ -110,12 +118,69 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
       status: data.status,
       featured: data.featured,
       images: images,
+      videos: videos.length > 0 ? videos : null,
       amenities: selectedAmenities,
       efficiency: selectedEfficiency.length > 0 ? selectedEfficiency : null,
       otherFeatures: selectedOtherFeatures.length > 0 ? selectedOtherFeatures : null,
       value: data.value || null,
     };
     onSubmit(propertyData);
+  };
+
+  const handleFileUpload = async (files: FileList | null, type: "images" | "videos") => {
+    if (!files || files.length === 0) return;
+    
+    const sessionToken = localStorage.getItem("muros_session");
+    if (!sessionToken) {
+      toast({
+        title: "Sesión expirada",
+        description: "Por favor, inicia sesión nuevamente para subir archivos.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const setUploading = type === "images" ? setUploadingImages : setUploadingVideos;
+    const setMedia = type === "images" ? setImages : setVideos;
+    const currentMedia = type === "images" ? images : videos;
+    
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach(file => {
+        formData.append("files", file);
+      });
+      
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error("Error al subir archivos");
+      }
+      
+      const data = await response.json();
+      setMedia([...currentMedia, ...data.urls]);
+      
+      toast({
+        title: "Archivos subidos",
+        description: `Se subieron ${data.urls.length} archivo(s) correctamente.`,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron subir los archivos. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const addImage = () => {
@@ -127,6 +192,17 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const addVideo = () => {
+    if (videoUrl.trim() && !videos.includes(videoUrl.trim())) {
+      setVideos([...videos, videoUrl.trim()]);
+      setVideoUrl("");
+    }
+  };
+
+  const removeVideo = (index: number) => {
+    setVideos(videos.filter((_, i) => i !== index));
   };
 
   const toggleAmenity = (amenityId: string) => {
@@ -611,20 +687,56 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
 
         <Card>
           <CardHeader>
-            <CardTitle>Imágenes</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="w-5 h-5" />
+              Imágenes
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="URL de la imagen"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                data-testid="input-image-url"
-              />
-              <Button type="button" variant="secondary" onClick={addImage} data-testid="button-add-image">
-                <Plus className="w-4 h-4 mr-2" />
-                Agregar
-              </Button>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={uploadingImages}
+                  data-testid="button-upload-images"
+                  className="flex-1"
+                >
+                  {uploadingImages ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4 mr-2" />
+                  )}
+                  {uploadingImages ? "Subiendo..." : "Subir desde dispositivo"}
+                </Button>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleFileUpload(e.target.files, "images")}
+                  data-testid="input-image-file"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>O agregar por URL:</span>
+              </div>
+              
+              <div className="flex gap-2">
+                <Input
+                  placeholder="URL de la imagen"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  data-testid="input-image-url"
+                />
+                <Button type="button" variant="secondary" onClick={addImage} data-testid="button-add-image">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar
+                </Button>
+              </div>
             </div>
 
             {images.length > 0 && (
@@ -634,7 +746,7 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
                     <img
                       src={img}
                       alt={`Imagen ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg"
+                      className="w-full h-24 object-cover rounded-lg border"
                     />
                     <Button
                       type="button"
@@ -643,6 +755,86 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
                       className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => removeImage(index)}
                       data-testid={`button-remove-image-${index}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5" />
+              Videos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={uploadingVideos}
+                  data-testid="button-upload-videos"
+                  className="flex-1"
+                >
+                  {uploadingVideos ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4 mr-2" />
+                  )}
+                  {uploadingVideos ? "Subiendo..." : "Subir desde dispositivo"}
+                </Button>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleFileUpload(e.target.files, "videos")}
+                  data-testid="input-video-file"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>O agregar por URL:</span>
+              </div>
+              
+              <div className="flex gap-2">
+                <Input
+                  placeholder="URL del video"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  data-testid="input-video-url"
+                />
+                <Button type="button" variant="secondary" onClick={addVideo} data-testid="button-add-video">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar
+                </Button>
+              </div>
+            </div>
+
+            {videos.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {videos.map((vid, index) => (
+                  <div key={index} className="relative group">
+                    <video
+                      src={vid}
+                      className="w-full h-32 object-cover rounded-lg border"
+                      controls
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeVideo(index)}
+                      data-testid={`button-remove-video-${index}`}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>

@@ -25,21 +25,40 @@ const storageConfig = multer.diskStorage({
   },
 });
 
+// Allowed file extensions mapped to MIME types
+const allowedExtensions: Record<string, string[]> = {
+  ".jpg": ["image/jpeg"],
+  ".jpeg": ["image/jpeg"],
+  ".png": ["image/png"],
+  ".gif": ["image/gif"],
+  ".webp": ["image/webp"],
+  ".mp4": ["video/mp4"],
+  ".webm": ["video/webm"],
+  ".mov": ["video/quicktime"],
+  ".avi": ["video/x-msvideo"],
+};
+
 const upload = multer({
   storage: storageConfig,
   limits: {
     fileSize: 100 * 1024 * 1024, // 100MB limit for videos
+    files: 10, // Max 10 files per request
   },
   fileFilter: (req, file, cb) => {
-    const allowedImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
-    const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedMimes = allowedExtensions[ext];
     
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Tipo de archivo no permitido"));
+    if (!allowedMimes) {
+      cb(new Error("Extensión de archivo no permitida"));
+      return;
     }
+    
+    if (!allowedMimes.includes(file.mimetype)) {
+      cb(new Error("El tipo MIME no coincide con la extensión del archivo"));
+      return;
+    }
+    
+    cb(null, true);
   },
 });
 
@@ -92,10 +111,21 @@ export async function registerRoutes(
   // Seed admin user on startup
   await seedAdminUser();
   
-  // Serve uploaded files statically
+  // Serve uploaded files statically with security headers
   app.use("/uploads", (req, res, next) => {
-    const filePath = path.join(uploadDir, req.path);
+    // Prevent path traversal
+    const safePath = path.normalize(req.path).replace(/^(\.\.(\/|\\|$))+/, '');
+    const filePath = path.join(uploadDir, safePath);
+    
+    // Ensure the file is within uploadDir
+    if (!filePath.startsWith(uploadDir)) {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+    
     if (fs.existsSync(filePath)) {
+      // Set security headers
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Security-Policy', "default-src 'none'");
       res.sendFile(filePath);
     } else {
       res.status(404).json({ error: "Archivo no encontrado" });
