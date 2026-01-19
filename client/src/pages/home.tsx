@@ -170,20 +170,17 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <section className="relative min-h-[85vh] flex items-center">
+      <section className="relative min-h-screen py-20 flex items-center">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage1})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/50" />
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="space-y-4">
-                <span className="inline-block px-4 py-2 bg-secondary/20 text-secondary rounded-full text-sm font-medium border border-secondary/30">
-                  Expertos en Desarrollos Inmobiliarios
-                </span>
+              <div className="space-y-6">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
                   Tu próximo hogar o inversión en{" "}
                   <span className="text-secondary">México</span>
@@ -224,32 +221,6 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="hidden lg:grid grid-cols-3 gap-3 pt-4">
-                <div className="relative aspect-[4/3] rounded-lg overflow-hidden group">
-                  <img
-                    src={heroImage2}
-                    alt="Interior de departamento de lujo"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </div>
-                <div className="relative aspect-[4/3] rounded-lg overflow-hidden group">
-                  <img
-                    src={heroImage3}
-                    alt="Sala moderna de departamento"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </div>
-                <div className="relative aspect-[4/3] rounded-lg overflow-hidden group">
-                  <img
-                    src={buildingImage1}
-                    alt="Edificio residencial moderno"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </div>
-              </div>
             </div>
 
             <div className="lg:pl-8">
