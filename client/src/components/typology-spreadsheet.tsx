@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ChevronDown, ChevronRight, Plus, Trash2, Filter, Save, X, 
-  Loader2, RefreshCw, AlertCircle
+  ChevronDown, ChevronRight, Plus, Trash2, Save, X, 
+  Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
+  ArrowUp01, ArrowDown10, Filter, Check
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -267,6 +269,194 @@ function formatValue(value: any, format?: string): string {
   }
 }
 
+interface ColumnFilterProps {
+  column: ColumnDef;
+  data: Typology[];
+  selectedValues: Set<string>;
+  sortDirection: "asc" | "desc" | null;
+  onFilterChange: (values: Set<string>) => void;
+  onSortChange: (direction: "asc" | "desc" | null) => void;
+  sectionColor: string;
+}
+
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor }: ColumnFilterProps) {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  
+  const uniqueValues = useMemo(() => {
+    const values = new Set<string>();
+    data.forEach(row => {
+      const val = row[column.key];
+      if (val !== null && val !== undefined && val !== "") {
+        values.add(String(val));
+      }
+    });
+    
+    const arr = Array.from(values);
+    
+    if (column.type === "number" || column.type === "decimal") {
+      return arr.sort((a, b) => parseFloat(a) - parseFloat(b));
+    }
+    return arr.sort((a, b) => a.localeCompare(b, "es"));
+  }, [data, column]);
+  
+  const filteredValues = useMemo(() => {
+    if (!search) return uniqueValues;
+    const searchLower = search.toLowerCase();
+    return uniqueValues.filter(v => v.toLowerCase().includes(searchLower));
+  }, [uniqueValues, search]);
+  
+  const allSelected = selectedValues.size === 0 || selectedValues.size === uniqueValues.length;
+  
+  const handleSelectAll = () => {
+    onFilterChange(new Set());
+  };
+  
+  const handleToggleValue = (value: string) => {
+    const newSet = new Set(selectedValues.size === 0 ? uniqueValues : selectedValues);
+    if (newSet.has(value)) {
+      newSet.delete(value);
+    } else {
+      newSet.add(value);
+    }
+    if (newSet.size === uniqueValues.length) {
+      onFilterChange(new Set());
+    } else {
+      onFilterChange(newSet);
+    }
+  };
+  
+  const handleClearFilter = () => {
+    onFilterChange(new Set());
+    onSortChange(null);
+    setOpen(false);
+  };
+  
+  const isFiltered = selectedValues.size > 0 && selectedValues.size < uniqueValues.length;
+  const isSorted = sortDirection !== null;
+  const isNumeric = column.type === "number" || column.type === "decimal";
+  
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            "flex items-center justify-between gap-1 w-full px-2 py-1 text-xs font-medium text-left",
+            sectionColor,
+            "hover-elevate cursor-pointer",
+            (isFiltered || isSorted) && "bg-primary/20"
+          )}
+          data-testid={`filter-trigger-${column.key}`}
+        >
+          <span className="truncate">
+            {column.label}
+            {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
+          </span>
+          <ChevronDown className={cn(
+            "w-3 h-3 flex-shrink-0",
+            (isFiltered || isSorted) && "text-primary"
+          )} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-0" align="start">
+        <div className="flex flex-col">
+          <button
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left"
+            onClick={() => { onSortChange("asc"); setOpen(false); }}
+            data-testid={`sort-asc-${column.key}`}
+          >
+            {isNumeric ? <ArrowUp01 className="w-4 h-4" /> : <ArrowUpAZ className="w-4 h-4" />}
+            {isNumeric ? "Ordenar de menor a mayor" : "Ordenar de A a Z"}
+            {sortDirection === "asc" && <Check className="w-4 h-4 ml-auto text-primary" />}
+          </button>
+          <button
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left"
+            onClick={() => { onSortChange("desc"); setOpen(false); }}
+            data-testid={`sort-desc-${column.key}`}
+          >
+            {isNumeric ? <ArrowDown10 className="w-4 h-4" /> : <ArrowDownAZ className="w-4 h-4" />}
+            {isNumeric ? "Ordenar de mayor a menor" : "Ordenar de Z a A"}
+            {sortDirection === "desc" && <Check className="w-4 h-4 ml-auto text-primary" />}
+          </button>
+          
+          <div className="border-t" />
+          
+          {(isFiltered || isSorted) && (
+            <>
+              <button
+                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left text-muted-foreground"
+                onClick={handleClearFilter}
+                data-testid={`clear-filter-${column.key}`}
+              >
+                <X className="w-4 h-4" />
+                Borrar filtro de "{column.label}"
+              </button>
+              <div className="border-t" />
+            </>
+          )}
+          
+          <div className="p-2">
+            <Input
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 text-sm"
+              data-testid={`search-filter-${column.key}`}
+            />
+          </div>
+          
+          <ScrollArea className="max-h-48">
+            <div className="px-2 pb-2">
+              <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                  data-testid={`select-all-${column.key}`}
+                />
+                <span className="text-sm font-medium">(Seleccionar todo)</span>
+              </label>
+              
+              {filteredValues.map((value) => {
+                const isChecked = selectedValues.size === 0 || selectedValues.has(value);
+                const displayValue = column.format ? formatValue(value, column.format) : value;
+                
+                return (
+                  <label
+                    key={value}
+                    className="flex items-center gap-2 py-1 cursor-pointer hover:bg-muted px-1 rounded"
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => handleToggleValue(value)}
+                      data-testid={`filter-value-${column.key}-${value}`}
+                    />
+                    <span className="text-sm truncate">{displayValue}</span>
+                  </label>
+                );
+              })}
+              
+              {filteredValues.length === 0 && (
+                <p className="text-sm text-muted-foreground py-2 text-center">
+                  Sin resultados
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+          
+          <div className="border-t p-2 flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={() => setOpen(false)} data-testid={`apply-filter-${column.key}`}>
+              Aceptar
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface EditableCellProps {
   value: any;
   column: ColumnDef;
@@ -394,13 +584,16 @@ function EditableCell({ value, column, rowId, city, onChange, disabled }: Editab
   );
 }
 
+type ColumnFilters = Record<string, Set<string>>;
+type ColumnSorts = Record<string, "asc" | "desc" | null>;
+
 export function TypologySpreadsheet() {
   const { toast } = useToast();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(SECTIONS.map(s => s.id))
   );
-  const [filters, setFilters] = useState<Record<string, string>>({});
-  const [showFilters, setShowFilters] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
+  const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
   const wsRef = useRef<WebSocket | null>(null);
   
@@ -542,20 +735,66 @@ export function TypologySpreadsheet() {
     });
   };
   
-  const filteredTypologies = useMemo(() => {
-    return typologies.filter(t => {
-      return Object.entries(filters).every(([key, value]) => {
-        if (!value) return true;
-        const fieldValue = String(t[key as keyof Typology] || "").toLowerCase();
-        return fieldValue.includes(value.toLowerCase());
+  const handleColumnFilterChange = (columnKey: string, values: Set<string>) => {
+    setColumnFilters(prev => ({
+      ...prev,
+      [columnKey]: values,
+    }));
+  };
+  
+  const handleColumnSortChange = (columnKey: string, direction: "asc" | "desc" | null) => {
+    setColumnSorts(prev => {
+      const newSorts: ColumnSorts = {};
+      if (direction !== null) {
+        newSorts[columnKey] = direction;
+      }
+      return newSorts;
+    });
+  };
+  
+  const filteredAndSortedTypologies = useMemo(() => {
+    let result = typologies.filter(t => {
+      return Object.entries(columnFilters).every(([key, values]) => {
+        if (values.size === 0) return true;
+        const fieldValue = String(t[key as keyof Typology] ?? "");
+        return values.has(fieldValue);
       });
     });
-  }, [typologies, filters]);
+    
+    const sortEntries = Object.entries(columnSorts).filter(([_, dir]) => dir !== null);
+    if (sortEntries.length > 0) {
+      const [sortKey, sortDir] = sortEntries[0];
+      const column = SECTIONS.flatMap(s => s.columns).find(c => c.key === sortKey);
+      const isNumeric = column?.type === "number" || column?.type === "decimal";
+      
+      result = [...result].sort((a, b) => {
+        const aVal = a[sortKey as keyof Typology];
+        const bVal = b[sortKey as keyof Typology];
+        
+        if (isNumeric) {
+          const aNum = parseFloat(String(aVal)) || 0;
+          const bNum = parseFloat(String(bVal)) || 0;
+          return sortDir === "asc" ? aNum - bNum : bNum - aNum;
+        }
+        
+        const aStr = String(aVal ?? "");
+        const bStr = String(bVal ?? "");
+        return sortDir === "asc" 
+          ? aStr.localeCompare(bStr, "es")
+          : bStr.localeCompare(aStr, "es");
+      });
+    }
+    
+    return result;
+  }, [typologies, columnFilters, columnSorts]);
   
   const getMergedRow = (row: Typology): Typology => {
     const pending = pendingChanges.get(row.id);
     return pending ? { ...row, ...pending } as Typology : row;
   };
+  
+  const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;
+  const activeSortKey = Object.entries(columnSorts).find(([_, dir]) => dir !== null)?.[0];
   
   if (isLoading) {
     return (
@@ -579,15 +818,6 @@ export function TypologySpreadsheet() {
             Nueva Fila
           </Button>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            data-testid="button-toggle-filters"
-          >
-            <Filter className="w-4 h-4 mr-1" />
-            Filtros
-          </Button>
-          <Button
             variant="ghost"
             size="sm"
             onClick={() => refetch()}
@@ -595,10 +825,30 @@ export function TypologySpreadsheet() {
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
+          {(activeFilterCount > 0 || activeSortKey) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setColumnFilters({});
+                setColumnSorts({});
+              }}
+              data-testid="button-clear-all-filters"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Limpiar filtros
+            </Button>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary">
+              <Filter className="w-3 h-3 mr-1" />
+              {activeFilterCount} filtro{activeFilterCount > 1 ? "s" : ""}
+            </Badge>
+          )}
           <Badge variant="outline">
-            {filteredTypologies.length} tipologías
+            {filteredAndSortedTypologies.length} tipologías
           </Badge>
           {pendingChanges.size > 0 && (
             <Badge variant="secondary" className="animate-pulse">
@@ -647,21 +897,15 @@ export function TypologySpreadsheet() {
                           className="flex flex-col border-r last:border-r-0"
                           style={{ width: col.width }}
                         >
-                          <div className={cn("px-2 py-1 text-xs font-medium text-center", section.color)}>
-                            {col.label}
-                            {col.calculated && <span className="text-muted-foreground ml-1">*</span>}
-                          </div>
-                          {showFilters && (
-                            <div className="px-1 py-1 bg-muted/30">
-                              <Input
-                                placeholder="Filtrar..."
-                                className="h-6 text-xs"
-                                value={filters[col.key] || ""}
-                                onChange={(e) => setFilters(prev => ({ ...prev, [col.key]: e.target.value }))}
-                                data-testid={`filter-${col.key}`}
-                              />
-                            </div>
-                          )}
+                          <ColumnFilter
+                            column={col}
+                            data={typologies}
+                            selectedValues={columnFilters[col.key] || new Set()}
+                            sortDirection={columnSorts[col.key] || null}
+                            onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
+                            onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
+                            sectionColor={section.color}
+                          />
                         </div>
                       ))}
                     </div>
@@ -671,7 +915,7 @@ export function TypologySpreadsheet() {
             ))}
           </div>
           
-          {filteredTypologies.map((row, rowIndex) => {
+          {filteredAndSortedTypologies.map((row, rowIndex) => {
             const mergedRow = getMergedRow(row);
             
             return (
@@ -718,7 +962,7 @@ export function TypologySpreadsheet() {
             );
           })}
           
-          {filteredTypologies.length === 0 && (
+          {filteredAndSortedTypologies.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <AlertCircle className="w-8 h-8 mb-2" />
               <p>No hay tipologías</p>
