@@ -492,6 +492,18 @@ export async function registerRoutes(
     }
   });
   
+  // ============ PUBLIC TYPOLOGIES (for public pages) ============
+  
+  app.get("/api/public/typologies", async (req, res) => {
+    try {
+      const activeTypologies = await storage.getActiveTypologies();
+      res.json(activeTypologies);
+    } catch (error) {
+      console.error("Error fetching active typologies:", error);
+      res.status(500).json({ error: "Error al obtener tipologías" });
+    }
+  });
+
   // ============ PROPERTY ROUTES ============
   
   app.get("/api/properties", async (req, res) => {

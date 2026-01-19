@@ -54,6 +54,7 @@ export interface IStorage {
   
   // Typologies
   getAllTypologies(): Promise<Typology[]>;
+  getActiveTypologies(): Promise<Typology[]>;
   getTypology(id: string): Promise<Typology | undefined>;
   getTypologyByPropertyId(propertyId: string): Promise<Typology | undefined>;
   createTypology(typology: InsertTypology): Promise<Typology>;
@@ -240,6 +241,10 @@ export class DatabaseStorage implements IStorage {
   // Typologies
   async getAllTypologies(): Promise<Typology[]> {
     return db.select().from(typologies).orderBy(desc(typologies.createdAt));
+  }
+
+  async getActiveTypologies(): Promise<Typology[]> {
+    return db.select().from(typologies).where(eq(typologies.active, true)).orderBy(desc(typologies.createdAt));
   }
 
   async getTypology(id: string): Promise<Typology | undefined> {
