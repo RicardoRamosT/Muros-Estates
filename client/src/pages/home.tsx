@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Property, PropertyFilter } from "@shared/schema";
-import { Search, X, ChevronDown } from "lucide-react";
+import { CITIES, ZONES_MONTERREY, ZONES_CDMX, getZonesByCity } from "@shared/constants";
+import { Search, X } from "lucide-react";
 
 const MIN_PRICE = 1000000;
 const MAX_PRICE = 50000000;
@@ -26,15 +27,12 @@ export default function Home() {
     queryKey: ["/api/properties"],
   });
 
-  const cities = useMemo(() => {
-    const uniqueCities = [...new Set(properties.map((p) => p.city))];
-    return uniqueCities.sort();
-  }, [properties]);
-
-  const zones = useMemo(() => {
-    const uniqueZones = [...new Set(properties.map((p) => p.state))];
-    return uniqueZones.sort();
-  }, [properties]);
+  const availableZones = useMemo(() => {
+    if (filters.city) {
+      return getZonesByCity(filters.city);
+    }
+    return [...ZONES_MONTERREY, ...ZONES_CDMX];
+  }, [filters.city]);
 
   const filteredProperties = useMemo(() => {
     let result = properties;
@@ -57,8 +55,8 @@ export default function Home() {
     if (filters.city) {
       result = result.filter((p) => p.city === filters.city);
     }
-    if (filters.propertyType) {
-      result = result.filter((p) => p.state === filters.propertyType);
+    if (filters.zone) {
+      result = result.filter((p) => p.zone === filters.zone);
     }
 
     return result.sort((a, b) => {
@@ -100,6 +98,14 @@ export default function Home() {
     }));
   };
 
+  const handleCityChange = (value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      city: value || undefined,
+      zone: undefined,
+    }));
+  };
+
   const handleClearFilters = () => {
     setFilters({
       minPrice: MIN_PRICE,
@@ -136,9 +142,9 @@ export default function Home() {
                       <SelectValue placeholder="¿Cuál es tu Objetivo?" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="available">Inversión</SelectItem>
-                      <SelectItem value="reserved">Vivienda</SelectItem>
-                      <SelectItem value="sold">Renta</SelectItem>
+                      <SelectItem value="inversion">Inversión</SelectItem>
+                      <SelectItem value="vivienda">Vivienda</SelectItem>
+                      <SelectItem value="renta">Renta</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -146,13 +152,13 @@ export default function Home() {
                 <div className="space-y-2">
                   <Select
                     value={filters.city || ""}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, city: value || undefined }))}
+                    onValueChange={handleCityChange}
                   >
                     <SelectTrigger className="w-full h-12 bg-card border-border" data-testid="select-city">
                       <SelectValue placeholder="Ciudad" />
                     </SelectTrigger>
                     <SelectContent>
-                      {cities.map((city) => (
+                      {CITIES.map((city) => (
                         <SelectItem key={city} value={city}>
                           {city}
                         </SelectItem>
@@ -163,14 +169,14 @@ export default function Home() {
 
                 <div className="space-y-2">
                   <Select
-                    value={filters.propertyType || ""}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, propertyType: value || undefined }))}
+                    value={filters.zone || ""}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value || undefined }))}
                   >
                     <SelectTrigger className="w-full h-12 bg-card border-border" data-testid="select-zona">
                       <SelectValue placeholder="Zona" />
                     </SelectTrigger>
                     <SelectContent>
-                      {zones.map((zone) => (
+                      {availableZones.map((zone) => (
                         <SelectItem key={zone} value={zone}>
                           {zone}
                         </SelectItem>
@@ -285,10 +291,10 @@ export default function Home() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold" data-testid="text-results-title">
-              Propiedades Disponibles
+              Departamentos Disponibles
             </h2>
             <p className="text-muted-foreground" data-testid="text-results-count">
-              {filteredProperties.length} {filteredProperties.length === 1 ? "propiedad encontrada" : "propiedades encontradas"}
+              {filteredProperties.length} {filteredProperties.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
             </p>
           </div>
 
@@ -329,7 +335,7 @@ export default function Home() {
             <div className="space-y-4">
               <h4 className="font-semibold">Enlaces</h4>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p className="hover:text-primary cursor-pointer">Propiedades</p>
+                <p className="hover:text-primary cursor-pointer">Departamentos</p>
                 <p className="hover:text-primary cursor-pointer">Desarrollos</p>
                 <p className="hover:text-primary cursor-pointer">Nosotros</p>
               </div>

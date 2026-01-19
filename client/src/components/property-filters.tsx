@@ -3,15 +3,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { RotateCcw, Search } from "lucide-react";
 import type { PropertyFilter } from "@shared/schema";
+import { CITIES, DEVELOPMENT_TYPES, getZonesByCity } from "@shared/constants";
+import { useMemo } from "react";
 
 interface PropertyFiltersProps {
   filters: PropertyFilter;
   onFilterChange: (filters: PropertyFilter) => void;
-  cities: string[];
-  propertyTypes: string[];
 }
 
 const MIN_PRICE = 0;
@@ -19,13 +18,20 @@ const MAX_PRICE = 50000000;
 const MIN_AREA = 0;
 const MAX_AREA = 500;
 
-export function PropertyFilters({ filters, onFilterChange, cities, propertyTypes }: PropertyFiltersProps) {
+export function PropertyFilters({ filters, onFilterChange }: PropertyFiltersProps) {
   const formatPrice = (value: number) => {
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(1)}M`;
     }
     return `$${(value / 1000).toFixed(0)}K`;
   };
+
+  const availableZones = useMemo(() => {
+    if (filters.city) {
+      return getZonesByCity(filters.city);
+    }
+    return [];
+  }, [filters.city]);
 
   const handlePriceChange = (values: number[]) => {
     onFilterChange({
@@ -40,6 +46,14 @@ export function PropertyFilters({ filters, onFilterChange, cities, propertyTypes
       ...filters,
       minArea: values[0],
       maxArea: values[1],
+    });
+  };
+
+  const handleCityChange = (value: string) => {
+    onFilterChange({
+      ...filters,
+      city: value === "all" ? undefined : value,
+      zone: undefined,
     });
   };
 
@@ -100,14 +114,14 @@ export function PropertyFilters({ filters, onFilterChange, cities, propertyTypes
           <Label className="text-sm font-medium">Ciudad</Label>
           <Select
             value={filters.city || "all"}
-            onValueChange={(value) => onFilterChange({ ...filters, city: value === "all" ? undefined : value })}
+            onValueChange={handleCityChange}
           >
             <SelectTrigger data-testid="select-city">
               <SelectValue placeholder="Todas las ciudades" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas las ciudades</SelectItem>
-              {cities.map((city) => (
+              {CITIES.map((city) => (
                 <SelectItem key={city} value={city}>
                   {city}
                 </SelectItem>
@@ -116,18 +130,40 @@ export function PropertyFilters({ filters, onFilterChange, cities, propertyTypes
           </Select>
         </div>
 
+        {filters.city && availableZones.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Zona</Label>
+            <Select
+              value={filters.zone || "all"}
+              onValueChange={(value) => onFilterChange({ ...filters, zone: value === "all" ? undefined : value })}
+            >
+              <SelectTrigger data-testid="select-zone">
+                <SelectValue placeholder="Todas las zonas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las zonas</SelectItem>
+                {availableZones.map((zone) => (
+                  <SelectItem key={zone} value={zone}>
+                    {zone}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Tipo de Propiedad</Label>
+          <Label className="text-sm font-medium">Tipo de Desarrollo</Label>
           <Select
-            value={filters.propertyType || "all"}
-            onValueChange={(value) => onFilterChange({ ...filters, propertyType: value === "all" ? undefined : value })}
+            value={filters.developmentType || "all"}
+            onValueChange={(value) => onFilterChange({ ...filters, developmentType: value === "all" ? undefined : value })}
           >
-            <SelectTrigger data-testid="select-property-type">
+            <SelectTrigger data-testid="select-development-type">
               <SelectValue placeholder="Todos los tipos" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los tipos</SelectItem>
-              {propertyTypes.map((type) => (
+              {DEVELOPMENT_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
                 </SelectItem>

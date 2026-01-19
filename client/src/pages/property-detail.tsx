@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { Property } from "@shared/schema";
+import { AMENITIES, getAmenityById } from "@shared/constants";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -20,8 +21,9 @@ import {
   Mail,
   Share2,
   Heart,
-  Check,
-  Loader2
+  Loader2,
+  Zap,
+  Shield
 } from "lucide-react";
 import { useState } from "react";
 
@@ -164,15 +166,13 @@ export default function PropertyDetail() {
                   <h1 className="text-3xl font-bold mb-2" data-testid="text-title">
                     {property.title}
                   </h1>
-                  {property.developmentName && (
-                    <p className="text-lg text-muted-foreground mb-2">
-                      {property.developmentName}
-                    </p>
-                  )}
+                  <p className="text-lg text-muted-foreground mb-2">
+                    {property.developmentName} por {property.developer}
+                  </p>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-5 h-5" />
                     <span data-testid="text-location">
-                      {property.address}, {property.location}, {property.city}, {property.state}
+                      {property.address}, {property.zone}, {property.city}
                     </span>
                   </div>
                 </div>
@@ -248,8 +248,8 @@ export default function PropertyDetail() {
                   <div className="flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Tipo</p>
-                      <p className="font-medium">{property.propertyType}</p>
+                      <p className="text-sm text-muted-foreground">Tipo de Desarrollo</p>
+                      <p className="font-medium">{property.developmentType}</p>
                     </div>
                   </div>
                   {property.floor && (
@@ -261,12 +261,12 @@ export default function PropertyDetail() {
                       </div>
                     </div>
                   )}
-                  {property.yearBuilt && (
+                  {property.deliveryDate && (
                     <div className="flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Año</p>
-                        <p className="font-medium">{property.yearBuilt}</p>
+                        <p className="text-sm text-muted-foreground">Fecha de Entrega</p>
+                        <p className="font-medium">{property.deliveryDate}</p>
                       </div>
                     </div>
                   )}
@@ -282,24 +282,89 @@ export default function PropertyDetail() {
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap" data-testid="text-description">
                   {property.description}
                 </p>
+                {property.value && (
+                  <div className="mt-4 p-3 bg-secondary/20 rounded-lg border border-secondary/30">
+                    <p className="text-sm font-medium text-secondary-foreground">
+                      {property.value}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {property.amenities && property.amenities.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Amenidades</CardTitle>
+                  <CardTitle>Amenidades del Desarrollo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {property.amenities.map((amenityId, index) => {
+                      const amenity = getAmenityById(amenityId);
+                      if (!amenity) return null;
+                      return (
+                        <div
+                          key={index}
+                          className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50 text-center"
+                          data-testid={`amenity-${amenityId}`}
+                        >
+                          <img 
+                            src={amenity.icon} 
+                            alt={amenity.name}
+                            className="w-10 h-10 object-contain"
+                          />
+                          <span className="text-xs font-medium">{amenity.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {property.efficiency && property.efficiency.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-secondary" />
+                    Eficiencia del Desarrollo
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {property.amenities.map((amenity, index) => (
+                    {property.efficiency.map((feature, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
-                        data-testid={`amenity-${index}`}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-secondary/10 border border-secondary/20"
+                        data-testid={`efficiency-${index}`}
                       >
-                        <Check className="w-4 h-4 text-primary shrink-0" />
-                        <span className="text-sm">{amenity}</span>
+                        <Zap className="w-4 h-4 text-secondary shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {property.otherFeatures && property.otherFeatures.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    Seguridad y Otras Características
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {property.otherFeatures.map((feature, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20"
+                        data-testid={`other-feature-${index}`}
+                      >
+                        <Shield className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-sm">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -345,16 +410,20 @@ export default function PropertyDetail() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
+                  <p className="text-sm text-muted-foreground">Desarrollador</p>
+                  <p className="font-medium">{property.developer}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Desarrollo</p>
-                  <p className="font-medium">{property.developmentName || "No especificado"}</p>
+                  <p className="font-medium">{property.developmentName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Tipo de Desarrollo</p>
+                  <p className="font-medium">{property.developmentType}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Ubicación</p>
-                  <p className="font-medium">{property.location}, {property.city}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Estado</p>
-                  <p className="font-medium">{property.state}</p>
+                  <p className="font-medium">{property.zone}, {property.city}</p>
                 </div>
               </CardContent>
             </Card>
