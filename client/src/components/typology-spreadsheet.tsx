@@ -609,23 +609,32 @@ export function TypologySpreadsheet() {
     }
   }, []);
   
+  const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
+    queryKey: ["/api/typologies"],
+  });
+  
   useEffect(() => {
     const updateWidth = () => {
       if (contentScrollRef.current) {
-        setContentWidth(contentScrollRef.current.scrollWidth);
+        const width = contentScrollRef.current.scrollWidth;
+        if (width > 0) {
+          setContentWidth(width);
+        }
       }
     };
+    
+    const timer = setTimeout(updateWidth, 100);
     updateWidth();
+    
     const observer = new ResizeObserver(updateWidth);
     if (contentScrollRef.current) {
       observer.observe(contentScrollRef.current);
     }
-    return () => observer.disconnect();
-  }, [expandedSections]);
-  
-  const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
-    queryKey: ["/api/typologies"],
-  });
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [expandedSections, typologies]);
   
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -888,10 +897,10 @@ export function TypologySpreadsheet() {
       <div 
         ref={topScrollRef}
         onScroll={syncScrollFromTop}
-        className="overflow-x-auto overflow-y-hidden border-b bg-muted/30"
-        style={{ height: "12px" }}
+        className="overflow-x-scroll overflow-y-hidden border-b bg-muted/20 scrollbar-thin"
+        style={{ height: "16px", minHeight: "16px" }}
       >
-        <div style={{ width: contentWidth, height: "1px" }} />
+        <div style={{ width: contentWidth || 2000, height: "1px" }} />
       </div>
       
       <div 
