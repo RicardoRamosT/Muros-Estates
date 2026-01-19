@@ -39,25 +39,9 @@ export default function AdminDashboard() {
       <Header />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold" data-testid="text-page-title">Administración</h1>
-            <p className="text-muted-foreground">Panel de control de Muros</p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/admin/users">
-              <Button variant="outline" data-testid="button-manage-users">
-                <Users className="w-4 h-4 mr-2" />
-                Usuarios
-              </Button>
-            </Link>
-            <Link href="/admin/tipologias">
-              <Button data-testid="button-tipologias">
-                <TableProperties className="w-4 h-4 mr-2" />
-                Tipologías
-              </Button>
-            </Link>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold" data-testid="text-page-title">Administración</h1>
+          <p className="text-muted-foreground">Panel de control de Muros</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
