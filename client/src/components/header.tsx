@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import logoPath from "@assets/generated_images/muros_logo_transparent_background.png";
+import logoPath from "@assets/logo_1768784773871.png";
 
 export function Header() {
   const [location] = useLocation();

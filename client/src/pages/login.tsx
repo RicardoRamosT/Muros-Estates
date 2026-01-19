@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock } from "lucide-react";
-import logoPath from "@assets/generated_images/muros_logo_transparent_background.png";
+import logoPath from "@assets/logo_1768784773871.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();
