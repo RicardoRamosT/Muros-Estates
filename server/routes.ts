@@ -805,40 +805,39 @@ export async function registerRoutes(
     }
   });
 
-  // ============ DEVELOPMENT MEDIA ROUTES ============
+  // ============ TYPOLOGY MEDIA ROUTES ============
   
-  // Get all media for a development
+  // Get all media (optionally filtered by typologyId)
   app.get("/api/development-media", async (req, res) => {
     try {
-      const { development } = req.query;
-      const media = await storage.getDevelopmentMedia(development as string | undefined);
+      const { typologyId } = req.query;
+      const media = await storage.getDevelopmentMedia(typologyId as string | undefined);
       res.json(media);
     } catch (error) {
-      console.error("Error getting development media:", error);
+      console.error("Error getting typology media:", error);
       res.status(500).json({ error: "Error al obtener medios" });
     }
   });
   
-  // Upload media for a development
+  // Upload media for a specific typology
   app.post("/api/development-media", requireAuth, requireRole("admin", "actualizador"), upload.array("files", 20), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
-      const { development, developer } = req.body;
+      const { typologyId } = req.body;
       
       if (!files || files.length === 0) {
         return res.status(400).json({ error: "No se enviaron archivos" });
       }
       
-      if (!development || !developer) {
-        return res.status(400).json({ error: "Se requiere desarrollo y desarrollador" });
+      if (!typologyId) {
+        return res.status(400).json({ error: "Se requiere typologyId" });
       }
       
       const mediaItems = [];
       for (const file of files) {
         const isVideo = file.mimetype.startsWith("video/");
         const mediaItem = await storage.createDevelopmentMedia({
-          development,
-          developer,
+          typologyId,
           type: isVideo ? "video" : "image",
           url: `/uploads/${file.filename}`,
           uploadedBy: req.user!.id,
@@ -848,7 +847,7 @@ export async function registerRoutes(
       
       res.json(mediaItems);
     } catch (error) {
-      console.error("Error uploading development media:", error);
+      console.error("Error uploading typology media:", error);
       res.status(500).json({ error: "Error al subir medios" });
     }
   });

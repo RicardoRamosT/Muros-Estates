@@ -77,8 +77,8 @@ export interface IStorage {
   updateDocument(id: string, doc: Partial<InsertDocument>): Promise<Document | undefined>;
   deleteDocument(id: string): Promise<boolean>;
   
-  // Development Media
-  getDevelopmentMedia(development?: string): Promise<DevelopmentMedia[]>;
+  // Development Media (Typology Media)
+  getDevelopmentMedia(typologyId?: string): Promise<DevelopmentMedia[]>;
   createDevelopmentMedia(media: InsertDevelopmentMedia): Promise<DevelopmentMedia>;
   updateDevelopmentMedia(id: string, data: Partial<InsertDevelopmentMedia>): Promise<DevelopmentMedia | undefined>;
   deleteDevelopmentMedia(id: string): Promise<boolean>;
@@ -380,11 +380,11 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  // Development Media
-  async getDevelopmentMedia(development?: string): Promise<DevelopmentMedia[]> {
-    if (development) {
+  // Development Media (Typology Media)
+  async getDevelopmentMedia(typologyId?: string): Promise<DevelopmentMedia[]> {
+    if (typologyId) {
       return db.select().from(developmentMedia)
-        .where(eq(developmentMedia.development, development))
+        .where(eq(developmentMedia.typologyId, typologyId))
         .orderBy(developmentMedia.order);
     }
     return db.select().from(developmentMedia).orderBy(developmentMedia.order);
