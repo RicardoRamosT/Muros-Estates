@@ -449,18 +449,32 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold" data-testid="text-results-title">
-              Departamentos Disponibles
-            </h2>
-            <p className="text-muted-foreground mt-1" data-testid="text-results-count">
-              {filteredProperties.length} {filteredProperties.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
-            </p>
+      <section className="bg-primary py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-results-title">
+                Departamentos Disponibles
+              </h2>
+              <p className="text-white/70 mt-1" data-testid="text-results-count">
+                {filteredProperties.length} {filteredProperties.length === 1 ? "departamento encontrado" : "departamentos encontrados"}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="bg-secondary rounded-xl px-6 py-3 text-center">
+                <p className="text-2xl font-bold text-primary">+{filteredProperties.length * 10}</p>
+                <p className="text-sm text-primary/80">Unidades disponibles</p>
+              </div>
+              <div className="bg-secondary rounded-xl px-6 py-3 text-center">
+                <p className="text-2xl font-bold text-primary">100%</p>
+                <p className="text-sm text-primary/80">Verificados</p>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
+      <main className="container mx-auto px-4 py-12">
         <PropertyGrid properties={filteredProperties} isLoading={isLoading} />
       </main>
 
