@@ -133,10 +133,11 @@ Users have two-level fine-grained permissions beyond their base role. Stored as 
 - `GET /uploads/:filename` - Serve uploaded files with security headers
 
 ## Brand Colors (Muros)
-- **Primary**: Deep forest green (#1A4D2E) - HSL: 147 48% 21%
-- **Secondary**: Golden accent (#D4AF37) - HSL: 43 76% 53%
+- **Primary**: Medium Blue (#0C83C6) - HSL: 202 89% 41%
+- **Secondary**: Golden/Orange (#FFB549) - HSL: 43 76% 53%
 - **Background**: Light grey (#F8F9FA)
-- **Text**: Dark grey (#2C3E50)
+- **Text**: Dark grey (#2D2926)
+- **Light Gray**: (#D0D3D4) - Secondary neutral
 
 ## Key Features
 - **City/Zone Cascading Filters**: Selecting a city dynamically updates available zones
