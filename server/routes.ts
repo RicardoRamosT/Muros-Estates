@@ -181,7 +181,6 @@ export async function registerRoutes(
     if (fs.existsSync(filePath)) {
       // Set security headers
       res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('Content-Security-Policy', "default-src 'none'");
       res.sendFile(filePath);
     } else {
       res.status(404).json({ error: "Archivo no encontrado" });

@@ -87,8 +87,7 @@ export function DevelopmentMediaUploader() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await apiRequest("DELETE", `/api/development-media/${id}`);
-      if (!res.ok) throw new Error("Error al eliminar");
+      await apiRequest("DELETE", `/api/development-media/${id}`);
       return true;
     },
     onSuccess: () => {
@@ -127,7 +126,7 @@ export function DevelopmentMediaUploader() {
       const res = await fetch("/api/development-media", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("sessionToken")}`,
+          Authorization: `Bearer ${localStorage.getItem("muros_session")}`,
         },
         body: formData,
       });
