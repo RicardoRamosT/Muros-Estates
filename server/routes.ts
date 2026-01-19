@@ -217,6 +217,7 @@ export async function registerRoutes(
         email: u.email,
         role: u.role,
         active: u.active,
+        permissions: u.permissions,
         createdAt: u.createdAt,
       })));
     } catch (error) {
@@ -245,6 +246,7 @@ export async function registerRoutes(
         email: user.email,
         role: user.role,
         active: user.active,
+        permissions: user.permissions,
       });
     } catch (error) {
       console.error("Error creating user:", error);
@@ -274,6 +276,7 @@ export async function registerRoutes(
         email: user.email,
         role: user.role,
         active: user.active,
+        permissions: user.permissions,
       });
     } catch (error) {
       console.error("Error updating user:", error);
