@@ -190,7 +190,7 @@ export default function AdminClients() {
                   <tr>
                     <th className="text-left px-4 py-3 font-medium">Cliente</th>
                     <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Contacto</th>
-                    <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Interesado en</th>
+                    <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Desarrollo</th>
                     <th className="text-left px-4 py-3 font-medium">Estado</th>
                     <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Fecha</th>
                     <th className="text-center px-4 py-3 font-medium w-24">Acciones</th>
@@ -240,8 +240,6 @@ export default function AdminClients() {
                             <Building2 className="w-4 h-4 text-primary shrink-0" />
                             <span className="truncate max-w-48">{client.developmentInterest}</span>
                           </div>
-                        ) : client.interest ? (
-                          <span className="text-muted-foreground text-sm">{client.interest}</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -348,7 +346,7 @@ export default function AdminClients() {
 
               {selectedClient.interest && (
                 <div>
-                  <Label className="text-muted-foreground text-xs">Mensaje / Interés</Label>
+                  <Label className="text-muted-foreground text-xs">Mensaje</Label>
                   <div className="flex items-start gap-2 mt-1 p-3 bg-muted rounded-lg">
                     <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5" />
                     <p className="text-sm">{selectedClient.interest}</p>
