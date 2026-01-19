@@ -553,8 +553,8 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-4">
               <div className="bg-secondary rounded-xl px-6 py-3 text-center">
-                <p className="text-2xl font-bold text-primary">+{filteredProperties.length * 10}</p>
-                <p className="text-sm text-primary/80">Unidades disponibles</p>
+                <p className="text-2xl font-bold text-primary">{filteredProperties.length}</p>
+                <p className="text-sm text-primary/80">Departamentos</p>
               </div>
               <div className="bg-secondary rounded-xl px-6 py-3 text-center">
                 <p className="text-2xl font-bold text-primary">100%</p>
