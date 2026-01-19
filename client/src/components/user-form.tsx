@@ -76,12 +76,47 @@ type SectionKey = typeof SECTIONS[number]["key"];
 
 type FieldPermission = { view: boolean; edit: boolean };
 
-const createDefaultFieldPermissions = (sectionKey: SectionKey): Record<string, FieldPermission> => {
+const createDefaultFieldPermissions = (sectionKey: SectionKey, defaultValue: boolean = false): Record<string, FieldPermission> => {
   const fields = EDITABLE_FIELDS[sectionKey];
   return fields.reduce((acc, field) => {
-    acc[field.key] = { view: true, edit: true };
+    acc[field.key] = { view: defaultValue, edit: defaultValue };
     return acc;
   }, {} as Record<string, FieldPermission>);
+};
+
+const migrateFieldPermissions = (
+  sectionKey: SectionKey, 
+  existingFields: Record<string, any> | undefined,
+  sectionView: boolean = false,
+  sectionEdit: boolean = false
+): Record<string, FieldPermission> => {
+  const fields = EDITABLE_FIELDS[sectionKey];
+  return fields.reduce((acc, field) => {
+    if (!existingFields) {
+      acc[field.key] = { view: sectionView, edit: sectionEdit };
+    } else {
+      const existing = existingFields[field.key];
+      if (existing === undefined) {
+        acc[field.key] = { view: sectionView, edit: sectionEdit };
+      } else if (typeof existing === "boolean") {
+        acc[field.key] = { view: existing, edit: existing };
+      } else if (typeof existing === "object" && existing !== null) {
+        acc[field.key] = { 
+          view: existing.view ?? sectionView, 
+          edit: existing.edit ?? sectionEdit 
+        };
+      } else {
+        acc[field.key] = { view: sectionView, edit: sectionEdit };
+      }
+    }
+    return acc;
+  }, {} as Record<string, FieldPermission>);
+};
+
+const deriveSectionPermissions = (fields: Record<string, FieldPermission>) => {
+  const hasAnyView = Object.values(fields).some(f => f.view);
+  const hasAnyEdit = Object.values(fields).some(f => f.edit);
+  return { view: hasAnyView, edit: hasAnyEdit };
 };
 
 const defaultPermissions = {
@@ -92,7 +127,29 @@ const defaultPermissions = {
 };
 
 export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps) {
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    propiedades: true,
+    desarrollos: true,
+    clientes: true,
+    usuarios: true,
+  });
+
+  const getInitialSectionPermissions = (sectionKey: SectionKey) => {
+    const sectionView = user?.permissions?.[sectionKey]?.view ?? false;
+    const sectionEdit = user?.permissions?.[sectionKey]?.edit ?? false;
+    const migratedFields = migrateFieldPermissions(
+      sectionKey, 
+      user?.permissions?.[sectionKey]?.fields as Record<string, any> | undefined,
+      sectionView,
+      sectionEdit
+    );
+    const derived = deriveSectionPermissions(migratedFields);
+    return {
+      view: derived.view,
+      edit: derived.edit,
+      fields: migratedFields,
+    };
+  };
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
@@ -104,36 +161,20 @@ export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps)
       role: user?.role || "",
       active: user?.active ?? true,
       permissions: {
-        propiedades: {
-          view: user?.permissions?.propiedades?.view ?? false,
-          edit: user?.permissions?.propiedades?.edit ?? false,
-          fields: user?.permissions?.propiedades?.fields || createDefaultFieldPermissions("propiedades"),
-        },
-        desarrollos: {
-          view: user?.permissions?.desarrollos?.view ?? false,
-          edit: user?.permissions?.desarrollos?.edit ?? false,
-          fields: user?.permissions?.desarrollos?.fields || createDefaultFieldPermissions("desarrollos"),
-        },
-        clientes: {
-          view: user?.permissions?.clientes?.view ?? false,
-          edit: user?.permissions?.clientes?.edit ?? false,
-          fields: user?.permissions?.clientes?.fields || createDefaultFieldPermissions("clientes"),
-        },
-        usuarios: {
-          view: user?.permissions?.usuarios?.view ?? false,
-          edit: user?.permissions?.usuarios?.edit ?? false,
-          fields: user?.permissions?.usuarios?.fields || createDefaultFieldPermissions("usuarios"),
-        },
+        propiedades: getInitialSectionPermissions("propiedades"),
+        desarrollos: getInitialSectionPermissions("desarrollos"),
+        clientes: getInitialSectionPermissions("clientes"),
+        usuarios: getInitialSectionPermissions("usuarios"),
       },
     },
   });
 
   const permissions = useWatch({ control: form.control, name: "permissions" });
 
-  const toggleSection = (sectionKey: string) => {
+  const handleSectionToggle = (sectionKey: string, open: boolean) => {
     setExpandedSections(prev => ({
       ...prev,
-      [sectionKey]: !prev[sectionKey],
+      [sectionKey]: open,
     }));
   };
 
@@ -167,7 +208,28 @@ export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps)
   };
 
   const handleSubmit = (data: UserFormData) => {
-    onSubmit(data);
+    const processedData = {
+      ...data,
+      permissions: {
+        propiedades: {
+          ...deriveSectionPermissions(data.permissions.propiedades.fields!),
+          fields: data.permissions.propiedades.fields,
+        },
+        desarrollos: {
+          ...deriveSectionPermissions(data.permissions.desarrollos.fields!),
+          fields: data.permissions.desarrollos.fields,
+        },
+        clientes: {
+          ...deriveSectionPermissions(data.permissions.clientes.fields!),
+          fields: data.permissions.clientes.fields,
+        },
+        usuarios: {
+          ...deriveSectionPermissions(data.permissions.usuarios.fields!),
+          fields: data.permissions.usuarios.fields,
+        },
+      },
+    };
+    onSubmit(processedData);
   };
 
   return (
@@ -292,7 +354,7 @@ export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps)
                 <Collapsible 
                   key={section.key} 
                   open={isExpanded} 
-                  onOpenChange={() => toggleSection(section.key)}
+                  onOpenChange={(open) => handleSectionToggle(section.key, open)}
                   className="rounded-lg border"
                 >
                   <CollapsibleTrigger asChild>
