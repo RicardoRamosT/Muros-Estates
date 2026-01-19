@@ -206,11 +206,11 @@ export default function Properties() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Ciudad</Label>
               <Select
-                value={filters.city || ""}
+                value={filters.city || "all"}
                 onValueChange={(value) => {
                   setFilters(prev => ({
                     ...prev,
-                    city: value === "" ? undefined : value,
+                    city: value === "all" ? undefined : value,
                     zone: undefined
                   }));
                 }}
@@ -219,7 +219,7 @@ export default function Properties() {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   {CITIES.map((city) => (
                     <SelectItem key={city} value={city}>{city}</SelectItem>
                   ))}
@@ -230,14 +230,14 @@ export default function Properties() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Zona</Label>
               <Select
-                value={filters.zone || ""}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "" ? undefined : value }))}
+                value={filters.zone || "all"}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, zone: value === "all" ? undefined : value }))}
               >
                 <SelectTrigger data-testid="select-zone">
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   {availableZones.map((zone) => (
                     <SelectItem key={zone} value={zone}>{zone}</SelectItem>
                   ))}
@@ -248,14 +248,14 @@ export default function Properties() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Recámaras</Label>
               <Select
-                value={filters.minBedrooms?.toString() || ""}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, minBedrooms: value === "" ? undefined : parseInt(value) }))}
+                value={filters.minBedrooms?.toString() || "all"}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, minBedrooms: value === "all" ? undefined : parseInt(value) }))}
               >
                 <SelectTrigger data-testid="select-bedrooms">
                   <SelectValue placeholder="Cualquiera" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Cualquiera</SelectItem>
+                  <SelectItem value="all">Cualquiera</SelectItem>
                   <SelectItem value="1">1+</SelectItem>
                   <SelectItem value="2">2+</SelectItem>
                   <SelectItem value="3">3+</SelectItem>
