@@ -220,6 +220,7 @@ export type ClientFollowUp = typeof clientFollowUps.$inferSelect;
 // Typologies (Excel-like spreadsheet for property units)
 export const typologies = pgTable("typologies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  propertyId: varchar("property_id").references(() => properties.id, { onDelete: "cascade" }),
   
   // GENERALES
   city: text("city").notNull(),

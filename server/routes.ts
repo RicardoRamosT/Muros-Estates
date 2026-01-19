@@ -506,6 +506,28 @@ export async function registerRoutes(
       }
       
       const property = await storage.createProperty(validationResult.data);
+      
+      // Also create a corresponding typology
+      const typologyData = {
+        propertyId: property.id,
+        city: property.city,
+        zone: property.zone,
+        developer: property.developer,
+        development: property.developmentName,
+        level: property.floor || null,
+        size: property.area,
+        price: property.price,
+        bedrooms: property.bedrooms ? parseInt(property.bedrooms) : null,
+        bathrooms: property.bathrooms || null,
+        parkingSpots: property.parking || 1,
+        deliveryDate: property.deliveryDate || null,
+        downPaymentPercent: property.downPayment ? String(property.downPayment) : null,
+        createdBy: req.user?.id,
+      };
+      
+      const typology = await storage.createTypology(typologyData);
+      broadcastTypologyUpdate({ type: "create", typology });
+      
       res.status(201).json(property);
     } catch (error) {
       console.error("Error creating property:", error);
@@ -531,6 +553,31 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Propiedad no encontrada" });
       }
       
+      // Also update the corresponding typology
+      const existingTypology = await storage.getTypologyByPropertyId(id);
+      if (existingTypology) {
+        const typologyData = {
+          city: property.city,
+          zone: property.zone,
+          developer: property.developer,
+          development: property.developmentName,
+          level: property.floor || null,
+          size: property.area,
+          price: property.price,
+          bedrooms: property.bedrooms ? parseInt(property.bedrooms) : null,
+          bathrooms: property.bathrooms || null,
+          parkingSpots: property.parking || 1,
+          deliveryDate: property.deliveryDate || null,
+          downPaymentPercent: property.downPayment ? String(property.downPayment) : null,
+          updatedBy: req.user?.id,
+        };
+        
+        const updatedTypology = await storage.updateTypology(existingTypology.id, typologyData);
+        if (updatedTypology) {
+          broadcastTypologyUpdate({ type: "update", typology: updatedTypology });
+        }
+      }
+      
       res.json(property);
     } catch (error) {
       console.error("Error updating property:", error);
@@ -541,10 +588,19 @@ export async function registerRoutes(
   app.delete("/api/properties/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const id = req.params.id as string;
+      
+      // Get the typology before deleting (to broadcast the delete)
+      const existingTypology = await storage.getTypologyByPropertyId(id);
+      
       const deleted = await storage.deleteProperty(id);
       
       if (!deleted) {
         return res.status(404).json({ error: "Propiedad no encontrada" });
+      }
+      
+      // Broadcast typology deletion (cascade delete handles the DB side)
+      if (existingTypology) {
+        broadcastTypologyUpdate({ type: "delete", id: existingTypology.id });
       }
       
       res.status(204).send();

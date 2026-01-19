@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import path from "path";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -87,6 +88,14 @@ app.use((req, res, next) => {
   } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
+  }
+
+  // Sync properties to typologies on startup
+  try {
+    await storage.syncPropertiesToTypologies();
+    log("Properties synced to typologies", "sync");
+  } catch (error) {
+    console.error("Error syncing properties to typologies:", error);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT

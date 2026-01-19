@@ -54,9 +54,12 @@ export interface IStorage {
   // Typologies
   getAllTypologies(): Promise<Typology[]>;
   getTypology(id: string): Promise<Typology | undefined>;
+  getTypologyByPropertyId(propertyId: string): Promise<Typology | undefined>;
   createTypology(typology: InsertTypology): Promise<Typology>;
   updateTypology(id: string, typology: Partial<InsertTypology>): Promise<Typology | undefined>;
   deleteTypology(id: string): Promise<boolean>;
+  deleteTypologyByPropertyId(propertyId: string): Promise<boolean>;
+  syncPropertiesToTypologies(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -246,6 +249,50 @@ export class DatabaseStorage implements IStorage {
   async deleteTypology(id: string): Promise<boolean> {
     await db.delete(typologies).where(eq(typologies.id, id));
     return true;
+  }
+
+  async getTypologyByPropertyId(propertyId: string): Promise<Typology | undefined> {
+    const [typology] = await db.select().from(typologies).where(eq(typologies.propertyId, propertyId));
+    return typology || undefined;
+  }
+
+  async deleteTypologyByPropertyId(propertyId: string): Promise<boolean> {
+    await db.delete(typologies).where(eq(typologies.propertyId, propertyId));
+    return true;
+  }
+
+  async syncPropertiesToTypologies(): Promise<void> {
+    const allProperties = await this.getAllProperties();
+    
+    for (const property of allProperties) {
+      const existingTypology = await this.getTypologyByPropertyId(property.id);
+      
+      const typologyData: InsertTypology = {
+        propertyId: property.id,
+        city: property.city,
+        zone: property.zone,
+        developer: property.developer,
+        development: property.developmentName,
+        type: null,
+        level: property.floor || null,
+        view: null,
+        size: property.area,
+        price: property.price,
+        bedrooms: property.bedrooms ? parseInt(property.bedrooms) : null,
+        bathrooms: property.bathrooms ? property.bathrooms : null,
+        parkingSpots: property.parking || 1,
+        deliveryDate: property.deliveryDate || null,
+        downPaymentPercent: property.downPayment ? String(property.downPayment) : null,
+      };
+      
+      if (existingTypology) {
+        await this.updateTypology(existingTypology.id, typologyData);
+      } else {
+        await this.createTypology(typologyData);
+      }
+    }
+    
+    console.log(`Synced ${allProperties.length} properties to typologies`);
   }
 }
 
