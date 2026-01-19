@@ -85,6 +85,7 @@ export const properties = pgTable("properties", {
   status: text("status").notNull().default("available"),
   featured: boolean("featured").default(false),
   images: text("images").array().notNull(),
+  videos: text("videos").array(),
   amenities: text("amenities").array().notNull(),
   efficiency: text("efficiency").array(),
   otherFeatures: text("other_features").array(),
