@@ -247,7 +247,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
-                Por Ciudad
+                Unidades por Ciudad
               </CardTitle>
               <MapPin className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
