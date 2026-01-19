@@ -132,11 +132,6 @@ export default function AdminUsers() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/admin">
-              <Button variant="ghost" size="icon" data-testid="button-back">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-bold" data-testid="text-page-title">Gestión de Usuarios</h1>
               <p className="text-muted-foreground">Administra perfiladores, asesores y actualizadores</p>
