@@ -23,8 +23,14 @@ const DEFAULT_MIN_PRICE = 1000000;
 const DEFAULT_MAX_PRICE = 50000000;
 const DEFAULT_MIN_AREA = 20;
 const DEFAULT_MAX_AREA = 500;
+const DEFAULT_MIN_DELIVERY = 0;
+const DEFAULT_MAX_DELIVERY = 36;
+const DEFAULT_MIN_DOWN_PAYMENT = 5;
+const DEFAULT_MAX_DOWN_PAYMENT = 50;
 const PRICE_STEP = 100000;
 const AREA_STEP = 5;
+const DELIVERY_STEP = 3; // Quarters (trimestres)
+const DOWN_PAYMENT_STEP = 5; // 5% increments
 
 export default function Home() {
   const { toast } = useToast();
@@ -51,6 +57,28 @@ export default function Home() {
     const minArea = Math.floor(Math.min(...areas) / AREA_STEP) * AREA_STEP;
     const maxArea = Math.ceil(Math.max(...areas) / AREA_STEP) * AREA_STEP;
     return { min: minArea, max: maxArea };
+  }, [properties]);
+
+  const deliveryRange = useMemo(() => {
+    const propsWithDelivery = properties.filter(p => p.deliveryMonths !== null && p.deliveryMonths !== undefined);
+    if (propsWithDelivery.length === 0) {
+      return { min: DEFAULT_MIN_DELIVERY, max: DEFAULT_MAX_DELIVERY };
+    }
+    const months = propsWithDelivery.map(p => p.deliveryMonths!);
+    const minMonths = Math.floor(Math.min(...months) / DELIVERY_STEP) * DELIVERY_STEP;
+    const maxMonths = Math.ceil(Math.max(...months) / DELIVERY_STEP) * DELIVERY_STEP;
+    return { min: Math.max(0, minMonths), max: Math.max(maxMonths, DELIVERY_STEP) };
+  }, [properties]);
+
+  const downPaymentRange = useMemo(() => {
+    const propsWithDP = properties.filter(p => p.downPayment !== null && p.downPayment !== undefined);
+    if (propsWithDP.length === 0) {
+      return { min: DEFAULT_MIN_DOWN_PAYMENT, max: DEFAULT_MAX_DOWN_PAYMENT };
+    }
+    const payments = propsWithDP.map(p => p.downPayment!);
+    const minDP = Math.floor(Math.min(...payments) / DOWN_PAYMENT_STEP) * DOWN_PAYMENT_STEP;
+    const maxDP = Math.ceil(Math.max(...payments) / DOWN_PAYMENT_STEP) * DOWN_PAYMENT_STEP;
+    return { min: Math.max(5, minDP), max: Math.max(maxDP, 10) };
   }, [properties]);
 
   const [filters, setFilters] = useState<PropertyFilter>({});
@@ -114,6 +142,18 @@ export default function Home() {
     if (filters.zone) {
       result = result.filter((p) => p.zone === filters.zone);
     }
+    if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) {
+      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths >= filters.minDeliveryMonths!);
+    }
+    if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) {
+      result = result.filter((p) => p.deliveryMonths !== null && p.deliveryMonths !== undefined && p.deliveryMonths <= filters.maxDeliveryMonths!);
+    }
+    if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) {
+      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment >= filters.minDownPayment!);
+    }
+    if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) {
+      result = result.filter((p) => p.downPayment !== null && p.downPayment !== undefined && p.downPayment <= filters.maxDownPayment!);
+    }
 
     return result.sort((a, b) => {
       if (a.featured && !b.featured) return -1;
@@ -128,11 +168,15 @@ export default function Home() {
     if (filters.maxPrice && filters.maxPrice < priceRange.max) count++;
     if (filters.minArea && filters.minArea > areaRange.min) count++;
     if (filters.maxArea && filters.maxArea < areaRange.max) count++;
+    if (filters.minDeliveryMonths !== undefined && filters.minDeliveryMonths > deliveryRange.min) count++;
+    if (filters.maxDeliveryMonths !== undefined && filters.maxDeliveryMonths < deliveryRange.max) count++;
+    if (filters.minDownPayment !== undefined && filters.minDownPayment > downPaymentRange.min) count++;
+    if (filters.maxDownPayment !== undefined && filters.maxDownPayment < downPaymentRange.max) count++;
     if (filters.minBedrooms) count++;
     if (filters.city) count++;
     if (filters.zone) count++;
     return count;
-  }, [filters, priceRange, areaRange]);
+  }, [filters, priceRange, areaRange, deliveryRange, downPaymentRange]);
 
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -155,6 +199,22 @@ export default function Home() {
       ...prev,
       minArea: values[0],
       maxArea: values[1],
+    }));
+  };
+
+  const handleDeliveryChange = (values: number[]) => {
+    setFilters(prev => ({
+      ...prev,
+      minDeliveryMonths: values[0],
+      maxDeliveryMonths: values[1],
+    }));
+  };
+
+  const handleDownPaymentChange = (values: number[]) => {
+    setFilters(prev => ({
+      ...prev,
+      minDownPayment: values[0],
+      maxDownPayment: values[1],
     }));
   };
 
@@ -430,6 +490,38 @@ export default function Home() {
               />
               <span className="text-sm text-white/80 whitespace-nowrap">
                 {filters.minArea || areaRange.min} - {filters.maxArea || areaRange.max} m²
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 min-w-[180px]">
+              <span className="text-sm text-white/80 whitespace-nowrap">Entrega:</span>
+              <Slider
+                min={deliveryRange.min}
+                max={deliveryRange.max}
+                step={DELIVERY_STEP}
+                value={[filters.minDeliveryMonths ?? deliveryRange.min, filters.maxDeliveryMonths ?? deliveryRange.max]}
+                onValueChange={handleDeliveryChange}
+                className="flex-1 min-w-[60px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
+                data-testid="slider-delivery"
+              />
+              <span className="text-sm text-white/80 whitespace-nowrap">
+                {filters.minDeliveryMonths ?? deliveryRange.min} - {filters.maxDeliveryMonths ?? deliveryRange.max} meses
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 min-w-[180px]">
+              <span className="text-sm text-white/80 whitespace-nowrap">Enganche:</span>
+              <Slider
+                min={downPaymentRange.min}
+                max={downPaymentRange.max}
+                step={DOWN_PAYMENT_STEP}
+                value={[filters.minDownPayment ?? downPaymentRange.min, filters.maxDownPayment ?? downPaymentRange.max]}
+                onValueChange={handleDownPaymentChange}
+                className="flex-1 min-w-[60px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
+                data-testid="slider-downpayment"
+              />
+              <span className="text-sm text-white/80 whitespace-nowrap">
+                {filters.minDownPayment ?? downPaymentRange.min}% - {filters.maxDownPayment ?? downPaymentRange.max}%
               </span>
             </div>
 
