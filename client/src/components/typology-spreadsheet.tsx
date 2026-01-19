@@ -826,6 +826,13 @@ export function TypologySpreadsheet() {
           ? aStr.localeCompare(bStr, "es")
           : bStr.localeCompare(aStr, "es");
       });
+    } else {
+      // Default sort: by createdAt ascending (oldest first, newest at bottom)
+      result = [...result].sort((a, b) => {
+        const aDate = new Date(a.createdAt || 0).getTime();
+        const bDate = new Date(b.createdAt || 0).getTime();
+        return aDate - bDate;
+      });
     }
     
     return result;
