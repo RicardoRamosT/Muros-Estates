@@ -16,7 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { MessageCircle, X, Send, Loader2, User, Phone, Mail } from "lucide-react";
 
 export function FloatingContactForm() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const { toast } = useToast();
   const [contactForm, setContactForm] = useState({
     name: "",
