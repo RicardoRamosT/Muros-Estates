@@ -125,12 +125,9 @@ export default function AdminClients() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Users className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold" data-testid="text-page-title">Clientes</h1>
-              <p className="text-muted-foreground">Gestiona los contactos y leads</p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold" data-testid="text-page-title">Clientes</h1>
+            <p className="text-muted-foreground">Gestiona los contactos y leads</p>
           </div>
           <Badge variant="secondary" className="text-lg px-4 py-1">
             {clients.length} clientes
