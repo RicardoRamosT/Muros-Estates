@@ -42,6 +42,15 @@ Muros is a Spanish (Mexico) real estate web platform for a company specializing 
 - **Asesor**: Views assigned clients/developments, marks client interest/follow-ups
 - **Actualizador**: Creates and edits property/development data
 
+### Granular Permissions System
+Users can have fine-grained permissions beyond their base role. Stored as JSONB with format:
+```typescript
+{ sectionName: { view: boolean, edit: boolean } }
+```
+Available sections: propiedades, desarrollos, clientes, usuarios
+
+Admins can set per-section view/edit permissions when creating or editing users. Permissions are displayed in the users table as compact badges showing section abbreviations with eye (view) and pencil (edit) icons.
+
 ### Constants Structure (shared/constants.ts)
 - **Developers**: 13 developers (IDEI, PLATE, Create, Proyectos 9, Grupo Verzache, etc.)
 - **Developments**: 19 developments (Kyo Constella, Novus, ALTO, Moca Verde, etc.)
