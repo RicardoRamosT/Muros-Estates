@@ -1,22 +1,16 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
 import { PropertyGrid } from "@/components/property-grid";
+import { FloatingContactForm } from "@/components/floating-contact-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BEDROOM_OPTIONS, BATHROOM_OPTIONS } from "@shared/schema";
-import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import type { Property, PropertyFilter, ContactFormInput } from "@shared/schema";
+import type { Property, PropertyFilter } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, getZonesByCity } from "@shared/constants";
-import { Search, X, Send, Loader2, Phone, Mail, User, Building2, MapPin, Shield, ArrowRight } from "lucide-react";
+import { Search, X, Building2, MapPin, Shield, ArrowRight, Star, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
 import heroImage1 from "@assets/stock_images/modern_luxury_apartm_2088b0db.jpg";
 import heroImage2 from "@assets/stock_images/modern_luxury_apartm_93f36c98.jpg";
 import heroImage3 from "@assets/stock_images/modern_luxury_apartm_f001d689.jpg";
@@ -37,8 +31,6 @@ const DELIVERY_STEP = 3; // Quarters (trimestres)
 const DOWN_PAYMENT_STEP = 5; // 5% increments
 
 export default function Home() {
-  const { toast } = useToast();
-  
   const { data: properties = [], isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties"],
   });
@@ -86,34 +78,6 @@ export default function Home() {
   }, [properties]);
 
   const [filters, setFilters] = useState<PropertyFilter>({});
-
-  const [contactForm, setContactForm] = useState<ContactFormInput>({
-    name: "",
-    phone: "",
-    email: "",
-    interest: "",
-  });
-
-  const contactMutation = useMutation({
-    mutationFn: async (data: ContactFormInput) => {
-      const res = await apiRequest("POST", "/api/contact", data);
-      return res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Gracias por contactarnos",
-        description: "Un asesor te contactará pronto.",
-      });
-      setContactForm({ name: "", phone: "", email: "", interest: "" });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Error al enviar el formulario",
-        variant: "destructive",
-      });
-    },
-  });
 
   const availableZones = useMemo(() => {
     if (filters.city) {
@@ -245,173 +209,72 @@ export default function Home() {
     setFilters({});
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactForm.name || !contactForm.phone) {
-      toast({
-        title: "Error",
-        description: "Por favor completa los campos requeridos",
-        variant: "destructive",
-      });
-      return;
-    }
-    contactMutation.mutate(contactForm);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <section className="relative min-h-screen py-20 flex items-center">
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
           style={{ backgroundImage: `url(${heroImage1})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
         
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-6">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  Tu próximo hogar o inversión en{" "}
-                  <span className="text-secondary">México</span>
-                </h1>
-                <p className="text-xl text-gray-300 max-w-lg">
-                  Encuentra los mejores departamentos en desarrollos de primera calidad. 
-                  Asesoría personalizada sin costo.
-                </p>
-              </div>
+        <div className="container mx-auto px-4 relative z-10 py-20">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="inline-flex items-center gap-2 bg-secondary/20 backdrop-blur-sm text-secondary px-4 py-2 rounded-full text-sm font-medium">
+              <Star className="w-4 h-4" />
+              La plataforma #1 en desarrollos inmobiliarios
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
+              Encuentra tu{" "}
+              <span className="text-secondary">departamento ideal</span>
+              {" "}en México
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto">
+              Desarrollos verificados en Monterrey y CDMX. 
+              Asesoría gratuita y personalizada.
+            </p>
 
-              <div className="flex flex-wrap gap-6">
-                <div className="flex items-center gap-3 text-white/90">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">+50</p>
-                    <p className="text-sm text-gray-400">Desarrollos</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-white/90">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">2 Ciudades</p>
-                    <p className="text-sm text-gray-400">MTY y CDMX</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-white/90">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">100%</p>
-                    <p className="text-sm text-gray-400">Verificados</p>
-                  </div>
-                </div>
-              </div>
-
+            <div className="flex flex-wrap justify-center gap-4 pt-4">
+              <Link href="/propiedades">
+                <Button size="lg" className="h-14 px-8 text-lg gap-2" data-testid="button-hero-explore">
+                  Explorar Departamentos
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
             </div>
 
-            <div className="lg:pl-8">
-              <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
-                <CardContent className="p-8">
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-foreground">Recibe asesoría gratuita</h2>
-                    <p className="text-muted-foreground mt-1">Un experto te contactará en menos de 24 horas</p>
-                  </div>
-                  
-                  <form onSubmit={handleContactSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-foreground">Nombre completo *</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="name"
-                          placeholder="¿Cómo te llamas?"
-                          value={contactForm.name}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="pl-11 h-12 bg-muted/50"
-                          required
-                          data-testid="input-contact-name"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-foreground">Teléfono *</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="10 dígitos"
-                          value={contactForm.phone}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
-                          className="pl-11 h-12 bg-muted/50"
-                          required
-                          data-testid="input-contact-phone"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-foreground">Email (opcional)</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="tu@email.com"
-                          value={contactForm.email}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                          className="pl-11 h-12 bg-muted/50"
-                          data-testid="input-contact-email"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="interest" className="text-foreground">¿Cuál es tu objetivo?</Label>
-                      <Select
-                        value={contactForm.interest}
-                        onValueChange={(value) => setContactForm(prev => ({ ...prev, interest: value }))}
-                      >
-                        <SelectTrigger className="h-12 bg-muted/50" data-testid="select-contact-interest">
-                          <SelectValue placeholder="Selecciona una opción" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="inversion">Inversión</SelectItem>
-                          <SelectItem value="vivienda">Vivienda propia</SelectItem>
-                          <SelectItem value="renta">Renta</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <Button 
-                      type="submit"
-                      size="lg" 
-                      className="w-full h-14 text-lg font-semibold mt-2"
-                      disabled={contactMutation.isPending}
-                      data-testid="button-contact-submit"
-                    >
-                      {contactMutation.isPending ? (
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      ) : (
-                        <Send className="w-5 h-5 mr-2" />
-                      )}
-                      Quiero que me contacten
-                    </Button>
-                    
-                    <p className="text-xs text-center text-muted-foreground pt-2">
-                      Al enviar aceptas nuestro aviso de privacidad. Sin compromiso.
-                    </p>
-                  </form>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8 max-w-3xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                <Building2 className="w-8 h-8 text-secondary mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">+50</p>
+                <p className="text-sm text-gray-300">Desarrollos</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                <MapPin className="w-8 h-8 text-secondary mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">2</p>
+                <p className="text-sm text-gray-300">Ciudades</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                <Shield className="w-8 h-8 text-secondary mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">100%</p>
+                <p className="text-sm text-gray-300">Verificados</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                <CheckCircle className="w-8 h-8 text-secondary mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">+500</p>
+                <p className="text-sm text-gray-300">Clientes</p>
+              </div>
             </div>
+          </div>
+
+          <div className="hidden lg:flex gap-3 mt-12 justify-center">
+            <img src={heroImage2} alt="Departamento moderno" className="w-64 h-40 object-cover rounded-lg shadow-xl" />
+            <img src={heroImage3} alt="Interior de lujo" className="w-64 h-40 object-cover rounded-lg shadow-xl" />
+            <img src={buildingImage1} alt="Edificio residencial" className="w-64 h-40 object-cover rounded-lg shadow-xl" />
           </div>
         </div>
       </section>
@@ -748,6 +611,8 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <FloatingContactForm />
     </div>
   );
 }
