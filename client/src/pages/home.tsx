@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Typology } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, getZonesByCity } from "@shared/constants";
-import { Search, X, Building2, MapPin, Shield, ArrowRight, CheckCircle, Wifi } from "lucide-react";
+import { Search, X, Building2, MapPin, Shield, ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
 import { usePublicTypologies } from "@/hooks/use-public-typologies";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +35,7 @@ interface TypologyFilter {
 }
 
 export default function Home() {
-  const { typologies, isLoading, isConnected } = usePublicTypologies();
+  const { typologies, isLoading } = usePublicTypologies();
 
   const priceRange = useMemo(() => {
     if (typologies.length === 0) {
@@ -208,12 +208,6 @@ export default function Home() {
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              {isConnected && (
-                <Badge variant="outline" className="text-white/70 border-white/30 gap-1 h-10 px-4">
-                  <Wifi className="w-4 h-4" />
-                  Datos en vivo
-                </Badge>
-              )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8 max-w-3xl mx-auto">

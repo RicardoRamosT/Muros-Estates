@@ -20,6 +20,7 @@ export function Header() {
   const adminLinks = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "actualizador", "asesor", "perfilador"] },
     { href: "/admin/tipologias", label: "Tipologías", icon: TableProperties, roles: ["admin", "actualizador"] },
+    { href: "/admin/clientes", label: "Clientes", icon: Users, roles: ["admin", "perfilador", "asesor"] },
     { href: "/admin/documentos", label: "Documentos", icon: FileText, roles: ["admin", "actualizador", "asesor", "perfilador"] },
     { href: "/admin/users", label: "Usuarios", icon: Users, roles: ["admin"] },
   ];

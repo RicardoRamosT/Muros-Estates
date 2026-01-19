@@ -12,7 +12,6 @@ import {
   Image, 
   Video, 
   Trash2, 
-  Star, 
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -101,20 +100,6 @@ export function DevelopmentMediaUploader() {
     },
   });
 
-  const setPrimaryMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await apiRequest("PUT", `/api/development-media/${id}`, { isPrimary: true });
-      if (!res.ok) throw new Error("Error al actualizar");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/development-media"] });
-      toast({ title: "Imagen principal actualizada" });
-    },
-    onError: () => {
-      toast({ title: "Error al actualizar", variant: "destructive" });
-    },
-  });
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -264,30 +249,15 @@ export function DevelopmentMediaUploader() {
                         />
                       )}
                       
-                      <div className="absolute top-1 left-1">
-                        {media.type === "video" ? (
+                      {media.type === "video" && (
+                        <div className="absolute top-1 left-1">
                           <Badge variant="secondary" className="h-5 px-1.5">
                             <Video className="w-3 h-3" />
                           </Badge>
-                        ) : media.isPrimary ? (
-                          <Badge className="h-5 px-1.5 bg-yellow-500">
-                            <Star className="w-3 h-3 fill-current" />
-                          </Badge>
-                        ) : null}
-                      </div>
+                        </div>
+                      )}
 
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        {media.type === "image" && !media.isPrimary && (
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => setPrimaryMutation.mutate(media.id)}
-                            title="Marcar como principal"
-                          >
-                            <Star className="w-4 h-4" />
-                          </Button>
-                        )}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Button
                           variant="destructive"
                           size="icon"
