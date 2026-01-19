@@ -401,7 +401,7 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+            <div className="flex items-center gap-2 flex-1 min-w-[320px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Precio:</span>
               <Slider
                 min={priceRange.min}
@@ -409,7 +409,7 @@ export default function Home() {
                 step={PRICE_STEP}
                 value={[filters.minPrice || priceRange.min, filters.maxPrice || priceRange.max]}
                 onValueChange={handlePriceChange}
-                className="flex-1 [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
+                className="flex-1 min-w-[120px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
                 data-testid="slider-price"
               />
               <span className="text-sm text-white/80 whitespace-nowrap">
@@ -417,7 +417,7 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 min-w-[200px]">
+            <div className="flex items-center gap-2 min-w-[220px]">
               <span className="text-sm text-white/80 whitespace-nowrap">Tamaño:</span>
               <Slider
                 min={areaRange.min}
@@ -425,7 +425,7 @@ export default function Home() {
                 step={AREA_STEP}
                 value={[filters.minArea || areaRange.min, filters.maxArea || areaRange.max]}
                 onValueChange={handleAreaChange}
-                className="flex-1 min-w-[100px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
+                className="flex-1 min-w-[80px] [&_[role=slider]]:bg-secondary [&_[role=slider]]:border-secondary [&_.bg-primary]:bg-secondary"
                 data-testid="slider-area"
               />
               <span className="text-sm text-white/80 whitespace-nowrap">
