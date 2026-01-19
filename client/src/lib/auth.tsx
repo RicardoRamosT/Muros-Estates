@@ -7,6 +7,7 @@ interface AuthUser {
   name: string;
   email: string | null;
   role: string;
+  permissions: Record<string, any> | null;
 }
 
 interface AuthContextType {
@@ -45,7 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const userData = await response.json();
-        setUser(userData);
+        setUser({
+          ...userData,
+          permissions: userData.permissions || {},
+        });
       } else {
         localStorage.removeItem(SESSION_KEY);
       }
@@ -62,7 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
     
     localStorage.setItem(SESSION_KEY, data.sessionId);
-    setUser(data.user);
+    setUser({
+      ...data.user,
+      permissions: data.user.permissions || {},
+    });
   };
 
   const logout = async () => {

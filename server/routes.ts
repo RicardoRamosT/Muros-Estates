@@ -117,6 +117,30 @@ function requireRole(...roles: string[]) {
   };
 }
 
+function hasDocumentPermission(user: User, action: "view" | "edit"): boolean {
+  if (user.role === "admin") return true;
+  
+  const permissions = user.permissions as Record<string, any> | null;
+  if (!permissions?.documentos) return false;
+  
+  const docPerms = permissions.documentos;
+  return docPerms[action] === true;
+}
+
+function requireDocumentPermission(action: "view" | "edit") {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+    
+    if (!hasDocumentPermission(req.user, action)) {
+      return res.status(403).json({ error: "No tienes permiso para esta acción en documentos" });
+    }
+    
+    next();
+  };
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -207,6 +231,7 @@ export async function registerRoutes(
           name: user.name,
           email: user.email,
           role: user.role,
+          permissions: user.permissions,
         },
       });
     } catch (error) {
@@ -234,6 +259,7 @@ export async function registerRoutes(
       name: req.user!.name,
       email: req.user!.email,
       role: req.user!.role,
+      permissions: req.user!.permissions,
     });
   });
   
@@ -833,7 +859,7 @@ export async function registerRoutes(
   });
   
   // Get all documents (with filters)
-  app.get("/api/documents", requireAuth, async (req, res) => {
+  app.get("/api/documents", requireAuth, requireDocumentPermission("view"), async (req, res) => {
     try {
       const { category, developer, development, client, asesor, search } = req.query;
       
@@ -862,7 +888,7 @@ export async function registerRoutes(
   });
   
   // Get single document
-  app.get("/api/documents/:id", requireAuth, async (req, res) => {
+  app.get("/api/documents/:id", requireAuth, requireDocumentPermission("view"), async (req, res) => {
     try {
       const id = req.params.id as string;
       const doc = await storage.getDocument(id);
@@ -877,11 +903,16 @@ export async function registerRoutes(
   });
   
   // Upload document
-  app.post("/api/documents", requireAuth, documentUpload.single("file"), async (req, res) => {
+  app.post("/api/documents", requireAuth, requireDocumentPermission("edit"), documentUpload.single("file"), async (req, res) => {
     try {
       const file = req.file;
       if (!file) {
         return res.status(400).json({ error: "No se proporcionó ningún archivo" });
+      }
+      
+      // Validate required category field
+      if (!req.body.category) {
+        return res.status(400).json({ error: "La categoría es requerida" });
       }
       
       const documentData = {
@@ -919,7 +950,7 @@ export async function registerRoutes(
   });
   
   // Update document metadata
-  app.put("/api/documents/:id", requireAuth, async (req, res) => {
+  app.put("/api/documents/:id", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
     try {
       const id = req.params.id as string;
       const doc = await storage.updateDocument(id, {
@@ -947,7 +978,7 @@ export async function registerRoutes(
   });
   
   // Delete document
-  app.delete("/api/documents/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+  app.delete("/api/documents/:id", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
     try {
       const id = req.params.id as string;
       
@@ -972,7 +1003,7 @@ export async function registerRoutes(
   });
   
   // Download document
-  app.get("/api/documents/:id/download", requireAuth, async (req, res) => {
+  app.get("/api/documents/:id/download", requireAuth, requireDocumentPermission("view"), async (req, res) => {
     try {
       const id = req.params.id as string;
       const doc = await storage.getDocument(id);

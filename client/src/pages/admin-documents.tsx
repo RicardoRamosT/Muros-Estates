@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth";
 import { 
   Folder, 
   FileText, 
@@ -57,6 +58,7 @@ function formatFileSize(bytes: number | null) {
 
 export default function AdminDocuments() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -73,6 +75,23 @@ export default function AdminDocuments() {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const hasViewPermission = () => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    const permissions = user.permissions as Record<string, any> | null;
+    return permissions?.documentos?.view === true;
+  };
+
+  const hasEditPermission = () => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    const permissions = user.permissions as Record<string, any> | null;
+    return permissions?.documentos?.edit === true;
+  };
+
+  const canView = hasViewPermission();
+  const canEdit = hasEditPermission();
+
   const { data: documents = [], isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
@@ -82,7 +101,7 @@ export default function AdminDocuments() {
       const response = await fetch("/api/documents", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("sessionToken")}`,
+          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
         },
         body: formData,
       });
@@ -147,7 +166,7 @@ export default function AdminDocuments() {
     try {
       const response = await fetch(`/api/documents/${doc.id}/download`, {
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("sessionToken")}`,
+          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
         },
       });
       if (!response.ok) throw new Error("Error al descargar");
@@ -311,6 +330,7 @@ export default function AdminDocuments() {
             />
           </div>
           
+          {canEdit && (
           <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" data-testid="button-upload">
@@ -455,28 +475,37 @@ export default function AdminDocuments() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </div>
+
+      {!canView && (
+        <div className="text-center py-12 text-muted-foreground">
+          No tienes permiso para ver documentos
+        </div>
+      )}
       
-      <div className="flex items-center gap-2 text-sm">
-        {breadcrumbs.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
-            {index > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-            <button
-              onClick={() => setCurrentPath(item.path)}
-              className={`hover:text-primary ${
-                index === breadcrumbs.length - 1 ? "font-medium" : "text-muted-foreground"
-              }`}
-              data-testid={`breadcrumb-${index}`}
-            >
-              {index === 0 && <Home className="w-4 h-4 inline mr-1" />}
-              {item.label}
-            </button>
+      {canView && (
+        <>
+          <div className="flex items-center gap-2 text-sm">
+            {breadcrumbs.map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                {index > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                <button
+                  onClick={() => setCurrentPath(item.path)}
+                  className={`hover:text-primary ${
+                    index === breadcrumbs.length - 1 ? "font-medium" : "text-muted-foreground"
+                  }`}
+                  data-testid={`breadcrumb-${index}`}
+                >
+                  {index === 0 && <Home className="w-4 h-4 inline mr-1" />}
+                  {item.label}
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
       
-      {isLoading ? (
+          {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
@@ -516,6 +545,7 @@ export default function AdminDocuments() {
                   >
                     <Download className="w-4 h-4" />
                   </Button>
+                  {canEdit && (
                   <Button
                     size="icon"
                     variant="ghost"
@@ -530,6 +560,7 @@ export default function AdminDocuments() {
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -541,6 +572,8 @@ export default function AdminDocuments() {
             </div>
           )}
         </div>
+      )}
+        </>
       )}
     </div>
   );
