@@ -13,6 +13,7 @@ import type { Property, PropertyFilter } from "@shared/schema";
 import { BEDROOM_OPTIONS, BATHROOM_OPTIONS } from "@shared/schema";
 import { CITIES, getZonesByCity, ZONES_MONTERREY, ZONES_CDMX } from "@shared/constants";
 import { X, Home, SlidersHorizontal } from "lucide-react";
+import { FloatingContactForm } from "@/components/floating-contact-form";
 
 const DEFAULT_MIN_PRICE = 1000000;
 const DEFAULT_MAX_PRICE = 50000000;
@@ -410,6 +411,8 @@ export default function Properties() {
           <p>&copy; {new Date().getFullYear()} Muros. Todos los derechos reservados.</p>
         </div>
       </footer>
+
+      <FloatingContactForm />
     </div>
   );
 }
