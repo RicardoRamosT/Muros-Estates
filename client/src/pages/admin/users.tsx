@@ -1,13 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Header } from "@/components/header";
 import { AdminUserTable } from "@/components/admin-user-table";
-import { UserForm } from "@/components/user-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Users, Search, Building2, ArrowLeft } from "lucide-react";
+import { Plus, Users, Search, ArrowLeft } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -36,36 +34,12 @@ interface User {
 
 export default function AdminUsers() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/users", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast({
-        title: "Usuario creado",
-        description: "El usuario ha sido creado correctamente.",
-      });
-      setIsFormOpen(false);
-      setEditingUser(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo crear el usuario. Intenta de nuevo.",
-        variant: "destructive",
-      });
-    },
   });
 
   const updateMutation = useMutation({
@@ -79,8 +53,6 @@ export default function AdminUsers() {
         title: "Usuario actualizado",
         description: "El usuario ha sido actualizado correctamente.",
       });
-      setIsFormOpen(false);
-      setEditingUser(null);
     },
     onError: (error: any) => {
       toast({
@@ -136,8 +108,7 @@ export default function AdminUsers() {
   }, [users]);
 
   const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setIsFormOpen(true);
+    setLocation(`/admin/users/${user.id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -152,23 +123,6 @@ export default function AdminUsers() {
     if (deleteId) {
       deleteMutation.mutate(deleteId);
     }
-  };
-
-  const handleFormSubmit = (data: any) => {
-    if (editingUser) {
-      const updateData: any = { ...data };
-      if (!updateData.password) {
-        delete updateData.password;
-      }
-      updateMutation.mutate({ id: editingUser.id, data: updateData });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  const openNewUserForm = () => {
-    setEditingUser(null);
-    setIsFormOpen(true);
   };
 
   return (
@@ -188,10 +142,12 @@ export default function AdminUsers() {
               <p className="text-muted-foreground">Administra perfiladores, asesores y actualizadores</p>
             </div>
           </div>
-          <Button onClick={openNewUserForm} data-testid="button-add-user">
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Usuario
-          </Button>
+          <Link href="/admin/users/new">
+            <Button data-testid="button-add-user">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Usuario
+            </Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -282,20 +238,6 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       </main>
-
-      <Dialog open={isFormOpen} onOpenChange={(open) => !open && setIsFormOpen(false)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingUser ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle>
-          </DialogHeader>
-          <UserForm
-            user={editingUser}
-            onSubmit={handleFormSubmit}
-            isLoading={createMutation.isPending || updateMutation.isPending}
-            onCancel={() => setIsFormOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
