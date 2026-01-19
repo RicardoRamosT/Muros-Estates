@@ -47,9 +47,16 @@ export function DevelopmentMediaUploader() {
   });
 
   const developments = useMemo(() => {
-    const devMap = new Map<string, DevelopmentInfo>();
+    // Sort typologies by createdAt first to match the typology table order
+    const sortedTypologies = [...typologies].sort((a, b) => {
+      const aDate = new Date(a.createdAt || 0).getTime();
+      const bDate = new Date(b.createdAt || 0).getTime();
+      return aDate - bDate;
+    });
     
-    typologies.forEach(t => {
+    const devMap = new Map<string, DevelopmentInfo & { firstCreatedAt: number }>();
+    
+    sortedTypologies.forEach(t => {
       if (t.development && t.developer) {
         const key = `${t.developer}-${t.development}`;
         if (!devMap.has(key)) {
@@ -60,13 +67,15 @@ export function DevelopmentMediaUploader() {
             city: t.city || "",
             zone: t.zone || "",
             mediaCount,
+            firstCreatedAt: new Date(t.createdAt || 0).getTime(),
           });
         }
       }
     });
     
+    // Sort by first appearance order (createdAt of first typology with this development)
     return Array.from(devMap.values()).sort((a, b) => 
-      a.development.localeCompare(b.development)
+      a.firstCreatedAt - b.firstCreatedAt
     );
   }, [typologies, allMedia]);
 
