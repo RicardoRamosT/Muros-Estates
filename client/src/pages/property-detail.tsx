@@ -407,7 +407,7 @@ export default function PropertyDetail() {
           </div>
 
           <div className="space-y-6">
-            <Card className="sticky top-20">
+            <Card>
               <CardHeader>
                 <CardTitle>¿Te interesa este departamento?</CardTitle>
               </CardHeader>
