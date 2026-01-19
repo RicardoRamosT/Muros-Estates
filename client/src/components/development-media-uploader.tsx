@@ -298,11 +298,11 @@ export function DevelopmentMediaUploader() {
                   <table className="w-full text-sm">
                     <thead className="bg-muted">
                       <tr>
-                        <th className="text-center px-2 py-2 font-medium w-12">ID</th>
-                        <th className="text-left px-4 py-2 font-medium">Desarrollo</th>
+                        <th className="text-center px-2 py-2 font-medium w-12">#</th>
+                        <th className="text-left px-4 py-2 font-medium">Ciudad</th>
+                        <th className="text-left px-4 py-2 font-medium hidden sm:table-cell">Zona</th>
                         <th className="text-left px-4 py-2 font-medium hidden md:table-cell">Desarrollador</th>
-                        <th className="text-left px-4 py-2 font-medium hidden sm:table-cell">Ciudad</th>
-                        <th className="text-left px-4 py-2 font-medium hidden lg:table-cell">Zona</th>
+                        <th className="text-left px-4 py-2 font-medium">Desarrollo</th>
                         <th className="text-center px-4 py-2 font-medium w-24">Medios</th>
                       </tr>
                     </thead>
@@ -318,27 +318,22 @@ export function DevelopmentMediaUploader() {
                             {index + 1}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-primary shrink-0" />
-                              <div>
-                                <span className="font-medium">{dev.development}</span>
-                                <span className="text-muted-foreground text-xs md:hidden block">
-                                  {dev.developer}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
-                            {dev.developer}
-                          </td>
-                          <td className="px-4 py-3 hidden sm:table-cell">
                             <span className="flex items-center gap-1">
                               <MapPin className="w-3 h-3 text-muted-foreground" />
                               {dev.city}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                             {dev.zone}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
+                            {dev.developer}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-primary shrink-0" />
+                              <span className="font-medium">{dev.development}</span>
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-center">
                             <Badge variant={dev.mediaCount > 0 ? "default" : "secondary"}>
