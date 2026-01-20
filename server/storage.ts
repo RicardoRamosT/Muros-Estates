@@ -9,7 +9,13 @@ import {
   documents, type Document, type InsertDocument,
   developmentMedia, type DevelopmentMedia, type InsertDevelopmentMedia,
   developers, type Developer, type InsertDeveloper,
-  developments, type Development, type InsertDevelopment
+  developments, type Development, type InsertDevelopment,
+  catalogCities, type CatalogCity, type InsertCatalogCity,
+  catalogZones, type CatalogZone, type InsertCatalogZone,
+  catalogDevelopmentTypes, type CatalogDevelopmentType, type InsertCatalogDevelopmentType,
+  catalogAmenities, type CatalogAmenity, type InsertCatalogAmenity,
+  catalogEfficiencyFeatures, type CatalogEfficiencyFeature, type InsertCatalogEfficiencyFeature,
+  catalogOtherFeatures, type CatalogOtherFeature, type InsertCatalogOtherFeature
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -99,6 +105,37 @@ export interface IStorage {
   createDevelopmentEntity(development: InsertDevelopment): Promise<Development>;
   updateDevelopmentEntity(id: string, development: Partial<InsertDevelopment>): Promise<Development | undefined>;
   deleteDevelopmentEntity(id: string): Promise<boolean>;
+  
+  // Catalogs
+  getCatalogCities(): Promise<CatalogCity[]>;
+  createCatalogCity(city: InsertCatalogCity): Promise<CatalogCity>;
+  updateCatalogCity(id: string, city: Partial<InsertCatalogCity>): Promise<CatalogCity | undefined>;
+  deleteCatalogCity(id: string): Promise<boolean>;
+  
+  getCatalogZones(cityId?: string): Promise<CatalogZone[]>;
+  createCatalogZone(zone: InsertCatalogZone): Promise<CatalogZone>;
+  updateCatalogZone(id: string, zone: Partial<InsertCatalogZone>): Promise<CatalogZone | undefined>;
+  deleteCatalogZone(id: string): Promise<boolean>;
+  
+  getCatalogDevelopmentTypes(): Promise<CatalogDevelopmentType[]>;
+  createCatalogDevelopmentType(type: InsertCatalogDevelopmentType): Promise<CatalogDevelopmentType>;
+  updateCatalogDevelopmentType(id: string, type: Partial<InsertCatalogDevelopmentType>): Promise<CatalogDevelopmentType | undefined>;
+  deleteCatalogDevelopmentType(id: string): Promise<boolean>;
+  
+  getCatalogAmenities(): Promise<CatalogAmenity[]>;
+  createCatalogAmenity(amenity: InsertCatalogAmenity): Promise<CatalogAmenity>;
+  updateCatalogAmenity(id: string, amenity: Partial<InsertCatalogAmenity>): Promise<CatalogAmenity | undefined>;
+  deleteCatalogAmenity(id: string): Promise<boolean>;
+  
+  getCatalogEfficiencyFeatures(): Promise<CatalogEfficiencyFeature[]>;
+  createCatalogEfficiencyFeature(feature: InsertCatalogEfficiencyFeature): Promise<CatalogEfficiencyFeature>;
+  updateCatalogEfficiencyFeature(id: string, feature: Partial<InsertCatalogEfficiencyFeature>): Promise<CatalogEfficiencyFeature | undefined>;
+  deleteCatalogEfficiencyFeature(id: string): Promise<boolean>;
+  
+  getCatalogOtherFeatures(): Promise<CatalogOtherFeature[]>;
+  createCatalogOtherFeature(feature: InsertCatalogOtherFeature): Promise<CatalogOtherFeature>;
+  updateCatalogOtherFeature(id: string, feature: Partial<InsertCatalogOtherFeature>): Promise<CatalogOtherFeature | undefined>;
+  deleteCatalogOtherFeature(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -479,6 +516,129 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDevelopmentEntity(id: string): Promise<boolean> {
     await db.delete(developments).where(eq(developments.id, id));
+    return true;
+  }
+  
+  // Catalog Cities
+  async getCatalogCities(): Promise<CatalogCity[]> {
+    return db.select().from(catalogCities).orderBy(catalogCities.order, catalogCities.name);
+  }
+
+  async createCatalogCity(city: InsertCatalogCity): Promise<CatalogCity> {
+    const [item] = await db.insert(catalogCities).values(city as any).returning();
+    return item;
+  }
+
+  async updateCatalogCity(id: string, city: Partial<InsertCatalogCity>): Promise<CatalogCity | undefined> {
+    const [item] = await db.update(catalogCities).set(city as any).where(eq(catalogCities.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogCity(id: string): Promise<boolean> {
+    await db.delete(catalogCities).where(eq(catalogCities.id, id));
+    return true;
+  }
+  
+  // Catalog Zones
+  async getCatalogZones(cityId?: string): Promise<CatalogZone[]> {
+    if (cityId) {
+      return db.select().from(catalogZones).where(eq(catalogZones.cityId, cityId)).orderBy(catalogZones.order, catalogZones.name);
+    }
+    return db.select().from(catalogZones).orderBy(catalogZones.order, catalogZones.name);
+  }
+
+  async createCatalogZone(zone: InsertCatalogZone): Promise<CatalogZone> {
+    const [item] = await db.insert(catalogZones).values(zone as any).returning();
+    return item;
+  }
+
+  async updateCatalogZone(id: string, zone: Partial<InsertCatalogZone>): Promise<CatalogZone | undefined> {
+    const [item] = await db.update(catalogZones).set(zone as any).where(eq(catalogZones.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogZone(id: string): Promise<boolean> {
+    await db.delete(catalogZones).where(eq(catalogZones.id, id));
+    return true;
+  }
+  
+  // Catalog Development Types
+  async getCatalogDevelopmentTypes(): Promise<CatalogDevelopmentType[]> {
+    return db.select().from(catalogDevelopmentTypes).orderBy(catalogDevelopmentTypes.order, catalogDevelopmentTypes.name);
+  }
+
+  async createCatalogDevelopmentType(type: InsertCatalogDevelopmentType): Promise<CatalogDevelopmentType> {
+    const [item] = await db.insert(catalogDevelopmentTypes).values(type as any).returning();
+    return item;
+  }
+
+  async updateCatalogDevelopmentType(id: string, type: Partial<InsertCatalogDevelopmentType>): Promise<CatalogDevelopmentType | undefined> {
+    const [item] = await db.update(catalogDevelopmentTypes).set(type as any).where(eq(catalogDevelopmentTypes.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogDevelopmentType(id: string): Promise<boolean> {
+    await db.delete(catalogDevelopmentTypes).where(eq(catalogDevelopmentTypes.id, id));
+    return true;
+  }
+  
+  // Catalog Amenities
+  async getCatalogAmenities(): Promise<CatalogAmenity[]> {
+    return db.select().from(catalogAmenities).orderBy(catalogAmenities.order, catalogAmenities.name);
+  }
+
+  async createCatalogAmenity(amenity: InsertCatalogAmenity): Promise<CatalogAmenity> {
+    const [item] = await db.insert(catalogAmenities).values(amenity as any).returning();
+    return item;
+  }
+
+  async updateCatalogAmenity(id: string, amenity: Partial<InsertCatalogAmenity>): Promise<CatalogAmenity | undefined> {
+    const [item] = await db.update(catalogAmenities).set(amenity as any).where(eq(catalogAmenities.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogAmenity(id: string): Promise<boolean> {
+    await db.delete(catalogAmenities).where(eq(catalogAmenities.id, id));
+    return true;
+  }
+  
+  // Catalog Efficiency Features
+  async getCatalogEfficiencyFeatures(): Promise<CatalogEfficiencyFeature[]> {
+    return db.select().from(catalogEfficiencyFeatures).orderBy(catalogEfficiencyFeatures.order, catalogEfficiencyFeatures.name);
+  }
+
+  async createCatalogEfficiencyFeature(feature: InsertCatalogEfficiencyFeature): Promise<CatalogEfficiencyFeature> {
+    const [item] = await db.insert(catalogEfficiencyFeatures).values(feature as any).returning();
+    return item;
+  }
+
+  async updateCatalogEfficiencyFeature(id: string, feature: Partial<InsertCatalogEfficiencyFeature>): Promise<CatalogEfficiencyFeature | undefined> {
+    const [item] = await db.update(catalogEfficiencyFeatures).set(feature as any).where(eq(catalogEfficiencyFeatures.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogEfficiencyFeature(id: string): Promise<boolean> {
+    await db.delete(catalogEfficiencyFeatures).where(eq(catalogEfficiencyFeatures.id, id));
+    return true;
+  }
+  
+  // Catalog Other Features
+  async getCatalogOtherFeatures(): Promise<CatalogOtherFeature[]> {
+    return db.select().from(catalogOtherFeatures).orderBy(catalogOtherFeatures.order, catalogOtherFeatures.name);
+  }
+
+  async createCatalogOtherFeature(feature: InsertCatalogOtherFeature): Promise<CatalogOtherFeature> {
+    const [item] = await db.insert(catalogOtherFeatures).values(feature as any).returning();
+    return item;
+  }
+
+  async updateCatalogOtherFeature(id: string, feature: Partial<InsertCatalogOtherFeature>): Promise<CatalogOtherFeature | undefined> {
+    const [item] = await db.update(catalogOtherFeatures).set(feature as any).where(eq(catalogOtherFeatures.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogOtherFeature(id: string): Promise<boolean> {
+    await db.delete(catalogOtherFeatures).where(eq(catalogOtherFeatures.id, id));
     return true;
   }
 }

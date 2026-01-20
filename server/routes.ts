@@ -1249,5 +1249,140 @@ export async function registerRoutes(
     }
   });
 
+  // ============= CATALOG ROUTES =============
+  
+  // Cities
+  app.get("/api/catalog/cities", requireAuth, async (req, res) => {
+    const cities = await storage.getCatalogCities();
+    res.json(cities);
+  });
+  
+  app.post("/api/catalog/cities", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const city = await storage.createCatalogCity(req.body);
+    res.status(201).json(city);
+  });
+  
+  app.put("/api/catalog/cities/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const city = await storage.updateCatalogCity(req.params.id, req.body);
+    if (!city) return res.status(404).json({ error: "Ciudad no encontrada" });
+    res.json(city);
+  });
+  
+  app.delete("/api/catalog/cities/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    await storage.deleteCatalogCity(req.params.id);
+    res.status(204).send();
+  });
+  
+  // Zones
+  app.get("/api/catalog/zones", requireAuth, async (req, res) => {
+    const cityId = req.query.cityId as string | undefined;
+    const zones = await storage.getCatalogZones(cityId);
+    res.json(zones);
+  });
+  
+  app.post("/api/catalog/zones", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const zone = await storage.createCatalogZone(req.body);
+    res.status(201).json(zone);
+  });
+  
+  app.put("/api/catalog/zones/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const zone = await storage.updateCatalogZone(req.params.id, req.body);
+    if (!zone) return res.status(404).json({ error: "Zona no encontrada" });
+    res.json(zone);
+  });
+  
+  app.delete("/api/catalog/zones/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    await storage.deleteCatalogZone(req.params.id);
+    res.status(204).send();
+  });
+  
+  // Development Types
+  app.get("/api/catalog/development-types", requireAuth, async (req, res) => {
+    const types = await storage.getCatalogDevelopmentTypes();
+    res.json(types);
+  });
+  
+  app.post("/api/catalog/development-types", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const type = await storage.createCatalogDevelopmentType(req.body);
+    res.status(201).json(type);
+  });
+  
+  app.put("/api/catalog/development-types/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const type = await storage.updateCatalogDevelopmentType(req.params.id, req.body);
+    if (!type) return res.status(404).json({ error: "Tipo no encontrado" });
+    res.json(type);
+  });
+  
+  app.delete("/api/catalog/development-types/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    await storage.deleteCatalogDevelopmentType(req.params.id);
+    res.status(204).send();
+  });
+  
+  // Amenities
+  app.get("/api/catalog/amenities", requireAuth, async (req, res) => {
+    const amenities = await storage.getCatalogAmenities();
+    res.json(amenities);
+  });
+  
+  app.post("/api/catalog/amenities", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const amenity = await storage.createCatalogAmenity(req.body);
+    res.status(201).json(amenity);
+  });
+  
+  app.put("/api/catalog/amenities/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const amenity = await storage.updateCatalogAmenity(req.params.id, req.body);
+    if (!amenity) return res.status(404).json({ error: "Amenidad no encontrada" });
+    res.json(amenity);
+  });
+  
+  app.delete("/api/catalog/amenities/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    await storage.deleteCatalogAmenity(req.params.id);
+    res.status(204).send();
+  });
+  
+  // Efficiency Features
+  app.get("/api/catalog/efficiency-features", requireAuth, async (req, res) => {
+    const features = await storage.getCatalogEfficiencyFeatures();
+    res.json(features);
+  });
+  
+  app.post("/api/catalog/efficiency-features", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const feature = await storage.createCatalogEfficiencyFeature(req.body);
+    res.status(201).json(feature);
+  });
+  
+  app.put("/api/catalog/efficiency-features/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const feature = await storage.updateCatalogEfficiencyFeature(req.params.id, req.body);
+    if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
+    res.json(feature);
+  });
+  
+  app.delete("/api/catalog/efficiency-features/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    await storage.deleteCatalogEfficiencyFeature(req.params.id);
+    res.status(204).send();
+  });
+  
+  // Other Features
+  app.get("/api/catalog/other-features", requireAuth, async (req, res) => {
+    const features = await storage.getCatalogOtherFeatures();
+    res.json(features);
+  });
+  
+  app.post("/api/catalog/other-features", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const feature = await storage.createCatalogOtherFeature(req.body);
+    res.status(201).json(feature);
+  });
+  
+  app.put("/api/catalog/other-features/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
+    const feature = await storage.updateCatalogOtherFeature(req.params.id, req.body);
+    if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
+    res.json(feature);
+  });
+  
+  app.delete("/api/catalog/other-features/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    await storage.deleteCatalogOtherFeature(req.params.id);
+    res.status(204).send();
+  });
+
   return httpServer;
 }
