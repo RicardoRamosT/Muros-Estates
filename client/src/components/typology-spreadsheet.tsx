@@ -10,8 +10,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Trash2, Save, X, 
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
-  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images
+  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -598,6 +604,8 @@ export function TypologySpreadsheet() {
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
+  const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -627,7 +635,7 @@ export function TypologySpreadsheet() {
     return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores").length;
   }, [documents]);
   
-  const uploadImageMutation = useMutation({
+  const uploadMediaMutation = useMutation({
     mutationFn: async ({ typologyId, file }: { typologyId: string; file: File }) => {
       const formData = new FormData();
       formData.append("file", file);
@@ -648,12 +656,36 @@ export function TypologySpreadsheet() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
-      toast({ title: "Imagen subida correctamente" });
+      toast({ title: "Archivo subido correctamente" });
     },
     onError: () => {
-      toast({ title: "Error al subir imagen", variant: "destructive" });
+      toast({ title: "Error al subir archivo", variant: "destructive" });
     },
   });
+  
+  const deleteMediaMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      const res = await fetch(`/api/documents/${docId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
+        },
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      toast({ title: "Archivo eliminado" });
+    },
+    onError: () => {
+      toast({ title: "Error al eliminar archivo", variant: "destructive" });
+    },
+  });
+  
+  const getTypologyMedia = useCallback((typologyId: string) => {
+    return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores");
+  }, [documents]);
   
   useEffect(() => {
     const updateWidth = () => {
@@ -1022,16 +1054,16 @@ export function TypologySpreadsheet() {
               </Collapsible>
             ))}
             
-            <div className="w-20 flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
+            <div className="w-24 flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                     <Images className="w-3 h-3" />
-                    Fotos
+                    Medios
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Subir imágenes a Documentos &gt; Desarrolladores &gt; Productos</p>
+                  <p>Subir fotos/videos a Documentos &gt; Desarrolladores &gt; Productos</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -1114,33 +1146,33 @@ export function TypologySpreadsheet() {
                 ))}
                 
                 <div 
-                  className="w-20 flex-shrink-0 border-r flex items-center justify-center gap-1"
-                  data-testid={`cell-photos-${row.id}`}
+                  className="w-24 flex-shrink-0 border-r flex items-center justify-center gap-0.5"
+                  data-testid={`cell-media-${row.id}`}
                 >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <label className="cursor-pointer">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,video/*"
                           multiple
                           className="hidden"
                           onChange={(e) => {
                             const files = e.target.files;
                             if (files) {
                               Array.from(files).forEach(file => {
-                                uploadImageMutation.mutate({ typologyId: row.id, file });
+                                uploadMediaMutation.mutate({ typologyId: row.id, file });
                               });
                             }
                             e.target.value = "";
                           }}
-                          data-testid={`input-photo-${row.id}`}
+                          data-testid={`input-media-${row.id}`}
                         />
                         <div className={cn(
-                          "p-1.5 rounded hover-elevate cursor-pointer",
-                          uploadImageMutation.isPending ? "opacity-50" : ""
+                          "p-1 rounded hover-elevate cursor-pointer",
+                          uploadMediaMutation.isPending ? "opacity-50" : ""
                         )}>
-                          {uploadImageMutation.isPending ? (
+                          {uploadMediaMutation.isPending ? (
                             <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                           ) : (
                             <ImagePlus className="w-4 h-4 text-muted-foreground" />
@@ -1149,14 +1181,34 @@ export function TypologySpreadsheet() {
                       </label>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Subir imágenes</p>
+                      <p>Subir fotos/videos</p>
                     </TooltipContent>
                   </Tooltip>
-                  {getTypologyDocCount(row.id) > 0 && (
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                      {getTypologyDocCount(row.id)}
-                    </Badge>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        onClick={() => {
+                          setSelectedTypologyForMedia(row.id);
+                          setMediaDialogOpen(true);
+                        }}
+                        data-testid={`button-view-media-${row.id}`}
+                      >
+                        {getTypologyDocCount(row.id) > 0 ? (
+                          <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 min-w-5">
+                            {getTypologyDocCount(row.id)}
+                          </Badge>
+                        ) : (
+                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{getTypologyDocCount(row.id) > 0 ? `Ver/editar ${getTypologyDocCount(row.id)} medios` : "Ver medios"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             );
@@ -1173,6 +1225,98 @@ export function TypologySpreadsheet() {
           )}
         </div>
       </div>
+      
+      <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Images className="w-5 h-5" />
+              Medios de la Tipología
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {selectedTypologyForMedia && getTypologyMedia(selectedTypologyForMedia).map((doc: any) => {
+              const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
+              const fileName = doc.fileName?.toLowerCase() || '';
+              const isVideo = doc.mimeType?.startsWith("video/") || videoExtensions.some(ext => fileName.endsWith(ext));
+              return (
+                <div key={doc.id} className="relative group border rounded-lg overflow-hidden">
+                  {isVideo ? (
+                    <video 
+                      src={`/api/documents/${doc.id}/download`}
+                      controls
+                      className="w-full h-40 object-cover bg-black"
+                      data-testid={`video-${doc.id}`}
+                    />
+                  ) : (
+                    <img 
+                      src={`/api/documents/${doc.id}/download`}
+                      alt={doc.fileName}
+                      className="w-full h-40 object-cover"
+                      data-testid={`image-${doc.id}`}
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteMediaMutation.mutate(doc.id)}
+                      disabled={deleteMediaMutation.isPending}
+                      data-testid={`button-delete-media-${doc.id}`}
+                    >
+                      {deleteMediaMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-1" />
+                      )}
+                      Eliminar
+                    </Button>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate flex items-center gap-1">
+                    {isVideo ? <Video className="w-3 h-3" /> : <ImagePlus className="w-3 h-3" />}
+                    {doc.fileName}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {selectedTypologyForMedia && getTypologyMedia(selectedTypologyForMedia).length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No hay medios para esta tipología
+            </div>
+          )}
+          <div className="mt-4 flex justify-center">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files && selectedTypologyForMedia) {
+                    Array.from(files).forEach(file => {
+                      uploadMediaMutation.mutate({ typologyId: selectedTypologyForMedia, file });
+                    });
+                  }
+                  e.target.value = "";
+                }}
+                data-testid="input-upload-more-media"
+              />
+              <Button variant="outline" asChild>
+                <span>
+                  {uploadMediaMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Subir más
+                </span>
+              </Button>
+            </label>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
