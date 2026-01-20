@@ -56,8 +56,19 @@ No specific user preferences were provided in the original document.
 - `/admin/desarrollos` - Excel-like spreadsheet for building projects (CRUD: developer link, name, city, zone, type, delivery date, address, coordinates, notes)
 - `/admin/tipologias` - Excel-like spreadsheet for property units with 50+ fields and real-time WebSocket sync
 - `/admin/prospectos` - Client/lead management (previously /admin/clientes)
+- `/admin/documentos` - Document management system with 3 tabs:
+  - **Desarrolladores**: Hierarchical navigation (Developer → Development → Typology) with section-based filtering (Legales, Venta, Productos, Mercadotecnia)
+  - **Clientes**: Client documents with asesor-based access control (non-admins see only their assigned clients)
+  - **De Trabajo**: Internal work documents (legal, contratos, etc.)
 - `/admin/catalogos` - Master database for dropdown values with 6 tabs: Cities, Zones, Development Types, Amenities, Efficiency Features, Other Features
 - `/admin/users` - User management with role-based access
+
+## Public Share Pages
+- `/s/:token` - Public document access page (no authentication required)
+  - Tokenized access via share links created by admins
+  - Permissions: canView (download documents), canUpload (upload files)
+  - Expiration: permanent or days-based (default 7 days)
+  - Shows only shareable documents
 
 ## API Endpoints
 - `/api/developers` - CRUD for developer companies
@@ -78,3 +89,8 @@ No specific user preferences were provided in the original document.
 - Updated schema with new development fields (latitude, longitude, notes; made developerId nullable)
 - Updated header navigation with 7 sections: Dashboard, Desarrolladores, Desarrollos, Tipologías, Prospectos, Catálogos, Usuarios
 - Renamed "Clientes" to "Prospectos" throughout admin interface
+- Added Documentos admin page with 3-tab interface (Desarrolladores, Clientes, De Trabajo)
+- Implemented hierarchical document navigation (Developer → Development → Typology → Section)
+- Created share link system with tokenized public access, permissions (canView, canUpload), and expiration options
+- Added public share page at /s/:token for external clients to access shared documents without authentication
+- Implemented asesor-based access control for client documents (non-admins see only their assigned clients)
