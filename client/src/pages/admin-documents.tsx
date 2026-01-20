@@ -731,7 +731,8 @@ export default function AdminDocuments() {
                     </Select>
                   </div>
                   
-                  {uploadForm.developerId && (
+                  {/* Only show development selector if NOT in developer legales context */}
+                  {uploadForm.developerId && !DOCUMENT_SECTIONS.developerLegales.includes(uploadForm.section) && (
                     <div>
                       <Label>Desarrollo</Label>
                       <Select 
