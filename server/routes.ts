@@ -786,6 +786,31 @@ export async function registerRoutes(
     }
   });
   
+  app.patch("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      
+      const updateData = {
+        ...req.body,
+        updatedBy: req.user!.id,
+      };
+      
+      const typology = await storage.updateTypology(id, updateData);
+      
+      if (!typology) {
+        return res.status(404).json({ error: "Tipología no encontrada" });
+      }
+      
+      // Broadcast to all connected clients
+      broadcastTypologyUpdate("update", typology);
+      
+      res.json(typology);
+    } catch (error) {
+      console.error("Error updating typology:", error);
+      res.status(500).json({ error: "Error al actualizar tipología" });
+    }
+  });
+  
   app.delete("/api/typologies/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const id = req.params.id as string;
