@@ -20,6 +20,7 @@ import AdminDesarrolladores from "@/pages/admin/desarrolladores";
 import AdminDesarrollos from "@/pages/admin/desarrollos";
 import AdminDocuments from "@/pages/admin-documents";
 import AdminClients from "@/pages/admin/clients";
+import AdminCatalogos from "@/pages/admin/catalogos";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ component: Component, allowedRoles }: { component: React.ComponentType; allowedRoles?: string[] }) {
@@ -84,6 +85,9 @@ function Router() {
       </Route>
       <Route path="/admin/documentos">
         {() => <ProtectedRoute component={AdminDocuments} allowedRoles={["admin", "actualizador", "asesor", "perfilador"]} />}
+      </Route>
+      <Route path="/admin/catalogos">
+        {() => <ProtectedRoute component={AdminCatalogos} allowedRoles={["admin", "actualizador"]} />}
       </Route>
       <Route component={NotFound} />
     </Switch>
