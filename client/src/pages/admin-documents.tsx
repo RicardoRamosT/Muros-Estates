@@ -1367,7 +1367,10 @@ function DesarrolladoresView({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card 
               className="cursor-pointer hover-elevate"
-              onClick={() => onSelectSectionType("legales")}
+              onClick={() => {
+                onSelectSectionType("legales");
+                onSelectSection("identidad");
+              }}
               data-testid="folder-developer-legales"
             >
               <CardContent className="p-4 flex flex-col items-center gap-2">
@@ -1477,7 +1480,10 @@ function DesarrolladoresView({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card 
               className="cursor-pointer hover-elevate"
-              onClick={() => onSelectSectionType("legales")}
+              onClick={() => {
+                onSelectSectionType("legales");
+                onSelectSection("identidad");
+              }}
               data-testid="folder-legales"
             >
               <CardContent className="p-4 flex flex-col items-center gap-2">
@@ -1487,7 +1493,10 @@ function DesarrolladoresView({
             </Card>
             <Card 
               className="cursor-pointer hover-elevate"
-              onClick={() => onSelectSectionType("venta")}
+              onClick={() => {
+                onSelectSectionType("venta");
+                onSelectSection("imagenes");
+              }}
               data-testid="folder-venta"
             >
               <CardContent className="p-4 flex flex-col items-center gap-2">
@@ -1507,7 +1516,10 @@ function DesarrolladoresView({
                 <Card 
                   key={typ.id} 
                   className="cursor-pointer hover-elevate"
-                  onClick={() => onSelectTypology(typ.id)}
+                  onClick={() => {
+                    onSelectTypology(typ.id);
+                    onSelectSection("imagenes");
+                  }}
                   data-testid={`folder-typology-${typ.id}`}
                 >
                   <CardContent className="p-4 flex flex-col items-center gap-2">
