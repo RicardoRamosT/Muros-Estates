@@ -544,6 +544,9 @@ export const sharedLinks = pgTable("shared_links", {
   isPermanent: boolean("is_permanent").default(false),
   expiresAt: timestamp("expires_at"), // Null if permanent
   
+  // Requested documents - list of document types the client should upload
+  requestedDocuments: text("requested_documents").array(),
+  
   // Tracking
   createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
