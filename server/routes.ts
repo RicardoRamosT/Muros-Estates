@@ -1310,6 +1310,7 @@ export async function registerRoutes(
         canUpload: req.body.canUpload === true,
         isPermanent: req.body.isPermanent === true,
         expiresAt,
+        requestedDocuments: req.body.requestedDocuments || null,
         createdBy: req.user!.id,
       };
       
