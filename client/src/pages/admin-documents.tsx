@@ -1021,43 +1021,36 @@ export default function AdminDocuments() {
                     />
                   </div>
 
-                  {shareForm.canUpload && (
+                  {shareForm.canUpload && selectedSection && SECTION_DESCRIPTIONS[selectedSection] && (
                     <div className="p-3 bg-muted/50 rounded-md space-y-3">
                       <Label className="text-sm font-medium">Documentos a solicitar (opcional):</Label>
                       <p className="text-xs text-muted-foreground">
-                        Selecciona los documentos que el cliente debe subir
+                        Selecciona los documentos que el cliente debe subir en {SECTION_LABELS[selectedSection]}
                       </p>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {Object.entries(SECTION_DESCRIPTIONS).map(([section, docs]) => (
-                          <div key={section} className="space-y-1">
-                            <p className="text-xs font-medium text-muted-foreground">
-                              {SECTION_LABELS[section] || section}
-                            </p>
-                            {docs.map((docType) => (
-                              <div key={docType} className="flex items-center gap-2 pl-2">
-                                <Checkbox
-                                  id={`req-${docType}`}
-                                  checked={shareForm.requestedDocuments.includes(docType)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setShareForm({
-                                        ...shareForm,
-                                        requestedDocuments: [...shareForm.requestedDocuments, docType]
-                                      });
-                                    } else {
-                                      setShareForm({
-                                        ...shareForm,
-                                        requestedDocuments: shareForm.requestedDocuments.filter(d => d !== docType)
-                                      });
-                                    }
-                                  }}
-                                  data-testid={`checkbox-req-${docType}`}
-                                />
-                                <Label htmlFor={`req-${docType}`} className="text-sm cursor-pointer">
-                                  {docType}
-                                </Label>
-                              </div>
-                            ))}
+                        {SECTION_DESCRIPTIONS[selectedSection].map((docType) => (
+                          <div key={docType} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`req-${docType}`}
+                              checked={shareForm.requestedDocuments.includes(docType)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setShareForm({
+                                    ...shareForm,
+                                    requestedDocuments: [...shareForm.requestedDocuments, docType]
+                                  });
+                                } else {
+                                  setShareForm({
+                                    ...shareForm,
+                                    requestedDocuments: shareForm.requestedDocuments.filter(d => d !== docType)
+                                  });
+                                }
+                              }}
+                              data-testid={`checkbox-req-${docType}`}
+                            />
+                            <Label htmlFor={`req-${docType}`} className="text-sm cursor-pointer">
+                              {docType}
+                            </Label>
                           </div>
                         ))}
                       </div>
