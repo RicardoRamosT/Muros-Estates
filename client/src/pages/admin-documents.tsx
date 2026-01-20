@@ -82,6 +82,40 @@ const SECTION_LABELS: Record<string, string> = {
   productos: "Productos",
 };
 
+const SECTION_DESCRIPTIONS: Record<string, string[]> = {
+  identidad: [
+    "Acta Constitutiva",
+    "Constancia de Situación Fiscal",
+    "Opinión de Cumplimiento",
+    "Identificación Representante Legal",
+    "Comprobante de Domicilio",
+    "Otros"
+  ],
+  corporativo: [
+    "Currículum",
+    "Presentación"
+  ],
+  convenios: [
+    "Convenios y Contratos de Intermediación"
+  ],
+  permisos: [
+    "Factibilidad de Agua",
+    "Manifiesto de Impacto Ambiental",
+    "Factibilidad de CFE",
+    "Otras Factibilidades",
+    "Licencia de Uso de Suelo",
+    "Licencia de Construcción"
+  ],
+  fideicomiso: [
+    "Documentos de Fideicomiso"
+  ],
+  ofertaContrato: [
+    "Oferta de Compra",
+    "Contrato de Inversión",
+    "Contrato de Promesa de Compraventa"
+  ],
+};
+
 export default function AdminDocuments() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -1339,6 +1373,7 @@ function DesarrolladoresView({
                 isLoading={isLoading}
                 emptyMessage={`No hay documentos en ${section}`}
                 onUpload={onUpload}
+                sectionDescription={SECTION_DESCRIPTIONS[section]}
               />
             </TabsContent>
           );
@@ -1471,6 +1506,7 @@ function DesarrolladoresView({
                 isLoading={isLoading}
                 emptyMessage={`No hay documentos en ${SECTION_LABELS[section]}`}
                 onUpload={onUpload}
+                sectionDescription={SECTION_DESCRIPTIONS[section]}
               />
             </TabsContent>
           );
@@ -1538,6 +1574,7 @@ function SectionDocumentGrid({
   isLoading,
   emptyMessage,
   onUpload,
+  sectionDescription,
 }: {
   documents: Document[];
   onDownload: (doc: Document) => void;
@@ -1546,6 +1583,7 @@ function SectionDocumentGrid({
   isLoading: boolean;
   emptyMessage: string;
   onUpload?: () => void;
+  sectionDescription?: string[];
 }) {
   if (isLoading) {
     return (
@@ -1559,6 +1597,16 @@ function SectionDocumentGrid({
     return (
       <Card className="p-8">
         <div className="text-center space-y-4">
+          {sectionDescription && sectionDescription.length > 0 && (
+            <div className="mb-4 p-3 bg-muted/50 rounded-md">
+              <p className="text-sm text-muted-foreground font-medium mb-2">Documentos que se suben aquí:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {sectionDescription.map((item, idx) => (
+                  <li key={idx}>• {item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <p className="text-muted-foreground">{emptyMessage}</p>
           {canEdit && onUpload && (
             <Button onClick={onUpload} className="gap-2" data-testid="button-upload-section">
@@ -1573,6 +1621,16 @@ function SectionDocumentGrid({
   
   return (
     <div className="space-y-4">
+      {sectionDescription && sectionDescription.length > 0 && (
+        <div className="p-3 bg-muted/50 rounded-md">
+          <p className="text-sm text-muted-foreground font-medium mb-2">Documentos que se suben aquí:</p>
+          <ul className="text-sm text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+            {sectionDescription.map((item, idx) => (
+              <li key={idx}>• {item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {canEdit && onUpload && (
         <div className="flex justify-end">
           <Button onClick={onUpload} className="gap-2" data-testid="button-upload-section">
