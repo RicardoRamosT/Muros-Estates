@@ -1524,7 +1524,7 @@ export async function registerRoutes(
         mimeType: file.mimetype,
         rootCategory: link.rootCategory || "clientes",
         section: link.section || null,
-        shareable: false, // Client uploads are not shareable by default
+        shareable: true, // Client uploads should be visible via shared links
         developerId: link.developerId || null,
         developmentId: link.developmentId || null,
         typologyId: link.typologyId || null,
