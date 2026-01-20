@@ -42,7 +42,10 @@ import {
   ExternalLink,
   Clock,
   CheckCircle,
-  Info
+  Info,
+  Pencil,
+  Check,
+  X
 } from "lucide-react";
 import { DOCUMENT_SECTIONS } from "@shared/schema";
 import type { Document, Developer, Development, Typology, Client, SharedLink } from "@shared/schema";
@@ -268,6 +271,19 @@ export default function AdminDocuments() {
     },
     onError: () => {
       toast({ title: "Error al eliminar link", variant: "destructive" });
+    },
+  });
+
+  const updateTypologyNameMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: string; type: string }) => {
+      return apiRequest("PATCH", `/api/typologies/${id}`, { type });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
+      toast({ title: "Nombre de tipología actualizado" });
+    },
+    onError: () => {
+      toast({ title: "Error al actualizar nombre", variant: "destructive" });
     },
   });
 
@@ -666,6 +682,7 @@ export default function AdminDocuments() {
               canEdit={canEdit}
               isLoading={loadingDocs}
               onUpload={openUploadDialog}
+              onUpdateTypologyName={(id, name) => updateTypologyNameMutation.mutate({ id, type: name })}
             />
           </TabsContent>
 
@@ -1307,6 +1324,7 @@ interface DesarrolladoresViewProps {
   canEdit: boolean;
   isLoading: boolean;
   onUpload: () => void;
+  onUpdateTypologyName: (id: string, name: string) => void;
 }
 
 function DesarrolladoresView({
@@ -1329,7 +1347,31 @@ function DesarrolladoresView({
   canEdit,
   isLoading,
   onUpload,
+  onUpdateTypologyName,
 }: DesarrolladoresViewProps) {
+  const [editingTypologyId, setEditingTypologyId] = useState<string | null>(null);
+  const [editingTypologyName, setEditingTypologyName] = useState("");
+  
+  const startEditingTypology = (typ: Typology, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingTypologyId(typ.id);
+    setEditingTypologyName(typ.type || "");
+  };
+  
+  const saveTypologyName = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (editingTypologyId && editingTypologyName.trim()) {
+      onUpdateTypologyName(editingTypologyId, editingTypologyName.trim());
+    }
+    setEditingTypologyId(null);
+    setEditingTypologyName("");
+  };
+  
+  const cancelEditingTypology = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingTypologyId(null);
+    setEditingTypologyName("");
+  };
   
   // Level 1: Show developers
   if (!selectedDeveloperId) {
@@ -1517,14 +1559,51 @@ function DesarrolladoresView({
                   key={typ.id} 
                   className="cursor-pointer hover-elevate"
                   onClick={() => {
-                    onSelectTypology(typ.id);
-                    onSelectSection("imagenes");
+                    if (editingTypologyId !== typ.id) {
+                      onSelectTypology(typ.id);
+                      onSelectSection("imagenes");
+                    }
                   }}
                   data-testid={`folder-typology-${typ.id}`}
                 >
                   <CardContent className="p-4 flex flex-col items-center gap-2">
                     <Folder className="w-12 h-12 text-amber-400" />
-                    <span className="font-medium text-center">{`Tipo ${typ.type || typ.id}`}</span>
+                    {editingTypologyId === typ.id ? (
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Input
+                          value={editingTypologyName}
+                          onChange={(e) => setEditingTypologyName(e.target.value)}
+                          className="h-7 w-24 text-sm text-center"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveTypologyName(e as any);
+                            if (e.key === "Escape") cancelEditingTypology(e as any);
+                          }}
+                          data-testid={`input-typology-name-${typ.id}`}
+                        />
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={saveTypologyName} data-testid={`button-save-typology-${typ.id}`}>
+                          <Check className="w-4 h-4 text-green-600" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEditingTypology} data-testid={`button-cancel-typology-${typ.id}`}>
+                          <X className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-center">{`Tipo ${typ.type || typ.id.substring(0, 8)}...`}</span>
+                        {canEdit && (
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6"
+                            onClick={(e) => startEditingTypology(typ, e)}
+                            data-testid={`button-edit-typology-${typ.id}`}
+                          >
+                            <Pencil className="w-3 h-3 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
