@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
@@ -40,7 +41,7 @@ import {
   ExternalLink,
   Clock,
   CheckCircle,
-  AlertTriangle
+  Info
 } from "lucide-react";
 import { DOCUMENT_SECTIONS } from "@shared/schema";
 import type { Document, Developer, Development, Typology, Client, SharedLink } from "@shared/schema";
@@ -1301,8 +1302,7 @@ function DesarrolladoresView({
               onClick={() => onSelectSectionType("legales")}
               data-testid="folder-developer-legales"
             >
-              <CardContent className="p-4 flex flex-col items-center gap-2 relative">
-                <AlertTriangle className="w-4 h-4 text-red-500 absolute top-2 right-2" />
+              <CardContent className="p-4 flex flex-col items-center gap-2">
                 <FileText className="w-12 h-12 text-green-600" />
                 <span className="font-medium">Legales</span>
               </CardContent>
@@ -1350,10 +1350,25 @@ function DesarrolladoresView({
             <TabsTrigger 
               key={section} 
               value={section}
-              className="capitalize"
+              className="capitalize relative pr-6"
               data-testid={`tab-${section}`}
             >
-              {section}
+              {SECTION_LABELS[section] || section}
+              {SECTION_DESCRIPTIONS[section] && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="absolute top-0 right-0 w-0 h-0 border-t-[12px] border-t-red-500 border-l-[12px] border-l-transparent cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-medium mb-1">Documentos que se suben aquí:</p>
+                    <ul className="text-xs space-y-0.5">
+                      {SECTION_DESCRIPTIONS[section].map((item, idx) => (
+                        <li key={idx}>• {item}</li>
+                      ))}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -1397,8 +1412,7 @@ function DesarrolladoresView({
               onClick={() => onSelectSectionType("legales")}
               data-testid="folder-legales"
             >
-              <CardContent className="p-4 flex flex-col items-center gap-2 relative">
-                <AlertTriangle className="w-4 h-4 text-red-500 absolute top-2 right-2" />
+              <CardContent className="p-4 flex flex-col items-center gap-2">
                 <FileText className="w-12 h-12 text-green-600" />
                 <span className="font-medium">Legales</span>
               </CardContent>
@@ -1488,8 +1502,23 @@ function DesarrolladoresView({
       <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
         <TabsList className="mb-4 flex-wrap">
           {developmentLegalesSections.map(section => (
-            <TabsTrigger key={section} value={section} data-testid={`tab-${section}`}>
+            <TabsTrigger key={section} value={section} className="relative pr-6" data-testid={`tab-${section}`}>
               {SECTION_LABELS[section]}
+              {SECTION_DESCRIPTIONS[section] && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="absolute top-0 right-0 w-0 h-0 border-t-[12px] border-t-red-500 border-l-[12px] border-l-transparent cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-medium mb-1">Documentos que se suben aquí:</p>
+                    <ul className="text-xs space-y-0.5">
+                      {SECTION_DESCRIPTIONS[section].map((item, idx) => (
+                        <li key={idx}>• {item}</li>
+                      ))}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
