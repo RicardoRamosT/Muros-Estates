@@ -472,9 +472,10 @@ interface EditableCellProps {
   city?: string;
   onChange: (value: any) => void;
   disabled?: boolean;
+  dynamicOptions?: string[];
 }
 
-function EditableCell({ value, column, rowId, city, onChange, disabled }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, onChange, disabled, dynamicOptions }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -534,7 +535,7 @@ function EditableCell({ value, column, rowId, city, onChange, disabled }: Editab
   }
   
   if (column.type === "select") {
-    let options = column.options || [];
+    let options: readonly string[] = dynamicOptions || column.options || [];
     if (column.key === "zone" && city) {
       options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
     }
@@ -630,6 +631,28 @@ export function TypologySpreadsheet() {
   const { data: documents = [] } = useQuery<any[]>({
     queryKey: ["/api/documents"],
   });
+  
+  const { data: dbDevelopers = [] } = useQuery<any[]>({
+    queryKey: ["/api/developers"],
+  });
+  
+  const { data: dbDevelopments = [] } = useQuery<any[]>({
+    queryKey: ["/api/developments-entity"],
+  });
+  
+  const developerOptions = useMemo(() => {
+    const dbNames = dbDevelopers.map(d => d.name).filter(Boolean);
+    const constantNames = [...DEVELOPERS];
+    const allNames = Array.from(new Set([...dbNames, ...constantNames]));
+    return allNames.sort();
+  }, [dbDevelopers]);
+  
+  const developmentOptions = useMemo(() => {
+    const dbNames = dbDevelopments.map(d => d.name).filter(Boolean);
+    const constantNames = [...DEVELOPMENTS];
+    const allNames = Array.from(new Set([...dbNames, ...constantNames]));
+    return allNames.sort();
+  }, [dbDevelopments]);
   
   const getTypologyDocCount = useCallback((typologyId: string) => {
     return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores").length;
@@ -821,8 +844,8 @@ export function TypologySpreadsheet() {
     createMutation.mutate({
       city: "Monterrey",
       zone: "Centro",
-      developer: DEVELOPERS[0],
-      development: DEVELOPMENTS[0],
+      developer: developerOptions[0] || "",
+      development: developmentOptions[0] || "",
     });
   };
   
@@ -1131,16 +1154,22 @@ export function TypologySpreadsheet() {
                     open={expandedSections.has(section.id)}
                   >
                     <CollapsibleContent className="flex border-r">
-                      {section.columns.map((col) => (
-                        <EditableCell
-                          key={col.key}
-                          value={mergedRow[col.key]}
-                          column={col}
-                          rowId={row.id}
-                          city={mergedRow.city}
-                          onChange={(value) => handleCellChange(row.id, col.key, value)}
-                        />
-                      ))}
+                      {section.columns.map((col) => {
+                        let dynamicOpts: string[] | undefined;
+                        if (col.key === "developer") dynamicOpts = developerOptions;
+                        if (col.key === "development") dynamicOpts = developmentOptions;
+                        return (
+                          <EditableCell
+                            key={col.key}
+                            value={mergedRow[col.key]}
+                            column={col}
+                            rowId={row.id}
+                            city={mergedRow.city}
+                            onChange={(value) => handleCellChange(row.id, col.key, value)}
+                            dynamicOptions={dynamicOpts}
+                          />
+                        );
+                      })}
                     </CollapsibleContent>
                   </Collapsible>
                 ))}
