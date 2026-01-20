@@ -771,12 +771,12 @@ export default function AdminDocuments() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="">Ninguna (nivel desarrollo)</SelectItem>
-                          {(() => {
-                            const devName = developments.find(d => d.id === uploadForm.developmentId)?.name;
-                            return typologies.filter(t => t.development === devName).map(typ => (
+                          {typologies
+                            .filter(t => t.development === developments.find(d => d.id === uploadForm.developmentId)?.name)
+                            .map(typ => (
                               <SelectItem key={typ.id} value={typ.id}>{`Tipo ${typ.type || typ.id}`}</SelectItem>
-                            ));
-                          })()}
+                            ))
+                          }
                         </SelectContent>
                       </Select>
                     </div>
@@ -792,44 +792,28 @@ export default function AdminDocuments() {
                         <SelectValue placeholder="Selecciona sección" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(() => {
-                          // Determine which sections to show based on context
-                          if (uploadForm.typologyId) {
-                            // Typology selected - show typology sections only
-                            return DOCUMENT_SECTIONS.typologyVenta.map(s => (
-                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ));
-                          } else if (uploadForm.developmentId) {
-                            // Development selected (no typology) - show development sections
-                            return (
-                              <>
-                                {DOCUMENT_SECTIONS.developmentLegales.map(s => (
-                                  <SelectItem key={`legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                                ))}
-                                {DOCUMENT_SECTIONS.developmentVenta.map(s => (
-                                  <SelectItem key={`venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                                ))}
-                              </>
-                            );
-                          } else if (uploadForm.developerId) {
-                            // Developer selected (no development) - show developer legales only
-                            return DOCUMENT_SECTIONS.developerLegales.map(s => (
-                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ));
-                          } else {
-                            // Nothing selected - show all development sections as default
-                            return (
-                              <>
-                                {DOCUMENT_SECTIONS.developmentLegales.map(s => (
-                                  <SelectItem key={`all-legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                                ))}
-                                {DOCUMENT_SECTIONS.developmentVenta.map(s => (
-                                  <SelectItem key={`all-venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                                ))}
-                              </>
-                            );
-                          }
-                        })()}
+                        {uploadForm.typologyId && DOCUMENT_SECTIONS.typologyVenta.map(s => (
+                          <SelectItem key={`typ-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                        ))}
+                        {uploadForm.developmentId && !uploadForm.typologyId && [
+                          ...DOCUMENT_SECTIONS.developmentLegales.map(s => (
+                            <SelectItem key={`dev-leg-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                          )),
+                          ...DOCUMENT_SECTIONS.developmentVenta.map(s => (
+                            <SelectItem key={`dev-ven-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                          ))
+                        ]}
+                        {uploadForm.developerId && !uploadForm.developmentId && DOCUMENT_SECTIONS.developerLegales.map(s => (
+                          <SelectItem key={`devr-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                        ))}
+                        {!uploadForm.developerId && !uploadForm.typologyId && [
+                          ...DOCUMENT_SECTIONS.developmentLegales.map(s => (
+                            <SelectItem key={`all-leg-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                          )),
+                          ...DOCUMENT_SECTIONS.developmentVenta.map(s => (
+                            <SelectItem key={`all-ven-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                          ))
+                        ]}
                       </SelectContent>
                     </Select>
                   </div>
