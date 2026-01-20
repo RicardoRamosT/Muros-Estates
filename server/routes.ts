@@ -1511,9 +1511,12 @@ export async function registerRoutes(
         return res.status(400).json({ error: "No se proporcionó ningún archivo" });
       }
       
+      // Get documentType if provided (for organized uploads)
+      const documentType = req.body.documentType || null;
+      
       // Build document data from the link's context
       const documentData = {
-        name: req.body.name || file.originalname,
+        name: documentType ? `[${documentType}] ${file.originalname}` : (req.body.name || file.originalname),
         originalName: file.originalname,
         fileUrl: `/uploads/documents/${file.filename}`,
         fileSize: file.size,

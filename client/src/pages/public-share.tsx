@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Download, Upload, FileText, Image, Video, AlertTriangle, CheckCircle, File, LockOpen } from "lucide-react";
+import { Loader2, Download, Upload, FileText, Image, Video, AlertTriangle, CheckCircle, File, LockOpen, Circle, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SharedDocument {
@@ -72,6 +72,9 @@ export default function PublicShare() {
   const queryClient = useQueryClient();
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [documentFiles, setDocumentFiles] = useState<Record<string, File | null>>({});
+  const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<SharedLinkData>({
     queryKey: ["/api/public/share", token],
@@ -125,9 +128,62 @@ export default function PublicShare() {
     },
   });
 
+  const uploadSingleDocMutation = useMutation({
+    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("documentType", documentType);
+      
+      const res = await fetch(`/api/public/share/${token}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Error al subir archivo");
+      }
+      
+      return res.json();
+    },
+    onSuccess: async (_, variables) => {
+      await queryClient.refetchQueries({ queryKey: ["/api/public/share", token] });
+      setUploadedDocs(prev => new Set(Array.from(prev).concat(variables.documentType)));
+      setDocumentFiles(prev => ({ ...prev, [variables.documentType]: null }));
+      toast({
+        title: "Documento subido",
+        description: `${variables.documentType} se ha subido correctamente`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error al subir",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setUploadingFiles(files);
+  };
+
+  const handleDocumentFileSelect = (docType: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setDocumentFiles(prev => ({ ...prev, [docType]: file }));
+  };
+
+  const handleUploadSingleDoc = async (docType: string) => {
+    const file = documentFiles[docType];
+    if (!file) return;
+    
+    setUploadingDoc(docType);
+    try {
+      await uploadSingleDocMutation.mutateAsync({ file, documentType: docType });
+    } finally {
+      setUploadingDoc(null);
+    }
   };
 
   const handleUpload = async () => {
@@ -256,79 +312,171 @@ export default function PublicShare() {
                 Subir documentos
               </CardTitle>
               <CardDescription>
-                Sube tus documentos aquí. Se aceptan archivos PDF, imágenes y videos.
+                {link.requestedDocuments && link.requestedDocuments.length > 0 
+                  ? "Por favor sube cada documento en su sección correspondiente."
+                  : "Sube tus documentos aquí. Se aceptan archivos PDF, imágenes y videos."}
               </CardDescription>
-              {link.requestedDocuments && link.requestedDocuments.length > 0 && (
-                <div 
-                  className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md"
-                  data-testid="box-requested-documents"
-                >
-                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
-                    Documentos solicitados:
-                  </p>
-                  <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
-                    {Array.from(new Set(link.requestedDocuments)).map((doc, idx) => (
-                      <li key={idx} className="flex items-center gap-2" data-testid={`text-requested-doc-${idx}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        {doc}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="file-input">Seleccionar archivos</Label>
-                <Input
-                  id="file-input"
-                  type="file"
-                  multiple
-                  accept=".pdf,.png,.jpg,.jpeg,.gif,.mp4,.mov,.avi"
-                  onChange={handleFileSelect}
-                  className="mt-1"
-                  data-testid="input-file-upload"
-                />
-              </div>
-
-              {uploadingFiles.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Archivos seleccionados:</p>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    {uploadingFiles.map((file, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        {file.name} ({formatFileSize(file.size)})
-                      </li>
-                    ))}
-                  </ul>
+            <CardContent className="space-y-6">
+              {link.requestedDocuments && link.requestedDocuments.length > 0 ? (
+                <div className="space-y-4">
+                  {Array.from(new Set(link.requestedDocuments)).map((docType, idx) => {
+                    const isUploaded = uploadedDocs.has(docType);
+                    const selectedFile = documentFiles[docType];
+                    const isCurrentlyUploading = uploadingDoc === docType;
+                    
+                    return (
+                      <div 
+                        key={idx}
+                        className={`p-4 border rounded-lg transition-colors ${
+                          isUploaded 
+                            ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700" 
+                            : "bg-card border-border"
+                        }`}
+                        data-testid={`upload-section-${idx}`}
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={`mt-0.5 flex-shrink-0 ${isUploaded ? "text-green-600" : "text-muted-foreground"}`}>
+                            {isUploaded ? (
+                              <Check className="w-5 h-5" />
+                            ) : (
+                              <Circle className="w-5 h-5" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-medium ${isUploaded ? "text-green-700 dark:text-green-400" : ""}`}>
+                              {docType}
+                            </h4>
+                            {isUploaded && (
+                              <p className="text-sm text-green-600 dark:text-green-400">
+                                Documento subido correctamente
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {!isUploaded && (
+                          <div className="ml-8 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="file"
+                                accept=".pdf,.png,.jpg,.jpeg,.gif,.mp4,.mov,.avi"
+                                onChange={(e) => handleDocumentFileSelect(docType, e)}
+                                className="flex-1"
+                                data-testid={`input-file-${idx}`}
+                              />
+                            </div>
+                            
+                            {selectedFile && (
+                              <div className="flex items-center justify-between gap-2 p-2 bg-muted rounded">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                  <span className="text-sm truncate">{selectedFile.name}</span>
+                                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                                    ({formatFileSize(selectedFile.size)})
+                                  </span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setDocumentFiles(prev => ({ ...prev, [docType]: null }))}
+                                  data-testid={`button-clear-${idx}`}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            )}
+                            
+                            <Button
+                              onClick={() => handleUploadSingleDoc(docType)}
+                              disabled={!selectedFile || isCurrentlyUploading}
+                              size="sm"
+                              className="w-full"
+                              data-testid={`button-upload-${idx}`}
+                            >
+                              {isCurrentlyUploading ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Subiendo...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  Subir {docType}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  
+                  {uploadedDocs.size === Array.from(new Set(link.requestedDocuments)).length && (
+                    <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-300 dark:border-green-700">
+                      <CheckCircle className="w-6 h-6" />
+                      <div>
+                        <p className="font-medium">Todos los documentos han sido subidos</p>
+                        <p className="text-sm text-green-600/80">Gracias por completar la solicitud.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ) : (
+                <>
+                  <div>
+                    <Label htmlFor="file-input">Seleccionar archivos</Label>
+                    <Input
+                      id="file-input"
+                      type="file"
+                      multiple
+                      accept=".pdf,.png,.jpg,.jpeg,.gif,.mp4,.mov,.avi"
+                      onChange={handleFileSelect}
+                      className="mt-1"
+                      data-testid="input-file-upload"
+                    />
+                  </div>
 
-              <Button
-                onClick={handleUpload}
-                disabled={uploadingFiles.length === 0 || isUploading}
-                className="w-full"
-                data-testid="button-upload-submit"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Subiendo...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Subir {uploadingFiles.length > 0 ? `(${uploadingFiles.length} archivos)` : ""}
-                  </>
-                )}
-              </Button>
+                  {uploadingFiles.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Archivos seleccionados:</p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        {uploadingFiles.map((file, i) => (
+                          <li key={i} className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            {file.name} ({formatFileSize(file.size)})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-              {uploadMutation.isSuccess && (
-                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-md">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Archivos subidos correctamente</span>
-                </div>
+                  <Button
+                    onClick={handleUpload}
+                    disabled={uploadingFiles.length === 0 || isUploading}
+                    className="w-full"
+                    data-testid="button-upload-submit"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Subir {uploadingFiles.length > 0 ? `(${uploadingFiles.length} archivos)` : ""}
+                      </>
+                    )}
+                  </Button>
+
+                  {uploadMutation.isSuccess && (
+                    <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-md">
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Archivos subidos correctamente</span>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
