@@ -888,6 +888,138 @@ export async function registerRoutes(
     }
   });
 
+  // ============ DEVELOPERS ROUTES ============
+  
+  app.get("/api/developers", async (req, res) => {
+    try {
+      const devs = await storage.getAllDevelopers();
+      res.json(devs);
+    } catch (error) {
+      console.error("Error getting developers:", error);
+      res.status(500).json({ error: "Error al obtener desarrolladores" });
+    }
+  });
+
+  app.get("/api/developers/:id", async (req, res) => {
+    try {
+      const dev = await storage.getDeveloper(req.params.id);
+      if (!dev) {
+        return res.status(404).json({ error: "Desarrollador no encontrado" });
+      }
+      res.json(dev);
+    } catch (error) {
+      console.error("Error getting developer:", error);
+      res.status(500).json({ error: "Error al obtener desarrollador" });
+    }
+  });
+
+  app.post("/api/developers", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const dev = await storage.createDeveloper(req.body);
+      res.status(201).json(dev);
+    } catch (error) {
+      console.error("Error creating developer:", error);
+      res.status(500).json({ error: "Error al crear desarrollador" });
+    }
+  });
+
+  app.put("/api/developers/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const dev = await storage.updateDeveloper(id, req.body);
+      if (!dev) {
+        return res.status(404).json({ error: "Desarrollador no encontrado" });
+      }
+      res.json(dev);
+    } catch (error) {
+      console.error("Error updating developer:", error);
+      res.status(500).json({ error: "Error al actualizar desarrollador" });
+    }
+  });
+
+  app.delete("/api/developers/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const deleted = await storage.deleteDeveloper(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Desarrollador no encontrado" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting developer:", error);
+      res.status(500).json({ error: "Error al eliminar desarrollador" });
+    }
+  });
+
+  // ============ DEVELOPMENTS ENTITY ROUTES ============
+  
+  app.get("/api/developments-entity", async (req, res) => {
+    try {
+      const { developerId } = req.query;
+      let devs;
+      if (developerId) {
+        devs = await storage.getDevelopmentsByDeveloper(developerId as string);
+      } else {
+        devs = await storage.getAllDevelopmentsEntity();
+      }
+      res.json(devs);
+    } catch (error) {
+      console.error("Error getting developments:", error);
+      res.status(500).json({ error: "Error al obtener desarrollos" });
+    }
+  });
+
+  app.get("/api/developments-entity/:id", async (req, res) => {
+    try {
+      const dev = await storage.getDevelopmentEntity(req.params.id);
+      if (!dev) {
+        return res.status(404).json({ error: "Desarrollo no encontrado" });
+      }
+      res.json(dev);
+    } catch (error) {
+      console.error("Error getting development:", error);
+      res.status(500).json({ error: "Error al obtener desarrollo" });
+    }
+  });
+
+  app.post("/api/developments-entity", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const dev = await storage.createDevelopmentEntity(req.body);
+      res.status(201).json(dev);
+    } catch (error) {
+      console.error("Error creating development:", error);
+      res.status(500).json({ error: "Error al crear desarrollo" });
+    }
+  });
+
+  app.put("/api/developments-entity/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const dev = await storage.updateDevelopmentEntity(id, req.body);
+      if (!dev) {
+        return res.status(404).json({ error: "Desarrollo no encontrado" });
+      }
+      res.json(dev);
+    } catch (error) {
+      console.error("Error updating development:", error);
+      res.status(500).json({ error: "Error al actualizar desarrollo" });
+    }
+  });
+
+  app.delete("/api/developments-entity/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const deleted = await storage.deleteDevelopmentEntity(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Desarrollo no encontrado" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting development:", error);
+      res.status(500).json({ error: "Error al eliminar desarrollo" });
+    }
+  });
+
   // ============ DOCUMENT ROUTES ============
   
   // Configure multer for document uploads with more file types

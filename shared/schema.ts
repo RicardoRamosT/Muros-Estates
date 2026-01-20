@@ -132,6 +132,64 @@ export const insertSessionSchema = createInsertSchema(sessions).omit({
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type Session = typeof sessions.$inferSelect;
 
+// Developers (empresas desarrolladoras)
+export const developers = pgTable("developers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  shortName: text("short_name"), // Nombre corto/abreviación
+  logo: text("logo"), // URL del logo
+  website: text("website"),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  description: text("description"),
+  active: boolean("active").default(true),
+  order: integer("order").default(0), // Para ordenar en listas
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertDeveloperSchema = createInsertSchema(developers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDeveloper = z.infer<typeof insertDeveloperSchema>;
+export type Developer = typeof developers.$inferSelect;
+
+// Developments (proyectos/edificios)
+export const developments = pgTable("developments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  developerId: varchar("developer_id").notNull().references(() => developers.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  city: text("city").notNull(),
+  zone: text("zone").notNull(),
+  type: text("type"), // Tipo de desarrollo (Residencial, Uso mixto, etc.)
+  address: text("address"),
+  description: text("description"),
+  deliveryDate: text("delivery_date"), // Fecha estimada de entrega
+  totalUnits: integer("total_units"), // Total de unidades
+  availableUnits: integer("available_units"), // Unidades disponibles
+  amenities: text("amenities").array(), // Lista de amenidades
+  efficiency: text("efficiency").array(), // Características de eficiencia
+  otherFeatures: text("other_features").array(), // Otras características
+  value: text("value"), // Propuesta de valor
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertDevelopmentSchema = createInsertSchema(developments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDevelopment = z.infer<typeof insertDevelopmentSchema>;
+export type Development = typeof developments.$inferSelect;
+
 // Clients (leads) from contact form or manually created
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

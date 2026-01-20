@@ -7,7 +7,9 @@ import {
   clientFollowUps, type ClientFollowUp, type InsertClientFollowUp,
   typologies, type Typology, type InsertTypology,
   documents, type Document, type InsertDocument,
-  developmentMedia, type DevelopmentMedia, type InsertDevelopmentMedia
+  developmentMedia, type DevelopmentMedia, type InsertDevelopmentMedia,
+  developers, type Developer, type InsertDeveloper,
+  developments, type Development, type InsertDevelopment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -82,6 +84,21 @@ export interface IStorage {
   createDevelopmentMedia(media: InsertDevelopmentMedia): Promise<DevelopmentMedia>;
   updateDevelopmentMedia(id: string, data: Partial<InsertDevelopmentMedia>): Promise<DevelopmentMedia | undefined>;
   deleteDevelopmentMedia(id: string): Promise<boolean>;
+  
+  // Developers (empresas desarrolladoras)
+  getAllDevelopers(): Promise<Developer[]>;
+  getDeveloper(id: string): Promise<Developer | undefined>;
+  createDeveloper(developer: InsertDeveloper): Promise<Developer>;
+  updateDeveloper(id: string, developer: Partial<InsertDeveloper>): Promise<Developer | undefined>;
+  deleteDeveloper(id: string): Promise<boolean>;
+  
+  // Developments (proyectos/edificios)
+  getAllDevelopmentsEntity(): Promise<Development[]>;
+  getDevelopmentEntity(id: string): Promise<Development | undefined>;
+  getDevelopmentsByDeveloper(developerId: string): Promise<Development[]>;
+  createDevelopmentEntity(development: InsertDevelopment): Promise<Development>;
+  updateDevelopmentEntity(id: string, development: Partial<InsertDevelopment>): Promise<Development | undefined>;
+  deleteDevelopmentEntity(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -402,6 +419,66 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDevelopmentMedia(id: string): Promise<boolean> {
     await db.delete(developmentMedia).where(eq(developmentMedia.id, id));
+    return true;
+  }
+  
+  // Developers (empresas desarrolladoras)
+  async getAllDevelopers(): Promise<Developer[]> {
+    return db.select().from(developers).orderBy(developers.order, developers.name);
+  }
+
+  async getDeveloper(id: string): Promise<Developer | undefined> {
+    const [dev] = await db.select().from(developers).where(eq(developers.id, id));
+    return dev || undefined;
+  }
+
+  async createDeveloper(developer: InsertDeveloper): Promise<Developer> {
+    const [dev] = await db.insert(developers).values(developer as any).returning();
+    return dev;
+  }
+
+  async updateDeveloper(id: string, developer: Partial<InsertDeveloper>): Promise<Developer | undefined> {
+    const [dev] = await db.update(developers).set({
+      ...developer,
+      updatedAt: new Date(),
+    } as any).where(eq(developers.id, id)).returning();
+    return dev || undefined;
+  }
+
+  async deleteDeveloper(id: string): Promise<boolean> {
+    await db.delete(developers).where(eq(developers.id, id));
+    return true;
+  }
+  
+  // Developments (proyectos/edificios)
+  async getAllDevelopmentsEntity(): Promise<Development[]> {
+    return db.select().from(developments).orderBy(developments.order, developments.name);
+  }
+
+  async getDevelopmentEntity(id: string): Promise<Development | undefined> {
+    const [dev] = await db.select().from(developments).where(eq(developments.id, id));
+    return dev || undefined;
+  }
+
+  async getDevelopmentsByDeveloper(developerId: string): Promise<Development[]> {
+    return db.select().from(developments).where(eq(developments.developerId, developerId)).orderBy(developments.order, developments.name);
+  }
+
+  async createDevelopmentEntity(development: InsertDevelopment): Promise<Development> {
+    const [dev] = await db.insert(developments).values(development as any).returning();
+    return dev;
+  }
+
+  async updateDevelopmentEntity(id: string, development: Partial<InsertDevelopment>): Promise<Development | undefined> {
+    const [dev] = await db.update(developments).set({
+      ...development,
+      updatedAt: new Date(),
+    } as any).where(eq(developments.id, id)).returning();
+    return dev || undefined;
+  }
+
+  async deleteDevelopmentEntity(id: string): Promise<boolean> {
+    await db.delete(developments).where(eq(developments.id, id));
     return true;
   }
 }
