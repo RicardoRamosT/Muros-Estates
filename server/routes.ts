@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -1136,9 +1136,9 @@ export async function registerRoutes(
         return res.status(400).json({ error: "No se proporcionó ningún archivo" });
       }
       
-      // Validate required category field
-      if (!req.body.category) {
-        return res.status(400).json({ error: "La categoría es requerida" });
+      // Validate required rootCategory field
+      if (!req.body.rootCategory) {
+        return res.status(400).json({ error: "La categoría raíz es requerida" });
       }
       
       const documentData = {
@@ -1147,14 +1147,13 @@ export async function registerRoutes(
         fileUrl: `/uploads/documents/${file.filename}`,
         fileSize: file.size,
         mimeType: file.mimetype,
-        category: req.body.category,
-        subcategory: req.body.subcategory || null,
-        folder: req.body.folder || null,
-        subfolder: req.body.subfolder || null,
+        rootCategory: req.body.rootCategory,
+        section: req.body.section || null,
+        shareable: req.body.shareable === "true" || req.body.shareable === true,
         developerId: req.body.developerId || null,
         developmentId: req.body.developmentId || null,
+        typologyId: req.body.typologyId || null,
         clientId: req.body.clientId || null,
-        asesorId: req.body.asesorId || null,
         description: req.body.description || null,
         uploadedBy: req.user!.id,
       };
@@ -1179,18 +1178,19 @@ export async function registerRoutes(
   app.put("/api/documents/:id", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
     try {
       const id = req.params.id as string;
-      const doc = await storage.updateDocument(id, {
-        name: req.body.name,
-        description: req.body.description,
-        category: req.body.category,
-        subcategory: req.body.subcategory,
-        folder: req.body.folder,
-        subfolder: req.body.subfolder,
-        developerId: req.body.developerId,
-        developmentId: req.body.developmentId,
-        clientId: req.body.clientId,
-        asesorId: req.body.asesorId,
-      });
+      
+      const updateData: Record<string, any> = {};
+      if (req.body.name !== undefined) updateData.name = req.body.name;
+      if (req.body.description !== undefined) updateData.description = req.body.description;
+      if (req.body.rootCategory !== undefined) updateData.rootCategory = req.body.rootCategory;
+      if (req.body.section !== undefined) updateData.section = req.body.section;
+      if (req.body.shareable !== undefined) updateData.shareable = req.body.shareable === true || req.body.shareable === "true";
+      if (req.body.developerId !== undefined) updateData.developerId = req.body.developerId;
+      if (req.body.developmentId !== undefined) updateData.developmentId = req.body.developmentId;
+      if (req.body.typologyId !== undefined) updateData.typologyId = req.body.typologyId;
+      if (req.body.clientId !== undefined) updateData.clientId = req.body.clientId;
+      
+      const doc = await storage.updateDocument(id, updateData);
       
       if (!doc) {
         return res.status(404).json({ error: "Documento no encontrado" });
@@ -1246,6 +1246,301 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error downloading document:", error);
       res.status(500).json({ error: "Error al descargar documento" });
+    }
+  });
+  
+  // Get documents by typology
+  app.get("/api/documents/typology/:typologyId", requireAuth, requireDocumentPermission("view"), async (req, res) => {
+    try {
+      const docs = await storage.getDocumentsByTypology(req.params.typologyId as string);
+      res.json(docs);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ error: "Error al obtener documentos" });
+    }
+  });
+
+  // ============= SHARED LINKS ROUTES =============
+  
+  // Generate unique token for shared links
+  function generateToken(): string {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let token = "";
+    for (let i = 0; i < 32; i++) {
+      token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+  }
+  
+  // Get all shared links (admin view)
+  app.get("/api/shared-links", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
+    try {
+      const links = await storage.getAllSharedLinks();
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching shared links:", error);
+      res.status(500).json({ error: "Error al obtener links compartidos" });
+    }
+  });
+  
+  // Create shared link
+  app.post("/api/shared-links", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
+    try {
+      const token = generateToken();
+      
+      // Calculate expiration date if not permanent
+      let expiresAt = null;
+      if (!req.body.isPermanent) {
+        const days = req.body.expirationDays || 7;
+        expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + days);
+      }
+      
+      const linkData = {
+        token,
+        targetType: req.body.targetType || "folder",
+        rootCategory: req.body.rootCategory || null,
+        section: req.body.section || null,
+        developerId: req.body.developerId || null,
+        developmentId: req.body.developmentId || null,
+        typologyId: req.body.typologyId || null,
+        clientId: req.body.clientId || null,
+        documentId: req.body.documentId || null,
+        canView: req.body.canView !== false,
+        canUpload: req.body.canUpload === true,
+        isPermanent: req.body.isPermanent === true,
+        expiresAt,
+        createdBy: req.user!.id,
+      };
+      
+      const validationResult = insertSharedLinkSchema.safeParse(linkData);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: "Datos inválidos",
+          details: validationResult.error.errors,
+        });
+      }
+      
+      const link = await storage.createSharedLink(validationResult.data);
+      res.status(201).json(link);
+    } catch (error) {
+      console.error("Error creating shared link:", error);
+      res.status(500).json({ error: "Error al crear link compartido" });
+    }
+  });
+  
+  // Get single shared link
+  app.get("/api/shared-links/:id", requireAuth, requireDocumentPermission("view"), async (req, res) => {
+    try {
+      const link = await storage.getSharedLink(req.params.id as string);
+      if (!link) {
+        return res.status(404).json({ error: "Link no encontrado" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error fetching shared link:", error);
+      res.status(500).json({ error: "Error al obtener link compartido" });
+    }
+  });
+  
+  // Update shared link
+  app.put("/api/shared-links/:id", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
+    try {
+      const updateData: Record<string, any> = {};
+      if (req.body.canView !== undefined) updateData.canView = req.body.canView;
+      if (req.body.canUpload !== undefined) updateData.canUpload = req.body.canUpload;
+      if (req.body.isPermanent !== undefined) {
+        updateData.isPermanent = req.body.isPermanent;
+        if (req.body.isPermanent) {
+          updateData.expiresAt = null;
+        } else if (req.body.expirationDays) {
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + req.body.expirationDays);
+          updateData.expiresAt = expiresAt;
+        }
+      }
+      
+      const link = await storage.updateSharedLink(req.params.id as string, updateData);
+      if (!link) {
+        return res.status(404).json({ error: "Link no encontrado" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error updating shared link:", error);
+      res.status(500).json({ error: "Error al actualizar link compartido" });
+    }
+  });
+  
+  // Delete shared link
+  app.delete("/api/shared-links/:id", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
+    try {
+      await storage.deleteSharedLink(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting shared link:", error);
+      res.status(500).json({ error: "Error al eliminar link compartido" });
+    }
+  });
+  
+  // ============= PUBLIC SHARED LINK ACCESS (NO AUTH) =============
+  
+  // Access shared content via token (no auth required)
+  app.get("/api/public/share/:token", async (req, res) => {
+    try {
+      const link = await storage.getSharedLinkByToken(req.params.token as string);
+      
+      if (!link) {
+        return res.status(404).json({ error: "Link no encontrado o expirado" });
+      }
+      
+      // Check expiration
+      if (!link.isPermanent && link.expiresAt && new Date(link.expiresAt) < new Date()) {
+        return res.status(410).json({ error: "Este link ha expirado" });
+      }
+      
+      // Increment access count
+      await storage.incrementSharedLinkAccess(link.id);
+      
+      // Get documents based on the link's target
+      let docs: any[] = [];
+      
+      if (link.targetType === "document" && link.documentId) {
+        const doc = await storage.getDocument(link.documentId);
+        if (doc) docs = [doc];
+      } else if (link.targetType === "folder") {
+        if (link.typologyId) {
+          docs = await storage.getDocumentsByTypology(link.typologyId);
+        } else if (link.developmentId) {
+          docs = await storage.getDocumentsByDevelopment(link.developmentId);
+        } else if (link.developerId) {
+          docs = await storage.getDocumentsByDeveloper(link.developerId);
+        } else if (link.clientId) {
+          docs = await storage.getDocumentsByClient(link.clientId);
+        }
+        
+        // Filter by section if specified
+        if (link.section) {
+          docs = docs.filter(d => d.section === link.section);
+        }
+        
+        // Filter only shareable documents
+        docs = docs.filter(d => d.shareable);
+      }
+      
+      res.json({
+        link: {
+          id: link.id,
+          canView: link.canView,
+          canUpload: link.canUpload,
+          targetType: link.targetType,
+          section: link.section,
+        },
+        documents: docs.map(d => ({
+          id: d.id,
+          name: d.name,
+          originalName: d.originalName,
+          fileSize: d.fileSize,
+          mimeType: d.mimeType,
+          section: d.section,
+          createdAt: d.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error accessing shared link:", error);
+      res.status(500).json({ error: "Error al acceder al contenido" });
+    }
+  });
+  
+  // Download document via shared link (no auth)
+  app.get("/api/public/share/:token/document/:documentId/download", async (req, res) => {
+    try {
+      const link = await storage.getSharedLinkByToken(req.params.token as string);
+      
+      if (!link || !link.canView) {
+        return res.status(404).json({ error: "Link no encontrado" });
+      }
+      
+      // Check expiration
+      if (!link.isPermanent && link.expiresAt && new Date(link.expiresAt) < new Date()) {
+        return res.status(410).json({ error: "Este link ha expirado" });
+      }
+      
+      const doc = await storage.getDocument(req.params.documentId as string);
+      if (!doc) {
+        return res.status(404).json({ error: "Documento no encontrado" });
+      }
+      
+      // Verify document is shareable and matches the link context
+      if (!doc.shareable) {
+        return res.status(403).json({ error: "Este documento no está disponible para compartir" });
+      }
+      
+      const filePath = path.join(process.cwd(), doc.fileUrl);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "Archivo no encontrado" });
+      }
+      
+      res.download(filePath, doc.originalName);
+    } catch (error) {
+      console.error("Error downloading via shared link:", error);
+      res.status(500).json({ error: "Error al descargar" });
+    }
+  });
+  
+  // Upload document via shared link (no auth, but canUpload must be true)
+  app.post("/api/public/share/:token/upload", documentUpload.single("file"), async (req, res) => {
+    try {
+      const link = await storage.getSharedLinkByToken(req.params.token as string);
+      
+      if (!link || !link.canUpload) {
+        return res.status(403).json({ error: "No tienes permiso para subir archivos" });
+      }
+      
+      // Check expiration
+      if (!link.isPermanent && link.expiresAt && new Date(link.expiresAt) < new Date()) {
+        return res.status(410).json({ error: "Este link ha expirado" });
+      }
+      
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: "No se proporcionó ningún archivo" });
+      }
+      
+      // Build document data from the link's context
+      const documentData = {
+        name: req.body.name || file.originalname,
+        originalName: file.originalname,
+        fileUrl: `/uploads/documents/${file.filename}`,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        rootCategory: link.rootCategory || "clientes",
+        section: link.section || null,
+        shareable: false, // Client uploads are not shareable by default
+        developerId: link.developerId || null,
+        developmentId: link.developmentId || null,
+        typologyId: link.typologyId || null,
+        clientId: link.clientId || null,
+        description: req.body.description || null,
+        uploadedBy: null, // No user for public uploads
+      };
+      
+      const validationResult = insertDocumentSchema.safeParse(documentData);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: "Datos inválidos",
+          details: validationResult.error.errors,
+        });
+      }
+      
+      const doc = await storage.createDocument(validationResult.data);
+      res.status(201).json({
+        id: doc.id,
+        name: doc.name,
+        message: "Archivo subido correctamente",
+      });
+    } catch (error) {
+      console.error("Error uploading via shared link:", error);
+      res.status(500).json({ error: "Error al subir archivo" });
     }
   });
 
