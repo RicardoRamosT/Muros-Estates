@@ -734,18 +734,23 @@ export default function AdminDocuments() {
                     </Select>
                   </div>
                   
-                  {/* Only show development selector if NOT in developer legales context */}
-                  {uploadForm.developerId && !(DOCUMENT_SECTIONS.developerLegales as readonly string[]).includes(uploadForm.section) && (
+                  {/* Show development selector - hide only when explicitly in developer legales context (no developmentId and section is developer legal) */}
+                  {uploadForm.developerId && (
                     <div>
-                      <Label>Desarrollo</Label>
+                      <Label>Desarrollo (opcional para documentos del desarrollador)</Label>
                       <Select 
                         value={uploadForm.developmentId} 
-                        onValueChange={(v) => setUploadForm({ ...uploadForm, developmentId: v, typologyId: "" })}
+                        onValueChange={(v) => {
+                          // When selecting a development, reset section to development section
+                          const newSection = v ? DOCUMENT_SECTIONS.developmentLegales[0] : uploadForm.section;
+                          setUploadForm({ ...uploadForm, developmentId: v, typologyId: "", section: newSection });
+                        }}
                       >
                         <SelectTrigger data-testid="select-development">
-                          <SelectValue placeholder="Selecciona desarrollo" />
+                          <SelectValue placeholder="Ninguno (documentos del desarrollador)" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Ninguno (documentos del desarrollador)</SelectItem>
                           {developments.filter(d => d.developerId === uploadForm.developerId).map(dev => (
                             <SelectItem key={dev.id} value={dev.id}>{dev.name}</SelectItem>
                           ))}
@@ -787,40 +792,44 @@ export default function AdminDocuments() {
                         <SelectValue placeholder="Selecciona sección" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* Show developer legales if no development selected */}
-                        {uploadForm.developerId && !uploadForm.developmentId && 
-                          DOCUMENT_SECTIONS.developerLegales.map(s => (
-                            <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                          ))
-                        }
-                        {/* Show development sections when development is selected */}
-                        {uploadForm.developmentId && !uploadForm.typologyId && (
-                          <>
-                            {DOCUMENT_SECTIONS.developmentLegales.map(s => (
-                              <SelectItem key={`legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ))}
-                            {DOCUMENT_SECTIONS.developmentVenta.map(s => (
-                              <SelectItem key={`venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ))}
-                          </>
-                        )}
-                        {/* Show typology sections when typology is selected */}
-                        {uploadForm.typologyId && 
-                          DOCUMENT_SECTIONS.typologyVenta.map(s => (
-                            <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                          ))
-                        }
-                        {/* Show all sections if nothing selected yet */}
-                        {!uploadForm.developerId && !uploadForm.typologyId && (
-                          <>
-                            {DOCUMENT_SECTIONS.developmentLegales.map(s => (
-                              <SelectItem key={`all-legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ))}
-                            {DOCUMENT_SECTIONS.developmentVenta.map(s => (
-                              <SelectItem key={`all-venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ))}
-                          </>
-                        )}
+                        {(() => {
+                          // Determine which sections to show based on context
+                          if (uploadForm.typologyId) {
+                            // Typology selected - show typology sections only
+                            return DOCUMENT_SECTIONS.typologyVenta.map(s => (
+                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ));
+                          } else if (uploadForm.developmentId) {
+                            // Development selected (no typology) - show development sections
+                            return (
+                              <>
+                                {DOCUMENT_SECTIONS.developmentLegales.map(s => (
+                                  <SelectItem key={`legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                                ))}
+                                {DOCUMENT_SECTIONS.developmentVenta.map(s => (
+                                  <SelectItem key={`venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                                ))}
+                              </>
+                            );
+                          } else if (uploadForm.developerId) {
+                            // Developer selected (no development) - show developer legales only
+                            return DOCUMENT_SECTIONS.developerLegales.map(s => (
+                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ));
+                          } else {
+                            // Nothing selected - show all development sections as default
+                            return (
+                              <>
+                                {DOCUMENT_SECTIONS.developmentLegales.map(s => (
+                                  <SelectItem key={`all-legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                                ))}
+                                {DOCUMENT_SECTIONS.developmentVenta.map(s => (
+                                  <SelectItem key={`all-venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                                ))}
+                              </>
+                            );
+                          }
+                        })()}
                       </SelectContent>
                     </Select>
                   </div>
