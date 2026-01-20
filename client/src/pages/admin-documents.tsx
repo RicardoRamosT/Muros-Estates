@@ -572,26 +572,28 @@ export default function AdminDocuments() {
             
             {canEdit && (
               <>
-                <Button 
-                  variant="outline" 
-                  className="gap-2" 
-                  onClick={() => {
-                    setGeneratedLink(null);
-                    setShareForm({
-                      canView: true,
-                      canUpload: false,
-                      isPermanent: false,
-                      expiresInDays: 7,
-                      description: "",
-                      requestedDocuments: [],
-                    });
-                    setShareDialogOpen(true);
-                  }}
-                  data-testid="button-share"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Compartir
-                </Button>
+                {(sectionType || selectedTypologyId || (activeTab === "clientes" && selectedClientId) || activeTab === "trabajo") && (
+                  <Button 
+                    variant="outline" 
+                    className="gap-2" 
+                    onClick={() => {
+                      setGeneratedLink(null);
+                      setShareForm({
+                        canView: true,
+                        canUpload: false,
+                        isPermanent: false,
+                        expiresInDays: 7,
+                        description: "",
+                        requestedDocuments: [],
+                      });
+                      setShareDialogOpen(true);
+                    }}
+                    data-testid="button-share"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Compartir
+                  </Button>
+                )}
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -1021,11 +1023,18 @@ export default function AdminDocuments() {
                     />
                   </div>
 
-                  {shareForm.canUpload && selectedSection && SECTION_DESCRIPTIONS[selectedSection] && (
+                  {(shareForm.canView || shareForm.canUpload) && selectedSection && SECTION_DESCRIPTIONS[selectedSection] && (
                     <div className="p-3 bg-muted/50 rounded-md space-y-3">
-                      <Label className="text-sm font-medium">Documentos a solicitar (opcional):</Label>
+                      <Label className="text-sm font-medium">
+                        Documentos específicos en {SECTION_LABELS[selectedSection]}:
+                      </Label>
                       <p className="text-xs text-muted-foreground">
-                        Selecciona los documentos que el cliente debe subir en {SECTION_LABELS[selectedSection]}
+                        {shareForm.canView && shareForm.canUpload 
+                          ? "Selecciona los documentos que el cliente podrá ver y/o subir"
+                          : shareForm.canView 
+                          ? "Selecciona los documentos que el cliente podrá ver"
+                          : "Selecciona los documentos que el cliente debe subir"
+                        }
                       </p>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {SECTION_DESCRIPTIONS[selectedSection].map((docType) => (
