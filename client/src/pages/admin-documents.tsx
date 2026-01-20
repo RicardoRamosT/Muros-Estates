@@ -784,33 +784,36 @@ export default function AdminDocuments() {
                       </SelectTrigger>
                       <SelectContent>
                         {/* Show developer legales if no development selected */}
-                        {uploadForm.developerId && !uploadForm.developmentId && (
-                          <>
-                            <SelectItem value="" disabled>-- Legales del Desarrollador --</SelectItem>
-                            {DOCUMENT_SECTIONS.developerLegales.map(s => (
-                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                            ))}
-                          </>
-                        )}
+                        {uploadForm.developerId && !uploadForm.developmentId && 
+                          DOCUMENT_SECTIONS.developerLegales.map(s => (
+                            <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                          ))
+                        }
                         {/* Show development sections when development is selected */}
                         {uploadForm.developmentId && !uploadForm.typologyId && (
                           <>
-                            <SelectItem value="" disabled>-- Legales --</SelectItem>
                             {DOCUMENT_SECTIONS.developmentLegales.map(s => (
-                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                              <SelectItem key={`legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
                             ))}
-                            <SelectItem value="" disabled>-- Venta --</SelectItem>
                             {DOCUMENT_SECTIONS.developmentVenta.map(s => (
-                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                              <SelectItem key={`venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
                             ))}
                           </>
                         )}
                         {/* Show typology sections when typology is selected */}
-                        {uploadForm.typologyId && (
+                        {uploadForm.typologyId && 
+                          DOCUMENT_SECTIONS.typologyVenta.map(s => (
+                            <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                          ))
+                        }
+                        {/* Show all sections if nothing selected yet */}
+                        {!uploadForm.developerId && !uploadForm.typologyId && (
                           <>
-                            <SelectItem value="" disabled>-- Venta --</SelectItem>
-                            {DOCUMENT_SECTIONS.typologyVenta.map(s => (
-                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            {DOCUMENT_SECTIONS.developmentLegales.map(s => (
+                              <SelectItem key={`all-legales-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ))}
+                            {DOCUMENT_SECTIONS.developmentVenta.map(s => (
+                              <SelectItem key={`all-venta-${s}`} value={s}>{SECTION_LABELS[s]}</SelectItem>
                             ))}
                           </>
                         )}
