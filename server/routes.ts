@@ -1416,6 +1416,10 @@ export async function registerRoutes(
           docs = await storage.getDocumentsByDeveloper(link.developerId);
         } else if (link.clientId) {
           docs = await storage.getDocumentsByClient(link.clientId);
+        } else if (link.rootCategory) {
+          // Get all documents by root category (trabajo, etc.)
+          const allDocs = await storage.getDocuments();
+          docs = allDocs.filter(d => d.rootCategory === link.rootCategory);
         }
         
         // Filter by section if specified

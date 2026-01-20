@@ -107,8 +107,8 @@ export default function PublicShare() {
       }
       return results;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/public/share", token] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ["/api/public/share", token] });
       setUploadingFiles([]);
       toast({
         title: "Archivos subidos",

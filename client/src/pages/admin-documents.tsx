@@ -33,10 +33,16 @@ import {
   Loader2,
   Share2,
   Briefcase,
-  ArrowLeft
+  ArrowLeft,
+  Link,
+  Copy,
+  Eye,
+  ExternalLink,
+  Clock,
+  CheckCircle
 } from "lucide-react";
 import { DOCUMENT_SECTIONS } from "@shared/schema";
-import type { Document, Developer, Development, Typology, Client } from "@shared/schema";
+import type { Document, Developer, Development, Typology, Client, SharedLink } from "@shared/schema";
 
 function getFileIcon(mimeType: string | null) {
   if (!mimeType) return <File className="w-8 h-8 text-muted-foreground" />;
@@ -105,6 +111,18 @@ export default function AdminDocuments() {
   
   // State for clients tab
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+
+  // Shared links state
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareForm, setShareForm] = useState({
+    canView: true,
+    canUpload: false,
+    isPermanent: false,
+    expiresInDays: 7,
+    description: "",
+  });
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [sharedLinksViewOpen, setSharedLinksViewOpen] = useState(false);
 
   const hasViewPermission = () => {
     if (!user) return false;
@@ -180,6 +198,75 @@ export default function AdminDocuments() {
       toast({ title: "Error al eliminar documento", variant: "destructive" });
     },
   });
+
+  const { data: sharedLinks = [] } = useQuery<SharedLink[]>({
+    queryKey: ["/api/shared-links"],
+    enabled: canEdit,
+  });
+
+  const createShareLinkMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", "/api/shared-links", data);
+    },
+    onSuccess: (result: any) => {
+      const shareUrl = `${window.location.origin}/s/${result.token}`;
+      setGeneratedLink(shareUrl);
+      queryClient.invalidateQueries({ queryKey: ["/api/shared-links"] });
+      toast({ title: "Link de compartir creado" });
+    },
+    onError: () => {
+      toast({ title: "Error al crear link", variant: "destructive" });
+    },
+  });
+
+  const deleteShareLinkMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/shared-links/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/shared-links"] });
+      toast({ title: "Link eliminado" });
+    },
+    onError: () => {
+      toast({ title: "Error al eliminar link", variant: "destructive" });
+    },
+  });
+
+  const handleCreateShareLink = () => {
+    const linkData: any = {
+      targetType: "folder",
+      rootCategory: activeTab,
+      canView: shareForm.canView,
+      canUpload: shareForm.canUpload,
+      isPermanent: shareForm.isPermanent,
+      description: shareForm.description || undefined,
+    };
+    
+    if (!shareForm.isPermanent) {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + shareForm.expiresInDays);
+      linkData.expiresAt = expiresAt.toISOString();
+    }
+    
+    if (activeTab === "desarrolladores") {
+      if (selectedDeveloperId) linkData.developerId = selectedDeveloperId;
+      if (selectedDevelopmentId) linkData.developmentId = selectedDevelopmentId;
+      if (selectedTypologyId) linkData.typologyId = selectedTypologyId;
+      if (selectedSection) linkData.section = selectedSection;
+    } else if (activeTab === "clientes") {
+      if (selectedClientId) linkData.clientId = selectedClientId;
+      if (selectedSection) linkData.section = selectedSection;
+    } else if (activeTab === "trabajo") {
+      if (selectedSection) linkData.section = selectedSection;
+    }
+    
+    createShareLinkMutation.mutate(linkData);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Link copiado al portapapeles" });
+  };
 
   const resetUploadForm = () => {
     setUploadForm({
@@ -419,10 +506,39 @@ export default function AdminDocuments() {
             </div>
             
             {canEdit && (
-              <Button className="gap-2" onClick={openUploadDialog} data-testid="button-upload">
-                <Plus className="w-4 h-4" />
-                Subir Documento
-              </Button>
+              <>
+                <Button className="gap-2" onClick={openUploadDialog} data-testid="button-upload">
+                  <Plus className="w-4 h-4" />
+                  Subir Documento
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  onClick={() => {
+                    setGeneratedLink(null);
+                    setShareForm({
+                      canView: true,
+                      canUpload: false,
+                      isPermanent: false,
+                      expiresInDays: 7,
+                      description: "",
+                    });
+                    setShareDialogOpen(true);
+                  }}
+                  data-testid="button-share"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Compartir
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setSharedLinksViewOpen(true)}
+                  data-testid="button-view-links"
+                >
+                  <Link className="w-4 h-4" />
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -753,6 +869,266 @@ export default function AdminDocuments() {
               >
                 {uploadMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Subir
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Share Link Dialog */}
+        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Share2 className="w-5 h-5" />
+                Crear Link de Compartir
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {!generatedLink ? (
+                <>
+                  <div className="p-3 bg-muted rounded-md text-sm">
+                    <p className="font-medium mb-1">Ubicación a compartir:</p>
+                    <p className="text-muted-foreground">
+                      {activeTab === "desarrolladores" && (
+                        <>
+                          {selectedDeveloperId ? developers.find(d => d.id === selectedDeveloperId)?.name : "Todos los desarrolladores"}
+                          {selectedDevelopmentId && ` > ${developments.find(d => d.id === selectedDevelopmentId)?.name}`}
+                          {selectedTypologyId && ` > Tipología`}
+                          {selectedSection && ` > ${SECTION_LABELS[selectedSection]}`}
+                        </>
+                      )}
+                      {activeTab === "clientes" && (
+                        <>
+                          {selectedClientId ? clients.find(c => c.id === selectedClientId)?.name : "Todos los clientes"}
+                          {selectedSection && ` > ${SECTION_LABELS[selectedSection]}`}
+                        </>
+                      )}
+                      {activeTab === "trabajo" && "Carpeta de trabajo"}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      <Label>Permitir ver documentos</Label>
+                    </div>
+                    <Switch
+                      checked={shareForm.canView}
+                      onCheckedChange={(v) => setShareForm({ ...shareForm, canView: v })}
+                      data-testid="switch-can-view"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      <Label>Permitir subir documentos</Label>
+                    </div>
+                    <Switch
+                      checked={shareForm.canUpload}
+                      onCheckedChange={(v) => setShareForm({ ...shareForm, canUpload: v })}
+                      data-testid="switch-can-upload"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <Label>Link permanente</Label>
+                    </div>
+                    <Switch
+                      checked={shareForm.isPermanent}
+                      onCheckedChange={(v) => setShareForm({ ...shareForm, isPermanent: v })}
+                      data-testid="switch-permanent"
+                    />
+                  </div>
+
+                  {!shareForm.isPermanent && (
+                    <div>
+                      <Label>Expira en (días)</Label>
+                      <Select 
+                        value={String(shareForm.expiresInDays)} 
+                        onValueChange={(v) => setShareForm({ ...shareForm, expiresInDays: parseInt(v) })}
+                      >
+                        <SelectTrigger data-testid="select-expiry">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 día</SelectItem>
+                          <SelectItem value="7">7 días</SelectItem>
+                          <SelectItem value="30">30 días</SelectItem>
+                          <SelectItem value="90">90 días</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label>Descripción (opcional)</Label>
+                    <Input
+                      value={shareForm.description}
+                      onChange={(e) => setShareForm({ ...shareForm, description: e.target.value })}
+                      placeholder="Nota para identificar este link"
+                      data-testid="input-share-description"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Link creado exitosamente</span>
+                  </div>
+                  
+                  <div className="p-3 bg-muted rounded-md">
+                    <p className="text-sm text-muted-foreground mb-2">Link de acceso:</p>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        value={generatedLink} 
+                        readOnly 
+                        className="text-sm"
+                        data-testid="input-generated-link"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => copyToClipboard(generatedLink)}
+                        data-testid="button-copy-link"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full gap-2"
+                    onClick={() => window.open(generatedLink, "_blank")}
+                    data-testid="button-open-link"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Abrir link
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              {!generatedLink ? (
+                <>
+                  <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleCreateShareLink}
+                    disabled={createShareLinkMutation.isPending || (!shareForm.canView && !shareForm.canUpload)}
+                    data-testid="button-create-link"
+                  >
+                    {createShareLinkMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Crear Link
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setShareDialogOpen(false)}>
+                  Cerrar
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Shared Links Dialog */}
+        <Dialog open={sharedLinksViewOpen} onOpenChange={setSharedLinksViewOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Link className="w-5 h-5" />
+                Links Compartidos
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {sharedLinks.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">
+                  No hay links compartidos creados.
+                </p>
+              ) : (
+                <div className="divide-y">
+                  {sharedLinks.map(link => (
+                    <div 
+                      key={link.id} 
+                      className="py-4 space-y-2"
+                      data-testid={`shared-link-${link.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {link.description || `Link ${link.token.substring(0, 8)}...`}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {link.isPermanent ? (
+                              <span className="text-green-600">Permanente</span>
+                            ) : (
+                              <>Expira: {link.expiresAt ? new Date(link.expiresAt).toLocaleDateString("es-MX") : "N/A"}</>
+                            )}
+                            {" • "}Accesos: {link.accessCount || 0}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {link.canView && (
+                              <Badge variant="outline" className="text-xs">
+                                <Eye className="w-3 h-3 mr-1" />
+                                Ver
+                              </Badge>
+                            )}
+                            {link.canUpload && (
+                              <Badge variant="outline" className="text-xs">
+                                <Upload className="w-3 h-3 mr-1" />
+                                Subir
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => copyToClipboard(`${window.location.origin}/s/${link.token}`)}
+                            data-testid={`button-copy-${link.id}`}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => window.open(`/s/${link.token}`, "_blank")}
+                            data-testid={`button-open-${link.id}`}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (confirm("¿Eliminar este link?")) {
+                                deleteShareLinkMutation.mutate(link.id);
+                              }
+                            }}
+                            data-testid={`button-delete-${link.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button onClick={() => setSharedLinksViewOpen(false)}>
+                Cerrar
               </Button>
             </DialogFooter>
           </DialogContent>
