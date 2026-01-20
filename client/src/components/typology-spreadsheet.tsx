@@ -1243,15 +1243,15 @@ export function TypologySpreadsheet() {
                 <div key={doc.id} className="relative group border rounded-lg overflow-hidden">
                   {isVideo ? (
                     <video 
-                      src={`/api/documents/${doc.id}/download`}
+                      src={doc.fileUrl}
                       controls
                       className="w-full h-40 object-cover bg-black"
                       data-testid={`video-${doc.id}`}
                     />
                   ) : (
                     <img 
-                      src={`/api/documents/${doc.id}/download`}
-                      alt={doc.fileName}
+                      src={doc.fileUrl}
+                      alt={doc.fileName || doc.originalName}
                       className="w-full h-40 object-cover"
                       data-testid={`image-${doc.id}`}
                     />
