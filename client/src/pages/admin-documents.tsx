@@ -478,10 +478,13 @@ export default function AdminDocuments() {
     if (activeTab === "desarrolladores") {
       if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales" && !currentSection) {
         currentSection = DOCUMENT_SECTIONS.developerLegales[0]; // identidad
-      } else if (selectedDevelopmentId && sectionType === "legales" && !currentSection) {
+      } else if (selectedDevelopmentId && !selectedTypologyId && sectionType === "legales" && !currentSection) {
         currentSection = DOCUMENT_SECTIONS.developmentLegales[0]; // identidad
-      } else if (selectedDevelopmentId && sectionType === "venta" && !currentSection) {
+      } else if (selectedDevelopmentId && !selectedTypologyId && sectionType === "venta" && !currentSection) {
         currentSection = DOCUMENT_SECTIONS.developmentVenta[0]; // imagenes
+      } else if (selectedDevelopmentId && !selectedTypologyId && !sectionType && !currentSection) {
+        // At development level without section type selected - default to first development legales
+        currentSection = DOCUMENT_SECTIONS.developmentLegales[0];
       } else if (selectedTypologyId && !currentSection) {
         currentSection = DOCUMENT_SECTIONS.typologyVenta[0]; // imagenes
       }
@@ -732,7 +735,7 @@ export default function AdminDocuments() {
                   </div>
                   
                   {/* Only show development selector if NOT in developer legales context */}
-                  {uploadForm.developerId && !DOCUMENT_SECTIONS.developerLegales.includes(uploadForm.section) && (
+                  {uploadForm.developerId && !(DOCUMENT_SECTIONS.developerLegales as readonly string[]).includes(uploadForm.section) && (
                     <div>
                       <Label>Desarrollo</Label>
                       <Select 
