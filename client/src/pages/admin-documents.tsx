@@ -1256,104 +1256,100 @@ function DesarrolladoresView({
     );
   }
   
-  // Developer legales subsections (no development selected)
-  if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales" && !selectedSection) {
+  // Developer legales - show tabbed view with all subsections
+  if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales") {
     const developerLegalesSections = ["identidad", "corporativo", "convenios"];
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {developerLegalesSections.map(section => (
-          <Card 
-            key={section} 
-            className="cursor-pointer hover-elevate"
-            onClick={() => onSelectSection(section)}
-            data-testid={`folder-section-${section}`}
-          >
-            <CardContent className="p-4 flex flex-col items-center gap-2">
-              <Folder className="w-12 h-12 text-emerald-500" />
-              <span className="font-medium capitalize">{section}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-  
-  // Developer legales - show documents for specific section
-  if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales" && selectedSection) {
-    const sectionDocs = documents.filter(d => 
-      d.developerId === selectedDeveloperId && 
-      !d.developmentId && 
-      d.section === selectedSection
-    );
-    
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        </div>
-      );
-    }
-    
-    if (sectionDocs.length === 0) {
-      return (
-        <Card className="p-8">
-          <p className="text-center text-muted-foreground">
-            No hay documentos en {selectedSection}
-          </p>
-        </Card>
-      );
-    }
+    const activeSection = selectedSection || developerLegalesSections[0];
     
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sectionDocs.map(doc => (
-          <Card key={doc.id} className="overflow-hidden" data-testid={`document-${doc.id}`}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                {getFileIcon(doc.mimeType)}
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium truncate">{doc.name}</h4>
-                  <p className="text-xs text-muted-foreground truncate">{doc.originalName}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-muted-foreground">
-                      {formatFileSize(doc.fileSize)}
-                    </span>
-                    {doc.shareable && (
-                      <Badge variant="outline" className="text-xs">
-                        <Share2 className="w-3 h-3 mr-1" />
-                        Com.
-                      </Badge>
-                    )}
-                  </div>
+      <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
+        <TabsList className="mb-4">
+          {developerLegalesSections.map(section => (
+            <TabsTrigger 
+              key={section} 
+              value={section}
+              className="capitalize"
+              data-testid={`tab-${section}`}
+            >
+              {section}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {developerLegalesSections.map(section => {
+          const sectionDocs = documents.filter(d => 
+            d.developerId === selectedDeveloperId && 
+            !d.developmentId && 
+            d.section === section
+          );
+          
+          return (
+            <TabsContent key={section} value={section} className="space-y-4">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-2 mt-3">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1"
-                  onClick={() => onDownload(doc)}
-                  data-testid={`button-download-${doc.id}`}
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  Descargar
-                </Button>
-                {canEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(doc.id)}
-                    data-testid={`button-delete-${doc.id}`}
-                  >
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              ) : sectionDocs.length === 0 ? (
+                <Card className="p-8">
+                  <p className="text-center text-muted-foreground">
+                    No hay documentos en {section}
+                  </p>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sectionDocs.map(doc => (
+                    <Card key={doc.id} className="overflow-hidden" data-testid={`document-${doc.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          {getFileIcon(doc.mimeType)}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium truncate">{doc.name}</h4>
+                            <p className="text-xs text-muted-foreground truncate">{doc.originalName}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground">
+                                {formatFileSize(doc.fileSize)}
+                              </span>
+                              {doc.shareable && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Share2 className="w-3 h-3 mr-1" />
+                                  Com.
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mt-3">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => onDownload(doc)}
+                            data-testid={`button-download-${doc.id}`}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            Descargar
+                          </Button>
+                          {canEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onDelete(doc.id)}
+                              data-testid={`button-delete-${doc.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     );
   }
   
@@ -1413,50 +1409,118 @@ function DesarrolladoresView({
     );
   }
   
-  // If typology selected, show Venta section only
-  if (selectedTypologyId && !sectionType) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card 
-          className="cursor-pointer hover-elevate"
-          onClick={() => onSelectSectionType("venta")}
-          data-testid="folder-typology-venta"
-        >
-          <CardContent className="p-4 flex flex-col items-center gap-2">
-            <FileText className="w-12 h-12 text-purple-600" />
-            <span className="font-medium">Venta</span>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
-  // Level 4: Show subsections (Legales or Venta sections)
-  if (sectionType && !selectedSection) {
-    const sections = sectionType === "legales" 
-      ? (selectedTypologyId ? [] : DOCUMENT_SECTIONS.developmentLegales)
-      : (selectedTypologyId ? DOCUMENT_SECTIONS.typologyVenta : DOCUMENT_SECTIONS.developmentVenta);
+  // Typology selected - show Venta tabs directly (Imágenes, Videos)
+  if (selectedTypologyId) {
+    const typologySections = DOCUMENT_SECTIONS.typologyVenta;
+    const activeSection = selectedSection || typologySections[0];
     
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {sections.map(section => (
-          <Card 
-            key={section} 
-            className="cursor-pointer hover-elevate"
-            onClick={() => onSelectSection(section)}
-            data-testid={`folder-section-${section}`}
-          >
-            <CardContent className="p-4 flex flex-col items-center gap-2">
-              <Folder className="w-12 h-12 text-amber-500" />
-              <span className="font-medium text-center">{SECTION_LABELS[section]}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
+        <TabsList className="mb-4">
+          {typologySections.map(section => (
+            <TabsTrigger key={section} value={section} data-testid={`tab-${section}`}>
+              {SECTION_LABELS[section]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {typologySections.map(section => {
+          const sectionDocs = documents.filter(d => 
+            d.typologyId === selectedTypologyId && d.section === section
+          );
+          
+          return (
+            <TabsContent key={section} value={section}>
+              <SectionDocumentGrid 
+                documents={sectionDocs}
+                onDownload={onDownload}
+                onDelete={onDelete}
+                canEdit={canEdit}
+                isLoading={isLoading}
+                emptyMessage={`No hay ${SECTION_LABELS[section].toLowerCase()} en esta tipología`}
+              />
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     );
   }
   
-  // Level 5: Show documents
+  // Development Legales - show tabbed view
+  if (sectionType === "legales") {
+    const developmentLegalesSections = DOCUMENT_SECTIONS.developmentLegales;
+    const activeSection = selectedSection || developmentLegalesSections[0];
+    
+    return (
+      <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
+        <TabsList className="mb-4 flex-wrap">
+          {developmentLegalesSections.map(section => (
+            <TabsTrigger key={section} value={section} data-testid={`tab-${section}`}>
+              {SECTION_LABELS[section]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {developmentLegalesSections.map(section => {
+          const sectionDocs = documents.filter(d => 
+            d.developmentId === selectedDevelopmentId && d.section === section
+          );
+          
+          return (
+            <TabsContent key={section} value={section}>
+              <SectionDocumentGrid 
+                documents={sectionDocs}
+                onDownload={onDownload}
+                onDelete={onDelete}
+                canEdit={canEdit}
+                isLoading={isLoading}
+                emptyMessage={`No hay documentos en ${SECTION_LABELS[section]}`}
+              />
+            </TabsContent>
+          );
+        })}
+      </Tabs>
+    );
+  }
+  
+  // Development Venta - show tabbed view
+  if (sectionType === "venta") {
+    const developmentVentaSections = DOCUMENT_SECTIONS.developmentVenta;
+    const activeSection = selectedSection || developmentVentaSections[0];
+    
+    return (
+      <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
+        <TabsList className="mb-4 flex-wrap">
+          {developmentVentaSections.map(section => (
+            <TabsTrigger key={section} value={section} data-testid={`tab-${section}`}>
+              {SECTION_LABELS[section]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {developmentVentaSections.map(section => {
+          const sectionDocs = documents.filter(d => 
+            d.developmentId === selectedDevelopmentId && d.section === section
+          );
+          
+          return (
+            <TabsContent key={section} value={section}>
+              <SectionDocumentGrid 
+                documents={sectionDocs}
+                onDownload={onDownload}
+                onDelete={onDelete}
+                canEdit={canEdit}
+                isLoading={isLoading}
+                emptyMessage={`No hay ${SECTION_LABELS[section].toLowerCase()}`}
+              />
+            </TabsContent>
+          );
+        })}
+      </Tabs>
+    );
+  }
+  
+  // Fallback
   return (
     <DocumentsList 
       documents={documents} 
@@ -1465,6 +1529,91 @@ function DesarrolladoresView({
       canEdit={canEdit}
       isLoading={isLoading}
     />
+  );
+}
+
+// Reusable component for section document grids
+function SectionDocumentGrid({
+  documents,
+  onDownload,
+  onDelete,
+  canEdit,
+  isLoading,
+  emptyMessage,
+}: {
+  documents: Document[];
+  onDownload: (doc: Document) => void;
+  onDelete: (id: string) => void;
+  canEdit: boolean;
+  isLoading: boolean;
+  emptyMessage: string;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  if (documents.length === 0) {
+    return (
+      <Card className="p-8">
+        <p className="text-center text-muted-foreground">{emptyMessage}</p>
+      </Card>
+    );
+  }
+  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {documents.map(doc => (
+        <Card key={doc.id} className="overflow-hidden" data-testid={`document-${doc.id}`}>
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              {getFileIcon(doc.mimeType)}
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium truncate">{doc.name}</h4>
+                <p className="text-xs text-muted-foreground truncate">{doc.originalName}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    {formatFileSize(doc.fileSize)}
+                  </span>
+                  {doc.shareable && (
+                    <Badge variant="outline" className="text-xs">
+                      <Share2 className="w-3 h-3 mr-1" />
+                      Com.
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 mt-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => onDownload(doc)}
+                data-testid={`button-download-${doc.id}`}
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Descargar
+              </Button>
+              {canEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(doc.id)}
+                  data-testid={`button-delete-${doc.id}`}
+                >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
 
@@ -1530,36 +1679,39 @@ function ClientesView({
     );
   }
   
-  // Level 2: Show client sections
-  if (!selectedSection) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {DOCUMENT_SECTIONS.clientSections.map(section => (
-          <Card 
-            key={section} 
-            className="cursor-pointer hover-elevate"
-            onClick={() => onSelectSection(section)}
-            data-testid={`folder-client-section-${section}`}
-          >
-            <CardContent className="p-4 flex flex-col items-center gap-2">
-              <Folder className="w-12 h-12 text-amber-500" />
-              <span className="font-medium text-center">{SECTION_LABELS[section]}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  // Show client sections as tabs
+  const clientSections = DOCUMENT_SECTIONS.clientSections;
+  const activeSection = selectedSection || clientSections[0];
   
-  // Level 3: Show documents
   return (
-    <DocumentsList 
-      documents={documents} 
-      onDownload={onDownload} 
-      onDelete={onDelete}
-      canEdit={canEdit}
-      isLoading={isLoading}
-    />
+    <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
+      <TabsList className="mb-4 flex-wrap">
+        {clientSections.map(section => (
+          <TabsTrigger key={section} value={section} data-testid={`tab-client-${section}`}>
+            {SECTION_LABELS[section]}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      
+      {clientSections.map(section => {
+        const sectionDocs = documents.filter(d => 
+          d.clientId === selectedClientId && d.section === section
+        );
+        
+        return (
+          <TabsContent key={section} value={section}>
+            <SectionDocumentGrid 
+              documents={sectionDocs}
+              onDownload={onDownload}
+              onDelete={onDelete}
+              canEdit={canEdit}
+              isLoading={isLoading}
+              emptyMessage={`No hay ${SECTION_LABELS[section].toLowerCase()}`}
+            />
+          </TabsContent>
+        );
+      })}
+    </Tabs>
   );
 }
 
@@ -1583,36 +1735,39 @@ function TrabajoView({
   canEdit,
   isLoading,
 }: TrabajoViewProps) {
-  // Level 1: Show work folders
-  if (!selectedSection) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {DOCUMENT_SECTIONS.workFolders.map(section => (
-          <Card 
-            key={section} 
-            className="cursor-pointer hover-elevate"
-            onClick={() => onSelectSection(section)}
-            data-testid={`folder-work-${section}`}
-          >
-            <CardContent className="p-4 flex flex-col items-center gap-2">
-              <Briefcase className="w-12 h-12 text-slate-600" />
-              <span className="font-medium text-center">{SECTION_LABELS[section]}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  // Show work folders as tabs
+  const workSections = DOCUMENT_SECTIONS.workFolders;
+  const activeSection = selectedSection || workSections[0];
   
-  // Level 2: Show documents
   return (
-    <DocumentsList 
-      documents={documents} 
-      onDownload={onDownload} 
-      onDelete={onDelete}
-      canEdit={canEdit}
-      isLoading={isLoading}
-    />
+    <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
+      <TabsList className="mb-4 flex-wrap">
+        {workSections.map(section => (
+          <TabsTrigger key={section} value={section} data-testid={`tab-work-${section}`}>
+            {SECTION_LABELS[section]}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      
+      {workSections.map(section => {
+        const sectionDocs = documents.filter(d => 
+          d.rootCategory === "trabajo" && d.section === section
+        );
+        
+        return (
+          <TabsContent key={section} value={section}>
+            <SectionDocumentGrid 
+              documents={sectionDocs}
+              onDownload={onDownload}
+              onDelete={onDelete}
+              canEdit={canEdit}
+              isLoading={isLoading}
+              emptyMessage={`No hay documentos en ${SECTION_LABELS[section]}`}
+            />
+          </TabsContent>
+        );
+      })}
+    </Tabs>
   );
 }
 
