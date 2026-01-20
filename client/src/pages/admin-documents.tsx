@@ -469,16 +469,38 @@ export default function AdminDocuments() {
     ? typologies.filter(t => t.development === selectedDevelopmentName)
     : typologies;
 
-  // Open upload dialog with context
+  // Open upload dialog with context - pre-fill based on current navigation
   const openUploadDialog = () => {
+    // Determine the current section based on navigation context
+    let currentSection = selectedSection || "";
+    
+    // If we're in a tab view without explicit section selection, use first tab as default
+    if (activeTab === "desarrolladores") {
+      if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales" && !currentSection) {
+        currentSection = DOCUMENT_SECTIONS.developerLegales[0]; // identidad
+      } else if (selectedDevelopmentId && sectionType === "legales" && !currentSection) {
+        currentSection = DOCUMENT_SECTIONS.developmentLegales[0]; // identidad
+      } else if (selectedDevelopmentId && sectionType === "venta" && !currentSection) {
+        currentSection = DOCUMENT_SECTIONS.developmentVenta[0]; // imagenes
+      } else if (selectedTypologyId && !currentSection) {
+        currentSection = DOCUMENT_SECTIONS.typologyVenta[0]; // imagenes
+      }
+    } else if (activeTab === "clientes" && selectedClientId && !currentSection) {
+      currentSection = DOCUMENT_SECTIONS.clientSections[0]; // documentosIdentidad
+    } else if (activeTab === "trabajo" && !currentSection) {
+      currentSection = DOCUMENT_SECTIONS.workFolders[0]; // reciboSeparacion
+    }
+    
     setUploadForm({
-      ...uploadForm,
+      name: "",
       rootCategory: activeTab,
       developerId: selectedDeveloperId || "",
       developmentId: selectedDevelopmentId || "",
       typologyId: selectedTypologyId || "",
       clientId: selectedClientId || "",
-      section: selectedSection || "",
+      section: currentSection,
+      description: "",
+      shareable: false,
     });
     setUploadDialogOpen(true);
   };
@@ -761,14 +783,37 @@ export default function AdminDocuments() {
                         <SelectValue placeholder="Selecciona sección" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="" disabled>-- Legales --</SelectItem>
-                        {DOCUMENT_SECTIONS.developmentLegales.map(s => (
-                          <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                        ))}
-                        <SelectItem value="" disabled>-- Venta --</SelectItem>
-                        {DOCUMENT_SECTIONS.developmentVenta.map(s => (
-                          <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
-                        ))}
+                        {/* Show developer legales if no development selected */}
+                        {uploadForm.developerId && !uploadForm.developmentId && (
+                          <>
+                            <SelectItem value="" disabled>-- Legales del Desarrollador --</SelectItem>
+                            {DOCUMENT_SECTIONS.developerLegales.map(s => (
+                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {/* Show development sections when development is selected */}
+                        {uploadForm.developmentId && !uploadForm.typologyId && (
+                          <>
+                            <SelectItem value="" disabled>-- Legales --</SelectItem>
+                            {DOCUMENT_SECTIONS.developmentLegales.map(s => (
+                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ))}
+                            <SelectItem value="" disabled>-- Venta --</SelectItem>
+                            {DOCUMENT_SECTIONS.developmentVenta.map(s => (
+                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {/* Show typology sections when typology is selected */}
+                        {uploadForm.typologyId && (
+                          <>
+                            <SelectItem value="" disabled>-- Venta --</SelectItem>
+                            {DOCUMENT_SECTIONS.typologyVenta.map(s => (
+                              <SelectItem key={s} value={s}>{SECTION_LABELS[s]}</SelectItem>
+                            ))}
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
