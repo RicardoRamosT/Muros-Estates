@@ -532,10 +532,6 @@ export default function AdminDocuments() {
             
             {canEdit && (
               <>
-                <Button className="gap-2" onClick={openUploadDialog} data-testid="button-upload">
-                  <Plus className="w-4 h-4" />
-                  Subir Documento
-                </Button>
                 <Button 
                   variant="outline" 
                   className="gap-2" 
@@ -626,6 +622,7 @@ export default function AdminDocuments() {
               onDelete={deleteMutation.mutate}
               canEdit={canEdit}
               isLoading={loadingDocs}
+              onUpload={openUploadDialog}
             />
           </TabsContent>
 
@@ -643,6 +640,7 @@ export default function AdminDocuments() {
               canEdit={canEdit}
               isLoading={loadingDocs}
               user={user}
+              onUpload={openUploadDialog}
             />
           </TabsContent>
 
@@ -656,6 +654,7 @@ export default function AdminDocuments() {
               onDelete={deleteMutation.mutate}
               canEdit={canEdit}
               isLoading={loadingDocs}
+              onUpload={openUploadDialog}
             />
           </TabsContent>
         </Tabs>
@@ -1203,6 +1202,7 @@ interface DesarrolladoresViewProps {
   onDelete: (id: string) => void;
   canEdit: boolean;
   isLoading: boolean;
+  onUpload: () => void;
 }
 
 function DesarrolladoresView({
@@ -1224,6 +1224,7 @@ function DesarrolladoresView({
   onDelete,
   canEdit,
   isLoading,
+  onUpload,
 }: DesarrolladoresViewProps) {
   
   // Level 1: Show developers
@@ -1329,68 +1330,16 @@ function DesarrolladoresView({
           );
           
           return (
-            <TabsContent key={section} value={section} className="space-y-4">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              ) : sectionDocs.length === 0 ? (
-                <Card className="p-8">
-                  <p className="text-center text-muted-foreground">
-                    No hay documentos en {section}
-                  </p>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {sectionDocs.map(doc => (
-                    <Card key={doc.id} className="overflow-hidden" data-testid={`document-${doc.id}`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          {getFileIcon(doc.mimeType)}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium truncate">{doc.name}</h4>
-                            <p className="text-xs text-muted-foreground truncate">{doc.originalName}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-muted-foreground">
-                                {formatFileSize(doc.fileSize)}
-                              </span>
-                              {doc.shareable && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Share2 className="w-3 h-3 mr-1" />
-                                  Com.
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 mt-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => onDownload(doc)}
-                            data-testid={`button-download-${doc.id}`}
-                          >
-                            <Download className="w-4 h-4 mr-1" />
-                            Descargar
-                          </Button>
-                          {canEdit && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onDelete(doc.id)}
-                              data-testid={`button-delete-${doc.id}`}
-                            >
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+            <TabsContent key={section} value={section}>
+              <SectionDocumentGrid 
+                documents={sectionDocs}
+                onDownload={onDownload}
+                onDelete={onDelete}
+                canEdit={canEdit}
+                isLoading={isLoading}
+                emptyMessage={`No hay documentos en ${section}`}
+                onUpload={onUpload}
+              />
             </TabsContent>
           );
         })}
@@ -1483,6 +1432,7 @@ function DesarrolladoresView({
                 canEdit={canEdit}
                 isLoading={isLoading}
                 emptyMessage={`No hay ${SECTION_LABELS[section].toLowerCase()} en esta tipología`}
+                onUpload={onUpload}
               />
             </TabsContent>
           );
@@ -1520,6 +1470,7 @@ function DesarrolladoresView({
                 canEdit={canEdit}
                 isLoading={isLoading}
                 emptyMessage={`No hay documentos en ${SECTION_LABELS[section]}`}
+                onUpload={onUpload}
               />
             </TabsContent>
           );
@@ -1557,6 +1508,7 @@ function DesarrolladoresView({
                 canEdit={canEdit}
                 isLoading={isLoading}
                 emptyMessage={`No hay ${SECTION_LABELS[section].toLowerCase()}`}
+                onUpload={onUpload}
               />
             </TabsContent>
           );
@@ -1585,6 +1537,7 @@ function SectionDocumentGrid({
   canEdit,
   isLoading,
   emptyMessage,
+  onUpload,
 }: {
   documents: Document[];
   onDownload: (doc: Document) => void;
@@ -1592,6 +1545,7 @@ function SectionDocumentGrid({
   canEdit: boolean;
   isLoading: boolean;
   emptyMessage: string;
+  onUpload?: () => void;
 }) {
   if (isLoading) {
     return (
@@ -1604,13 +1558,30 @@ function SectionDocumentGrid({
   if (documents.length === 0) {
     return (
       <Card className="p-8">
-        <p className="text-center text-muted-foreground">{emptyMessage}</p>
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground">{emptyMessage}</p>
+          {canEdit && onUpload && (
+            <Button onClick={onUpload} className="gap-2" data-testid="button-upload-section">
+              <Plus className="w-4 h-4" />
+              Subir Archivo
+            </Button>
+          )}
+        </div>
       </Card>
     );
   }
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-4">
+      {canEdit && onUpload && (
+        <div className="flex justify-end">
+          <Button onClick={onUpload} className="gap-2" data-testid="button-upload-section">
+            <Plus className="w-4 h-4" />
+            Subir Archivo
+          </Button>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {documents.map(doc => (
         <Card key={doc.id} className="overflow-hidden" data-testid={`document-${doc.id}`}>
           <CardContent className="p-4">
@@ -1658,6 +1629,7 @@ function SectionDocumentGrid({
           </CardContent>
         </Card>
       ))}
+      </div>
     </div>
   );
 }
@@ -1675,6 +1647,7 @@ interface ClientesViewProps {
   canEdit: boolean;
   isLoading: boolean;
   user: any;
+  onUpload: () => void;
 }
 
 function ClientesView({
@@ -1689,6 +1662,7 @@ function ClientesView({
   canEdit,
   isLoading,
   user,
+  onUpload,
 }: ClientesViewProps) {
   // Filter clients by asesor if not admin
   const visibleClients = user?.role === "admin" 
@@ -1752,6 +1726,7 @@ function ClientesView({
               canEdit={canEdit}
               isLoading={isLoading}
               emptyMessage={`No hay ${SECTION_LABELS[section].toLowerCase()}`}
+              onUpload={onUpload}
             />
           </TabsContent>
         );
@@ -1769,6 +1744,7 @@ interface TrabajoViewProps {
   onDelete: (id: string) => void;
   canEdit: boolean;
   isLoading: boolean;
+  onUpload: () => void;
 }
 
 function TrabajoView({
@@ -1779,6 +1755,7 @@ function TrabajoView({
   onDelete,
   canEdit,
   isLoading,
+  onUpload,
 }: TrabajoViewProps) {
   // Show work folders as tabs
   const workSections = DOCUMENT_SECTIONS.workFolders;
@@ -1808,6 +1785,7 @@ function TrabajoView({
               canEdit={canEdit}
               isLoading={isLoading}
               emptyMessage={`No hay documentos en ${SECTION_LABELS[section]}`}
+              onUpload={onUpload}
             />
           </TabsContent>
         );
