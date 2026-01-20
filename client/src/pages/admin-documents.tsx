@@ -135,7 +135,7 @@ export default function AdminDocuments() {
     typologyId: "",
     clientId: "",
     description: "",
-    shareable: false,
+    shareable: true,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -318,7 +318,7 @@ export default function AdminDocuments() {
       typologyId: "",
       clientId: "",
       description: "",
-      shareable: false,
+      shareable: true,
     });
   };
 
@@ -543,7 +543,7 @@ export default function AdminDocuments() {
       clientId: selectedClientId || "",
       section: currentSection,
       description: "",
-      shareable: false,
+      shareable: true,
     });
     setUploadDialogOpen(true);
   };
