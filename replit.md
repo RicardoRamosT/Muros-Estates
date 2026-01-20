@@ -56,6 +56,7 @@ No specific user preferences were provided in the original document.
 - `/admin/desarrollos` - Excel-like spreadsheet for building projects (CRUD: developer link, name, city, zone, type, delivery date, address, coordinates, notes)
 - `/admin/tipologias` - Excel-like spreadsheet for property units with 50+ fields and real-time WebSocket sync
 - `/admin/prospectos` - Client/lead management (previously /admin/clientes)
+- `/admin/catalogos` - Master database for dropdown values with 6 tabs: Cities, Zones, Development Types, Amenities, Efficiency Features, Other Features
 - `/admin/users` - User management with role-based access
 
 ## API Endpoints
@@ -65,11 +66,15 @@ No specific user preferences were provided in the original document.
 - `/api/clients` - CRUD for leads/prospects
 - `/api/users` - User management (admin only)
 - `/api/auth/*` - Authentication endpoints
+- `/api/catalog/*` - CRUD for catalog data (cities, zones, development-types, amenities, efficiency-features, other-features)
 
 ## Recent Changes (January 2026)
+- Added Catálogos admin page with 6 tabs for managing master dropdown values (Cities, Zones, Development Types, Amenities, Efficiency Features, Other Features)
+- Created 6 new database tables for catalogs with Zod validation on all API endpoints
+- Initial data populated: 2 cities, 26 zones (18 Monterrey, 8 CDMX), 5 development types, 32 amenities, 7 efficiency features, 4 other features
 - Added Developers admin page with Excel-like spreadsheet interface
 - Added Developments admin page with Excel-like spreadsheet interface
 - Updated schema with new developer fields (contactName, contactPhone, contactEmail, notes)
 - Updated schema with new development fields (latitude, longitude, notes; made developerId nullable)
-- Updated header navigation with 7 sections: Dashboard, Desarrolladores, Desarrollos, Tipologías, Prospectos, Documentos, Usuarios
+- Updated header navigation with 7 sections: Dashboard, Desarrolladores, Desarrollos, Tipologías, Prospectos, Catálogos, Usuarios
 - Renamed "Clientes" to "Prospectos" throughout admin interface
