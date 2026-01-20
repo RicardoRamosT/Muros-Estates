@@ -15,7 +15,8 @@ import {
   catalogDevelopmentTypes, type CatalogDevelopmentType, type InsertCatalogDevelopmentType,
   catalogAmenities, type CatalogAmenity, type InsertCatalogAmenity,
   catalogEfficiencyFeatures, type CatalogEfficiencyFeature, type InsertCatalogEfficiencyFeature,
-  catalogOtherFeatures, type CatalogOtherFeature, type InsertCatalogOtherFeature
+  catalogOtherFeatures, type CatalogOtherFeature, type InsertCatalogOtherFeature,
+  sharedLinks, type SharedLink, type InsertSharedLink
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -136,6 +137,19 @@ export interface IStorage {
   createCatalogOtherFeature(feature: InsertCatalogOtherFeature): Promise<CatalogOtherFeature>;
   updateCatalogOtherFeature(id: string, feature: Partial<InsertCatalogOtherFeature>): Promise<CatalogOtherFeature | undefined>;
   deleteCatalogOtherFeature(id: string): Promise<boolean>;
+  
+  // Shared Links
+  getSharedLink(id: string): Promise<SharedLink | undefined>;
+  getSharedLinkByToken(token: string): Promise<SharedLink | undefined>;
+  getAllSharedLinks(): Promise<SharedLink[]>;
+  createSharedLink(link: InsertSharedLink): Promise<SharedLink>;
+  updateSharedLink(id: string, link: Partial<InsertSharedLink>): Promise<SharedLink | undefined>;
+  deleteSharedLink(id: string): Promise<boolean>;
+  incrementSharedLinkAccess(id: string): Promise<SharedLink | undefined>;
+  
+  // Additional document queries
+  getDocumentsByTypology(typologyId: string): Promise<Document[]>;
+  getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -386,7 +400,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentsByCategory(category: string): Promise<Document[]> {
-    return db.select().from(documents).where(eq(documents.category, category)).orderBy(desc(documents.createdAt));
+    return db.select().from(documents).where(eq(documents.rootCategory, category)).orderBy(desc(documents.createdAt));
   }
 
   async getDocumentsByDeveloper(developerId: string): Promise<Document[]> {
@@ -402,7 +416,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentsByAsesor(asesorId: string): Promise<Document[]> {
-    return db.select().from(documents).where(eq(documents.asesorId, asesorId)).orderBy(desc(documents.createdAt));
+    return db.select().from(documents).where(eq(documents.uploadedBy, asesorId)).orderBy(desc(documents.createdAt));
   }
 
   async searchDocuments(query: string): Promise<Document[]> {
@@ -640,6 +654,61 @@ export class DatabaseStorage implements IStorage {
   async deleteCatalogOtherFeature(id: string): Promise<boolean> {
     await db.delete(catalogOtherFeatures).where(eq(catalogOtherFeatures.id, id));
     return true;
+  }
+  
+  // Shared Links
+  async getSharedLink(id: string): Promise<SharedLink | undefined> {
+    const [link] = await db.select().from(sharedLinks).where(eq(sharedLinks.id, id));
+    return link || undefined;
+  }
+  
+  async getSharedLinkByToken(token: string): Promise<SharedLink | undefined> {
+    const [link] = await db.select().from(sharedLinks).where(eq(sharedLinks.token, token));
+    return link || undefined;
+  }
+  
+  async getAllSharedLinks(): Promise<SharedLink[]> {
+    return db.select().from(sharedLinks).orderBy(desc(sharedLinks.createdAt));
+  }
+  
+  async createSharedLink(link: InsertSharedLink): Promise<SharedLink> {
+    const [newLink] = await db.insert(sharedLinks).values(link as any).returning();
+    return newLink;
+  }
+  
+  async updateSharedLink(id: string, link: Partial<InsertSharedLink>): Promise<SharedLink | undefined> {
+    const [updated] = await db.update(sharedLinks).set(link as any).where(eq(sharedLinks.id, id)).returning();
+    return updated || undefined;
+  }
+  
+  async deleteSharedLink(id: string): Promise<boolean> {
+    await db.delete(sharedLinks).where(eq(sharedLinks.id, id));
+    return true;
+  }
+  
+  async incrementSharedLinkAccess(id: string): Promise<SharedLink | undefined> {
+    const link = await this.getSharedLink(id);
+    if (!link) return undefined;
+    
+    const [updated] = await db.update(sharedLinks).set({
+      accessCount: (link.accessCount || 0) + 1,
+      lastAccessedAt: new Date(),
+    }).where(eq(sharedLinks.id, id)).returning();
+    return updated || undefined;
+  }
+  
+  // Additional document queries
+  async getDocumentsByTypology(typologyId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.typologyId, typologyId)).orderBy(desc(documents.createdAt));
+  }
+  
+  async getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]> {
+    return db.select().from(documents).where(
+      and(
+        eq(documents.rootCategory, rootCategory),
+        eq(documents.section, section)
+      )
+    ).orderBy(desc(documents.createdAt));
   }
 }
 

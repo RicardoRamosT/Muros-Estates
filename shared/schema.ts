@@ -486,17 +486,20 @@ export const documents = pgTable("documents", {
   fileSize: integer("file_size"), // Size in bytes
   mimeType: text("mime_type"), // File MIME type
   
-  // Category hierarchy
-  category: text("category").notNull(), // clientes, desarrolladores, upload
-  subcategory: text("subcategory"), // Level 2 folder
-  folder: text("folder"), // Level 3 folder
-  subfolder: text("subfolder"), // Level 4 folder (if needed)
+  // Root category: desarrolladores, clientes, trabajo
+  rootCategory: text("root_category").notNull(),
+  
+  // Section: legales, venta, identidad, cotizaciones, etc.
+  section: text("section"),
+  
+  // Whether this document can be shared with clients
+  shareable: boolean("shareable").default(false),
   
   // Associations
-  developerId: text("developer_id"), // Developer name (from DEVELOPERS constant)
-  developmentId: text("development_id"), // Development name (from DEVELOPMENTS constant)
-  clientId: varchar("client_id").references(() => clients.id, { onDelete: "set null" }),
-  asesorId: varchar("asesor_id").references(() => users.id, { onDelete: "set null" }),
+  developerId: varchar("developer_id").references(() => developers.id, { onDelete: "cascade" }),
+  developmentId: varchar("development_id").references(() => developments.id, { onDelete: "cascade" }),
+  typologyId: varchar("typology_id").references(() => typologies.id, { onDelete: "cascade" }),
+  clientId: varchar("client_id").references(() => clients.id, { onDelete: "cascade" }),
   
   // Meta
   description: text("description"),
@@ -513,6 +516,69 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
+
+// Shared links for external client access
+export const sharedLinks = pgTable("shared_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: text("token").notNull().unique(), // Unique token for the link
+  
+  // What is being shared - can be a folder path or specific document
+  targetType: text("target_type").notNull(), // 'folder' or 'document'
+  
+  // For folder sharing - the path/section being shared
+  rootCategory: text("root_category"), // desarrolladores, clientes, etc.
+  section: text("section"), // legales, venta, identidad, etc.
+  developerId: varchar("developer_id").references(() => developers.id, { onDelete: "cascade" }),
+  developmentId: varchar("development_id").references(() => developments.id, { onDelete: "cascade" }),
+  typologyId: varchar("typology_id").references(() => typologies.id, { onDelete: "cascade" }),
+  clientId: varchar("client_id").references(() => clients.id, { onDelete: "cascade" }),
+  
+  // For document sharing
+  documentId: varchar("document_id").references(() => documents.id, { onDelete: "cascade" }),
+  
+  // Permissions
+  canView: boolean("can_view").default(true),
+  canUpload: boolean("can_upload").default(false), // Allow external uploads
+  
+  // Expiration
+  isPermanent: boolean("is_permanent").default(false),
+  expiresAt: timestamp("expires_at"), // Null if permanent
+  
+  // Tracking
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  accessCount: integer("access_count").default(0),
+  lastAccessedAt: timestamp("last_accessed_at"),
+});
+
+export const insertSharedLinkSchema = createInsertSchema(sharedLinks).omit({
+  id: true,
+  createdAt: true,
+  accessCount: true,
+  lastAccessedAt: true,
+});
+
+export type InsertSharedLink = z.infer<typeof insertSharedLinkSchema>;
+export type SharedLink = typeof sharedLinks.$inferSelect;
+
+// Document sections constants for UI
+export const DOCUMENT_SECTIONS = {
+  // For Developers (Legales level)
+  developerLegales: ["identidad", "corporativo", "convenios"],
+  
+  // For Developments (Legales and Venta)
+  developmentLegales: ["identidad", "convenios", "permisos", "fideicomiso", "ofertaContrato"],
+  developmentVenta: ["imagenes", "videos", "brochuresFlyers", "promociones", "acabadosEquipamiento", "listasPrecios", "ejercicios"],
+  
+  // For Typologies
+  typologyVenta: ["imagenes", "videos"],
+  
+  // For Clients
+  clientSections: ["documentosIdentidad", "cotizaciones", "ofertaContrato", "ejercicios"],
+  
+  // For Work (De Trabajo)
+  workFolders: ["reciboSeparacion", "cartas", "checklists", "productos"],
+} as const;
 
 // Development Media - images and videos for typologies (shown on public pages)
 export const developmentMedia = pgTable("development_media", {
