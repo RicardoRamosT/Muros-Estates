@@ -139,10 +139,12 @@ export const developers = pgTable("developers", {
   shortName: text("short_name"), // Nombre corto/abreviación
   logo: text("logo"), // URL del logo
   website: text("website"),
-  phone: text("phone"),
-  email: text("email"),
+  contactName: text("contact_name"), // Nombre del contacto
+  contactPhone: text("contact_phone"), // Teléfono del contacto
+  contactEmail: text("contact_email"), // Email del contacto
   address: text("address"),
   description: text("description"),
+  notes: text("notes"), // Notas internas
   active: boolean("active").default(true),
   order: integer("order").default(0), // Para ordenar en listas
   createdAt: timestamp("created_at").defaultNow(),
@@ -161,14 +163,17 @@ export type Developer = typeof developers.$inferSelect;
 // Developments (proyectos/edificios)
 export const developments = pgTable("developments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  developerId: varchar("developer_id").notNull().references(() => developers.id, { onDelete: "cascade" }),
+  developerId: varchar("developer_id").references(() => developers.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  city: text("city").notNull(),
-  zone: text("zone").notNull(),
+  city: text("city"),
+  zone: text("zone"),
   type: text("type"), // Tipo de desarrollo (Residencial, Uso mixto, etc.)
   address: text("address"),
   description: text("description"),
   deliveryDate: text("delivery_date"), // Fecha estimada de entrega
+  latitude: text("latitude"), // Coordenada de ubicación
+  longitude: text("longitude"), // Coordenada de ubicación
+  notes: text("notes"), // Notas internas
   totalUnits: integer("total_units"), // Total de unidades
   availableUnits: integer("available_units"), // Unidades disponibles
   amenities: text("amenities").array(), // Lista de amenidades

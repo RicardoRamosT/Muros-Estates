@@ -16,6 +16,8 @@ import AdminUsers from "@/pages/admin/users";
 import AdminUserNew from "@/pages/admin/user-new";
 import AdminUserEdit from "@/pages/admin/user-edit";
 import AdminTypologies from "@/pages/admin/typologies";
+import AdminDesarrolladores from "@/pages/admin/desarrolladores";
+import AdminDesarrollos from "@/pages/admin/desarrollos";
 import AdminDocuments from "@/pages/admin-documents";
 import AdminClients from "@/pages/admin/clients";
 import { Loader2 } from "lucide-react";
@@ -65,8 +67,17 @@ function Router() {
       <Route path="/admin/users">
         {() => <ProtectedRoute component={AdminUsers} allowedRoles={["admin"]} />}
       </Route>
+      <Route path="/admin/desarrolladores">
+        {() => <ProtectedRoute component={AdminDesarrolladores} allowedRoles={["admin", "actualizador"]} />}
+      </Route>
+      <Route path="/admin/desarrollos">
+        {() => <ProtectedRoute component={AdminDesarrollos} allowedRoles={["admin", "actualizador"]} />}
+      </Route>
       <Route path="/admin/tipologias">
         {() => <ProtectedRoute component={AdminTypologies} allowedRoles={["admin", "actualizador"]} />}
+      </Route>
+      <Route path="/admin/prospectos">
+        {() => <ProtectedRoute component={AdminClients} allowedRoles={["admin", "perfilador", "asesor"]} />}
       </Route>
       <Route path="/admin/clientes">
         {() => <ProtectedRoute component={AdminClients} allowedRoles={["admin", "perfilador", "asesor"]} />}
