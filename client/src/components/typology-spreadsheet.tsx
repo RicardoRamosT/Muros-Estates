@@ -10,8 +10,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Trash2, Save, X, 
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
-  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight
+  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Typology } from "@shared/schema";
@@ -618,6 +619,42 @@ export function TypologySpreadsheet() {
     queryKey: ["/api/typologies"],
   });
   
+  const { data: documents = [] } = useQuery<any[]>({
+    queryKey: ["/api/documents"],
+  });
+  
+  const getTypologyDocCount = useCallback((typologyId: string) => {
+    return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores").length;
+  }, [documents]);
+  
+  const uploadImageMutation = useMutation({
+    mutationFn: async ({ typologyId, file }: { typologyId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("rootCategory", "desarrolladores");
+      formData.append("section", "productos");
+      formData.append("typologyId", typologyId);
+      formData.append("shareable", "true");
+      
+      const res = await fetch("/api/documents", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
+        },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      toast({ title: "Imagen subida correctamente" });
+    },
+    onError: () => {
+      toast({ title: "Error al subir imagen", variant: "destructive" });
+    },
+  });
+  
   useEffect(() => {
     const updateWidth = () => {
       if (contentScrollRef.current) {
@@ -984,6 +1021,20 @@ export function TypologySpreadsheet() {
                 </div>
               </Collapsible>
             ))}
+            
+            <div className="w-20 flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    <Images className="w-3 h-3" />
+                    Fotos
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Subir imágenes a Documentos &gt; Desarrolladores &gt; Productos</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
           
           {filteredAndSortedTypologies.map((row, rowIndex) => {
@@ -1061,6 +1112,52 @@ export function TypologySpreadsheet() {
                     </CollapsibleContent>
                   </Collapsible>
                 ))}
+                
+                <div 
+                  className="w-20 flex-shrink-0 border-r flex items-center justify-center gap-1"
+                  data-testid={`cell-photos-${row.id}`}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = e.target.files;
+                            if (files) {
+                              Array.from(files).forEach(file => {
+                                uploadImageMutation.mutate({ typologyId: row.id, file });
+                              });
+                            }
+                            e.target.value = "";
+                          }}
+                          data-testid={`input-photo-${row.id}`}
+                        />
+                        <div className={cn(
+                          "p-1.5 rounded hover-elevate cursor-pointer",
+                          uploadImageMutation.isPending ? "opacity-50" : ""
+                        )}>
+                          {uploadImageMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <ImagePlus className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </label>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Subir imágenes</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  {getTypologyDocCount(row.id) > 0 && (
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                      {getTypologyDocCount(row.id)}
+                    </Badge>
+                  )}
+                </div>
               </div>
             );
           })}
