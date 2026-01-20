@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Building2, Building, Users, TableProperties, LogOut, ChevronDown, LayoutDashboard, FileText, Briefcase, UserPlus } from "lucide-react";
+import { Building2, Building, Users, TableProperties, LogOut, ChevronDown, LayoutDashboard, FileText, Briefcase, UserPlus, Database } from "lucide-react";
 import logoPath from "@assets/logo_1768784773871.png";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ export function Header() {
     { href: "/admin/tipologias", label: "Tipologías", icon: TableProperties, roles: ["admin", "actualizador"] },
     { href: "/admin/prospectos", label: "Prospectos", icon: UserPlus, roles: ["admin", "perfilador", "asesor"] },
     { href: "/admin/documentos", label: "Documentos", icon: FileText, roles: ["admin", "actualizador", "asesor", "perfilador"] },
+    { href: "/admin/catalogos", label: "Catálogos", icon: Database, roles: ["admin", "actualizador"] },
     { href: "/admin/users", label: "Usuarios", icon: Users, roles: ["admin"] },
   ];
   
