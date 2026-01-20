@@ -535,3 +535,109 @@ export const insertDevelopmentMediaSchema = createInsertSchema(developmentMedia)
 
 export type InsertDevelopmentMedia = z.infer<typeof insertDevelopmentMediaSchema>;
 export type DevelopmentMedia = typeof developmentMedia.$inferSelect;
+
+// Catalog tables for dynamic dropdown values
+
+// Cities catalog
+export const catalogCities = pgTable("catalog_cities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogCitySchema = createInsertSchema(catalogCities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogCity = z.infer<typeof insertCatalogCitySchema>;
+export type CatalogCity = typeof catalogCities.$inferSelect;
+
+// Zones catalog (linked to cities)
+export const catalogZones = pgTable("catalog_zones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  cityId: varchar("city_id").references(() => catalogCities.id, { onDelete: "cascade" }),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogZoneSchema = createInsertSchema(catalogZones).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogZone = z.infer<typeof insertCatalogZoneSchema>;
+export type CatalogZone = typeof catalogZones.$inferSelect;
+
+// Development types catalog
+export const catalogDevelopmentTypes = pgTable("catalog_development_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogDevelopmentTypeSchema = createInsertSchema(catalogDevelopmentTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogDevelopmentType = z.infer<typeof insertCatalogDevelopmentTypeSchema>;
+export type CatalogDevelopmentType = typeof catalogDevelopmentTypes.$inferSelect;
+
+// Amenities catalog
+export const catalogAmenities = pgTable("catalog_amenities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  icon: text("icon"), // Icon filename or path
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogAmenitySchema = createInsertSchema(catalogAmenities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogAmenity = z.infer<typeof insertCatalogAmenitySchema>;
+export type CatalogAmenity = typeof catalogAmenities.$inferSelect;
+
+// Efficiency features catalog
+export const catalogEfficiencyFeatures = pgTable("catalog_efficiency_features", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogEfficiencyFeatureSchema = createInsertSchema(catalogEfficiencyFeatures).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogEfficiencyFeature = z.infer<typeof insertCatalogEfficiencyFeatureSchema>;
+export type CatalogEfficiencyFeature = typeof catalogEfficiencyFeatures.$inferSelect;
+
+// Other features catalog (security, etc.)
+export const catalogOtherFeatures = pgTable("catalog_other_features", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogOtherFeatureSchema = createInsertSchema(catalogOtherFeatures).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogOtherFeature = z.infer<typeof insertCatalogOtherFeatureSchema>;
+export type CatalogOtherFeature = typeof catalogOtherFeatures.$inferSelect;
