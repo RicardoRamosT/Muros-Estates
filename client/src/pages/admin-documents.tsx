@@ -39,7 +39,8 @@ import {
   Eye,
   ExternalLink,
   Clock,
-  CheckCircle
+  CheckCircle,
+  AlertTriangle
 } from "lucide-react";
 import { DOCUMENT_SECTIONS } from "@shared/schema";
 import type { Document, Developer, Development, Typology, Client, SharedLink } from "@shared/schema";
@@ -1300,7 +1301,8 @@ function DesarrolladoresView({
               onClick={() => onSelectSectionType("legales")}
               data-testid="folder-developer-legales"
             >
-              <CardContent className="p-4 flex flex-col items-center gap-2">
+              <CardContent className="p-4 flex flex-col items-center gap-2 relative">
+                <AlertTriangle className="w-4 h-4 text-red-500 absolute top-2 right-2" />
                 <FileText className="w-12 h-12 text-green-600" />
                 <span className="font-medium">Legales</span>
               </CardContent>
@@ -1395,7 +1397,8 @@ function DesarrolladoresView({
               onClick={() => onSelectSectionType("legales")}
               data-testid="folder-legales"
             >
-              <CardContent className="p-4 flex flex-col items-center gap-2">
+              <CardContent className="p-4 flex flex-col items-center gap-2 relative">
+                <AlertTriangle className="w-4 h-4 text-red-500 absolute top-2 right-2" />
                 <FileText className="w-12 h-12 text-green-600" />
                 <span className="font-medium">Legales</span>
               </CardContent>
