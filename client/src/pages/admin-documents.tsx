@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -156,6 +157,7 @@ export default function AdminDocuments() {
     isPermanent: false,
     expiresInDays: 7,
     description: "",
+    requestedDocuments: [] as string[],
   });
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [sharedLinksViewOpen, setSharedLinksViewOpen] = useState(false);
@@ -277,6 +279,7 @@ export default function AdminDocuments() {
       canUpload: shareForm.canUpload,
       isPermanent: shareForm.isPermanent,
       description: shareForm.description || undefined,
+      requestedDocuments: shareForm.requestedDocuments.length > 0 ? shareForm.requestedDocuments : undefined,
     };
     
     if (!shareForm.isPermanent) {
@@ -580,6 +583,7 @@ export default function AdminDocuments() {
                       isPermanent: false,
                       expiresInDays: 7,
                       description: "",
+                      requestedDocuments: [],
                     });
                     setShareDialogOpen(true);
                   }}
@@ -1008,10 +1012,71 @@ export default function AdminDocuments() {
                     </div>
                     <Switch
                       checked={shareForm.canUpload}
-                      onCheckedChange={(v) => setShareForm({ ...shareForm, canUpload: v })}
+                      onCheckedChange={(v) => setShareForm({ 
+                        ...shareForm, 
+                        canUpload: v,
+                        requestedDocuments: v ? shareForm.requestedDocuments : []
+                      })}
                       data-testid="switch-can-upload"
                     />
                   </div>
+
+                  {shareForm.canUpload && (
+                    <div className="p-3 bg-muted/50 rounded-md space-y-3">
+                      <Label className="text-sm font-medium">Documentos a solicitar (opcional):</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Selecciona los documentos que el cliente debe subir
+                      </p>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {Object.entries(SECTION_DESCRIPTIONS).map(([section, docs]) => (
+                          <div key={section} className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">
+                              {SECTION_LABELS[section] || section}
+                            </p>
+                            {docs.map((docType) => (
+                              <div key={docType} className="flex items-center gap-2 pl-2">
+                                <Checkbox
+                                  id={`req-${docType}`}
+                                  checked={shareForm.requestedDocuments.includes(docType)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setShareForm({
+                                        ...shareForm,
+                                        requestedDocuments: [...shareForm.requestedDocuments, docType]
+                                      });
+                                    } else {
+                                      setShareForm({
+                                        ...shareForm,
+                                        requestedDocuments: shareForm.requestedDocuments.filter(d => d !== docType)
+                                      });
+                                    }
+                                  }}
+                                  data-testid={`checkbox-req-${docType}`}
+                                />
+                                <Label htmlFor={`req-${docType}`} className="text-sm cursor-pointer">
+                                  {docType}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                      {shareForm.requestedDocuments.length > 0 && (
+                        <div className="pt-2 border-t">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Seleccionados ({shareForm.requestedDocuments.length}):
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {shareForm.requestedDocuments.map(doc => (
+                              <Badge key={doc} variant="secondary" className="text-xs">
+                                {doc}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

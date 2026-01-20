@@ -1438,6 +1438,7 @@ export async function registerRoutes(
           canUpload: link.canUpload,
           targetType: link.targetType,
           section: link.section,
+          requestedDocuments: link.requestedDocuments,
         },
         documents: docs.map(d => ({
           id: d.id,

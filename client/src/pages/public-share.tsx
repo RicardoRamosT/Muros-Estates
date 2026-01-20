@@ -25,6 +25,7 @@ interface SharedLinkData {
     canUpload: boolean;
     targetType: "document" | "folder";
     section: string | null;
+    requestedDocuments: string[] | null;
   };
   documents: SharedDocument[];
 }
@@ -257,6 +258,24 @@ export default function PublicShare() {
               <CardDescription>
                 Sube tus documentos aquí. Se aceptan archivos PDF, imágenes y videos.
               </CardDescription>
+              {link.requestedDocuments && link.requestedDocuments.length > 0 && (
+                <div 
+                  className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md"
+                  data-testid="box-requested-documents"
+                >
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
+                    Documentos solicitados:
+                  </p>
+                  <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+                    {Array.from(new Set(link.requestedDocuments)).map((doc, idx) => (
+                      <li key={idx} className="flex items-center gap-2" data-testid={`text-requested-doc-${idx}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        {doc}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
