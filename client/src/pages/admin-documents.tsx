@@ -1064,7 +1064,7 @@ export default function AdminDocuments() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">
-                            {link.description || `Link ${link.token.substring(0, 8)}...`}
+                            {`Link ${link.token.substring(0, 8)}...`}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {link.isPermanent ? (
@@ -1207,28 +1207,152 @@ function DesarrolladoresView({
     );
   }
   
-  // Level 2: Show developments for selected developer
-  if (!selectedDevelopmentId) {
+  // Level 2: Show developer legales folder + developments
+  if (!selectedDevelopmentId && !sectionType) {
+    return (
+      <div className="space-y-6">
+        {/* Legales section at developer level */}
+        <div>
+          <h3 className="text-lg font-medium mb-3">Documentos del Desarrollador</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card 
+              className="cursor-pointer hover-elevate"
+              onClick={() => onSelectSectionType("legales")}
+              data-testid="folder-developer-legales"
+            >
+              <CardContent className="p-4 flex flex-col items-center gap-2">
+                <FileText className="w-12 h-12 text-green-600" />
+                <span className="font-medium">Legales</span>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Developments list */}
+        <div>
+          <h3 className="text-lg font-medium mb-3">Desarrollos</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {developments.map(dev => (
+              <Card 
+                key={dev.id} 
+                className="cursor-pointer hover-elevate"
+                onClick={() => onSelectDevelopment(dev.id)}
+                data-testid={`folder-development-${dev.id}`}
+              >
+                <CardContent className="p-4 flex flex-col items-center gap-2">
+                  <FolderOpen className="w-12 h-12 text-blue-500" />
+                  <span className="font-medium text-center">{dev.name}</span>
+                </CardContent>
+              </Card>
+            ))}
+            {developments.length === 0 && (
+              <p className="text-muted-foreground col-span-full text-center py-8">
+                No hay desarrollos para este desarrollador
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Developer legales subsections (no development selected)
+  if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales" && !selectedSection) {
+    const developerLegalesSections = ["identidad", "corporativo", "convenios"];
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {developments.map(dev => (
+        {developerLegalesSections.map(section => (
           <Card 
-            key={dev.id} 
+            key={section} 
             className="cursor-pointer hover-elevate"
-            onClick={() => onSelectDevelopment(dev.id)}
-            data-testid={`folder-development-${dev.id}`}
+            onClick={() => onSelectSection(section)}
+            data-testid={`folder-section-${section}`}
           >
             <CardContent className="p-4 flex flex-col items-center gap-2">
-              <FolderOpen className="w-12 h-12 text-blue-500" />
-              <span className="font-medium text-center">{dev.name}</span>
+              <Folder className="w-12 h-12 text-emerald-500" />
+              <span className="font-medium capitalize">{section}</span>
             </CardContent>
           </Card>
         ))}
-        {developments.length === 0 && (
-          <p className="text-muted-foreground col-span-full text-center py-8">
-            No hay desarrollos para este desarrollador
+      </div>
+    );
+  }
+  
+  // Developer legales - show documents for specific section
+  if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales" && selectedSection) {
+    const sectionDocs = documents.filter(d => 
+      d.developerId === selectedDeveloperId && 
+      !d.developmentId && 
+      d.section === selectedSection
+    );
+    
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      );
+    }
+    
+    if (sectionDocs.length === 0) {
+      return (
+        <Card className="p-8">
+          <p className="text-center text-muted-foreground">
+            No hay documentos en {selectedSection}
           </p>
-        )}
+        </Card>
+      );
+    }
+    
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {sectionDocs.map(doc => (
+          <Card key={doc.id} className="overflow-hidden" data-testid={`document-${doc.id}`}>
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                {getFileIcon(doc.mimeType)}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium truncate">{doc.name}</h4>
+                  <p className="text-xs text-muted-foreground truncate">{doc.originalName}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-muted-foreground">
+                      {formatFileSize(doc.fileSize)}
+                    </span>
+                    {doc.shareable && (
+                      <Badge variant="outline" className="text-xs">
+                        <Share2 className="w-3 h-3 mr-1" />
+                        Com.
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 mt-3">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => onDownload(doc)}
+                  data-testid={`button-download-${doc.id}`}
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  Descargar
+                </Button>
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(doc.id)}
+                    data-testid={`button-delete-${doc.id}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
