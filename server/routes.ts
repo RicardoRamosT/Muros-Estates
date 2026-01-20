@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -1257,19 +1257,26 @@ export async function registerRoutes(
     res.json(cities);
   });
   
-  app.post("/api/catalog/cities", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const city = await storage.createCatalogCity(req.body);
+  app.post("/api/catalog/cities", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogCitySchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const city = await storage.createCatalogCity(result.data);
     res.status(201).json(city);
   });
   
-  app.put("/api/catalog/cities/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const city = await storage.updateCatalogCity(req.params.id, req.body);
+  app.put("/api/catalog/cities/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const city = await storage.updateCatalogCity(req.params.id as string, updateData);
     if (!city) return res.status(404).json({ error: "Ciudad no encontrada" });
     res.json(city);
   });
   
-  app.delete("/api/catalog/cities/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    await storage.deleteCatalogCity(req.params.id);
+  app.delete("/api/catalog/cities/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogCity(req.params.id as string);
     res.status(204).send();
   });
   
@@ -1280,19 +1287,27 @@ export async function registerRoutes(
     res.json(zones);
   });
   
-  app.post("/api/catalog/zones", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const zone = await storage.createCatalogZone(req.body);
+  app.post("/api/catalog/zones", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogZoneSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const zone = await storage.createCatalogZone(result.data);
     res.status(201).json(zone);
   });
   
-  app.put("/api/catalog/zones/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const zone = await storage.updateCatalogZone(req.params.id, req.body);
+  app.put("/api/catalog/zones/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order, cityId } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number; cityId?: string } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    if (typeof cityId === "string") updateData.cityId = cityId;
+    const zone = await storage.updateCatalogZone(req.params.id as string, updateData);
     if (!zone) return res.status(404).json({ error: "Zona no encontrada" });
     res.json(zone);
   });
   
-  app.delete("/api/catalog/zones/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    await storage.deleteCatalogZone(req.params.id);
+  app.delete("/api/catalog/zones/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogZone(req.params.id as string);
     res.status(204).send();
   });
   
@@ -1302,19 +1317,26 @@ export async function registerRoutes(
     res.json(types);
   });
   
-  app.post("/api/catalog/development-types", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const type = await storage.createCatalogDevelopmentType(req.body);
+  app.post("/api/catalog/development-types", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogDevelopmentTypeSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const type = await storage.createCatalogDevelopmentType(result.data);
     res.status(201).json(type);
   });
   
-  app.put("/api/catalog/development-types/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const type = await storage.updateCatalogDevelopmentType(req.params.id, req.body);
+  app.put("/api/catalog/development-types/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const type = await storage.updateCatalogDevelopmentType(req.params.id as string, updateData);
     if (!type) return res.status(404).json({ error: "Tipo no encontrado" });
     res.json(type);
   });
   
-  app.delete("/api/catalog/development-types/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    await storage.deleteCatalogDevelopmentType(req.params.id);
+  app.delete("/api/catalog/development-types/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogDevelopmentType(req.params.id as string);
     res.status(204).send();
   });
   
@@ -1324,19 +1346,27 @@ export async function registerRoutes(
     res.json(amenities);
   });
   
-  app.post("/api/catalog/amenities", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const amenity = await storage.createCatalogAmenity(req.body);
+  app.post("/api/catalog/amenities", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogAmenitySchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const amenity = await storage.createCatalogAmenity(result.data);
     res.status(201).json(amenity);
   });
   
-  app.put("/api/catalog/amenities/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const amenity = await storage.updateCatalogAmenity(req.params.id, req.body);
+  app.put("/api/catalog/amenities/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, icon, active, order } = req.body;
+    const updateData: { name?: string; icon?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof icon === "string") updateData.icon = icon;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const amenity = await storage.updateCatalogAmenity(req.params.id as string, updateData);
     if (!amenity) return res.status(404).json({ error: "Amenidad no encontrada" });
     res.json(amenity);
   });
   
-  app.delete("/api/catalog/amenities/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    await storage.deleteCatalogAmenity(req.params.id);
+  app.delete("/api/catalog/amenities/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogAmenity(req.params.id as string);
     res.status(204).send();
   });
   
@@ -1346,19 +1376,26 @@ export async function registerRoutes(
     res.json(features);
   });
   
-  app.post("/api/catalog/efficiency-features", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const feature = await storage.createCatalogEfficiencyFeature(req.body);
+  app.post("/api/catalog/efficiency-features", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogEfficiencyFeatureSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const feature = await storage.createCatalogEfficiencyFeature(result.data);
     res.status(201).json(feature);
   });
   
-  app.put("/api/catalog/efficiency-features/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const feature = await storage.updateCatalogEfficiencyFeature(req.params.id, req.body);
+  app.put("/api/catalog/efficiency-features/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const feature = await storage.updateCatalogEfficiencyFeature(req.params.id as string, updateData);
     if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
     res.json(feature);
   });
   
-  app.delete("/api/catalog/efficiency-features/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    await storage.deleteCatalogEfficiencyFeature(req.params.id);
+  app.delete("/api/catalog/efficiency-features/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogEfficiencyFeature(req.params.id as string);
     res.status(204).send();
   });
   
@@ -1368,19 +1405,26 @@ export async function registerRoutes(
     res.json(features);
   });
   
-  app.post("/api/catalog/other-features", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const feature = await storage.createCatalogOtherFeature(req.body);
+  app.post("/api/catalog/other-features", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogOtherFeatureSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const feature = await storage.createCatalogOtherFeature(result.data);
     res.status(201).json(feature);
   });
   
-  app.put("/api/catalog/other-features/:id", requireAuth, requireRole(["admin", "actualizador"]), async (req, res) => {
-    const feature = await storage.updateCatalogOtherFeature(req.params.id, req.body);
+  app.put("/api/catalog/other-features/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const feature = await storage.updateCatalogOtherFeature(req.params.id as string, updateData);
     if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
     res.json(feature);
   });
   
-  app.delete("/api/catalog/other-features/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    await storage.deleteCatalogOtherFeature(req.params.id);
+  app.delete("/api/catalog/other-features/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogOtherFeature(req.params.id as string);
     res.status(204).send();
   });
 
