@@ -470,12 +470,15 @@ interface EditableCellProps {
   column: ColumnDef;
   rowId: string;
   city?: string;
+  developer?: string;
   onChange: (value: any) => void;
   disabled?: boolean;
   dynamicOptions?: string[];
+  allDevelopments?: any[];
+  allDevelopers?: any[];
 }
 
-function EditableCell({ value, column, rowId, city, onChange, disabled, dynamicOptions }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -538,6 +541,19 @@ function EditableCell({ value, column, rowId, city, onChange, disabled, dynamicO
     let options: readonly string[] = dynamicOptions || column.options || [];
     if (column.key === "zone" && city) {
       options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
+    }
+    
+    if (column.key === "development" && developer && allDevelopments && allDevelopers) {
+      const developerRecord = allDevelopers.find(d => d.name === developer);
+      if (developerRecord) {
+        const filteredDevs = allDevelopments
+          .filter(d => d.developerId === developerRecord.id)
+          .map(d => d.name)
+          .filter(Boolean);
+        if (filteredDevs.length > 0) {
+          options = filteredDevs;
+        }
+      }
     }
     
     return (
@@ -1165,8 +1181,11 @@ export function TypologySpreadsheet() {
                             column={col}
                             rowId={row.id}
                             city={mergedRow.city}
+                            developer={mergedRow.developer}
                             onChange={(value) => handleCellChange(row.id, col.key, value)}
                             dynamicOptions={dynamicOpts}
+                            allDevelopments={dbDevelopments}
+                            allDevelopers={dbDevelopers}
                           />
                         );
                       })}
