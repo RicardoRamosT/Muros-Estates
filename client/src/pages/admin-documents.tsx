@@ -242,7 +242,8 @@ export default function AdminDocuments() {
 
   const createShareLinkMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("POST", "/api/shared-links", data);
+      const response = await apiRequest("POST", "/api/shared-links", data);
+      return response.json();
     },
     onSuccess: (result: any) => {
       const shareUrl = `${window.location.origin}/s/${result.token}`;
