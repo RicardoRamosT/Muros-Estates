@@ -294,11 +294,12 @@ function formatValue(value: any, format?: string): string {
 
 interface SortableMediaItemProps {
   doc: any;
+  index: number;
   onDelete: (id: string) => void;
   isDeleting: boolean;
 }
 
-function SortableMediaItem({ doc, onDelete, isDeleting }: SortableMediaItemProps) {
+function SortableMediaItem({ doc, index, onDelete, isDeleting }: SortableMediaItemProps) {
   const {
     attributes,
     listeners,
@@ -334,6 +335,9 @@ function SortableMediaItem({ doc, onDelete, isDeleting }: SortableMediaItemProps
         data-testid={`drag-handle-${doc.id}`}
       >
         <GripVertical className="w-4 h-4 text-white" />
+      </div>
+      <div className="absolute top-1 right-1 z-10 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+        {index + 1}
       </div>
       {isVideo ? (
         <video 
@@ -1439,10 +1443,11 @@ export function TypologySpreadsheet() {
                 strategy={rectSortingStrategy}
               >
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  {getTypologyMedia(selectedTypologyForMedia).map((doc: any) => (
+                  {getTypologyMedia(selectedTypologyForMedia).map((doc: any, index: number) => (
                     <SortableMediaItem
                       key={doc.id}
                       doc={doc}
+                      index={index}
                       onDelete={(id) => deleteMediaMutation.mutate(id)}
                       isDeleting={deleteMediaMutation.isPending}
                     />
