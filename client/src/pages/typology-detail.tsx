@@ -19,7 +19,9 @@ import {
   Percent,
   Home,
   Loader2,
-  Play
+  Play,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 interface TypologyWithImages extends Typology {
@@ -136,7 +138,7 @@ export default function TypologyDetail() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <div className="space-y-3">
-              <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden">
+              <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden group">
                 {currentImage ? (
                   isVideo(currentImage) ? (
                     <video
@@ -159,6 +161,32 @@ export default function TypologyDetail() {
                 <div className="absolute top-4 left-4">
                   <Badge variant="default">Disponible</Badge>
                 </div>
+                
+                {images.length > 1 && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white shadow-lg"
+                      onClick={() => setSelectedImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                      data-testid="button-prev-image"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white shadow-lg"
+                      onClick={() => setSelectedImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                      data-testid="button-next-image"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </Button>
+                    <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
+                      {safeSelectedIndex + 1} / {images.length}
+                    </div>
+                  </>
+                )}
               </div>
 
               {images.length > 1 && (
