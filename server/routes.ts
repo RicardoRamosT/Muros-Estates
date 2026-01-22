@@ -508,7 +508,29 @@ export async function registerRoutes(
   app.get("/api/properties", async (req, res) => {
     try {
       const properties = await storage.getAllProperties();
-      res.json(properties);
+      
+      // Enrich each property with typology media
+      const enrichedProperties = await Promise.all(
+        properties.map(async (property) => {
+          const typology = await storage.getTypologyByPropertyId(property.id);
+          let images: string[] = property.images || [];
+          
+          if (typology) {
+            const typologyDocs = await storage.getDocumentsByTypology(typology.id);
+            const mediaUrls = typologyDocs
+              .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
+              .map(doc => doc.fileUrl);
+            
+            if (mediaUrls.length > 0) {
+              images = [...mediaUrls, ...images.filter(img => !mediaUrls.includes(img))];
+            }
+          }
+          
+          return { ...property, images };
+        })
+      );
+      
+      res.json(enrichedProperties);
     } catch (error) {
       console.error("Error fetching properties:", error);
       res.status(500).json({ error: "Error al obtener las propiedades" });
