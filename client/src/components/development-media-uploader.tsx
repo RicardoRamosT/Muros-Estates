@@ -158,6 +158,10 @@ export function DevelopmentMediaUploader() {
     }
   };
 
+  // Component disabled - media management moved to typologies spreadsheet
+  return null;
+  
+  /* Original implementation preserved for reference:
   return (
     <Card className="mb-6">
       <CardHeader 
@@ -376,4 +380,5 @@ export function DevelopmentMediaUploader() {
       )}
     </Card>
   );
+  */
 }
