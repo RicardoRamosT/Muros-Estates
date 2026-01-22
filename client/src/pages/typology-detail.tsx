@@ -164,25 +164,23 @@ export default function TypologyDetail() {
                 
                 {images.length > 1 && (
                   <>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg"
+                    <button
+                      type="button"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-colors"
                       onClick={() => setSelectedImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
                       data-testid="button-prev-image"
                     >
-                      <ChevronLeft className="w-6 h-6" />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg"
+                      <ChevronLeft className="w-6 h-6 text-gray-700" />
+                    </button>
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-colors"
                       onClick={() => setSelectedImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
                       data-testid="button-next-image"
                     >
-                      <ChevronRight className="w-6 h-6" />
-                    </Button>
-                    <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
+                      <ChevronRight className="w-6 h-6 text-gray-700" />
+                    </button>
+                    <div className="absolute bottom-4 right-4 z-20 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
                       {safeSelectedIndex + 1} / {images.length}
                     </div>
                   </>
