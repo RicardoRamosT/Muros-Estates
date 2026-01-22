@@ -19,7 +19,7 @@ import {
   sharedLinks, type SharedLink, type InsertSharedLink
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike } from "drizzle-orm";
+import { eq, desc, asc, and, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -699,7 +699,7 @@ export class DatabaseStorage implements IStorage {
   
   // Additional document queries
   async getDocumentsByTypology(typologyId: string): Promise<Document[]> {
-    return db.select().from(documents).where(eq(documents.typologyId, typologyId)).orderBy(desc(documents.createdAt));
+    return db.select().from(documents).where(eq(documents.typologyId, typologyId)).orderBy(asc(documents.sortOrder), desc(documents.createdAt));
   }
   
   async getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]> {

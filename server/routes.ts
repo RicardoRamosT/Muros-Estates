@@ -524,7 +524,57 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Propiedad no encontrada" });
       }
       
-      res.json(property);
+      // Get typology to find associated media documents and additional data
+      const typology = await storage.getTypologyByPropertyId(id);
+      let images: string[] = property.images || [];
+      let enrichedProperty = { ...property };
+      
+      if (typology) {
+        // Get documents from typology (sorted by sortOrder)
+        const typologyDocs = await storage.getDocumentsByTypology(typology.id);
+        const mediaUrls = typologyDocs
+          .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
+          .map(doc => doc.fileUrl);
+        
+        // Prepend typology media to any existing property images
+        if (mediaUrls.length > 0) {
+          images = [...mediaUrls, ...images.filter(img => !mediaUrls.includes(img))];
+        }
+        
+        // Enrich property with typology data (typology is the primary source)
+        enrichedProperty = {
+          ...property,
+          // Basic info from typology
+          bedrooms: (typology.bedrooms?.toString() || property.bedrooms) as string | null,
+          bathrooms: typology.bathrooms || property.bathrooms,
+          area: typology.size || property.area,
+          floor: typology.level?.toString() || property.floor,
+          deliveryDate: typology.deliveryDate || property.deliveryDate,
+          parking: typology.parkingSpots || property.parking,
+          // Price info from typology
+          price: typology.price || property.price,
+          downPaymentPercent: typology.downPaymentPercent,
+          // Additional typology-specific data
+          typologyId: typology.id,
+          typologyType: typology.type,
+          view: typology.view,
+          flex: typology.flex,
+          livingRoom: typology.livingRoom,
+          diningRoom: typology.diningRoom,
+          kitchen: typology.kitchen,
+          balcony: typology.balcony,
+          terrace: typology.terrace,
+          laundry: typology.laundry,
+          serviceRoom: typology.serviceRoom,
+          storage: typology.storage,
+          finalPrice: typology.finalPrice,
+          pricePerM2: typology.pricePerM2,
+          discountPercent: typology.discountPercent,
+          discountAmount: typology.discountAmount,
+        };
+      }
+      
+      res.json({ ...enrichedProperty, images });
     } catch (error) {
       console.error("Error fetching property:", error);
       res.status(500).json({ error: "Error al obtener la propiedad" });
@@ -1465,8 +1515,8 @@ export async function registerRoutes(
           docs = await storage.getDocumentsByClient(link.clientId);
         } else if (link.rootCategory) {
           // Get all documents by root category (trabajo, etc.)
-          const allDocs = await storage.getDocuments();
-          docs = allDocs.filter(d => d.rootCategory === link.rootCategory);
+          const allDocs = await storage.getAllDocuments();
+          docs = allDocs.filter((d: any) => d.rootCategory === link.rootCategory);
         }
         
         // Filter by section if specified
