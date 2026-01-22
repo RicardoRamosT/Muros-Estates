@@ -1040,62 +1040,104 @@ export default function AdminDocuments() {
                     />
                   </div>
 
-                  {(shareForm.canView || shareForm.canUpload) && selectedSection && SECTION_DESCRIPTIONS[selectedSection] && (
-                    <div className="p-3 bg-muted/50 rounded-md space-y-3">
-                      <Label className="text-sm font-medium">
-                        Documentos específicos en {SECTION_LABELS[selectedSection]}:
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {shareForm.canView && shareForm.canUpload 
-                          ? "Selecciona los documentos que el cliente podrá ver y/o subir"
-                          : shareForm.canView 
-                          ? "Selecciona los documentos que el cliente podrá ver"
-                          : "Selecciona los documentos que el cliente debe subir"
+                  {/* Show document selection based on permissions */}
+                  {(() => {
+                    // Get existing documents in current location
+                    const existingDocsInSection = documents.filter(d => {
+                      if (activeTab === "desarrolladores") {
+                        if (selectedTypologyId) {
+                          return d.typologyId === selectedTypologyId && d.section === selectedSection;
+                        } else if (selectedDevelopmentId) {
+                          return d.developmentId === selectedDevelopmentId && !d.typologyId && d.section === selectedSection;
+                        } else if (selectedDeveloperId) {
+                          return d.developerId === selectedDeveloperId && !d.developmentId && d.section === selectedSection;
                         }
-                      </p>
-                      <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {SECTION_DESCRIPTIONS[selectedSection].map((docType) => (
-                          <div key={docType} className="flex items-center gap-2">
-                            <Checkbox
-                              id={`req-${docType}`}
-                              checked={shareForm.requestedDocuments.includes(docType)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setShareForm({
-                                    ...shareForm,
-                                    requestedDocuments: [...shareForm.requestedDocuments, docType]
-                                  });
-                                } else {
-                                  setShareForm({
-                                    ...shareForm,
-                                    requestedDocuments: shareForm.requestedDocuments.filter(d => d !== docType)
-                                  });
-                                }
-                              }}
-                              data-testid={`checkbox-req-${docType}`}
-                            />
-                            <Label htmlFor={`req-${docType}`} className="text-sm cursor-pointer">
-                              {docType}
-                            </Label>
+                      } else if (activeTab === "clientes") {
+                        return d.clientId === selectedClientId && d.section === selectedSection;
+                      }
+                      return false;
+                    });
+                    
+                    const existingDocTypes = [...new Set(existingDocsInSection.map(d => d.name))];
+                    const allDocTypes = SECTION_DESCRIPTIONS[selectedSection] || [];
+                    
+                    // For canView: show only existing documents
+                    // For canUpload only: show all possible document types to request
+                    const docTypesToShow = shareForm.canView ? existingDocTypes : allDocTypes;
+                    
+                    if (!selectedSection || docTypesToShow.length === 0) {
+                      if (shareForm.canView && selectedSection) {
+                        return (
+                          <div className="p-3 bg-muted/50 rounded-md">
+                            <p className="text-sm text-muted-foreground">
+                              No hay documentos subidos en esta sección para compartir.
+                            </p>
                           </div>
-                        ))}
-                      </div>
-                      {shareForm.requestedDocuments.length > 0 && (
-                        <div className="pt-2 border-t">
-                          <p className="text-xs text-muted-foreground mb-1">
-                            Seleccionados ({shareForm.requestedDocuments.length}):
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {shareForm.requestedDocuments.map(doc => (
-                              <Badge key={doc} variant="secondary" className="text-xs">
-                                {doc}
-                              </Badge>
-                            ))}
-                          </div>
+                        );
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <div className="p-3 bg-muted/50 rounded-md space-y-3">
+                        <Label className="text-sm font-medium">
+                          {shareForm.canView 
+                            ? `Documentos disponibles en ${SECTION_LABELS[selectedSection]}:`
+                            : `Documentos a solicitar en ${SECTION_LABELS[selectedSection]}:`
+                          }
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          {shareForm.canView && shareForm.canUpload 
+                            ? "Selecciona los documentos que el cliente podrá ver (y subir nuevos)"
+                            : shareForm.canView 
+                            ? "Selecciona los documentos que el cliente podrá ver"
+                            : "Selecciona los documentos que el cliente debe subir"
+                          }
+                        </p>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {docTypesToShow.map((docType) => (
+                            <div key={docType} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`req-${docType}`}
+                                checked={shareForm.requestedDocuments.includes(docType)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setShareForm({
+                                      ...shareForm,
+                                      requestedDocuments: [...shareForm.requestedDocuments, docType]
+                                    });
+                                  } else {
+                                    setShareForm({
+                                      ...shareForm,
+                                      requestedDocuments: shareForm.requestedDocuments.filter(d => d !== docType)
+                                    });
+                                  }
+                                }}
+                                data-testid={`checkbox-req-${docType}`}
+                              />
+                              <Label htmlFor={`req-${docType}`} className="text-sm cursor-pointer">
+                                {docType}
+                              </Label>
+                            </div>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  )}
+                        {shareForm.requestedDocuments.length > 0 && (
+                          <div className="pt-2 border-t">
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Seleccionados ({shareForm.requestedDocuments.length}):
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {shareForm.requestedDocuments.map(doc => (
+                                <Badge key={doc} variant="secondary" className="text-xs">
+                                  {doc}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
