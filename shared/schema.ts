@@ -504,6 +504,7 @@ export const documents = pgTable("documents", {
   // Meta
   description: text("description"),
   uploadedBy: varchar("uploaded_by").references(() => users.id),
+  sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
