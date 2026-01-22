@@ -496,7 +496,23 @@ export async function registerRoutes(
   app.get("/api/public/typologies", async (req, res) => {
     try {
       const activeTypologies = await storage.getActiveTypologies();
-      res.json(activeTypologies);
+      
+      // Enrich each typology with its media documents
+      const enrichedTypologies = await Promise.all(
+        activeTypologies.map(async (typology) => {
+          const typologyDocs = await storage.getDocumentsByTypology(typology.id);
+          const mediaUrls = typologyDocs
+            .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
+            .map(doc => doc.fileUrl);
+          
+          return {
+            ...typology,
+            images: mediaUrls.length > 0 ? mediaUrls : null,
+          };
+        })
+      );
+      
+      res.json(enrichedTypologies);
     } catch (error) {
       console.error("Error fetching active typologies:", error);
       res.status(500).json({ error: "Error al obtener tipologías" });

@@ -1,33 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
 import { TypologyCard } from "@/components/typology-card";
-import type { Typology, DevelopmentMedia } from "@shared/schema";
+import type { Typology } from "@shared/schema";
 import { Loader2, Building2 } from "lucide-react";
-import { useMemo } from "react";
+
+interface TypologyWithImages extends Typology {
+  images?: string[] | null;
+}
 
 interface TypologyGridProps {
-  typologies: Typology[];
+  typologies: TypologyWithImages[];
   isLoading?: boolean;
   limit?: number;
 }
 
 export function TypologyGrid({ typologies, isLoading, limit }: TypologyGridProps) {
   const displayTypologies = limit ? typologies.slice(0, limit) : typologies;
-
-  const { data: allMedia = [] } = useQuery<DevelopmentMedia[]>({
-    queryKey: ["/api/development-media"],
-  });
-
-  const mediaByDevelopment = useMemo(() => {
-    const map: Record<string, string> = {};
-    allMedia.forEach(media => {
-      if (media.type === "image") {
-        if (media.isPrimary || !map[media.development]) {
-          map[media.development] = media.url;
-        }
-      }
-    });
-    return map;
-  }, [allMedia]);
 
   if (isLoading) {
     return (
@@ -59,7 +45,7 @@ export function TypologyGrid({ typologies, isLoading, limit }: TypologyGridProps
           key={typology.id} 
           typology={typology} 
           index={index} 
-          imageUrl={mediaByDevelopment[typology.development]}
+          imageUrl={typology.images?.[0]}
         />
       ))}
     </div>
