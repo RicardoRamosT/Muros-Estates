@@ -1216,16 +1216,6 @@ export function TypologySpreadsheet() {
                           }}
                           data-testid={`input-media-${row.id}`}
                         />
-                        <div className={cn(
-                          "p-1 rounded hover-elevate cursor-pointer",
-                          uploadMediaMutation.isPending ? "opacity-50" : ""
-                        )}>
-                          {uploadMediaMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                          ) : (
-                            <ImagePlus className="w-4 h-4 text-muted-foreground" />
-                          )}
-                        </div>
                       </label>
                     </TooltipTrigger>
                     <TooltipContent>
