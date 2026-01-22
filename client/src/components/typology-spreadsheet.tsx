@@ -10,8 +10,25 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Trash2, Save, X, 
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
-  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye
+  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Dialog,
   DialogContent,
@@ -273,6 +290,88 @@ function formatValue(value: any, format?: string): string {
     default:
       return num.toString();
   }
+}
+
+interface SortableMediaItemProps {
+  doc: any;
+  onDelete: (id: string) => void;
+  isDeleting: boolean;
+}
+
+function SortableMediaItem({ doc, onDelete, isDeleting }: SortableMediaItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: doc.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
+  const fileName = doc.fileName?.toLowerCase() || '';
+  const isVideo = doc.mimeType?.startsWith("video/") || videoExtensions.some((ext: string) => fileName.endsWith(ext));
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "relative group border rounded-lg overflow-visible",
+        isDragging && "z-50 shadow-lg"
+      )}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-1 left-1 z-10 p-1 bg-black/60 rounded cursor-grab active:cursor-grabbing"
+        data-testid={`drag-handle-${doc.id}`}
+      >
+        <GripVertical className="w-4 h-4 text-white" />
+      </div>
+      {isVideo ? (
+        <video 
+          src={doc.fileUrl}
+          controls
+          className="w-full h-40 object-cover bg-black"
+          data-testid={`video-${doc.id}`}
+        />
+      ) : (
+        <img 
+          src={doc.fileUrl}
+          alt={doc.fileName || doc.originalName}
+          className="w-full h-40 object-cover"
+          data-testid={`image-${doc.id}`}
+        />
+      )}
+      <div className="absolute top-10 left-0 right-0 bottom-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none group-hover:pointer-events-auto">
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={() => onDelete(doc.id)}
+          disabled={isDeleting}
+          data-testid={`button-delete-media-${doc.id}`}
+        >
+          {isDeleting ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-1" />
+          ) : (
+            <Trash2 className="w-4 h-4 mr-1" />
+          )}
+          Eliminar
+        </Button>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate flex items-center gap-1">
+        {isVideo ? <Video className="w-3 h-3" /> : <ImagePlus className="w-3 h-3" />}
+        {doc.fileName}
+      </div>
+    </div>
+  );
 }
 
 interface ColumnFilterProps {
@@ -723,8 +822,59 @@ export function TypologySpreadsheet() {
   });
   
   const getTypologyMedia = useCallback((typologyId: string) => {
-    return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores");
+    return documents
+      .filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores")
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [documents]);
+
+  const reorderMediaMutation = useMutation({
+    mutationFn: async (documentIds: string[]) => {
+      const res = await fetch("/api/documents/reorder", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
+        },
+        body: JSON.stringify({ documentIds }),
+      });
+      if (!res.ok) throw new Error("Reorder failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      toast({ title: "Orden actualizado" });
+    },
+    onError: () => {
+      toast({ title: "Error al reordenar", variant: "destructive" });
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id || !selectedTypologyForMedia) return;
+    
+    const media = getTypologyMedia(selectedTypologyForMedia);
+    const oldIndex = media.findIndex((d: any) => d.id === active.id);
+    const newIndex = media.findIndex((d: any) => d.id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reordered = arrayMove(media, oldIndex, newIndex);
+      const documentIds = reordered.map((d: any) => d.id);
+      reorderMediaMutation.mutate(documentIds);
+    }
+  };
   
   useEffect(() => {
     const updateWidth = () => {
@@ -1270,54 +1420,37 @@ export function TypologySpreadsheet() {
             <DialogTitle className="flex items-center gap-2">
               <Images className="w-5 h-5" />
               Medios de la Tipología
+              {reorderMediaMutation.isPending && (
+                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+              )}
             </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Arrastra las imágenes para cambiar el orden
+            </p>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            {selectedTypologyForMedia && getTypologyMedia(selectedTypologyForMedia).map((doc: any) => {
-              const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
-              const fileName = doc.fileName?.toLowerCase() || '';
-              const isVideo = doc.mimeType?.startsWith("video/") || videoExtensions.some(ext => fileName.endsWith(ext));
-              return (
-                <div key={doc.id} className="relative group border rounded-lg overflow-hidden">
-                  {isVideo ? (
-                    <video 
-                      src={doc.fileUrl}
-                      controls
-                      className="w-full h-40 object-cover bg-black"
-                      data-testid={`video-${doc.id}`}
+          {selectedTypologyForMedia && getTypologyMedia(selectedTypologyForMedia).length > 0 && (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={getTypologyMedia(selectedTypologyForMedia).map((d: any) => d.id)}
+                strategy={rectSortingStrategy}
+              >
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  {getTypologyMedia(selectedTypologyForMedia).map((doc: any) => (
+                    <SortableMediaItem
+                      key={doc.id}
+                      doc={doc}
+                      onDelete={(id) => deleteMediaMutation.mutate(id)}
+                      isDeleting={deleteMediaMutation.isPending}
                     />
-                  ) : (
-                    <img 
-                      src={doc.fileUrl}
-                      alt={doc.fileName || doc.originalName}
-                      className="w-full h-40 object-cover"
-                      data-testid={`image-${doc.id}`}
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteMediaMutation.mutate(doc.id)}
-                      disabled={deleteMediaMutation.isPending}
-                      data-testid={`button-delete-media-${doc.id}`}
-                    >
-                      {deleteMediaMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                      ) : (
-                        <Trash2 className="w-4 h-4 mr-1" />
-                      )}
-                      Eliminar
-                    </Button>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate flex items-center gap-1">
-                    {isVideo ? <Video className="w-3 h-3" /> : <ImagePlus className="w-3 h-3" />}
-                    {doc.fileName}
-                  </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </SortableContext>
+            </DndContext>
+          )}
           {selectedTypologyForMedia && getTypologyMedia(selectedTypologyForMedia).length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No hay medios para esta tipología
