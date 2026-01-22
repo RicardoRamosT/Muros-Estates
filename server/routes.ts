@@ -1253,6 +1253,27 @@ export async function registerRoutes(
     }
   });
   
+  // Reorder documents (update sortOrder)
+  app.patch("/api/documents/reorder", requireAuth, requireDocumentPermission("edit"), async (req, res) => {
+    try {
+      const { documentIds } = req.body as { documentIds: string[] };
+      
+      if (!Array.isArray(documentIds)) {
+        return res.status(400).json({ error: "documentIds debe ser un array" });
+      }
+      
+      // Update each document with its new sort order
+      for (let i = 0; i < documentIds.length; i++) {
+        await storage.updateDocument(documentIds[i], { sortOrder: i });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error reordering documents:", error);
+      res.status(500).json({ error: "Error al reordenar documentos" });
+    }
+  });
+  
   // Download document
   app.get("/api/documents/:id/download", requireAuth, requireDocumentPermission("view"), async (req, res) => {
     try {
