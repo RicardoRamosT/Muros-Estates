@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 export function Header() {
   const [location] = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
-  const isAdmin = location.startsWith("/admin");
+  const isAdmin = location.toLowerCase().startsWith("/admin");
   
   const adminLinks = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "actualizador", "asesor", "perfilador"] },
