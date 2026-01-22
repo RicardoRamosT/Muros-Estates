@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
@@ -6,7 +6,7 @@ import { FloatingContactForm } from "@/components/floating-contact-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Typology, DevelopmentMedia } from "@shared/schema";
+import type { Typology } from "@shared/schema";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -22,38 +22,35 @@ import {
   Play
 } from "lucide-react";
 
+interface TypologyWithImages extends Typology {
+  images?: string[] | null;
+}
+
 export default function TypologyDetail() {
   const [, params] = useRoute("/tipologia/:id");
   const typologyId = params?.id;
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const { data: allTypologies = [], isLoading: isLoadingAll } = useQuery<Typology[]>({
+  const { data: allTypologies = [], isLoading: isLoadingAll } = useQuery<TypologyWithImages[]>({
     queryKey: ["/api/public/typologies"],
-  });
-
-  const { data: allMedia = [] } = useQuery<DevelopmentMedia[]>({
-    queryKey: ["/api/development-media"],
   });
 
   const typology = allTypologies.find(t => t.id === typologyId);
   const isLoading = isLoadingAll;
   const notFound = !isLoading && !typology;
 
-  const developmentMedia = useMemo(() => {
-    if (!typology) return [];
-    return allMedia.filter(m => m.development === typology.development).sort((a, b) => {
-      if (a.isPrimary) return -1;
-      if (b.isPrimary) return 1;
-      return (a.order || 0) - (b.order || 0);
-    });
-  }, [typology, allMedia]);
+  const images = typology?.images || [];
 
   useEffect(() => {
     setSelectedImageIndex(0);
   }, [typologyId]);
 
-  const safeSelectedIndex = Math.min(selectedImageIndex, Math.max(0, developmentMedia.length - 1));
-  const currentMedia = developmentMedia[safeSelectedIndex];
+  const safeSelectedIndex = Math.min(selectedImageIndex, Math.max(0, images.length - 1));
+  const currentImage = images[safeSelectedIndex];
+  
+  const isVideo = (url: string) => {
+    return url.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+  };
 
   const formatPrice = (price: string | number | null) => {
     if (!price) return "Consultar";
@@ -140,16 +137,16 @@ export default function TypologyDetail() {
           <div className="lg:col-span-2 space-y-6">
             <div className="space-y-3">
               <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg overflow-hidden">
-                {currentMedia ? (
-                  currentMedia.type === "video" ? (
+                {currentImage ? (
+                  isVideo(currentImage) ? (
                     <video
-                      src={currentMedia.url}
+                      src={currentImage}
                       controls
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <img
-                      src={currentMedia.url}
+                      src={currentImage}
                       alt={title}
                       className="w-full h-full object-cover"
                     />
@@ -164,11 +161,11 @@ export default function TypologyDetail() {
                 </div>
               </div>
 
-              {developmentMedia.length > 1 && (
+              {images.length > 1 && (
                 <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                  {developmentMedia.map((media, index) => (
+                  {images.map((imageUrl, index) => (
                     <button
-                      key={media.id}
+                      key={index}
                       onClick={() => setSelectedImageIndex(index)}
                       className={`aspect-square rounded-md overflow-hidden border-2 transition-all relative ${
                         safeSelectedIndex === index
@@ -176,15 +173,15 @@ export default function TypologyDetail() {
                           : "border-transparent hover:border-muted-foreground/20"
                       }`}
                     >
-                      {media.type === "video" ? (
+                      {isVideo(imageUrl) ? (
                         <>
-                          <video src={media.url} className="w-full h-full object-cover" />
+                          <video src={imageUrl} className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                             <Play className="w-4 h-4 text-white" />
                           </div>
                         </>
                       ) : (
-                        <img src={media.url} alt="" className="w-full h-full object-cover" />
+                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
                       )}
                     </button>
                   ))}
