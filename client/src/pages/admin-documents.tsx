@@ -1416,7 +1416,7 @@ function DesarrolladoresView({
               data-testid="folder-developer-legales"
             >
               <CardContent className="p-4 flex flex-col items-center gap-2">
-                <FileText className="w-12 h-12 text-green-600" />
+                <FileText className="w-12 h-12 text-primary" />
                 <span className="font-medium">Legales</span>
               </CardContent>
             </Card>
@@ -1529,7 +1529,7 @@ function DesarrolladoresView({
               data-testid="folder-legales"
             >
               <CardContent className="p-4 flex flex-col items-center gap-2">
-                <FileText className="w-12 h-12 text-green-600" />
+                <FileText className="w-12 h-12 text-primary" />
                 <span className="font-medium">Legales</span>
               </CardContent>
             </Card>
