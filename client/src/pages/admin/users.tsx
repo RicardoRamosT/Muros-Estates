@@ -5,7 +5,8 @@ import { AdminUserTable } from "@/components/admin-user-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Users, Search, ArrowLeft } from "lucide-react";
+import { Plus, Users, Search } from "lucide-react";
+import { RolesPermissionsView } from "@/components/roles-permissions-view";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -232,6 +233,10 @@ export default function AdminUsers() {
             />
           </CardContent>
         </Card>
+
+        <div className="mt-8">
+          <RolesPermissionsView />
+        </div>
       </main>
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>

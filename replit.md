@@ -103,3 +103,11 @@ No specific user preferences were provided in the original document.
   - Finanzas: 1-5 view, 6-29 none, 30-54 view
   - Asesor: 1-47 view, 48-52 none, 53-54 view
   - Desarrollador: 1-5 view, 6-8 none, 9-54 view
+- Corrected Desarrolladores permissions (14 columns) with exact bitmask mappings:
+  - Admin: edit all except ID (view)
+  - Updater: edit all except ID and Tipo (view)
+  - Profiler: 1-5 view, 6-14 none
+  - Finanzas: all view, convenios hidden in documents
+  - Asesor: 1-10 view, 11-13 none, 14 view, convenios hidden in documents
+  - Desarrollador: all view
+- Added RolesPermissionsView component in admin users page showing permission matrix per role/section
