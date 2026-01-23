@@ -215,13 +215,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 bg-muted z-10">
+          <thead className="sticky top-0 bg-muted z-10" data-testid="prospects-table-header">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   className="border-b border-r px-3 py-2 text-left font-medium whitespace-nowrap"
                   style={{ minWidth: col.width }}
+                  data-testid={`column-header-${col.key}`}
                 >
                   {col.label}
                 </th>
