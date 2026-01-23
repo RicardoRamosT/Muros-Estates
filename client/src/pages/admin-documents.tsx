@@ -155,12 +155,17 @@ export default function AdminDocuments() {
   
   // Read URL query params for deep linking
   const [location, setLocation] = useLocation();
+  const deepLinkProcessedRef = useRef(false);
   useEffect(() => {
+    // Only process deep link params once per page load
+    if (deepLinkProcessedRef.current) return;
+    
     const params = new URLSearchParams(window.location.search);
     const developerId = params.get("developerId");
     const section = params.get("sectionType");
     
     if (developerId) {
+      deepLinkProcessedRef.current = true;
       // First set the tab, then the developer, then the section type
       setActiveTab("desarrolladores");
       setSelectedDeveloperId(developerId);
@@ -171,14 +176,10 @@ export default function AdminDocuments() {
       if (section === "legales" || section === "venta") {
         setSectionType(section);
       }
-      // Clear query params after reading with a small delay to ensure state is set
-      setTimeout(() => {
-        if (window.location.search) {
-          setLocation("/admin/documentos", { replace: true });
-        }
-      }, 100);
+      // Clear query params after reading
+      window.history.replaceState({}, '', '/admin/documentos');
     }
-  }, [location]);
+  }, []);
 
   // Shared links state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
