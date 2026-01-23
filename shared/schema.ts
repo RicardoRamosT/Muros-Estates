@@ -35,29 +35,43 @@ export type PermissionLevel = 'none' | 'view' | 'edit';
 // Role-based permissions matrix for each page
 // Based on Excel format: black=none, yellow=view, green=edit
 export const PAGE_PERMISSIONS = {
+  // Permisos para Desarrolladores - 14 columnas
+  // Admin: Todo 2, Updater: Todo 2 excepto ID y Tipo (=1)
+  // Profiler: 111110000000000 (1-5 view, 6-14 none)
+  // Finanzas: Todo 1 (view), en Legales no puede ver convenios (ver documentosLegalesDesarrollador)
+  // Asesor: 111111111100001 (1-10 view, 11-13 none, 14 view)
+  // Desarrollador: Todo 1 (view)
   desarrolladores: {
-    // Todos los roles tienen acceso a la página
     allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
-    // Permisos por campo según matriz Excel: negro=none, amarillo=view, verde=edit
     fields: {
-      // Campos automáticos (ID, Tipo, Activo) - todos ven (amarillo para perfilador)
+      // 1. id - Admin:1, Updater:1, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      tipo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 2. tipo - Admin:2, Updater:1, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      tipo: { admin: 'edit', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 3. active - Admin:2, Updater:2, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Datos principales (azul en Excel) - perfilador no ve (negro)
-      name: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      razonSocial: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 4. name - Admin:2, Updater:2, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      name: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 5. razonSocial - Admin:2, Updater:2, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      razonSocial: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 6. rfc - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       rfc: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 7. domicilio - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       domicilio: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 8. antiguedad - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       antiguedad: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 9. tipos - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       tipos: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 10. representante - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       representante: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Contacto - perfilador ve (amarillo), admin/actualizador editan (verde)
-      contactName: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      contactPhone: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      contactEmail: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Legales - todos pueden acceder (verde para todos)
-      legales: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'edit', asesor: 'edit', desarrollador: 'edit' },
+      // 11. contactName - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      contactName: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 12. contactPhone - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      contactPhone: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 13. contactEmail - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      contactEmail: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 14. legales - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      legales: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
   // Permisos para subsecciones de documentos legales del desarrollador
