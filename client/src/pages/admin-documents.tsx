@@ -48,7 +48,7 @@ import {
   Check,
   X
 } from "lucide-react";
-import { DOCUMENT_SECTIONS } from "@shared/schema";
+import { DOCUMENT_SECTIONS, getFieldPermission } from "@shared/schema";
 import type { Document, Developer, Development, Typology, Client, SharedLink } from "@shared/schema";
 
 function getFileIcon(mimeType: string | null) {
@@ -704,6 +704,7 @@ export default function AdminDocuments() {
               isLoading={loadingDocs}
               onUpload={openUploadDialog}
               onUpdateTypologyName={(id, name) => updateTypologyNameMutation.mutate({ id, type: name })}
+              userRole={user?.role || ''}
             />
           </TabsContent>
 
@@ -1388,6 +1389,7 @@ interface DesarrolladoresViewProps {
   isLoading: boolean;
   onUpload: () => void;
   onUpdateTypologyName: (id: string, name: string) => void;
+  userRole: string;
 }
 
 function DesarrolladoresView({
@@ -1411,6 +1413,7 @@ function DesarrolladoresView({
   isLoading,
   onUpload,
   onUpdateTypologyName,
+  userRole,
 }: DesarrolladoresViewProps) {
   const [editingTypologyId, setEditingTypologyId] = useState<string | null>(null);
   const [editingTypologyName, setEditingTypologyName] = useState("");
@@ -1516,7 +1519,12 @@ function DesarrolladoresView({
   
   // Developer legales - show tabbed view with all subsections
   if (selectedDeveloperId && !selectedDevelopmentId && sectionType === "legales") {
-    const developerLegalesSections = ["identidad", "corporativo", "convenios"];
+    // Filtrar secciones según permisos del rol (finanzas y asesor no ven convenios)
+    const allSections = ["identidad", "corporativo", "convenios"];
+    const developerLegalesSections = allSections.filter(section => {
+      const permission = getFieldPermission('documentosLegalesDesarrollador', section, userRole);
+      return permission !== 'none';
+    });
     const activeSection = selectedSection || developerLegalesSections[0];
     
     return (

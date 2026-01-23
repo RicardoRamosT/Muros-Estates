@@ -36,15 +36,15 @@ export type PermissionLevel = 'none' | 'view' | 'edit';
 // Based on Excel format: black=none, yellow=view, green=edit
 export const PAGE_PERMISSIONS = {
   desarrolladores: {
-    // Roles that can access this page
+    // Todos los roles tienen acceso a la página
     allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
-    // Field permissions per role
+    // Permisos por campo según matriz Excel: negro=none, amarillo=view, verde=edit
     fields: {
-      // Campos automáticos (ID, Tipo, Activo)
-      id: { admin: 'view', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      tipo: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      active: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Datos principales (azul en Excel)
+      // Campos automáticos (ID, Tipo, Activo) - todos ven (amarillo para perfilador)
+      id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tipo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Datos principales (azul en Excel) - perfilador no ve (negro)
       name: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       razonSocial: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       rfc: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
@@ -52,12 +52,22 @@ export const PAGE_PERMISSIONS = {
       antiguedad: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       tipos: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       representante: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Contacto (verde en Excel)
-      contactName: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      contactPhone: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      contactEmail: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Legales (solo admin/actualizador)
-      legales: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      // Contacto - perfilador ve (amarillo), admin/actualizador editan (verde)
+      contactName: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      contactPhone: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      contactEmail: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Legales - todos pueden acceder (verde para todos)
+      legales: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'edit', asesor: 'edit', desarrollador: 'edit' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
+  // Permisos para subsecciones de documentos legales del desarrollador
+  documentosLegalesDesarrollador: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    sections: {
+      identidad: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      corporativo: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      // Finanzas y Asesor no pueden ver convenios (negro)
+      convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'none', asesor: 'none', desarrollador: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
 } as const;
@@ -67,10 +77,21 @@ export function getFieldPermission(page: keyof typeof PAGE_PERMISSIONS, field: s
   const pagePerms = PAGE_PERMISSIONS[page];
   if (!pagePerms) return 'none';
   
-  const fieldPerms = pagePerms.fields[field];
-  if (!fieldPerms) return 'none';
+  // Handle pages with 'fields' property
+  if ('fields' in pagePerms) {
+    const fieldPerms = pagePerms.fields[field];
+    if (!fieldPerms) return 'none';
+    return (fieldPerms as Record<string, PermissionLevel>)[role] || 'none';
+  }
   
-  return (fieldPerms as Record<string, PermissionLevel>)[role] || 'none';
+  // Handle pages with 'sections' property (like documentosLegalesDesarrollador)
+  if ('sections' in pagePerms) {
+    const sectionPerms = pagePerms.sections[field];
+    if (!sectionPerms) return 'none';
+    return (sectionPerms as Record<string, PermissionLevel>)[role] || 'none';
+  }
+  
+  return 'none';
 }
 
 // Check if role can access page
