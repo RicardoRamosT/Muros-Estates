@@ -156,12 +156,16 @@ export default function AdminDocuments() {
   // Read URL query params for deep linking
   const [location, setLocation] = useLocation();
   const deepLinkProcessedRef = useRef(false);
+  // Store URL params for later processing after data loads
+  const [pendingDeepLink, setPendingDeepLink] = useState<{developmentId?: string, section?: string} | null>(null);
+  
   useEffect(() => {
     // Only process deep link params once per page load
     if (deepLinkProcessedRef.current) return;
     
     const params = new URLSearchParams(window.location.search);
     const developerId = params.get("developerId");
+    const developmentId = params.get("developmentId");
     const section = params.get("sectionType");
     
     if (developerId) {
@@ -176,6 +180,11 @@ export default function AdminDocuments() {
       if (section === "legales" || section === "venta") {
         setSectionType(section);
       }
+      // Clear query params after reading
+      window.history.replaceState({}, '', '/admin/documentos');
+    } else if (developmentId) {
+      // Store for processing after developments load
+      setPendingDeepLink({ developmentId, section: section || undefined });
       // Clear query params after reading
       window.history.replaceState({}, '', '/admin/documentos');
     }
@@ -223,6 +232,27 @@ export default function AdminDocuments() {
   const { data: developments = [] } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
   });
+  
+  // Process pending deep link when developments are loaded
+  useEffect(() => {
+    if (pendingDeepLink && developments.length > 0 && !deepLinkProcessedRef.current) {
+      deepLinkProcessedRef.current = true;
+      const { developmentId, section } = pendingDeepLink;
+      setActiveTab("desarrolladores");
+      // Find the developer for this development
+      const development = developments.find(d => d.id === developmentId);
+      if (development?.developerId) {
+        setSelectedDeveloperId(development.developerId);
+      }
+      setSelectedDevelopmentId(developmentId || null);
+      setSelectedTypologyId(null);
+      setSelectedSection(null);
+      if (section === "legales" || section === "venta") {
+        setSectionType(section);
+      }
+      setPendingDeepLink(null);
+    }
+  }, [developments, pendingDeepLink]);
   
   const { data: typologies = [] } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
