@@ -1,7 +1,7 @@
 import { useAuth } from "@/lib/auth";
-import { getFieldPermission, canAccessPage, PermissionLevel } from "@shared/schema";
+import { getFieldPermission, canAccessPage, PermissionLevel, PAGE_PERMISSIONS } from "@shared/schema";
 
-type PageName = 'desarrolladores';
+type PageName = keyof typeof PAGE_PERMISSIONS;
 
 export function useFieldPermissions(page: PageName) {
   const { user } = useAuth();
@@ -26,7 +26,13 @@ export function useFieldPermissions(page: PageName) {
 
   const isAdmin = role === 'admin';
   const isActualizador = role === 'actualizador';
-  const hasFullAccess = isAdmin || isActualizador;
+  
+  const hasFullAccess = (() => {
+    if (page === 'prospectos') {
+      return isAdmin;
+    }
+    return isAdmin || isActualizador;
+  })();
 
   return {
     role,

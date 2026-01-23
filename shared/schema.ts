@@ -70,6 +70,51 @@ export const PAGE_PERMISSIONS = {
       convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'none', asesor: 'none', desarrollador: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
+  // Permisos para Prospectos - solo 3 roles pueden acceder
+  prospectos: {
+    allowedRoles: ['admin', 'perfilador', 'asesor'],
+    fields: {
+      // Auto-generated fields (fecha, hora from createdAt) 
+      // Admin: edit (puede corregir), Perfilador: view, Asesor: view
+      createdAt: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      
+      // Asesor - Admin: edit, Perfilador: edit, Asesor: view
+      asesorId: { admin: 'edit', perfilador: 'edit', asesor: 'view' },
+      
+      // Location - Admin: edit, Perfilador: view, Asesor: view
+      ciudad: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      zona: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      
+      // Development - Admin: edit, Perfilador: view, Asesor: view
+      desarrollador: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      desarrollo: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      tipologia: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      
+      // Personal info - Admin: edit, Perfilador: edit, Asesor: edit
+      nombre: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      apellido: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      telefono: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      correo: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      
+      // Profile - Admin: edit, Perfilador: edit, Asesor: edit
+      tipofil: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      perfil: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      comoLlega: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      
+      // Broker externo - Admin: edit, Perfilador: edit, Asesor: view
+      brokerExterno: { admin: 'edit', perfilador: 'edit', asesor: 'view' },
+      
+      // Status/funnel - Admin: edit, Perfilador: edit, Asesor: edit
+      estatus: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      embudo: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      comoPaga: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      
+      // Evaluation - Admin: edit, Perfilador: edit, Asesor: edit
+      positivos: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      negativos: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      comentarios: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
 } as const;
 
 // Helper function to get field permission for a role
@@ -280,22 +325,62 @@ export const insertDevelopmentSchema = createInsertSchema(developments).omit({
 export type InsertDevelopment = z.infer<typeof insertDevelopmentSchema>;
 export type Development = typeof developments.$inferSelect;
 
-// Clients (leads) from contact form or manually created
+// Clients (leads/prospects) from contact form or manually created
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  email: text("email"),
-  phone: text("phone").notNull(),
-  interest: text("interest"),
-  notes: text("notes"),
-  status: text("status").notNull().default("nuevo"),
-  source: text("source").notNull().default("web"),
-  assignedTo: varchar("assigned_to").references(() => users.id),
-  developmentInterest: text("development_interest"),
-  isClient: boolean("is_client").notNull().default(false), // true when prospect becomes client
-  convertedAt: timestamp("converted_at"), // when they became a client
+  
+  // Auto-generated fields (fecha, hora)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  
+  // Asesor assigned
+  asesorId: varchar("asesor_id").references(() => users.id),
+  
+  // Location
+  ciudad: text("ciudad"),
+  zona: text("zona"),
+  
+  // Development interest
+  desarrollador: text("desarrollador"),
+  desarrollo: text("desarrollo"),
+  tipologia: text("tipologia"),
+  
+  // Personal info
+  nombre: text("nombre").notNull(),
+  apellido: text("apellido"),
+  telefono: text("telefono").notNull(),
+  correo: text("correo"),
+  
+  // Profile/filter info
+  tipofil: text("tipofil"), // tipo de filtro/perfil
+  perfil: text("perfil"),
+  comoLlega: text("como_llega").default("web"), // source
+  brokerExterno: text("broker_externo"),
+  
+  // Status and funnel
+  estatus: text("estatus").notNull().default("nuevo"),
+  embudo: text("embudo"),
+  comoPaga: text("como_paga"),
+  
+  // Evaluation
+  positivos: text("positivos"),
+  negativos: text("negativos"),
+  comentarios: text("comentarios"),
+  
+  // Legacy/system fields
+  isClient: boolean("is_client").notNull().default(false),
+  convertedAt: timestamp("converted_at"),
+  
+  // Keep old fields for backward compatibility (will migrate data)
+  name: text("name"),
+  email: text("email"),
+  phone: text("phone"),
+  interest: text("interest"),
+  notes: text("notes"),
+  status: text("status"),
+  source: text("source"),
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  developmentInterest: text("development_interest"),
 });
 
 export const insertClientSchema = createInsertSchema(clients).omit({
