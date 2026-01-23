@@ -218,6 +218,43 @@ export const PAGE_PERMISSIONS = {
       comentarios: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
+  // Permisos para Clientes (convertidos) - 15 campos
+  // Admin: Todo 2, Finanzas: 111110011111111, Asesor: 111222222222222, Desarrollador: 111110011111111
+  clientes: {
+    allowedRoles: ['admin', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      // 1. fecha - Finanzas: 1, Asesor: 1, Desarrollador: 1
+      fecha: { admin: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 2. hora - Finanzas: 1, Asesor: 1, Desarrollador: 1
+      hora: { admin: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 3. asesor - Finanzas: 1, Asesor: 1, Desarrollador: 1
+      asesorId: { admin: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 4. nombre - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      nombre: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 5. apellido - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      apellido: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 6. telefono - Finanzas: 0, Asesor: 2, Desarrollador: 0
+      telefono: { admin: 'edit', finanzas: 'none', asesor: 'edit', desarrollador: 'none' },
+      // 7. correo - Finanzas: 0, Asesor: 2, Desarrollador: 0
+      correo: { admin: 'edit', finanzas: 'none', asesor: 'edit', desarrollador: 'none' },
+      // 8. desarrollador - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      desarrollador: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 9. desarrollo - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      desarrollo: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 10. tipologia - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      tipologia: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 11. precioFinal - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      precioFinal: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 12. separacion - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      separacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 13. fechaSeparacion - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      fechaSeparacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 14. enganche - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      enganche: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 15. fechaEnganche - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      fechaEnganche: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
   // Permisos para Tipologías - 86 columnas según matriz Excel
   // 0=none, 1=view, 2=edit
   // Admin: Todo 2 | Updater: Todo 2 (excepto calculados = 1)
@@ -693,6 +730,13 @@ export const clients = pgTable("clients", {
   positivos: text("positivos"),
   negativos: text("negativos"),
   comentarios: text("comentarios"),
+  
+  // Client-specific fields (when isClient=true)
+  precioFinal: decimal("precio_final", { precision: 12, scale: 2 }),
+  separacion: decimal("separacion", { precision: 12, scale: 2 }),
+  fechaSeparacion: timestamp("fecha_separacion"),
+  enganche: decimal("enganche", { precision: 12, scale: 2 }),
+  fechaEnganche: timestamp("fecha_enganche"),
   
   // Legacy/system fields
   isClient: boolean("is_client").notNull().default(false),

@@ -25,7 +25,8 @@ interface ProspectsSpreadsheetProps {
 
 export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsheetProps) {
   const { toast } = useToast();
-  const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions('prospectos');
+  const pageName = isClientView ? 'clientes' : 'prospectos';
+  const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions(pageName as any);
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -125,7 +126,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     return user ? user.name : "-";
   };
 
-  const allColumns = [
+  // Columns for Prospectos (22 fields)
+  const prospectColumns = [
     { key: "index", label: "#", width: "50px", type: "index" },
     { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
@@ -152,6 +154,29 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "actions", label: "", width: "60px", type: "actions" },
   ];
 
+  // Columns for Clientes (15 fields - focused on purchase/financial data)
+  const clientColumns = [
+    { key: "index", label: "#", width: "50px", type: "index" },
+    { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
+    { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
+    { key: "asesorId", label: "Asesor", width: "140px", type: "select" },
+    { key: "nombre", label: "Nombre", width: "140px" },
+    { key: "apellido", label: "Apellido", width: "140px" },
+    { key: "telefono", label: "Teléfono", width: "130px" },
+    { key: "correo", label: "Correo", width: "180px" },
+    { key: "desarrollador", label: "Desarrollador", width: "150px" },
+    { key: "desarrollo", label: "Desarrollo", width: "150px" },
+    { key: "tipologia", label: "Tipología", width: "120px" },
+    { key: "precioFinal", label: "Precio Final", width: "130px", type: "currency" },
+    { key: "separacion", label: "Separación", width: "120px", type: "currency" },
+    { key: "fechaSeparacion", label: "Fecha Separación", width: "140px", type: "date" },
+    { key: "enganche", label: "Enganche", width: "120px", type: "currency" },
+    { key: "fechaEnganche", label: "Fecha Enganche", width: "140px", type: "date" },
+    { key: "actions", label: "", width: "60px", type: "actions" },
+  ];
+
+  const allColumns = isClientView ? clientColumns : prospectColumns;
+
   const estatusOptions = [
     { value: "nuevo", label: "Nuevo" },
     { value: "contactado", label: "Contactado" },
@@ -175,8 +200,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const columns = useMemo(() => {
     return allColumns.filter(col => {
       if (col.type === 'index' || col.type === 'actions') return true;
-      const fieldKey = col.field || col.key;
-      if (fieldKey === 'createdAt') return canView('createdAt');
+      // Use col.key for permission check (fecha, hora are defined in permissions, not createdAt)
       return canView(col.key);
     });
   }, [canView]);
@@ -241,7 +265,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               <tr key={prospect.id} className="hover:bg-muted/30" data-testid={`row-prospect-${prospect.id}`}>
                 {columns.map((col) => {
                   const field = col.field || col.key;
-                  const fieldCanEdit = canEdit(col.key === 'fecha' || col.key === 'hora' ? 'createdAt' : col.key);
+                  const fieldCanEdit = canEdit(col.key);
 
                   if (col.type === 'index') {
                     return (
@@ -423,6 +447,100 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         ) : (
                           <div className="flex items-center gap-1">
                             <span>{comoLlegaOptions.find(o => o.value === value)?.label || value}</span>
+                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Handle currency fields
+                  if (col.type === 'currency') {
+                    const value = (prospect as any)[col.key];
+                    const numValue = value ? parseFloat(value) : null;
+                    const displayValue = numValue !== null ? 
+                      new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(numValue) : 
+                      '-';
+                    return (
+                      <td key={col.key} className="border-b border-r px-2 py-1">
+                        {fieldCanEdit ? (
+                          editingCell?.id === prospect.id && editingCell?.field === col.key ? (
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => {
+                                if (editValue !== String(value ?? '')) {
+                                  updateMutation.mutate({ id: prospect.id, data: { [col.key]: editValue || null } as any });
+                                }
+                                setEditingCell(null);
+                              }}
+                              onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(prospect.id, col.key)}
+                              autoFocus
+                              className="h-7 text-sm w-28"
+                              data-testid={`input-${col.key}-${prospect.id}`}
+                            />
+                          ) : (
+                            <div 
+                              className="cursor-pointer hover:bg-muted/50 rounded px-1"
+                              onClick={() => {
+                                setEditingCell({ id: prospect.id, field: col.key });
+                                setEditValue(String(value ?? ''));
+                              }}
+                            >
+                              <span>{displayValue}</span>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{displayValue}</span>
+                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Handle client-specific date fields (fechaSeparacion, fechaEnganche)
+                  if ((col.key === 'fechaSeparacion' || col.key === 'fechaEnganche') && col.type === 'date') {
+                    const rawValue = (prospect as any)[col.key];
+                    const dateValue = rawValue ? new Date(rawValue).toISOString().split('T')[0] : '';
+                    return (
+                      <td key={col.key} className="border-b border-r px-2 py-1">
+                        {fieldCanEdit ? (
+                          editingCell?.id === prospect.id && editingCell?.field === col.key ? (
+                            <Input
+                              type="date"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => {
+                                if (editValue !== dateValue) {
+                                  const newDate = editValue ? new Date(editValue).toISOString() : null;
+                                  updateMutation.mutate({ id: prospect.id, data: { [col.key]: newDate } as any });
+                                }
+                                setEditingCell(null);
+                              }}
+                              autoFocus
+                              className="h-7 text-sm w-32"
+                              data-testid={`input-${col.key}-${prospect.id}`}
+                            />
+                          ) : (
+                            <div 
+                              className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
+                              onClick={() => {
+                                setEditingCell({ id: prospect.id, field: col.key });
+                                setEditValue(dateValue);
+                              }}
+                            >
+                              <Calendar className="w-3 h-3 text-muted-foreground" />
+                              <span>{rawValue ? formatDate(rawValue) : '-'}</span>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-muted-foreground" />
+                            <span>{rawValue ? formatDate(rawValue) : '-'}</span>
                             <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
                           </div>
                         )}

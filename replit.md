@@ -94,3 +94,7 @@ No specific user preferences were provided in the original document.
 - Created share link system with tokenized public access, permissions (canView, canUpload), and expiration options
 - Added public share page at /s/:token for external clients to access shared documents without authentication
 - Implemented asesor-based access control for client documents (non-admins see only their assigned clients)
+- Added Clientes section distinct from Prospectos with 15 financial fields (precioFinal, separacion, fechaSeparacion, enganche, fechaEnganche)
+- Implemented dynamic permission context switching for ProspectsSpreadsheet (prospectos vs clientes)
+- Added clientes permissions in PAGE_PERMISSIONS: Finanzas (111110011111111), Asesor (111222222222222), Desarrollador (111110011111111)
+- Added currency type support for financial fields with MXN formatting
