@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Header } from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,9 @@ import {
   Loader2,
   User,
   Globe,
-  Pencil
+  Pencil,
+  UserCheck,
+  ArrowRightLeft
 } from "lucide-react";
 
 const STATUS_OPTIONS = [
@@ -38,6 +41,9 @@ const STATUS_OPTIONS = [
 ];
 
 export default function AdminClients() {
+  const [location] = useLocation();
+  const isClientView = location.toLowerCase().includes("/clientes");
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -47,25 +53,44 @@ export default function AdminClients() {
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  const { data: clients = [], isLoading } = useQuery<Client[]>({
+  const { data: allRecords = [], isLoading } = useQuery<(Client & { isClient?: boolean })[]>({
     queryKey: ["/api/clients"],
   });
+  
+  // Filter based on view type
+  const clients = allRecords.filter(c => isClientView ? c.isClient === true : c.isClient !== true);
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Client> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Client & { isClient?: boolean; convertedAt?: string }> }) => {
       const res = await apiRequest("PUT", `/api/clients/${id}`, data);
       if (!res.ok) throw new Error("Error al actualizar");
       return res.json();
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/clients"] });
-      toast({ title: "Cliente actualizado" });
+      toast({ title: isClientView ? "Cliente actualizado" : "Prospecto actualizado" });
       setIsEditOpen(false);
     },
     onError: () => {
       toast({ title: "Error al actualizar", variant: "destructive" });
     },
   });
+
+  const convertToClient = (client: Client) => {
+    updateMutation.mutate({ 
+      id: client.id, 
+      data: { isClient: true, convertedAt: new Date().toISOString() } as any
+    });
+    toast({ title: "Prospecto convertido a cliente" });
+  };
+
+  const revertToProspect = (client: Client) => {
+    updateMutation.mutate({ 
+      id: client.id, 
+      data: { isClient: false, convertedAt: undefined } as any
+    });
+    toast({ title: "Cliente revertido a prospecto" });
+  };
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = 
@@ -126,11 +151,19 @@ export default function AdminClients() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">Clientes</h1>
-            <p className="text-muted-foreground">Gestiona los contactos y leads</p>
+            <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
+              {isClientView ? <UserCheck className="w-7 h-7" /> : <Users className="w-7 h-7" />}
+              {isClientView ? "Clientes" : "Prospectos"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isClientView 
+                ? "Clientes confirmados que han realizado compras" 
+                : "Gestiona los contactos y leads potenciales"
+              }
+            </p>
           </div>
           <Badge variant="secondary" className="text-lg px-4 py-1">
-            {clients.length} clientes
+            {clients.length} {isClientView ? "clientes" : "prospectos"}
           </Badge>
         </div>
 
@@ -170,12 +203,14 @@ export default function AdminClients() {
           </div>
         ) : filteredClients.length === 0 ? (
           <div className="text-center py-20">
-            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No hay clientes</h3>
+            {isClientView ? <UserCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" /> : <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />}
+            <h3 className="text-xl font-semibold mb-2">No hay {isClientView ? "clientes" : "prospectos"}</h3>
             <p className="text-muted-foreground">
               {searchTerm || statusFilter !== "all" 
-                ? "No se encontraron clientes con esos filtros"
-                : "Los clientes aparecerán aquí cuando envíen el formulario de contacto"
+                ? `No se encontraron ${isClientView ? "clientes" : "prospectos"} con esos filtros`
+                : isClientView 
+                  ? "Los clientes aparecerán aquí cuando conviertas prospectos"
+                  : "Los prospectos aparecerán aquí cuando envíen el formulario de contacto"
               }
             </p>
           </div>
@@ -185,12 +220,12 @@ export default function AdminClients() {
               <table className="w-full text-sm">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium">Cliente</th>
+                    <th className="text-left px-4 py-3 font-medium">{isClientView ? "Cliente" : "Prospecto"}</th>
                     <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Contacto</th>
                     <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Desarrollo</th>
                     <th className="text-left px-4 py-3 font-medium">Estado</th>
                     <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Fecha</th>
-                    <th className="text-center px-4 py-3 font-medium w-24">Acciones</th>
+                    <th className="text-center px-4 py-3 font-medium w-32">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,6 +291,7 @@ export default function AdminClients() {
                             variant="ghost"
                             size="icon"
                             onClick={() => openDetail(client)}
+                            title="Ver detalles"
                             data-testid={`button-view-${client.id}`}
                           >
                             <Eye className="w-4 h-4" />
@@ -264,10 +300,34 @@ export default function AdminClients() {
                             variant="ghost"
                             size="icon"
                             onClick={() => openEdit(client)}
+                            title="Editar"
                             data-testid={`button-edit-${client.id}`}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
+                          {!isClientView ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => convertToClient(client)}
+                              title="Convertir a cliente"
+                              data-testid={`button-convert-${client.id}`}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <UserCheck className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => revertToProspect(client)}
+                              title="Revertir a prospecto"
+                              data-testid={`button-revert-${client.id}`}
+                              className="text-orange-600 hover:text-orange-700"
+                            >
+                              <ArrowRightLeft className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -284,7 +344,7 @@ export default function AdminClients() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
-              Detalles del Cliente
+              Detalles del {isClientView ? "Cliente" : "Prospecto"}
             </DialogTitle>
           </DialogHeader>
           {selectedClient && (

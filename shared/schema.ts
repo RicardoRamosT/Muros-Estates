@@ -207,6 +207,8 @@ export const clients = pgTable("clients", {
   source: text("source").notNull().default("web"),
   assignedTo: varchar("assigned_to").references(() => users.id),
   developmentInterest: text("development_interest"),
+  isClient: boolean("is_client").notNull().default(false), // true when prospect becomes client
+  convertedAt: timestamp("converted_at"), // when they became a client
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
