@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +15,12 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Building2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Building2, Loader2, Lock, Eye } from "lucide-react";
 import type { Developer } from "@shared/schema";
 
 export function DevelopersSpreadsheet() {
   const { toast } = useToast();
+  const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -85,23 +87,45 @@ export function DevelopersSpreadsheet() {
     });
   };
 
-  const columns = [
-    { key: "#", label: "#", width: "50px", editable: false },
-    { key: "active", label: "Activo", width: "80px", editable: false, type: "toggle" },
-    { key: "name", label: "Nombre", width: "200px", editable: true },
-    { key: "logo", label: "Logo URL", width: "150px", editable: true },
-    { key: "contactName", label: "Contacto", width: "150px", editable: true },
-    { key: "contactPhone", label: "Teléfono", width: "130px", editable: true },
-    { key: "contactEmail", label: "Email", width: "180px", editable: true },
-    { key: "website", label: "Sitio Web", width: "180px", editable: true },
-    { key: "notes", label: "Notas", width: "200px", editable: true },
-    { key: "actions", label: "", width: "60px", editable: false },
+  const allColumns = [
+    { key: "id", label: "ID", width: "50px", type: "index", autoField: true },
+    { key: "tipo", label: "Tipo", width: "100px", autoField: true },
+    { key: "active", label: "Activo", width: "80px", type: "toggle", autoField: true },
+    { key: "name", label: "Desarrollador", width: "180px" },
+    { key: "razonSocial", label: "Razón Social", width: "180px" },
+    { key: "rfc", label: "RFC", width: "140px" },
+    { key: "domicilio", label: "Domicilio", width: "200px" },
+    { key: "antiguedad", label: "Antigüedad", width: "120px" },
+    { key: "tipos", label: "Tipos", width: "150px" },
+    { key: "representante", label: "Representante", width: "160px" },
+    { key: "contactName", label: "Contacto Nombre", width: "150px", group: "contacto" },
+    { key: "contactPhone", label: "Contacto Teléfono", width: "140px", group: "contacto" },
+    { key: "contactEmail", label: "Contacto Correo", width: "180px", group: "contacto" },
+    { key: "legales", label: "Legales", width: "150px" },
+    { key: "actions", label: "", width: "60px", type: "actions" },
   ];
+
+  const columns = useMemo(() => {
+    return allColumns.filter(col => {
+      if (col.type === 'index' || col.type === 'actions') return true;
+      return canView(col.key);
+    });
+  }, [canView]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!canAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+        <Lock className="w-12 h-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium mb-2">Acceso Denegado</h3>
+        <p className="text-muted-foreground">No tienes permisos para ver esta sección.</p>
       </div>
     );
   }
@@ -112,11 +136,19 @@ export function DevelopersSpreadsheet() {
         <div className="flex items-center gap-3">
           <Building2 className="w-5 h-5 text-primary" />
           <span className="font-medium">{developers.length} Desarrolladores</span>
+          {!hasFullAccess && (
+            <Badge variant="outline" className="text-xs">
+              <Eye className="w-3 h-3 mr-1" />
+              Solo lectura
+            </Badge>
+          )}
         </div>
-        <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
-          <Plus className="w-4 h-4 mr-2" />
-          Agregar
-        </Button>
+        {hasFullAccess && (
+          <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar
+          </Button>
+        )}
       </div>
       
       <div className="flex-1 overflow-auto">
@@ -137,75 +169,105 @@ export function DevelopersSpreadsheet() {
           <tbody>
             {developers.map((dev, index) => (
               <tr key={dev.id} className="hover:bg-muted/30" data-testid={`row-developer-${dev.id}`}>
-                <td className="border-b border-r px-3 py-2 text-muted-foreground">{index + 1}</td>
-                <td className="border-b border-r px-3 py-2">
-                  <Badge
-                    variant={dev.active ? "default" : "outline"}
-                    className={`cursor-pointer ${dev.active ? "bg-green-500/20 text-green-700 hover:bg-green-500/30" : ""}`}
-                    onClick={() => handleActiveToggle(dev.id, dev.active ?? false)}
-                    data-testid={`toggle-active-${dev.id}`}
-                  >
-                    {dev.active ? "Sí" : "No"}
-                  </Badge>
-                </td>
-                {["name", "logo", "contactName", "contactPhone", "contactEmail", "website", "notes"].map((field) => (
-                  <td
-                    key={field}
-                    className="border-b border-r px-3 py-2 cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleCellClick(dev.id, field, dev[field as keyof Developer] as string)}
-                    data-testid={`cell-${field}-${dev.id}`}
-                  >
-                    {editingCell?.id === dev.id && editingCell?.field === field ? (
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => handleCellBlur(dev.id, field)}
-                        onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
-                        autoFocus
-                        className="h-7 text-sm"
-                        data-testid={`input-${field}-${dev.id}`}
-                      />
-                    ) : (
-                      <span className="truncate block max-w-[200px]">
-                        {dev[field as keyof Developer] as string || "-"}
-                      </span>
-                    )}
-                  </td>
-                ))}
-                <td className="border-b border-r px-2 py-2">
-                  <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => setDeleteId(dev.id)}
-                        data-testid={`button-delete-${dev.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Eliminar Desarrollador</DialogTitle>
-                      </DialogHeader>
-                      <p>¿Estás seguro de eliminar "{dev.name}"? Esta acción no se puede deshacer.</p>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button variant="outline">Cancelar</Button>
-                        </DialogClose>
-                        <Button
-                          variant="destructive"
-                          onClick={() => deleteMutation.mutate(dev.id)}
-                          disabled={deleteMutation.isPending}
-                          data-testid="button-confirm-delete"
+                {columns.map((col) => {
+                  const field = col.key;
+                  const fieldCanEdit = canEdit(field);
+                  
+                  if (col.type === 'index') {
+                    return (
+                      <td key={field} className="border-b border-r px-3 py-2 text-muted-foreground">
+                        {index + 1}
+                      </td>
+                    );
+                  }
+                  
+                  if (col.type === 'toggle') {
+                    return (
+                      <td key={field} className="border-b border-r px-3 py-2">
+                        <Badge
+                          variant={dev.active ? "default" : "outline"}
+                          className={`${fieldCanEdit ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'} ${dev.active ? "bg-green-500/20 text-green-700 hover:bg-green-500/30" : ""}`}
+                          onClick={() => fieldCanEdit && handleActiveToggle(dev.id, dev.active ?? false)}
+                          data-testid={`toggle-active-${dev.id}`}
                         >
-                          Eliminar
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </td>
+                          {dev.active ? "Sí" : "No"}
+                          {!fieldCanEdit && <Eye className="w-3 h-3 ml-1 opacity-50" />}
+                        </Badge>
+                      </td>
+                    );
+                  }
+                  
+                  if (col.type === 'actions') {
+                    return (
+                      <td key={field} className="border-b border-r px-2 py-2">
+                        {hasFullAccess && (
+                          <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                onClick={() => setDeleteId(dev.id)}
+                                data-testid={`button-delete-${dev.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Eliminar Desarrollador</DialogTitle>
+                              </DialogHeader>
+                              <p>¿Estás seguro de eliminar "{dev.name}"? Esta acción no se puede deshacer.</p>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button variant="outline">Cancelar</Button>
+                                </DialogClose>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => deleteMutation.mutate(dev.id)}
+                                  disabled={deleteMutation.isPending}
+                                  data-testid="button-confirm-delete"
+                                >
+                                  Eliminar
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </td>
+                    );
+                  }
+                  
+                  const value = dev[field as keyof Developer] as string;
+                  
+                  return (
+                    <td
+                      key={field}
+                      className={`border-b border-r px-3 py-2 ${fieldCanEdit ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default'}`}
+                      onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      {editingCell?.id === dev.id && editingCell?.field === field && fieldCanEdit ? (
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => handleCellBlur(dev.id, field)}
+                          onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
+                          autoFocus
+                          className="h-7 text-sm"
+                          data-testid={`input-${field}-${dev.id}`}
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="truncate block max-w-[180px]">
+                            {value || "-"}
+                          </span>
+                          {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
             {developers.length === 0 && (

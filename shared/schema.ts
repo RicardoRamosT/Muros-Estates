@@ -29,6 +29,57 @@ export const permissionsSchema = z.object({
 export type UserPermissions = z.infer<typeof permissionsSchema>;
 export type FieldPermissions = z.infer<typeof fieldPermissionsSchema>;
 
+// Permission levels: 'none' = no access, 'view' = read only, 'edit' = read+write
+export type PermissionLevel = 'none' | 'view' | 'edit';
+
+// Role-based permissions matrix for each page
+// Based on Excel format: black=none, yellow=view, green=edit
+export const PAGE_PERMISSIONS = {
+  desarrolladores: {
+    // Roles that can access this page
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    // Field permissions per role
+    fields: {
+      // Campos automáticos (ID, Tipo, Activo)
+      id: { admin: 'view', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tipo: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      active: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Datos principales (azul en Excel)
+      name: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      razonSocial: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      rfc: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      domicilio: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      antiguedad: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tipos: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      representante: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Contacto (verde en Excel)
+      contactName: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      contactPhone: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      contactEmail: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Legales (solo admin/actualizador)
+      legales: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
+} as const;
+
+// Helper function to get field permission for a role
+export function getFieldPermission(page: keyof typeof PAGE_PERMISSIONS, field: string, role: string): PermissionLevel {
+  const pagePerms = PAGE_PERMISSIONS[page];
+  if (!pagePerms) return 'none';
+  
+  const fieldPerms = pagePerms.fields[field];
+  if (!fieldPerms) return 'none';
+  
+  return (fieldPerms as Record<string, PermissionLevel>)[role] || 'none';
+}
+
+// Check if role can access page
+export function canAccessPage(page: keyof typeof PAGE_PERMISSIONS, role: string): boolean {
+  const pagePerms = PAGE_PERMISSIONS[page];
+  if (!pagePerms) return false;
+  return (pagePerms.allowedRoles as readonly string[]).includes(role);
+}
+
 // Editable fields per section (for UI and validation)
 export const EDITABLE_FIELDS = {
   propiedades: [
@@ -135,17 +186,30 @@ export type Session = typeof sessions.$inferSelect;
 // Developers (empresas desarrolladoras)
 export const developers = pgTable("developers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull().unique(),
-  shortName: text("short_name"), // Nombre corto/abreviación
-  logo: text("logo"), // URL del logo
-  website: text("website"),
+  // Campos automáticos
+  tipo: text("tipo"), // Tipo de desarrollador
+  active: boolean("active").default(true),
+  // Datos principales
+  name: text("name").notNull().unique(), // DESARROLLADOR
+  razonSocial: text("razon_social"), // Razón Social
+  rfc: text("rfc"), // RFC
+  domicilio: text("domicilio"), // Domicilio fiscal/legal
+  antiguedad: text("antiguedad"), // Antigüedad en el mercado
+  tipos: text("tipos"), // Tipos de desarrollos que hace
+  representante: text("representante"), // Representante legal
+  // Contacto
   contactName: text("contact_name"), // Nombre del contacto
   contactPhone: text("contact_phone"), // Teléfono del contacto
   contactEmail: text("contact_email"), // Email del contacto
+  // Legales
+  legales: text("legales"), // Información legal/documentos
+  // Campos adicionales
+  logo: text("logo"), // URL del logo
+  website: text("website"),
+  shortName: text("short_name"), // Nombre corto/abreviación
   address: text("address"),
   description: text("description"),
   notes: text("notes"), // Notas internas
-  active: boolean("active").default(true),
   order: integer("order").default(0), // Para ordenar en listas
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
