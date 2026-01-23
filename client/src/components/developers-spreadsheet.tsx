@@ -98,9 +98,9 @@ export function DevelopersSpreadsheet() {
     { key: "antiguedad", label: "Antigüedad", width: "120px" },
     { key: "tipos", label: "Tipos", width: "150px" },
     { key: "representante", label: "Representante", width: "160px" },
-    { key: "contactName", label: "Contacto Nombre", width: "150px", group: "contacto" },
-    { key: "contactPhone", label: "Contacto Teléfono", width: "140px", group: "contacto" },
-    { key: "contactEmail", label: "Contacto Correo", width: "180px", group: "contacto" },
+    { key: "contactName", label: "Nombre", width: "150px", group: "contacto" },
+    { key: "contactPhone", label: "Teléfono", width: "140px", group: "contacto" },
+    { key: "contactEmail", label: "Correo", width: "180px", group: "contacto" },
     { key: "legales", label: "Legales", width: "150px" },
     { key: "actions", label: "", width: "60px", type: "actions" },
   ];
