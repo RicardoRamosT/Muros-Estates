@@ -161,17 +161,24 @@ export default function AdminDocuments() {
     const section = params.get("sectionType");
     
     if (developerId) {
+      // First set the tab, then the developer, then the section type
       setActiveTab("desarrolladores");
       setSelectedDeveloperId(developerId);
+      // Reset intermediate selections
+      setSelectedDevelopmentId(null);
+      setSelectedTypologyId(null);
+      setSelectedSection(null);
       if (section === "legales" || section === "venta") {
         setSectionType(section);
       }
-      // Clear query params after reading
-      if (window.location.search) {
-        setLocation("/admin/documentos", { replace: true });
-      }
+      // Clear query params after reading with a small delay to ensure state is set
+      setTimeout(() => {
+        if (window.location.search) {
+          setLocation("/admin/documentos", { replace: true });
+        }
+      }, 100);
     }
-  }, []);
+  }, [location]);
 
   // Shared links state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
