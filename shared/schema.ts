@@ -143,6 +143,9 @@ export const PAGE_PERMISSIONS = {
       convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
       // Location y Venta
       location: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
+      // Carpetas de documentos (enlaces)
+      legalesFolder: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      ventaFolder: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       venta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
     } as Record<string, Record<string, PermissionLevel>>,
   },

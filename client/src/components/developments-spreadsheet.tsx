@@ -16,7 +16,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Building, Loader2, Lock, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen } from "lucide-react";
+import { Link } from "wouter";
 import type { Development, Developer } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
 
@@ -24,8 +25,9 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'array' | 'actions';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'array' | 'folder-link' | 'actions';
   width: string;
+  folderSection?: string;
 }
 
 interface ColumnGroup {
@@ -109,8 +111,8 @@ const columns: ColumnDef[] = [
   { key: 'comercializacion', label: 'Comercializadora', group: 'noheader4', width: '130px' },
   { key: 'arquitectura', label: 'Arquitectura', group: 'noheader4', width: '100px' },
   { key: 'location', label: 'Location', group: 'noheader4', width: '100px' },
-  { key: 'convenios', label: 'Legales', group: 'noheader4', width: '100px' },
-  { key: 'venta', label: 'Venta', group: 'noheader4', width: '100px' },
+  { key: 'legalesFolder', label: 'Legales', group: 'noheader4', type: 'folder-link', folderSection: 'legales', width: '100px' },
+  { key: 'ventaFolder', label: 'Venta', group: 'noheader4', type: 'folder-link', folderSection: 'venta', width: '100px' },
   { key: 'actions', label: '', group: 'actions', type: 'actions', width: '60px' },
 ];
 
@@ -481,6 +483,20 @@ export function DevelopmentsSpreadsheet() {
                           {count} {count === 1 ? 'item' : 'items'}
                         </Badge>
                         {!fieldCanEdit && <Lock className="inline-block w-3 h-3 ml-1 text-muted-foreground opacity-50" />}
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'folder-link') {
+                    return (
+                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                        <Link
+                          href={`/admin/documentos?developmentId=${dev.id}&sectionType=${col.folderSection}`}
+                          className="text-primary hover:underline flex items-center gap-1"
+                          data-testid={`link-${col.folderSection}-${dev.id}`}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Link>
                       </td>
                     );
                   }
