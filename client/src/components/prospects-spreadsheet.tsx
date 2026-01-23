@@ -25,14 +25,19 @@ interface ProspectsSpreadsheetProps {
 
 export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsheetProps) {
   const { toast } = useToast();
-  const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('prospectos');
+  const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions('prospectos');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: allClients = [], isLoading } = useQuery<Client[]>({
+  const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
+
+  const isLoading = authLoading || clientsLoading;
+
+  // Only check access after auth is done loading
+  const shouldCheckAccess = !authLoading;
 
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
@@ -182,7 +187,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     );
   }
 
-  if (!canAccess) {
+  if (shouldCheckAccess && !canAccess) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center px-4">
         <Lock className="w-12 h-12 text-muted-foreground mb-4" />
