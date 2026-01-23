@@ -70,93 +70,6 @@ export const PAGE_PERMISSIONS = {
       convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'none', asesor: 'none', desarrollador: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
-  // Permisos para Desarrollos - según matriz Excel
-  desarrollos: {
-    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
-    fields: {
-      // DESARROLLADOR: solo 3 columnas negro (ID, Activo, Desarrollador), resto amarillo (view)
-      // ASESOR: negro en VENTAS (3), PAGOS (3); resto view
-      // FINANZAS: negro en Comercializadora, Arquitectura, Location, Venta; resto view
-      // Admin/Updater/Profiler: todo verde (edit)
-      
-      // Columnas con Desarrollador=none (solo estas 3)
-      id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
-      active: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
-      developerId: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
-      
-      // Resto de columnas básicas - Desarrollador=view
-      name: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      city: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      zone: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      zone2: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      zone3: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      type: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      nivel: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      torres: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      niveles: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      amenities: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      efficiency: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      otherFeatures: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // TAMAÑO (Desde, Hasta)
-      tamanoDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      tamanoHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Lock Off
-      lockOff: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // REC (Desde, Hasta)
-      recDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      recHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Acabados
-      acabados: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // UNIDADES Y METROS CUADRADOS
-      depasM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      localesM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      oficinasM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      saludM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // Inicio Preventa, Tiempo Transc.
-      inicioPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      tiempoTransc: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // DEPAS (Unidades, Vendidas, %)
-      depasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      depasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      depasPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // LOCALES (Unidades, Vendidas, %)
-      localesUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      localesVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      localesPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // OFICINAS (Unidades, Vendidas, %)
-      oficinasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      oficinasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      oficinasPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // SALUD (Unidades, Vendidas, %)
-      saludUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      saludVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      saludPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // INICIO (Proyectado, Real)
-      inicioProyectado: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      inicioReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // ENTREGA (Proyectada, Actualizada)
-      entregaProyectada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      entregaActualizada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // VENTAS (Nombre, Teléfono, Correo) - ASESOR=none
-      ventasNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
-      ventasTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
-      ventasCorreo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
-      // PAGOS (Nombre, Teléfono, Correo) - ASESOR=none
-      pagosNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
-      pagosTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
-      pagosCorreo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
-      // Comercializadora - FINANZAS=none
-      comercializadora: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
-      // Arquitectura - FINANZAS=none
-      arquitectura: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
-      // Location - FINANZAS=none
-      location: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
-      // LEGALES folder - Asesor puede ver (excepto convenios), Finanzas puede ver (solo convenios)
-      legalesFolder: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // VENTA folder - FINANZAS=none
-      ventaFolder: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
-    } as Record<string, Record<string, PermissionLevel>>,
-  },
   // Permisos para subsecciones de documentos legales del desarrollo
   documentosLegalesDesarrollo: {
     allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
@@ -253,6 +166,125 @@ export const PAGE_PERMISSIONS = {
       enganche: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       // 15. fechaEnganche - Finanzas: 1, Asesor: 2, Desarrollador: 1
       fechaEnganche: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
+  // Permisos para Desarrollos - 54 columnas
+  // Admin: Todo 2, Updater: Todo 2 (excepto ID=1)
+  // Profiler: 1-47=1, 48-54=0
+  // Finanzas: 1-5=1, 6-29=0, 30-54=1
+  // Asesor: 1-47=1, 48-52=0, 53-54=1
+  // Desarrollador: 1-5=1, 6-8=0, 9-54=1
+  desarrollos: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      // 1. id - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 2. active - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 3. developerId - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      developerId: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 4. name - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      name: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 5. city - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      city: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 6. zone - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:0
+      zone: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
+      // 7. zone2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:0
+      zone2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
+      // 8. zone3 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:0
+      zone3: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
+      // 9. type - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      type: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 10. nivel - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      nivel: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 11. torres - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      torres: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 12. niveles - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      niveles: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 13. amenities - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      amenities: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 14. efficiency - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      efficiency: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 15. otherFeatures - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      otherFeatures: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 16. tamanoDesde - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      tamanoDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 17. tamanoHasta - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      tamanoHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 18. lockOff - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      lockOff: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 19. recDesde - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      recDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 20. recHasta - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      recHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 21. acabados - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      acabados: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 22. depasM2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      depasM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 23. localesM2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      localesM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 24. oficinasM2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      oficinasM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 25. saludM2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      saludM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 26. inicioPreventa - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      inicioPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 27. tiempoTransc - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      tiempoTransc: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 28. depasUnidades - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      depasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 29. depasVendidas - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      depasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 30. depasPorcentaje - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      depasPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 31. localesUnidades - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      localesUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 32. localesVendidas - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      localesVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 33. localesPorcentaje - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      localesPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 34. oficinasUnidades - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      oficinasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 35. oficinasVendidas - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      oficinasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 36. oficinasPorcentaje - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      oficinasPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 37. saludUnidades - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      saludUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 38. saludVendidas - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      saludVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 39. saludPorcentaje - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      saludPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 40. inicioProyectado - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      inicioProyectado: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 41. inicioReal - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      inicioReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 42. entregaProyectada - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      entregaProyectada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 43. entregaActualizada - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      entregaActualizada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 44. ventasNombre - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      ventasNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 45. ventasTelefono - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      ventasTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 46. ventasCorreo - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      ventasCorreo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 47. pagosNombre - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
+      pagosNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 48. pagosTelefono - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      pagosTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 49. pagosCorreo - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      pagosCorreo: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 50. comercializacion - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      comercializacion: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 51. arquitectura - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      arquitectura: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 52. location - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      location: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 53. legalesFolder - Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      legalesFolder: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 54. ventaFolder - Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      ventaFolder: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
   // Permisos para Tipologías - 86 columnas según matriz Excel

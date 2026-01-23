@@ -98,3 +98,8 @@ No specific user preferences were provided in the original document.
 - Implemented dynamic permission context switching for ProspectsSpreadsheet (prospectos vs clientes)
 - Added clientes permissions in PAGE_PERMISSIONS: Finanzas (111110011111111), Asesor (111222222222222), Desarrollador (111110011111111)
 - Added currency type support for financial fields with MXN formatting
+- Corrected Desarrollos permissions (54 columns) with exact bitmask mappings:
+  - Profiler: 1-47 view, 48-54 none
+  - Finanzas: 1-5 view, 6-29 none, 30-54 view
+  - Asesor: 1-47 view, 48-52 none, 53-54 view
+  - Desarrollador: 1-5 view, 6-8 none, 9-54 view
