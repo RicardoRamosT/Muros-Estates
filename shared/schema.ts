@@ -70,6 +70,88 @@ export const PAGE_PERMISSIONS = {
       convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'none', asesor: 'none', desarrollador: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
+  // Permisos para Desarrollos - según matriz Excel
+  desarrollos: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      // Básicos - Admin/Updater: edit, resto: view (amarillo)
+      id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      developerId: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      name: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      city: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      zone: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      zone2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      zone3: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      type: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      nivel: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      torres: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      niveles: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      amenities: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      efficiency: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      otherFeatures: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Tamaño
+      tamanoDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tamanoHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      lockOff: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      dish: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // REC
+      recDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      recHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      acabados: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Unidades M2
+      depasM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      localesM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      oficinasM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      saludM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      inicioPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      tiempoTransc: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Depas
+      depasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      depasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Locales
+      localesPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      localesUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      localesVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Oficinas
+      oficinasPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      oficinasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      oficinasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Salud
+      saludUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      saludVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Inicio
+      inicioPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      inicioProyectado: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Entrega
+      entregaReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Ventas - Profiler solo view (amarillo)
+      ventasProyectada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      ventasActualizada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Pagos - Profiler solo view (amarillo)
+      pagosNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      pagosTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      pagosCorreo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Legales - todos pueden ver excepto restricciones especiales
+      comercializacion: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      arquitectura: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // Convenios - Finanzas SOLO puede ver convenios (amarillo), Asesor NO puede ver (negro)
+      convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // Location y Venta
+      location: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
+      venta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
+  // Permisos para subsecciones de documentos legales del desarrollo
+  documentosLegalesDesarrollo: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    sections: {
+      identidad: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      corporativo: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Finanzas SOLO puede ver convenios, Asesor NO puede ver convenios (negro)
+      convenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
   // Permisos para Prospectos - solo 3 roles pueden acceder
   prospectos: {
     allowedRoles: ['admin', 'perfilador', 'asesor'],
@@ -297,7 +379,79 @@ export const developments = pgTable("developments", {
   name: text("name").notNull(),
   city: text("city"),
   zone: text("zone"),
+  zone2: text("zone_2"), // Zona 2
+  zone3: text("zone_3"), // Zona 3
   type: text("type"), // Tipo de desarrollo (Residencial, Uso mixto, etc.)
+  nivel: text("nivel"), // Nivel
+  torres: integer("torres"), // Número de torres
+  niveles: integer("niveles"), // Número de niveles
+  amenities: text("amenities").array(), // Lista de amenidades
+  efficiency: text("efficiency").array(), // Características de eficiencia
+  otherFeatures: text("other_features").array(), // Otras características (Otros)
+  
+  // Tamaño
+  tamanoDesde: decimal("tamano_desde", { precision: 10, scale: 2 }),
+  tamanoHasta: decimal("tamano_hasta", { precision: 10, scale: 2 }),
+  lockOff: boolean("lock_off"),
+  dish: boolean("dish"),
+  
+  // REC
+  recDesde: decimal("rec_desde", { precision: 10, scale: 2 }),
+  recHasta: decimal("rec_hasta", { precision: 10, scale: 2 }),
+  acabados: text("acabados"),
+  
+  // Unidades y Metros Cuadrados
+  depasM2: decimal("depas_m2", { precision: 10, scale: 2 }),
+  localesM2: decimal("locales_m2", { precision: 10, scale: 2 }),
+  oficinasM2: decimal("oficinas_m2", { precision: 10, scale: 2 }),
+  saludM2: decimal("salud_m2", { precision: 10, scale: 2 }),
+  inicioPreventa: text("inicio_preventa"),
+  tiempoTransc: text("tiempo_transc"),
+  
+  // Depas
+  depasUnidades: integer("depas_unidades"),
+  depasVendidas: integer("depas_vendidas"),
+  
+  // Locales
+  localesPorcentaje: decimal("locales_porcentaje", { precision: 5, scale: 2 }),
+  localesUnidades: integer("locales_unidades"),
+  localesVendidas: integer("locales_vendidas"),
+  
+  // Oficinas
+  oficinasPorcentaje: decimal("oficinas_porcentaje", { precision: 5, scale: 2 }),
+  oficinasUnidades: integer("oficinas_unidades"),
+  oficinasVendidas: integer("oficinas_vendidas"),
+  
+  // Salud
+  saludUnidades: integer("salud_unidades"),
+  saludVendidas: integer("salud_vendidas"),
+  
+  // Inicio
+  inicioPorcentaje: decimal("inicio_porcentaje", { precision: 5, scale: 2 }),
+  inicioProyectado: text("inicio_proyectado"),
+  
+  // Entrega
+  entregaReal: text("entrega_real"),
+  
+  // Ventas
+  ventasProyectada: decimal("ventas_proyectada", { precision: 15, scale: 2 }),
+  ventasActualizada: decimal("ventas_actualizada", { precision: 15, scale: 2 }),
+  
+  // Pagos (contacto de pagos)
+  pagosNombre: text("pagos_nombre"),
+  pagosTelefono: text("pagos_telefono"),
+  pagosCorreo: text("pagos_correo"),
+  
+  // Legales
+  comercializacion: text("comercializacion"),
+  arquitectura: text("arquitectura"),
+  convenios: text("convenios"),
+  
+  // Location y Venta
+  location: text("location"),
+  venta: text("venta"),
+  
+  // Campos existentes mantenidos
   address: text("address"),
   description: text("description"),
   deliveryDate: text("delivery_date"), // Fecha estimada de entrega
@@ -306,9 +460,6 @@ export const developments = pgTable("developments", {
   notes: text("notes"), // Notas internas
   totalUnits: integer("total_units"), // Total de unidades
   availableUnits: integer("available_units"), // Unidades disponibles
-  amenities: text("amenities").array(), // Lista de amenidades
-  efficiency: text("efficiency").array(), // Características de eficiencia
-  otherFeatures: text("other_features").array(), // Otras características
   value: text("value"), // Propuesta de valor
   active: boolean("active").default(true),
   order: integer("order").default(0),
