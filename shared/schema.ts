@@ -109,6 +109,7 @@ export const PAGE_PERMISSIONS = {
       // Depas
       depasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       depasVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      depasPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       // Locales
       localesPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       localesUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
@@ -120,9 +121,10 @@ export const PAGE_PERMISSIONS = {
       // Salud
       saludUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       saludVendidas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      saludPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       // Inicio
-      inicioPorcentaje: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       inicioProyectado: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      inicioReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       // Entrega
       entregaReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       // Ventas - Profiler solo view (amarillo)
@@ -411,6 +413,7 @@ export const developments = pgTable("developments", {
   // Depas
   depasUnidades: integer("depas_unidades"),
   depasVendidas: integer("depas_vendidas"),
+  depasPorcentaje: decimal("depas_porcentaje", { precision: 5, scale: 2 }),
   
   // Locales
   localesPorcentaje: decimal("locales_porcentaje", { precision: 5, scale: 2 }),
@@ -425,10 +428,11 @@ export const developments = pgTable("developments", {
   // Salud
   saludUnidades: integer("salud_unidades"),
   saludVendidas: integer("salud_vendidas"),
+  saludPorcentaje: decimal("salud_porcentaje", { precision: 5, scale: 2 }),
   
   // Inicio
-  inicioPorcentaje: decimal("inicio_porcentaje", { precision: 5, scale: 2 }),
   inicioProyectado: text("inicio_proyectado"),
+  inicioReal: text("inicio_real"),
   
   // Entrega
   entregaReal: text("entrega_real"),
