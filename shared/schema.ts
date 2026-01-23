@@ -126,10 +126,12 @@ export const PAGE_PERMISSIONS = {
       inicioProyectado: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       inicioReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       // Entrega
-      entregaReal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
-      // Ventas - Profiler solo view (amarillo)
-      ventasProyectada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
-      ventasActualizada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      entregaProyectada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      entregaActualizada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // Ventas - Nombre, Teléfono, Correo
+      ventasNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      ventasTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      ventasCorreo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       // Pagos - Profiler solo view (amarillo)
       pagosNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
       pagosTelefono: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
@@ -435,11 +437,13 @@ export const developments = pgTable("developments", {
   inicioReal: text("inicio_real"),
   
   // Entrega
-  entregaReal: text("entrega_real"),
+  entregaProyectada: text("entrega_proyectada"),
+  entregaActualizada: text("entrega_actualizada"),
   
-  // Ventas
-  ventasProyectada: decimal("ventas_proyectada", { precision: 15, scale: 2 }),
-  ventasActualizada: decimal("ventas_actualizada", { precision: 15, scale: 2 }),
+  // Ventas (Nombre, Teléfono, Correo)
+  ventasNombre: text("ventas_nombre"),
+  ventasTelefono: text("ventas_telefono"),
+  ventasCorreo: text("ventas_correo"),
   
   // Pagos (contacto de pagos)
   pagosNombre: text("pagos_nombre"),
