@@ -411,8 +411,14 @@ export default function AdminDocuments() {
     }
   };
 
-  // Reset navigation when changing tabs
+  // Reset navigation when changing tabs (but not on initial deep link)
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    // Skip reset on initial mount (for deep linking)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     setSelectedDeveloperId(null);
     setSelectedDevelopmentId(null);
     setSelectedTypologyId(null);
