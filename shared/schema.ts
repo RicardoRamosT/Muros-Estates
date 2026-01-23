@@ -172,47 +172,49 @@ export const PAGE_PERMISSIONS = {
     allowedRoles: ['admin', 'perfilador', 'asesor'],
     fields: {
       // Permisos según matriz: Admin=2 todo, Profiler=11211111+resto 2, Asesor=1111111122222221222222
-      // 1. createdAt - Profiler: 1, Asesor: 1
-      createdAt: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 2. asesorId - Profiler: 1, Asesor: 1
-      asesorId: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 3. ciudad - Profiler: 2, Asesor: 1
-      ciudad: { admin: 'edit', perfilador: 'edit', asesor: 'view' },
-      // 4. zona - Profiler: 1, Asesor: 1
+      // 1. fecha - Profiler: 1, Asesor: 1
+      fecha: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      // 2. hora - Profiler: 1, Asesor: 1
+      hora: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      // 3. asesorId - Profiler: 2, Asesor: 1
+      asesorId: { admin: 'edit', perfilador: 'edit', asesor: 'view' },
+      // 4. ciudad - Profiler: 1, Asesor: 1
+      ciudad: { admin: 'edit', perfilador: 'view', asesor: 'view' },
+      // 5. zona - Profiler: 1, Asesor: 1
       zona: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 5. desarrollador - Profiler: 1, Asesor: 1
+      // 6. desarrollador - Profiler: 1, Asesor: 1
       desarrollador: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 6. desarrollo - Profiler: 1, Asesor: 1
+      // 7. desarrollo - Profiler: 1, Asesor: 1
       desarrollo: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 7. tipologia - Profiler: 1, Asesor: 1
+      // 8. tipologia - Profiler: 1, Asesor: 1
       tipologia: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 8. nombre - Profiler: 1, Asesor: 1
-      nombre: { admin: 'edit', perfilador: 'view', asesor: 'view' },
-      // 9. apellido - Profiler: 2, Asesor: 2
+      // 9. nombre - Profiler: 2, Asesor: 2
+      nombre: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      // 10. apellido - Profiler: 2, Asesor: 2
       apellido: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 10. telefono - Profiler: 2, Asesor: 2
+      // 11. telefono - Profiler: 2, Asesor: 2
       telefono: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 11. correo - Profiler: 2, Asesor: 2
+      // 12. correo - Profiler: 2, Asesor: 2
       correo: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 12. tipofil - Profiler: 2, Asesor: 2
+      // 13. tipofil - Profiler: 2, Asesor: 2
       tipofil: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 13. perfil - Profiler: 2, Asesor: 2
+      // 14. perfil - Profiler: 2, Asesor: 2
       perfil: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 14. comoLlega - Profiler: 2, Asesor: 2
+      // 15. comoLlega - Profiler: 2, Asesor: 2
       comoLlega: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 15. brokerExterno - Profiler: 2, Asesor: 2
-      brokerExterno: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 16. estatus - Profiler: 2, Asesor: 1
-      estatus: { admin: 'edit', perfilador: 'edit', asesor: 'view' },
-      // 17. embudo - Profiler: 2, Asesor: 2
+      // 16. brokerExterno - Profiler: 2, Asesor: 1
+      brokerExterno: { admin: 'edit', perfilador: 'edit', asesor: 'view' },
+      // 17. estatus - Profiler: 2, Asesor: 2
+      estatus: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      // 18. embudo - Profiler: 2, Asesor: 2
       embudo: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 18. comoPaga - Profiler: 2, Asesor: 2
+      // 19. comoPaga - Profiler: 2, Asesor: 2
       comoPaga: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 19. positivos - Profiler: 2, Asesor: 2
+      // 20. positivos - Profiler: 2, Asesor: 2
       positivos: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 20. negativos - Profiler: 2, Asesor: 2
+      // 21. negativos - Profiler: 2, Asesor: 2
       negativos: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
-      // 21. comentarios - Profiler: 2, Asesor: 2
+      // 22. comentarios - Profiler: 2, Asesor: 2
       comentarios: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
