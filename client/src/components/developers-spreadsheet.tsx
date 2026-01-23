@@ -201,14 +201,14 @@ export function DevelopersSpreadsheet() {
                   if (field === 'legales') {
                     return (
                       <td key={field} className="border-b border-r px-3 py-2">
-                        <Link
+                        <a
                           href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
                           className="inline-flex items-center gap-1.5 text-primary hover:underline"
                           data-testid={`link-legales-${dev.id}`}
                         >
                           <FolderOpen className="w-4 h-4" />
                           <span>Ver Docs</span>
-                        </Link>
+                        </a>
                       </td>
                     );
                   }
