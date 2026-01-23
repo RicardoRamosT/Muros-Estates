@@ -54,9 +54,7 @@ function Router() {
       <Route path="/tipologia/:id" component={TypologyDetail} />
       <Route path="/property/:id" component={PropertyDetail} />
       <Route path="/login" component={Login} />
-      <Route path="/admin">
-        {() => <ProtectedRoute component={AdminDashboard} />}
-      </Route>
+      <Route path="/s/:token" component={PublicShare} />
       <Route path="/admin/properties/:id">
         {() => <ProtectedRoute component={PropertyEdit} allowedRoles={["admin", "actualizador"]} />}
       </Route>
@@ -90,7 +88,9 @@ function Router() {
       <Route path="/admin/catalogos">
         {() => <ProtectedRoute component={AdminCatalogos} allowedRoles={["admin", "actualizador"]} />}
       </Route>
-      <Route path="/s/:token" component={PublicShare} />
+      <Route path="/admin">
+        {() => <ProtectedRoute component={AdminDashboard} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

@@ -93,7 +93,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [editingCell, editValue, prospects, updateMutation]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
-    updateMutation.mutate({ id, data: { [field]: value || null } });
+    // Convert special unassigned value to null for database
+    const actualValue = value === '__unassigned__' ? null : (value || null);
+    updateMutation.mutate({ id, data: { [field]: actualValue } });
   }, [updateMutation]);
 
   const handleCreateNew = () => {
@@ -347,14 +349,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <td key={col.key} className="border-b border-r px-2 py-1">
                         {fieldCanEdit ? (
                           <Select
-                            value={value || ""}
+                            value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'asesorId', v)}
                           >
                             <SelectTrigger className="h-7 text-sm">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Sin asignar</SelectItem>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
                               {users.filter(u => u.role === 'asesor' || u.role === 'admin').map(u => (
                                 <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                               ))}
