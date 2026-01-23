@@ -176,6 +176,11 @@ const SECTIONS: SectionDef[] = [
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 60, format: "area" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
     ],
+    conditionalFields: [
+      { field: "storageSize", dependsOn: "hasStorage" },
+      { field: "storageSize2", dependsOn: "hasStorageOptional" },
+      { field: "storagePrice", dependsOn: "hasStorageOptional" },
+    ],
   },
   {
     id: "pago",
@@ -742,12 +747,14 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       <div 
         className={cn(
           "px-2 py-1 text-sm truncate",
-          column.calculated && "bg-muted/50 text-muted-foreground italic"
+          column.calculated && "bg-muted/50 text-muted-foreground italic",
+          disabled && !column.calculated && "bg-muted/30 text-muted-foreground/60"
         )}
         style={{ width: column.width }}
-        title={formatValue(value, column.format)}
+        title={disabled && !column.calculated ? "Campo deshabilitado" : formatValue(value, column.format)}
+        data-testid={`cell-${column.key}-disabled`}
       >
-        {formatValue(value, column.format)}
+        {formatValue(value, column.format) || "-"}
       </div>
     );
   }
@@ -1117,18 +1124,42 @@ export function TypologySpreadsheet() {
     if (!currentRow) return;
     
     const updatedRow = { ...currentRow, [field]: value };
+    
+    const dependentFieldsToClear: Record<string, string[]> = {
+      hasBalcony: ["balconySize"],
+      hasTerrace: ["terraceSize"],
+      hasBalcony2: ["balconySize2"],
+      hasTerrace2: ["terraceSize2"],
+      hasParkingOptional: ["parkingOptionalPrice"],
+      hasStorage: ["storageSize"],
+      hasStorageOptional: ["storageSize2", "storagePrice"],
+    };
+    
+    if (dependentFieldsToClear[field] && value === false) {
+      dependentFieldsToClear[field].forEach(depField => {
+        (updatedRow as any)[depField] = null;
+      });
+    }
+    
     const calculatedFields = calculateFields(updatedRow);
     const fullUpdate = { ...updatedRow, ...calculatedFields };
+    
+    const clearedFields: Record<string, null> = {};
+    if (dependentFieldsToClear[field] && value === false) {
+      dependentFieldsToClear[field].forEach(depField => {
+        clearedFields[depField] = null;
+      });
+    }
     
     setPendingChanges(prev => {
       const next = new Map(prev);
       const existing = next.get(rowId) || {};
-      next.set(rowId, { ...existing, [field]: value, ...calculatedFields });
+      next.set(rowId, { ...existing, [field]: value, ...clearedFields, ...calculatedFields });
       return next;
     });
     
     const debounceId = setTimeout(() => {
-      updateMutation.mutate({ id: rowId, data: { [field]: value, ...calculatedFields } });
+      updateMutation.mutate({ id: rowId, data: { [field]: value, ...clearedFields, ...calculatedFields } });
     }, 500);
     
     return () => clearTimeout(debounceId);
