@@ -59,157 +59,265 @@ interface SectionDef {
   label: string;
   color: string;
   columns: ColumnDef[];
+  subheader?: string;
+  conditionalFields?: { field: TypologyField; dependsOn: TypologyField }[];
 }
 
 const SECTIONS: SectionDef[] = [
   {
-    id: "generales",
-    label: "Generales",
-    color: "bg-blue-100 dark:bg-blue-900/30",
+    id: "basico",
+    label: "",
+    color: "bg-gray-50 dark:bg-gray-900/20",
+    columns: [
+      { key: "active", label: "Activo", type: "boolean", width: 60 },
+    ],
+  },
+  {
+    id: "ubicacion",
+    label: "",
+    color: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 100 },
       { key: "zone", label: "Zona", type: "select", options: [], width: 120 },
       { key: "developer", label: "Desarrollador", type: "select", options: DEVELOPERS, width: 120 },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 130 },
+    ],
+  },
+  {
+    id: "generales",
+    label: "GENERALES",
+    color: "bg-blue-100 dark:bg-blue-900/30",
+    columns: [
       { key: "type", label: "Tipo", type: "text", width: 60 },
       { key: "level", label: "Nivel", type: "number", width: 60 },
       { key: "view", label: "Vista", type: "select", options: ["Norte", "Sur", "Este", "Oeste", "N/A"] as const, width: 80 },
     ],
   },
   {
-    id: "precio",
-    label: "Precio",
+    id: "precio_tamano",
+    label: "PRECIO",
     color: "bg-green-100 dark:bg-green-900/30",
     columns: [
-      { key: "size", label: "M²", type: "decimal", width: 70, format: "area" },
+      { key: "size", label: "Tamaño", type: "decimal", width: 70, format: "area" },
+      { key: "sizeFinal", label: "Final", type: "decimal", width: 70, format: "area" },
+    ],
+  },
+  {
+    id: "precio_valores",
+    label: "",
+    color: "bg-green-50 dark:bg-green-900/20",
+    columns: [
       { key: "price", label: "Precio", type: "decimal", width: 120, format: "currency" },
-      { key: "discountPercent", label: "Desc%", type: "decimal", width: 60, format: "percent" },
-      { key: "discountAmount", label: "Monto Desc", type: "decimal", width: 100, format: "currency" },
+      { key: "discountPercent", label: "Bono", type: "decimal", width: 60, format: "percent" },
+      { key: "discountPercentValue", label: "%", type: "decimal", width: 50, format: "percent" },
+      { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "finalPrice", label: "Precio Final", type: "decimal", width: 120, format: "currency", calculated: true },
-      { key: "pricePerM2", label: "$/M²", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "pricePerM2", label: "Precio/M2", type: "decimal", width: 100, format: "currency", calculated: true },
+    ],
+  },
+  {
+    id: "capital_promo",
+    label: "",
+    color: "bg-green-50 dark:bg-green-900/20",
+    columns: [
+      { key: "hasSeedCapital", label: "Cap. Semilla", type: "boolean", width: 70 },
+      { key: "hasPromo", label: "Promo", type: "boolean", width: 60 },
     ],
   },
   {
     id: "distribucion",
-    label: "Distribución",
+    label: "DISTRIBUCIÓN",
     color: "bg-purple-100 dark:bg-purple-900/30",
     columns: [
-      { key: "bedrooms", label: "Rec", type: "number", width: 50 },
-      { key: "flex", label: "Flex", type: "number", width: 50 },
+      { key: "lockOff", label: "LockOff", type: "boolean", width: 60 },
+      { key: "bedrooms", label: "REC", type: "number", width: 50 },
       { key: "bathrooms", label: "Baños", type: "decimal", width: 60 },
-      { key: "livingRoom", label: "Sala", type: "boolean", width: 50 },
-      { key: "diningRoom", label: "Comedor", type: "boolean", width: 60 },
-      { key: "kitchen", label: "Cocina", type: "boolean", width: 60 },
-      { key: "balcony", label: "Balcón", type: "decimal", width: 60, format: "area" },
-      { key: "terrace", label: "Terraza", type: "decimal", width: 70, format: "area" },
-      { key: "laundry", label: "Lavand", type: "boolean", width: 60 },
-      { key: "serviceRoom", label: "Servicio", type: "boolean", width: 60 },
-      { key: "parkingSpots", label: "Cajones", type: "number", width: 60 },
-      { key: "storage", label: "Bodega", type: "boolean", width: 60 },
+      { key: "areas", label: "Áreas", type: "decimal", width: 60 },
+      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60 },
+      { key: "balconySize", label: "Tam", type: "decimal", width: 55, format: "area" },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60 },
+      { key: "terraceSize", label: "Tam", type: "decimal", width: 55, format: "area" },
+      { key: "bedrooms2", label: "REC", type: "number", width: 50 },
+      { key: "bathrooms2", label: "Baños", type: "decimal", width: 60 },
+      { key: "areas2", label: "Áreas", type: "decimal", width: 60 },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60 },
+      { key: "balconySize2", label: "Tam", type: "decimal", width: 55, format: "area" },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60 },
+      { key: "terraceSize2", label: "Tam", type: "decimal", width: 55, format: "area" },
+    ],
+    conditionalFields: [
+      { field: "balconySize", dependsOn: "hasBalcony" },
+      { field: "terraceSize", dependsOn: "hasTerrace" },
+      { field: "balconySize2", dependsOn: "hasBalcony2" },
+      { field: "terraceSize2", dependsOn: "hasTerrace2" },
+    ],
+  },
+  {
+    id: "cajones",
+    label: "CAJONES",
+    color: "bg-amber-100 dark:bg-amber-900/30",
+    columns: [
+      { key: "parkingIncluded", label: "Incluidos", type: "number", width: 65 },
+      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
+      { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
+    ],
+    conditionalFields: [
+      { field: "parkingOptionalPrice", dependsOn: "hasParkingOptional" },
+    ],
+  },
+  {
+    id: "bodega",
+    label: "BODEGA",
+    color: "bg-amber-50 dark:bg-amber-900/20",
+    columns: [
+      { key: "hasStorage", label: "Incluida", type: "boolean", width: 60 },
+      { key: "storageSize", label: "Tamaño", type: "decimal", width: 60, format: "area" },
+      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 60 },
+      { key: "storageSize2", label: "Tamaño", type: "decimal", width: 60, format: "area" },
+      { key: "storagePrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
     ],
   },
   {
     id: "pago",
-    label: "Esquema de Pago",
+    label: "ESQUEMA DE PAGO",
     color: "bg-yellow-100 dark:bg-yellow-900/30",
     columns: [
-      { key: "initialPercent", label: "Inicial%", type: "decimal", width: 70, format: "percent" },
-      { key: "initialAmount", label: "Monto Inicial", type: "decimal", width: 110, format: "currency" },
-      { key: "duringConstructionPercent", label: "Plazo%", type: "decimal", width: 70, format: "percent" },
-      { key: "duringConstructionAmount", label: "Monto Plazo", type: "decimal", width: 110, format: "currency" },
-      { key: "paymentMonths", label: "Meses", type: "number", width: 60 },
-      { key: "monthlyPayment", label: "Mensualidad", type: "decimal", width: 110, format: "currency" },
-      { key: "downPaymentPercent", label: "Enganche%", type: "decimal", width: 80, format: "percent" },
-      { key: "remainingAmount", label: "Resto", type: "decimal", width: 110, format: "currency" },
+      { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent" },
+      { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "duringConstructionPercent", label: "En Plazo", type: "decimal", width: 65, format: "percent" },
+      { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "paymentMonths", label: "Meses", type: "number", width: 55 },
+      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "totalEnganche", label: "Tot. Eng.", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "remainingPercent", label: "Resto", type: "decimal", width: 60, format: "percent" },
+    ],
+  },
+  {
+    id: "entrega",
+    label: "",
+    color: "bg-yellow-50 dark:bg-yellow-900/20",
+    columns: [
       { key: "deliveryDate", label: "Entrega", type: "date", width: 100 },
     ],
   },
   {
     id: "gastos",
-    label: "Gastos Post-Entrega",
+    label: "",
+    subheader: "3.0% | 2.5%",
     color: "bg-red-100 dark:bg-red-900/30",
     columns: [
-      { key: "isaPercent", label: "ISA%", type: "decimal", width: 60, format: "percent" },
-      { key: "notaryFees", label: "Notaría", type: "decimal", width: 100, format: "currency" },
-      { key: "equipmentCost", label: "Equipo", type: "decimal", width: 100, format: "currency" },
-      { key: "furnitureCost", label: "Muebles", type: "decimal", width: 100, format: "currency" },
-      { key: "totalPostDeliveryCosts", label: "Total", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "isaPercent", label: "ISAI", type: "decimal", width: 70, format: "currency" },
+      { key: "notaryPercent", label: "Notario", type: "decimal", width: 70, format: "currency" },
+      { key: "equipmentCost", label: "Equipo", type: "decimal", width: 90, format: "currency" },
+      { key: "furnitureCost", label: "Muebles", type: "decimal", width: 90, format: "currency" },
+      { key: "totalPostDeliveryCosts", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
+    ],
+  },
+  {
+    id: "pre_credito",
+    label: "",
+    subheader: "10.5% | 15",
+    color: "bg-orange-50 dark:bg-orange-900/20",
+    columns: [
+      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 110, format: "currency" },
+      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 90 },
+      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent" },
+      { key: "mortgageYears", label: "Años", type: "number", width: 50 },
     ],
   },
   {
     id: "credito",
-    label: "Crédito Hipotecario",
+    label: "CRÉDITO HIPOTECARIO",
     color: "bg-orange-100 dark:bg-orange-900/30",
     columns: [
-      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 120, format: "currency" },
-      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 100 },
-      { key: "mortgageYears", label: "Años", type: "number", width: 60 },
-      { key: "mortgageInterestPercent", label: "Tasa%", type: "decimal", width: 60, format: "percent" },
-      { key: "mortgageMonthlyPayment", label: "Mensualidad", type: "decimal", width: 110, format: "currency" },
-      { key: "mortgageEndDate", label: "Termina", type: "date", width: 100 },
-      { key: "mortgageTotal", label: "Total", type: "decimal", width: 120, format: "currency", calculated: true },
+      { key: "mortgageMonthlyPayment", label: "Mensualidad", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "mortgageEndDate", label: "Termina", type: "date", width: 90 },
+      { key: "mortgageTotal", label: "Total", type: "decimal", width: 110, format: "currency", calculated: true },
     ],
   },
   {
     id: "mantenimiento",
-    label: "Mantenimiento",
+    label: "MANTENIMIENTO",
     color: "bg-teal-100 dark:bg-teal-900/30",
     columns: [
-      { key: "maintenanceM2", label: "$/M²", type: "decimal", width: 70, format: "currency" },
-      { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 100, format: "currency" },
-      { key: "maintenanceDate", label: "Fecha", type: "date", width: 100 },
-      { key: "maintenanceTotal", label: "Total", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "maintenanceM2", label: "M²", type: "decimal", width: 60, format: "currency" },
+      { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
+      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 90 },
+      { key: "maintenanceFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
+      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 90 },
+      { key: "maintenanceTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
     ],
   },
   {
-    id: "renta",
-    label: "Renta",
+    id: "renta1",
+    label: "RENTA",
     color: "bg-indigo-100 dark:bg-indigo-900/30",
     columns: [
-      { key: "rentInitial", label: "Inicial", type: "decimal", width: 100, format: "currency" },
-      { key: "rentStartDate", label: "Inicio", type: "date", width: 100 },
-      { key: "rentRatePercent", label: "Tasa%", type: "decimal", width: 60, format: "percent" },
-      { key: "rentFinal", label: "Final", type: "decimal", width: 100, format: "currency" },
-      { key: "rentEndDate", label: "Fin", type: "date", width: 100 },
-      { key: "rentMonths", label: "Meses", type: "number", width: 60 },
-      { key: "rentTotal", label: "Total", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "rentInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
+      { key: "rentStartDate", label: "Fecha", type: "date", width: 90 },
+    ],
+  },
+  {
+    id: "tasa_renta",
+    label: "TASA",
+    subheader: "7.0%",
+    color: "bg-indigo-50 dark:bg-indigo-900/20",
+    columns: [
+      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 60, format: "percent" },
+    ],
+  },
+  {
+    id: "renta2",
+    label: "RENTA",
+    color: "bg-indigo-100 dark:bg-indigo-900/30",
+    columns: [
+      { key: "rentFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
+      { key: "rentEndDate", label: "Fecha", type: "date", width: 90 },
+    ],
+  },
+  {
+    id: "meses_total",
+    label: "",
+    subheader: "11.0",
+    color: "bg-indigo-50 dark:bg-indigo-900/20",
+    columns: [
+      { key: "rentMonths", label: "Meses", type: "number", width: 55 },
+      { key: "rentTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
     ],
   },
   {
     id: "inversion",
-    label: "Inversión",
+    label: "INVERSIÓN",
     color: "bg-pink-100 dark:bg-pink-900/30",
     columns: [
-      { key: "investmentTotal", label: "Total", type: "decimal", width: 120, format: "currency", calculated: true },
-      { key: "investmentNet", label: "Neta", type: "decimal", width: 110, format: "currency", calculated: true },
-      { key: "investmentMonthly", label: "Mensual", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "investmentRate", label: "Tasa%", type: "decimal", width: 60, format: "percent", calculated: true },
+      { key: "investmentTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "investmentNet", label: "Neta", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "investmentMonthly", label: "Mensual", type: "decimal", width: 90, format: "currency", calculated: true },
+      { key: "investmentRate", label: "Tasa", type: "decimal", width: 60, format: "percent", calculated: true },
+    ],
+  },
+  {
+    id: "tasa_plusvalia",
+    label: "",
+    subheader: "7.0%",
+    color: "bg-cyan-50 dark:bg-cyan-900/20",
+    columns: [
+      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent" },
     ],
   },
   {
     id: "plusvalia",
-    label: "Plusvalía",
+    label: "PLUSVALÍA",
     color: "bg-cyan-100 dark:bg-cyan-900/30",
     columns: [
-      { key: "appreciationRate", label: "Tasa%", type: "decimal", width: 60, format: "percent" },
-      { key: "appreciationDays", label: "Días", type: "number", width: 60 },
-      { key: "appreciationYears", label: "Años", type: "number", width: 60 },
-      { key: "appreciationMonths", label: "Meses", type: "number", width: 60 },
-      { key: "appreciationTotalYears", label: "Años Tot", type: "decimal", width: 70 },
-      { key: "appreciationTotal", label: "Total", type: "decimal", width: 110, format: "currency", calculated: true },
-      { key: "finalValue", label: "Valor Final", type: "decimal", width: 120, format: "currency", calculated: true },
+      { key: "appreciationDays", label: "Días", type: "number", width: 55 },
+      { key: "appreciationMonths", label: "Meses", type: "number", width: 55 },
+      { key: "appreciationYears", label: "Años", type: "number", width: 55 },
+      { key: "appreciationTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "finalValue", label: "Monto Final", type: "decimal", width: 110, format: "currency", calculated: true },
     ],
   },
-  {
-    id: "promo",
-    label: "Cap/Promo",
-    color: "bg-amber-100 dark:bg-amber-900/30",
-    columns: [
-      { key: "hasSeedCapital", label: "Capital Semilla", type: "boolean", width: 100 },
-      { key: "hasPromo", label: "Promo", type: "boolean", width: 60 },
-    ],
-  },
-];
+  ];
 
 function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const price = parseFloat(row.price as string) || 0;
@@ -219,16 +327,26 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const finalPrice = price - discountAmount;
   const pricePerM2 = size > 0 ? finalPrice / size : 0;
   
-  const isaPercent = parseFloat(row.isaPercent as string) || 0;
-  const notaryFees = parseFloat(row.notaryFees as string) || 0;
+  const initialPercent = parseFloat(row.initialPercent as string) || 0;
+  const duringConstructionPercent = parseFloat(row.duringConstructionPercent as string) || 0;
+  const paymentMonths = (row.paymentMonths as number) || 0;
+  const initialAmount = finalPrice * (initialPercent / 100);
+  const duringConstructionAmount = finalPrice * (duringConstructionPercent / 100);
+  const monthlyPayment = paymentMonths > 0 ? duringConstructionAmount / paymentMonths : 0;
+  const totalEnganche = initialAmount + duringConstructionAmount;
+  const remainingPercent = 100 - initialPercent - duringConstructionPercent;
+  
+  const isaPercent = parseFloat(row.isaPercent as string) || 3.0;
+  const notaryPercent = parseFloat(row.notaryPercent as string) || 2.5;
   const equipmentCost = parseFloat(row.equipmentCost as string) || 0;
   const furnitureCost = parseFloat(row.furnitureCost as string) || 0;
   const isaAmount = finalPrice * (isaPercent / 100);
-  const totalPostDeliveryCosts = isaAmount + notaryFees + equipmentCost + furnitureCost;
+  const notaryAmount = finalPrice * (notaryPercent / 100);
+  const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
   
   const mortgageAmount = parseFloat(row.mortgageAmount as string) || 0;
-  const mortgageYears = (row.mortgageYears as number) || 0;
-  const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || 0;
+  const mortgageYears = (row.mortgageYears as number) || 15;
+  const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || 10.5;
   const monthlyRate = mortgageInterestPercent / 100 / 12;
   const numPayments = mortgageYears * 12;
   let mortgageMonthlyPayment = 0;
@@ -244,15 +362,16 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const maintenanceTotal = maintenanceM2 * size * 12;
   
   const rentInitial = parseFloat(row.rentInitial as string) || 0;
-  const rentMonths = (row.rentMonths as number) || 0;
+  const rentRatePercent = parseFloat(row.rentRatePercent as string) || 7.0;
+  const rentMonths = (row.rentMonths as number) || 11;
   const rentTotal = rentInitial * rentMonths;
   
   const investmentTotal = finalPrice + totalPostDeliveryCosts;
-  const investmentNet = rentTotal - (maintenanceTotal);
+  const investmentNet = rentTotal - maintenanceTotal;
   const investmentMonthly = rentMonths > 0 ? investmentNet / rentMonths : 0;
   const investmentRate = investmentTotal > 0 ? (investmentNet / investmentTotal) * 100 : 0;
   
-  const appreciationRate = parseFloat(row.appreciationRate as string) || 0;
+  const appreciationRate = parseFloat(row.appreciationRate as string) || 7.0;
   const appreciationYears = (row.appreciationYears as number) || 0;
   const appreciationTotal = finalPrice * Math.pow(1 + appreciationRate / 100, appreciationYears) - finalPrice;
   const finalValue = finalPrice + appreciationTotal;
@@ -261,6 +380,11 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
     discountAmount: discountAmount.toFixed(2),
     finalPrice: finalPrice.toFixed(2),
     pricePerM2: pricePerM2.toFixed(2),
+    initialAmount: initialAmount.toFixed(2),
+    duringConstructionAmount: duringConstructionAmount.toFixed(2),
+    monthlyPayment: monthlyPayment.toFixed(2),
+    totalEnganche: totalEnganche.toFixed(2),
+    remainingPercent: remainingPercent.toFixed(2),
     totalPostDeliveryCosts: totalPostDeliveryCosts.toFixed(2),
     mortgageMonthlyPayment: mortgageMonthlyPayment.toFixed(2),
     mortgageTotal: mortgageTotal.toFixed(2),
@@ -1328,6 +1452,12 @@ export function TypologySpreadsheet() {
                         let dynamicOpts: string[] | undefined;
                         if (col.key === "developer") dynamicOpts = developerOptions;
                         if (col.key === "development") dynamicOpts = developmentOptions;
+                        
+                        const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
+                        const isConditionallyDisabled = conditionalField 
+                          ? !mergedRow[conditionalField.dependsOn]
+                          : false;
+                        
                         return (
                           <EditableCell
                             key={col.key}
@@ -1337,6 +1467,7 @@ export function TypologySpreadsheet() {
                             city={mergedRow.city}
                             developer={mergedRow.developer}
                             onChange={(value) => handleCellChange(row.id, col.key, value)}
+                            disabled={isConditionallyDisabled}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
                             allDevelopers={dbDevelopers}
