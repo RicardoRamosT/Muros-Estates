@@ -15,7 +15,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Building2, Loader2, Lock, Eye } from "lucide-react";
+import { Plus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen } from "lucide-react";
+import { Link } from "wouter";
 import type { Developer } from "@shared/schema";
 
 export function DevelopersSpreadsheet() {
@@ -193,6 +194,21 @@ export function DevelopersSpreadsheet() {
                           {dev.active ? "Sí" : "No"}
                           {!fieldCanEdit && <Eye className="w-3 h-3 ml-1 opacity-50" />}
                         </Badge>
+                      </td>
+                    );
+                  }
+                  
+                  if (field === 'legales') {
+                    return (
+                      <td key={field} className="border-b border-r px-3 py-2">
+                        <Link
+                          href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
+                          className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                          data-testid={`link-legales-${dev.id}`}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                          <span>Ver Docs</span>
+                        </Link>
                       </td>
                     );
                   }

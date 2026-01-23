@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Header } from "@/components/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,26 @@ export default function AdminDocuments() {
   
   // State for clients tab
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  
+  // Read URL query params for deep linking
+  const [location, setLocation] = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const developerId = params.get("developerId");
+    const section = params.get("sectionType");
+    
+    if (developerId) {
+      setActiveTab("desarrolladores");
+      setSelectedDeveloperId(developerId);
+      if (section === "legales" || section === "venta") {
+        setSectionType(section);
+      }
+      // Clear query params after reading
+      if (window.location.search) {
+        setLocation("/admin/documentos", { replace: true });
+      }
+    }
+  }, []);
 
   // Shared links state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
