@@ -212,6 +212,157 @@ export const PAGE_PERMISSIONS = {
       comentarios: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
+  // Permisos para Tipologías - 86 columnas según matriz Excel
+  // 0=none, 1=view, 2=edit
+  // Admin: Todo 2 | Updater: Todo 2 (excepto calculados = 1)
+  // Profiler: 1-6=1, 7-10=0, 11-34=1, 35-36=1, 37=0, 38=0, 39=1, 40-42=0, 43=0, 44-53=1, 54-86=0
+  // Finanzas: 1-6=1, 7-10=0, 11-17=1, 18-21=0, 22-23=1, 24-28=0, 29-30=1, 31-43=0, 44-86=1
+  // Asesor: Todo 1
+  // Desarrollador: 1-7=1, 8-9=2, 10-11=1, 12-15=2, 16-17=1, 18-21=2, 22-36=1, 37-39=2, 40=1, 41-43=2, 44-53=1, 54-86=0
+  tipologias: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      // 1: ID (auto)
+      id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 2: Activo
+      active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 3: Ciudad
+      city: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 4: Zona
+      zone: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 5: Desarrollador
+      developer: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 6: Desarrollo
+      development: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 7: Tipo (GENERALES) - Profiler=0, Finanzas=0, Desarrollador=1
+      type: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 8: Nivel - Desarrollador=2
+      level: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 9: Vista - Desarrollador=2
+      view: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 10: Tamaño (PRECIO) - Profiler=0, Finanzas=0, Desarrollador=1
+      size: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 11: Final
+      sizeFinal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 12: Precio - Desarrollador=2
+      price: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      // 13: Bono - Desarrollador=2
+      discountPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      // 14: % - Desarrollador=2
+      discountPercentValue: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      // 15: Monto - Desarrollador=2
+      discountAmount: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      // 16: Precio Final (calculado) - Desarrollador=1
+      finalPrice: { admin: 'edit', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 17: Precio/M2 (calculado) - Desarrollador=1
+      pricePerM2: { admin: 'edit', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 18: Capital Semilla - Finanzas=0, Desarrollador=2
+      hasSeedCapital: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 19: Promo - Finanzas=0, Desarrollador=2
+      hasPromo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 20: LockOff (DISTRIBUCIÓN) - Finanzas=0, Desarrollador=2
+      lockOff: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 21: REC - Finanzas=0, Desarrollador=2
+      bedrooms: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 22: Baños - Finanzas=1
+      bathrooms: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 23: Áreas
+      areas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 24: Balcón Sí/No - Finanzas=0
+      hasBalcony: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 25: Balcón Tamaño - Finanzas=0
+      balconySize: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 26: Terraza Sí/No - Finanzas=0
+      hasTerrace: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 27: Terraza Tamaño - Finanzas=0
+      terraceSize: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 28: REC (2) - Finanzas=0
+      bedrooms2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 29: Baños (2) - Finanzas=1
+      bathrooms2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 30: Áreas (2) - Finanzas=1
+      areas2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 31-34: Balcón/Terraza (2) - Finanzas=0
+      hasBalcony2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      balconySize2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      hasTerrace2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      terraceSize2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 35: Cajones Incluidos - Finanzas=0
+      parkingIncluded: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 36: Cajones Opcional Sí/No - Finanzas=0
+      hasParkingOptional: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 37: Cajones Opcional Precio - Profiler=0, Finanzas=0, Desarrollador=2
+      parkingOptionalPrice: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 38: Bodega Incluida - Profiler=0, Finanzas=0, Desarrollador=2
+      hasStorage: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 39: Bodega Tamaño - Finanzas=0, Desarrollador=2
+      storageSize: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 40: Bodega Opcional - Profiler=0, Finanzas=0
+      hasStorageOptional: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 41: Bodega Tamaño 2 - Profiler=0, Finanzas=0, Desarrollador=2
+      storageSize2: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 42: Bodega Precio - Profiler=0, Finanzas=0, Desarrollador=2
+      storagePrice: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 43: Inicial % (ESQUEMA DE PAGO) - Profiler=0, Finanzas=0, Desarrollador=2
+      initialPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 44-50: Resto de ESQUEMA DE PAGO
+      initialAmount: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      duringConstructionPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      duringConstructionAmount: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      paymentMonths: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      monthlyPayment: { admin: 'edit', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      totalEnganche: { admin: 'edit', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      remainingPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 51: Entrega
+      deliveryDate: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 52-56: Gastos post-entrega
+      isaPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      notaryPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      equipmentCost: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      furnitureCost: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      totalPostDeliveryCosts: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 57-60: Pre-crédito hipotecario
+      mortgageAmount: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      mortgageStartDate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      mortgageInterestPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      mortgageYears: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 61-63: CRÉDITO HIPOTECARIO
+      mortgageMonthlyPayment: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      mortgageEndDate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      mortgageTotal: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 64-69: MANTENIMIENTO
+      maintenanceM2: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      maintenanceInitial: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      maintenanceStartDate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      maintenanceFinal: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      maintenanceEndDate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      maintenanceTotal: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 70-71: RENTA
+      rentInitial: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      rentStartDate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 72: TASA
+      rentRatePercent: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 73-74: RENTA (2)
+      rentFinal: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      rentEndDate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 75-76: Meses y Total
+      rentMonths: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      rentTotal: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 77-80: INVERSIÓN (calculados)
+      investmentTotal: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      investmentNet: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      investmentMonthly: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      investmentRate: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 81: Tasa plusvalía
+      appreciationRate: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      // 82-86: PLUSVALÍA
+      appreciationDays: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      appreciationMonths: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      appreciationYears: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      appreciationTotal: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+      finalValue: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
 } as const;
 
 // Helper function to get field permission for a role
@@ -636,105 +787,156 @@ export const insertClientFollowUpSchema = createInsertSchema(clientFollowUps).om
 export type InsertClientFollowUp = z.infer<typeof insertClientFollowUpSchema>;
 export type ClientFollowUp = typeof clientFollowUps.$inferSelect;
 
-// Typologies (Excel-like spreadsheet for property units)
+// Typologies (Excel-like spreadsheet for property units) - 86 columnas según matriz Excel
 export const typologies = pgTable("typologies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   propertyId: varchar("property_id").references(() => properties.id, { onDelete: "cascade" }),
   
-  // GENERALES
-  city: text("city").notNull(),
-  zone: text("zone").notNull(),
-  developer: text("developer").notNull(),
-  development: text("development").notNull(),
+  // 1-2: Básicas
+  active: boolean("active").default(true), // Activo
+  
+  // 3-6: Ubicación
+  city: text("city").notNull(), // Ciudad
+  zone: text("zone").notNull(), // Zona
+  developer: text("developer").notNull(), // Desarrollador
+  development: text("development").notNull(), // Desarrollo
+  
+  // 7-9: GENERALES
   type: text("type"), // Tipo (e.g., A, B, C)
   level: integer("level"), // Nivel/Piso
   view: text("view"), // Vista (Norte, Sur, Este, Oeste)
   
-  // PRECIO
+  // 10-11: PRECIO
   size: decimal("size", { precision: 10, scale: 2 }), // Tamaño m²
-  price: decimal("price", { precision: 14, scale: 2 }), // Precio base
-  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // Bonc% / Descuento %
-  discountAmount: decimal("discount_amount", { precision: 14, scale: 2 }), // Monto descuento
+  sizeFinal: decimal("size_final", { precision: 10, scale: 2 }), // Final m² (puede diferir del tamaño original)
+  
+  // 12-17: Precio (sin agrupación)
+  price: decimal("price", { precision: 14, scale: 2 }), // Precio
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // Bono %
+  discountPercentValue: decimal("discount_percent_value", { precision: 5, scale: 2 }), // %
+  discountAmount: decimal("discount_amount", { precision: 14, scale: 2 }), // Monto
   finalPrice: decimal("final_price", { precision: 14, scale: 2 }), // Precio Final (calculado)
-  pricePerM2: decimal("price_per_m2", { precision: 12, scale: 2 }), // Precio/M² (calculado)
+  pricePerM2: decimal("price_per_m2", { precision: 12, scale: 2 }), // Precio/M2 (calculado)
   
-  // DISTRIBUCIÓN
-  bedrooms: integer("bedrooms"),
-  flex: integer("flex"),
-  bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }),
-  livingRoom: boolean("living_room").default(true), // Sala
-  diningRoom: boolean("dining_room").default(true), // Comedor
-  kitchen: boolean("kitchen").default(true), // Cocina
-  balcony: decimal("balcony", { precision: 5, scale: 2 }), // Balcón m²
-  terrace: decimal("terrace", { precision: 5, scale: 2 }), // Terraza m²
-  laundry: boolean("laundry").default(false), // Lavandería
-  serviceRoom: boolean("service_room").default(false), // Cuarto de servicio
-  parkingSpots: integer("parking_spots").default(1), // Cajones
-  storage: boolean("storage").default(false), // Bodega
+  // 18-19: Capital Semilla / Promo
+  hasSeedCapital: boolean("has_seed_capital").default(false), // Capital Semilla
+  hasPromo: boolean("has_promo").default(false), // Promo
   
-  // ESQUEMA DE PAGO
+  // 20-34: DISTRIBUCIÓN
+  lockOff: boolean("lock_off").default(false), // LockOff
+  bedrooms: integer("bedrooms"), // REC
+  bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }), // Baños
+  areas: decimal("areas", { precision: 5, scale: 2 }), // Áreas
+  hasBalcony: boolean("has_balcony").default(false), // Balcón Sí/No
+  balconySize: decimal("balcony_size", { precision: 5, scale: 2 }), // Balcón Tamaño
+  hasTerrace: boolean("has_terrace").default(false), // Terraza Sí/No
+  terraceSize: decimal("terrace_size", { precision: 5, scale: 2 }), // Terraza Tamaño
+  bedrooms2: integer("bedrooms_2"), // REC (2)
+  bathrooms2: decimal("bathrooms_2", { precision: 3, scale: 1 }), // Baños (2)
+  areas2: decimal("areas_2", { precision: 5, scale: 2 }), // Áreas (2)
+  hasBalcony2: boolean("has_balcony_2").default(false), // Balcón (2) Sí/No
+  balconySize2: decimal("balcony_size_2", { precision: 5, scale: 2 }), // Balcón (2) Tamaño
+  hasTerrace2: boolean("has_terrace_2").default(false), // Terraza (2) Sí/No
+  terraceSize2: decimal("terrace_size_2", { precision: 5, scale: 2 }), // Terraza (2) Tamaño
+  
+  // 35-37: CAJONES
+  parkingIncluded: integer("parking_included"), // Incluidos
+  hasParkingOptional: boolean("has_parking_optional").default(false), // Opcional Sí/No
+  parkingOptionalPrice: decimal("parking_optional_price", { precision: 12, scale: 2 }), // Opcional Precio
+  
+  // 38-42: BODEGA
+  hasStorage: boolean("has_storage").default(false), // Incluida
+  storageSize: decimal("storage_size", { precision: 5, scale: 2 }), // Tamaño
+  hasStorageOptional: boolean("has_storage_optional").default(false), // Opcional
+  storageSize2: decimal("storage_size_2", { precision: 5, scale: 2 }), // Tamaño (2)
+  storagePrice: decimal("storage_price", { precision: 12, scale: 2 }), // Precio
+  
+  // 43-50: ESQUEMA DE PAGO
   initialPercent: decimal("initial_percent", { precision: 5, scale: 2 }), // Inicial %
-  initialAmount: decimal("initial_amount", { precision: 14, scale: 2 }), // Monto Inicial
+  initialAmount: decimal("initial_amount", { precision: 14, scale: 2 }), // Monto
   duringConstructionPercent: decimal("during_construction_percent", { precision: 5, scale: 2 }), // En Plazo %
-  duringConstructionAmount: decimal("during_construction_amount", { precision: 14, scale: 2 }), // Monto Plazo
+  duringConstructionAmount: decimal("during_construction_amount", { precision: 14, scale: 2 }), // Monto (2)
   paymentMonths: integer("payment_months"), // Meses
-  monthlyPayment: decimal("monthly_payment", { precision: 12, scale: 2 }), // Mensualidad
-  downPaymentPercent: decimal("down_payment_percent", { precision: 5, scale: 2 }), // Enganche %
-  remainingAmount: decimal("remaining_amount", { precision: 14, scale: 2 }), // Resto
+  monthlyPayment: decimal("monthly_payment", { precision: 12, scale: 2 }), // Mens. (calculado)
+  totalEnganche: decimal("total_enganche", { precision: 14, scale: 2 }), // Tot. Eng. (calculado)
+  remainingPercent: decimal("remaining_percent", { precision: 5, scale: 2 }), // Resto %
+  
+  // 51: Entrega (sin agrupación)
   deliveryDate: text("delivery_date"), // Entrega
   
-  // GASTOS DESPUÉS DE LA ENTREGA
-  isaPercent: decimal("isa_percent", { precision: 5, scale: 2 }), // ISA %
-  notaryFees: decimal("notary_fees", { precision: 12, scale: 2 }), // Notaría
+  // 52-56: Gastos post-entrega (headers: 3.0%, 2.5%)
+  isaPercent: decimal("isa_percent", { precision: 5, scale: 2 }), // ISAI (3.0%)
+  notaryPercent: decimal("notary_percent", { precision: 5, scale: 2 }), // Notario (2.5%)
   equipmentCost: decimal("equipment_cost", { precision: 12, scale: 2 }), // Equipo
   furnitureCost: decimal("furniture_cost", { precision: 12, scale: 2 }), // Muebles
   totalPostDeliveryCosts: decimal("total_post_delivery_costs", { precision: 14, scale: 2 }), // Total (calculado)
   
-  // CRÉDITO HIPOTECARIO
+  // 57-60: Crédito pre-header (headers: 10.5%, 15)
   mortgageAmount: decimal("mortgage_amount", { precision: 14, scale: 2 }), // Monto
   mortgageStartDate: text("mortgage_start_date"), // Inicia
-  mortgageYears: integer("mortgage_years"), // Años
-  mortgageMonthlyPayment: decimal("mortgage_monthly_payment", { precision: 12, scale: 2 }), // Mensualidad
-  mortgageEndDate: text("mortgage_end_date"), // Termina
-  mortgageTotal: decimal("mortgage_total", { precision: 14, scale: 2 }), // Total
-  mortgageInterestPercent: decimal("mortgage_interest_percent", { precision: 5, scale: 2 }), // Tasa %
+  mortgageInterestPercent: decimal("mortgage_interest_percent", { precision: 5, scale: 2 }), // Tasa (10.5%)
+  mortgageYears: integer("mortgage_years"), // Años (15)
   
-  // MANTENIMIENTO
+  // 61-63: CRÉDITO HIPOTECARIO
+  mortgageMonthlyPayment: decimal("mortgage_monthly_payment", { precision: 12, scale: 2 }), // Mensualidad (calculado)
+  mortgageEndDate: text("mortgage_end_date"), // Termina
+  mortgageTotal: decimal("mortgage_total", { precision: 14, scale: 2 }), // Total (calculado)
+  
+  // 64-69: MANTENIMIENTO
   maintenanceM2: decimal("maintenance_m2", { precision: 10, scale: 2 }), // M²
   maintenanceInitial: decimal("maintenance_initial", { precision: 12, scale: 2 }), // Inicial
-  maintenanceDate: text("maintenance_date"), // Fecha
-  maintenanceTotal: decimal("maintenance_total", { precision: 12, scale: 2 }), // Total
+  maintenanceStartDate: text("maintenance_start_date"), // Fecha
+  maintenanceFinal: decimal("maintenance_final", { precision: 12, scale: 2 }), // Final
+  maintenanceEndDate: text("maintenance_end_date"), // Fecha (2)
+  maintenanceTotal: decimal("maintenance_total", { precision: 12, scale: 2 }), // Total (calculado)
   
-  // RENTA
-  rentInitial: decimal("rent_initial", { precision: 12, scale: 2 }), // Renta inicial
-  rentStartDate: text("rent_start_date"), // Fecha inicio
-  rentRatePercent: decimal("rent_rate_percent", { precision: 5, scale: 2 }), // Tasa anual %
-  rentFinal: decimal("rent_final", { precision: 12, scale: 2 }), // Renta final
-  rentEndDate: text("rent_end_date"), // Fecha fin
-  rentMonths: integer("rent_months"), // Meses
-  rentTotal: decimal("rent_total", { precision: 14, scale: 2 }), // Total renta
+  // 70-71: RENTA
+  rentInitial: decimal("rent_initial", { precision: 12, scale: 2 }), // Inicial
+  rentStartDate: text("rent_start_date"), // Fecha
   
-  // INVERSIÓN
-  investmentTotal: decimal("investment_total", { precision: 14, scale: 2 }), // Total inversión
-  investmentNet: decimal("investment_net", { precision: 14, scale: 2 }), // Neta
-  investmentMonthly: decimal("investment_monthly", { precision: 12, scale: 2 }), // Mensual
-  investmentRate: decimal("investment_rate", { precision: 5, scale: 2 }), // Tasa %
+  // 72: TASA (7.0%)
+  rentRatePercent: decimal("rent_rate_percent", { precision: 5, scale: 2 }), // Tasa
   
-  // PLUSVALÍA
-  appreciationRate: decimal("appreciation_rate", { precision: 5, scale: 2 }), // Tasa plusvalía %
+  // 73-74: RENTA (2)
+  rentFinal: decimal("rent_final", { precision: 12, scale: 2 }), // Final
+  rentEndDate: text("rent_end_date"), // Fecha
+  
+  // 75-76: Meses y Total (sin agrupación)
+  rentMonths: integer("rent_months"), // Meses (11.0)
+  rentTotal: decimal("rent_total", { precision: 14, scale: 2 }), // Total
+  
+  // 77-80: INVERSIÓN
+  investmentTotal: decimal("investment_total", { precision: 14, scale: 2 }), // Total (calculado)
+  investmentNet: decimal("investment_net", { precision: 14, scale: 2 }), // Neta (calculado)
+  investmentMonthly: decimal("investment_monthly", { precision: 12, scale: 2 }), // Mensual (calculado)
+  investmentRate: decimal("investment_rate", { precision: 5, scale: 2 }), // Tasa (calculado)
+  
+  // 81: 7.0% (pre-header plusvalía)
+  appreciationRate: decimal("appreciation_rate", { precision: 5, scale: 2 }), // Tasa
+  
+  // 82-86: PLUSVALÍA
   appreciationDays: integer("appreciation_days"), // Días
+  appreciationMonths: integer("appreciation_months"), // Meses
   appreciationYears: integer("appreciation_years"), // Años
-  appreciationMonths: integer("appreciation_months"), // Meses adicionales
-  appreciationTotalYears: decimal("appreciation_total_years", { precision: 5, scale: 2 }), // Años totales
-  appreciationTotal: decimal("appreciation_total", { precision: 14, scale: 2 }), // Total plusvalía
-  finalValue: decimal("final_value", { precision: 14, scale: 2 }), // Monto Final
+  appreciationTotal: decimal("appreciation_total", { precision: 14, scale: 2 }), // Total (calculado)
+  finalValue: decimal("final_value", { precision: 14, scale: 2 }), // Monto Final (calculado)
   
-  // CAPITAL SEMILLA / PROMO
-  hasSeedCapital: boolean("has_seed_capital").default(false), // Capital Semilla
-  hasPromo: boolean("has_promo").default(false), // Promo
-  
-  // ESTADO
-  active: boolean("active").default(true), // Si el desarrollo está activo
+  // Campos legacy para compatibilidad
+  flex: integer("flex"),
+  livingRoom: boolean("living_room").default(true),
+  diningRoom: boolean("dining_room").default(true),
+  kitchen: boolean("kitchen").default(true),
+  balcony: decimal("balcony", { precision: 5, scale: 2 }),
+  terrace: decimal("terrace", { precision: 5, scale: 2 }),
+  laundry: boolean("laundry").default(false),
+  serviceRoom: boolean("service_room").default(false),
+  parkingSpots: integer("parking_spots").default(1),
+  storage: boolean("storage").default(false),
+  downPaymentPercent: decimal("down_payment_percent", { precision: 5, scale: 2 }),
+  remainingAmount: decimal("remaining_amount", { precision: 14, scale: 2 }),
+  notaryFees: decimal("notary_fees", { precision: 12, scale: 2 }),
+  maintenanceDate: text("maintenance_date"),
+  appreciationTotalYears: decimal("appreciation_total_years", { precision: 5, scale: 2 }),
   
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
