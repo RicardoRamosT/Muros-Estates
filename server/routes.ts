@@ -1873,7 +1873,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/role-permissions/:section", requireAuth, requireRole("admin"), async (req, res) => {
-    const permissions = await storage.getRolePermissionsBySection(req.params.section);
+    const permissions = await storage.getRolePermissionsBySection(req.params.section as string);
     res.json(permissions);
   });
 

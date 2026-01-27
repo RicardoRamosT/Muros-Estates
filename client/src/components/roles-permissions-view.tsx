@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { PAGE_PERMISSIONS, type PermissionLevel } from "@shared/schema";
-import { Eye, Pencil, EyeOff, Shield } from "lucide-react";
+import { PAGE_PERMISSIONS, type PermissionLevel, type RolePermission } from "@shared/schema";
+import { Eye, Pencil, EyeOff, Shield, Loader2 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -42,11 +46,44 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
 
 const ROLES = ["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"];
 
-function getPermissionBadge(level: PermissionLevel, fieldName: string, roleName: string) {
+function getNextPermissionLevel(current: PermissionLevel): PermissionLevel {
+  if (current === "none") return "view";
+  if (current === "view") return "edit";
+  return "none";
+}
+
+function PermissionBadge({ 
+  level, 
+  fieldName, 
+  roleName,
+  onClick,
+  isLoading
+}: { 
+  level: PermissionLevel; 
+  fieldName: string; 
+  roleName: string;
+  onClick: () => void;
+  isLoading: boolean;
+}) {
   const testId = `badge-permission-${fieldName}-${roleName}`;
+  const baseClasses = "cursor-pointer gap-1 transition-all";
+  
+  if (isLoading) {
+    return (
+      <Badge variant="outline" className={baseClasses} data-testid={testId}>
+        <Loader2 className="w-3 h-3 animate-spin" />
+      </Badge>
+    );
+  }
+  
   if (level === "edit") {
     return (
-      <Badge variant="default" className="bg-green-600 gap-1 no-default-hover-elevate" data-testid={testId}>
+      <Badge 
+        variant="default" 
+        className={`bg-green-600 ${baseClasses}`} 
+        onClick={onClick}
+        data-testid={testId}
+      >
         <Pencil className="w-3 h-3" />
         Editar
       </Badge>
@@ -54,14 +91,24 @@ function getPermissionBadge(level: PermissionLevel, fieldName: string, roleName:
   }
   if (level === "view") {
     return (
-      <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 gap-1 no-default-hover-elevate" data-testid={testId}>
+      <Badge 
+        variant="secondary" 
+        className={`bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 ${baseClasses}`} 
+        onClick={onClick}
+        data-testid={testId}
+      >
         <Eye className="w-3 h-3" />
         Ver
       </Badge>
     );
   }
   return (
-    <Badge variant="outline" className="text-muted-foreground gap-1 no-default-hover-elevate" data-testid={testId}>
+    <Badge 
+      variant="outline" 
+      className={`text-muted-foreground ${baseClasses}`} 
+      onClick={onClick}
+      data-testid={testId}
+    >
       <EyeOff className="w-3 h-3" />
       Sin acceso
     </Badge>
@@ -69,7 +116,30 @@ function getPermissionBadge(level: PermissionLevel, fieldName: string, roleName:
 }
 
 function PermissionsTable({ section }: { section: string }) {
+  const { toast } = useToast();
+  const [pendingUpdate, setPendingUpdate] = useState<string | null>(null);
+  
   const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[section];
+  
+  const { data: customPermissions = [] } = useQuery<RolePermission[]>({
+    queryKey: ['/api/role-permissions', section],
+  });
+  
+  const updateMutation = useMutation({
+    mutationFn: async (data: { section: string; field: string; role: string; permissionLevel: PermissionLevel }) => {
+      return apiRequest('POST', '/api/role-permissions', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/role-permissions', section] });
+      toast({ title: "Permiso actualizado" });
+    },
+    onError: () => {
+      toast({ title: "Error al actualizar permiso", variant: "destructive" });
+    },
+    onSettled: () => {
+      setPendingUpdate(null);
+    }
+  });
   
   if (!sectionData || !sectionData.fields) {
     return (
@@ -79,9 +149,26 @@ function PermissionsTable({ section }: { section: string }) {
     );
   }
 
-  const fields = sectionData.fields as Record<string, Record<string, PermissionLevel>>;
-  const fieldNames = Object.keys(fields);
+  const defaultFields = sectionData.fields as Record<string, Record<string, PermissionLevel>>;
+  const fieldNames = Object.keys(defaultFields);
   const fieldLabels = FIELD_LABELS[section] || {};
+  
+  const getEffectivePermission = (field: string, role: string): PermissionLevel => {
+    const custom = customPermissions.find(
+      p => p.section === section && p.field === field && p.role === role
+    );
+    if (custom) {
+      return custom.permissionLevel as PermissionLevel;
+    }
+    return defaultFields[field]?.[role] || "none";
+  };
+  
+  const handleClick = (field: string, role: string) => {
+    const currentLevel = getEffectivePermission(field, role);
+    const nextLevel = getNextPermissionLevel(currentLevel);
+    setPendingUpdate(`${field}-${role}`);
+    updateMutation.mutate({ section, field, role, permissionLevel: nextLevel });
+  };
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -107,7 +194,13 @@ function PermissionsTable({ section }: { section: string }) {
                 </td>
                 {fieldNames.map((field) => (
                   <td key={field} className="border-b border-r py-2 px-2 text-center">
-                    {getPermissionBadge(fields[field]?.[role] || "none", field, role)}
+                    <PermissionBadge 
+                      level={getEffectivePermission(field, role)}
+                      fieldName={field}
+                      roleName={role}
+                      onClick={() => handleClick(field, role)}
+                      isLoading={pendingUpdate === `${field}-${role}`}
+                    />
                   </td>
                 ))}
               </tr>
@@ -135,7 +228,7 @@ export function RolesPermissionsView() {
           <CardTitle>Roles y Permisos</CardTitle>
         </div>
         <p className="text-sm text-muted-foreground">
-          Matriz de permisos por rol para cada sección del sistema
+          Matriz de permisos por rol para cada sección del sistema. Haz clic en un permiso para cambiarlo.
         </p>
       </CardHeader>
       <CardContent>
