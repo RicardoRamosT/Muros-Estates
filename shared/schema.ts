@@ -1351,3 +1351,28 @@ export const insertCatalogOtherFeatureSchema = createInsertSchema(catalogOtherFe
 
 export type InsertCatalogOtherFeature = z.infer<typeof insertCatalogOtherFeatureSchema>;
 export type CatalogOtherFeature = typeof catalogOtherFeatures.$inferSelect;
+
+// Role permissions table - stores custom permission overrides
+export const rolePermissions = pgTable("role_permissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  section: text("section").notNull(), // desarrolladores, prospectos, clientes, etc.
+  field: text("field").notNull(), // field name within the section
+  role: text("role").notNull(), // admin, actualizador, perfilador, finanzas, asesor, desarrollador
+  permissionLevel: text("permission_level").notNull(), // none, view, edit
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const updateRolePermissionSchema = z.object({
+  section: z.string(),
+  field: z.string(),
+  role: z.string(),
+  permissionLevel: z.enum(['none', 'view', 'edit']),
+});
+
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
