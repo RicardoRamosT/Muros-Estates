@@ -108,11 +108,15 @@ const SECTIONS: SectionDef[] = [
     color: "bg-green-50 dark:bg-green-900/20",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 120, format: "currency" },
-      { key: "discountPercent", label: "Bono", type: "decimal", width: 60, format: "percent" },
-      { key: "discountPercentValue", label: "%", type: "decimal", width: 50, format: "percent" },
+      { key: "hasDiscount", label: "Bono", type: "boolean", width: 60 },
+      { key: "discountPercent", label: "%", type: "decimal", width: 60, format: "percent" },
       { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "finalPrice", label: "Precio Final", type: "decimal", width: 120, format: "currency", calculated: true },
       { key: "pricePerM2", label: "Precio/M2", type: "decimal", width: 100, format: "currency", calculated: true },
+    ],
+    conditionalFields: [
+      { field: "discountPercent", dependsOn: "hasDiscount" },
+      { field: "discountAmount", dependsOn: "hasDiscount" },
     ],
   },
   {
@@ -332,8 +336,21 @@ const SECTIONS: SectionDef[] = [
 function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const price = parseFloat(row.price as string) || 0;
   const size = parseFloat(row.size as string) || 0;
-  const discountPercent = parseFloat(row.discountPercent as string) || 0;
-  const discountAmount = price * (discountPercent / 100);
+  
+  // Respect hasDiscount: if false, no discount is applied
+  const hasDiscount = row.hasDiscount === true;
+  let discountAmount = 0;
+  if (hasDiscount) {
+    // Use existing discountAmount from row if available
+    discountAmount = parseFloat(row.discountAmount as string) || 0;
+    // Fallback: if discountAmount is 0 but discountPercent has a value, compute from percent
+    if (discountAmount === 0) {
+      const discountPercent = parseFloat(row.discountPercent as string) || 0;
+      if (discountPercent > 0) {
+        discountAmount = price * (discountPercent / 100);
+      }
+    }
+  }
   const finalPrice = price - discountAmount;
   const pricePerM2 = size > 0 ? finalPrice / size : 0;
   
@@ -387,7 +404,7 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const finalValue = finalPrice + appreciationTotal;
   
   return {
-    discountAmount: discountAmount.toFixed(2),
+    // discountAmount is calculated bidirectionally in handleCellChange, not here
     finalPrice: finalPrice.toFixed(2),
     pricePerM2: pricePerM2.toFixed(2),
     initialAmount: initialAmount.toFixed(2),
@@ -1138,12 +1155,23 @@ export function TypologySpreadsheet() {
       hasParkingOptional: ["parkingOptionalPrice"],
       hasStorage: ["storageSize"],
       hasStorageOptional: ["storageSize2", "storagePrice"],
+      hasDiscount: ["discountPercent", "discountAmount"],
     };
     
     if (dependentFieldsToClear[field] && value === false) {
       dependentFieldsToClear[field].forEach(depField => {
         (updatedRow as any)[depField] = null;
       });
+    }
+    
+    // Bidirectional calculation for discount: if user edits %, calculate Monto and vice versa
+    const price = parseFloat(updatedRow.price as string) || 0;
+    if (field === "discountPercent" && price > 0) {
+      const percent = parseFloat(value as string) || 0;
+      (updatedRow as any).discountAmount = (price * percent / 100).toFixed(2);
+    } else if (field === "discountAmount" && price > 0) {
+      const amount = parseFloat(value as string) || 0;
+      (updatedRow as any).discountPercent = ((amount / price) * 100).toFixed(2);
     }
     
     const calculatedFields = calculateFields(updatedRow);
@@ -1156,15 +1184,23 @@ export function TypologySpreadsheet() {
       });
     }
     
+    // Include bidirectional discount fields if they were calculated
+    const bidirectionalFields: Record<string, any> = {};
+    if (field === "discountPercent" && price > 0) {
+      bidirectionalFields.discountAmount = (updatedRow as any).discountAmount;
+    } else if (field === "discountAmount" && price > 0) {
+      bidirectionalFields.discountPercent = (updatedRow as any).discountPercent;
+    }
+    
     setPendingChanges(prev => {
       const next = new Map(prev);
       const existing = next.get(rowId) || {};
-      next.set(rowId, { ...existing, [field]: value, ...clearedFields, ...calculatedFields });
+      next.set(rowId, { ...existing, [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields });
       return next;
     });
     
     const debounceId = setTimeout(() => {
-      updateMutation.mutate({ id: rowId, data: { [field]: value, ...clearedFields, ...calculatedFields } });
+      updateMutation.mutate({ id: rowId, data: { [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields } });
     }, 500);
     
     return () => clearTimeout(debounceId);

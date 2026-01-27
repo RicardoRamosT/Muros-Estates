@@ -335,7 +335,9 @@ export const PAGE_PERMISSIONS = {
       sizeFinal: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 12: Precio - Desarrollador=2
       price: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
-      // 13: Bono - Desarrollador=2
+      // 13: Bono (Sí/No) - Desarrollador=2
+      hasDiscount: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      // 14: % - Desarrollador=2
       discountPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
       // 14: % - Desarrollador=2
       discountPercentValue: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
@@ -908,8 +910,9 @@ export const typologies = pgTable("typologies", {
   
   // 12-17: Precio (sin agrupación)
   price: decimal("price", { precision: 14, scale: 2 }), // Precio
-  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // Bono %
-  discountPercentValue: decimal("discount_percent_value", { precision: 5, scale: 2 }), // %
+  hasDiscount: boolean("has_discount").default(false), // Bono Sí/No
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // % del bono
+  discountPercentValue: decimal("discount_percent_value", { precision: 5, scale: 2 }), // % (legacy)
   discountAmount: decimal("discount_amount", { precision: 14, scale: 2 }), // Monto
   finalPrice: decimal("final_price", { precision: 14, scale: 2 }), // Precio Final (calculado)
   pricePerM2: decimal("price_per_m2", { precision: 12, scale: 2 }), // Precio/M2 (calculado)
