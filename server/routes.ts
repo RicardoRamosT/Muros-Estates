@@ -380,12 +380,12 @@ export async function registerRoutes(
       }
       
       const client = await storage.createClient({
-        name: validationResult.data.name,
-        phone: validationResult.data.phone,
-        email: validationResult.data.email || null,
-        interest: validationResult.data.interest || null,
-        source: "web",
-        status: "nuevo",
+        nombre: validationResult.data.name,
+        telefono: validationResult.data.phone,
+        correo: validationResult.data.email || null,
+        developmentInterest: validationResult.data.interest || null,
+        comoLlega: "web",
+        estatus: "nuevo",
       });
       
       res.status(201).json({ success: true, message: "Gracias por contactarnos. Un asesor te contactará pronto." });
@@ -583,15 +583,14 @@ export async function registerRoutes(
         enrichedProperty = {
           ...property,
           // Basic info from typology
-          bedrooms: (typology.bedrooms?.toString() || property.bedrooms) as string | null,
+          bedrooms: typology.bedrooms?.toString() || property.bedrooms,
           bathrooms: typology.bathrooms || property.bathrooms,
           area: typology.size || property.area,
-          floor: typology.level?.toString() || property.floor,
+          floor: typology.level ? typology.level : property.floor,
           deliveryDate: typology.deliveryDate || property.deliveryDate,
           parking: typology.parkingSpots || property.parking,
           // Price info from typology
           price: typology.price || property.price,
-          downPaymentPercent: typology.downPaymentPercent,
           // Additional typology-specific data
           typologyId: typology.id,
           typologyType: typology.type,
@@ -609,7 +608,8 @@ export async function registerRoutes(
           pricePerM2: typology.pricePerM2,
           discountPercent: typology.discountPercent,
           discountAmount: typology.discountAmount,
-        };
+          downPaymentPercent: typology.downPaymentPercent,
+        } as typeof property & Record<string, unknown>;
       }
       
       res.json({ ...enrichedProperty, images });
