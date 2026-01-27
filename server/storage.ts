@@ -16,7 +16,8 @@ import {
   catalogAmenities, type CatalogAmenity, type InsertCatalogAmenity,
   catalogEfficiencyFeatures, type CatalogEfficiencyFeature, type InsertCatalogEfficiencyFeature,
   catalogOtherFeatures, type CatalogOtherFeature, type InsertCatalogOtherFeature,
-  sharedLinks, type SharedLink, type InsertSharedLink
+  sharedLinks, type SharedLink, type InsertSharedLink,
+  rolePermissions, type RolePermission
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, ilike } from "drizzle-orm";
@@ -150,6 +151,12 @@ export interface IStorage {
   // Additional document queries
   getDocumentsByTypology(typologyId: string): Promise<Document[]>;
   getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]>;
+  
+  // Role Permissions
+  getRolePermissions(): Promise<RolePermission[]>;
+  getRolePermissionsBySection(section: string): Promise<RolePermission[]>;
+  upsertRolePermission(section: string, field: string, role: string, permissionLevel: string): Promise<RolePermission>;
+  deleteRolePermission(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -709,6 +716,46 @@ export class DatabaseStorage implements IStorage {
         eq(documents.section, section)
       )
     ).orderBy(desc(documents.createdAt));
+  }
+  
+  // Role Permissions
+  async getRolePermissions(): Promise<RolePermission[]> {
+    return db.select().from(rolePermissions);
+  }
+  
+  async getRolePermissionsBySection(section: string): Promise<RolePermission[]> {
+    return db.select().from(rolePermissions).where(eq(rolePermissions.section, section));
+  }
+  
+  async upsertRolePermission(section: string, field: string, role: string, permissionLevel: string): Promise<RolePermission> {
+    const existing = await db.select().from(rolePermissions).where(
+      and(
+        eq(rolePermissions.section, section),
+        eq(rolePermissions.field, field),
+        eq(rolePermissions.role, role)
+      )
+    );
+    
+    if (existing.length > 0) {
+      const [updated] = await db.update(rolePermissions).set({
+        permissionLevel,
+        updatedAt: new Date(),
+      }).where(eq(rolePermissions.id, existing[0].id)).returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(rolePermissions).values({
+        section,
+        field,
+        role,
+        permissionLevel,
+      }).returning();
+      return created;
+    }
+  }
+  
+  async deleteRolePermission(id: string): Promise<boolean> {
+    const result = await db.delete(rolePermissions).where(eq(rolePermissions.id, id));
+    return true;
   }
 }
 

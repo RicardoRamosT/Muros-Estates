@@ -1866,5 +1866,28 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // Role Permissions API
+  app.get("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {
+    const permissions = await storage.getRolePermissions();
+    res.json(permissions);
+  });
+
+  app.get("/api/role-permissions/:section", requireAuth, requireRole("admin"), async (req, res) => {
+    const permissions = await storage.getRolePermissionsBySection(req.params.section);
+    res.json(permissions);
+  });
+
+  app.post("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {
+    const { section, field, role, permissionLevel } = req.body;
+    if (!section || !field || !role || !permissionLevel) {
+      return res.status(400).json({ error: "Faltan campos requeridos" });
+    }
+    if (!['none', 'view', 'edit'].includes(permissionLevel)) {
+      return res.status(400).json({ error: "Nivel de permiso inválido" });
+    }
+    const permission = await storage.upsertRolePermission(section, field, role, permissionLevel);
+    res.json(permission);
+  });
+
   return httpServer;
 }
