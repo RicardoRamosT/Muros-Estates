@@ -41,6 +41,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { Typology } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPERS, DEVELOPMENTS } from "@shared/constants";
 import { cn } from "@/lib/utils";
+import { FormulaTooltip } from "@/components/ui/formula-tooltip";
+import { TYPOLOGY_FORMULAS } from "@/lib/spreadsheet-utils";
 
 type TypologyField = keyof Typology;
 
@@ -764,26 +766,43 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     }
   };
   
+  // Get formula info if this is a calculated field
+  const formulaInfo = column.calculated ? TYPOLOGY_FORMULAS.find(f => f.field === column.key) : null;
+  
   if (column.calculated || disabled) {
-    return (
+    const content = (
       <div 
         className={cn(
-          "px-2 py-1 text-sm truncate",
-          column.calculated && "bg-muted/50 text-muted-foreground italic",
-          disabled && !column.calculated && "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+          "px-2 py-1 text-sm truncate border-r border-b border-gray-200 dark:border-gray-700",
+          column.calculated && "bg-blue-50 dark:bg-blue-950/30 text-muted-foreground",
+          disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
         )}
         style={{ width: column.width }}
-        title={disabled && !column.calculated ? "Campo deshabilitado - active la opción correspondiente" : formatValue(value, column.format)}
+        title={disabled && !column.calculated ? "Campo deshabilitado - active la opción correspondiente" : undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
         {formatValue(value, column.format) || "-"}
       </div>
     );
+    
+    // Wrap calculated fields with formula tooltip
+    if (column.calculated && formulaInfo) {
+      return (
+        <FormulaTooltip field={column.key as string}>
+          {content}
+        </FormulaTooltip>
+      );
+    }
+    
+    return content;
   }
   
   if (column.type === "boolean") {
     return (
-      <div className="flex items-center justify-center px-2 py-1" style={{ width: column.width }}>
+      <div 
+        className="flex items-center justify-center px-2 py-1 bg-gray-50 dark:bg-gray-800/50 border-r border-b border-gray-200 dark:border-gray-700" 
+        style={{ width: column.width }}
+      >
         <Checkbox
           checked={Boolean(value)}
           onCheckedChange={(checked) => onChange(checked)}
@@ -813,13 +832,16 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     }
     
     return (
-      <div className="px-1 py-0.5" style={{ width: column.width }}>
+      <div 
+        className="px-1 py-0.5 bg-gray-50 dark:bg-gray-800/50 border-r border-b border-gray-200 dark:border-gray-700" 
+        style={{ width: column.width }}
+      >
         <Select 
           value={value || ""} 
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className="h-7 text-xs border-0 focus:ring-0 shadow-none"
+            className="h-6 text-xs border-0 focus:ring-0 shadow-none bg-transparent"
             data-testid={`select-${column.key}-${rowId}`}
           >
             <SelectValue placeholder="-" />
@@ -836,7 +858,10 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   
   if (isEditing) {
     return (
-      <div className="px-1 py-0.5" style={{ width: column.width }}>
+      <div 
+        className="px-1 py-0.5 bg-white dark:bg-gray-900 border-r border-b border-primary ring-1 ring-primary" 
+        style={{ width: column.width }}
+      >
         <Input
           ref={inputRef}
           type={column.type === "number" || column.type === "decimal" ? "number" : "text"}
@@ -845,7 +870,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="h-7 text-xs border-0 focus:ring-1 shadow-none p-1"
+          className="h-6 text-xs border-0 focus:ring-0 shadow-none p-1 bg-transparent"
           data-testid={`input-${column.key}-${rowId}`}
         />
       </div>
@@ -854,7 +879,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   
   return (
     <div
-      className="px-2 py-1 text-sm truncate cursor-pointer hover-elevate"
+      className="px-2 py-1 text-sm truncate cursor-pointer bg-white dark:bg-gray-900/50 border-r border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
       style={{ width: column.width }}
       onClick={() => setIsEditing(true)}
       title={formatValue(value, column.format)}

@@ -16,7 +16,9 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock } from "lucide-react";
+import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
+import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X } from "lucide-react";
+import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
 import type { Client, User } from "@shared/schema";
 
 interface ProspectsSpreadsheetProps {
@@ -197,6 +199,34 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { value: "otro", label: "Otro" },
   ];
 
+  // Column filtering and sorting
+  const {
+    sortConfig,
+    filterConfigs,
+    handleSort,
+    handleFilter,
+    handleClearFilter,
+    clearAllFilters,
+    hasActiveFilters,
+    getFilteredAndSortedData,
+    getUniqueValuesForColumn
+  } = useColumnFilters();
+
+  const filteredAndSortedData = useMemo(() => 
+    getFilteredAndSortedData(prospects), 
+    [prospects, sortConfig, filterConfigs, getFilteredAndSortedData]
+  );
+
+  const uniqueValuesMap = useMemo(() => {
+    const map: Record<string, (string | number | boolean)[]> = {};
+    allColumns.forEach(col => {
+      if (col.type !== 'actions' && col.type !== 'index') {
+        map[col.key] = getUniqueValuesForColumn(prospects, col.key);
+      }
+    });
+    return map;
+  }, [prospects, allColumns, getUniqueValuesForColumn]);
+
   const columns = useMemo(() => {
     return allColumns.filter(col => {
       if (col.type === 'index' || col.type === 'actions') return true;
@@ -225,15 +255,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   return (
     <div className="flex flex-col h-full" data-testid="prospects-spreadsheet">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
         <div className="flex items-center gap-3">
           <Users className="w-5 h-5 text-primary" />
-          <span className="font-medium">{prospects.length} {isClientView ? "Clientes" : "Prospectos"}</span>
+          <span className="font-medium">{filteredAndSortedData.length} {isClientView ? "Clientes" : "Prospectos"}</span>
           {!hasFullAccess && (
             <Badge variant="outline" className="text-xs">
               <Eye className="w-3 h-3 mr-1" />
               Permisos limitados
             </Badge>
+          )}
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 text-xs"
+              onClick={clearAllFilters}
+            >
+              <X className="h-3 w-3 mr-1" />
+              Limpiar filtros
+            </Button>
           )}
         </div>
         {hasFullAccess && (
@@ -246,31 +287,51 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 bg-muted z-10" data-testid="prospects-table-header">
-            <tr>
+          <thead className="sticky top-0 z-10" data-testid="prospects-table-header">
+            <tr className="bg-gray-100 dark:bg-gray-800">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r px-3 py-2 text-left font-medium whitespace-nowrap"
+                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
                   style={{ minWidth: col.width }}
                   data-testid={`column-header-${col.key}`}
                 >
-                  {col.label}
+                  <div className="flex items-center">
+                    <span className="truncate">{col.label}</span>
+                    {col.type !== 'actions' && col.type !== 'index' && (
+                      <ColumnFilter
+                        columnKey={col.key}
+                        columnLabel={col.label}
+                        columnType={
+                          col.type === 'currency' ? 'number' : 
+                          col.type === 'date' || col.type === 'time' ? 'date' :
+                          col.type === 'select' ? 'select' : 'text'
+                        }
+                        uniqueValues={uniqueValuesMap[col.key] || []}
+                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                        onSort={(dir) => handleSort(col.key, dir)}
+                        onFilter={(state) => handleFilter(col.key, state)}
+                        onClear={() => handleClearFilter(col.key)}
+                      />
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {prospects.map((prospect, index) => (
-              <tr key={prospect.id} className="hover:bg-muted/30" data-testid={`row-prospect-${prospect.id}`}>
+            {filteredAndSortedData.map((prospect, index) => (
+              <tr key={prospect.id} className="group" data-testid={`row-prospect-${prospect.id}`}>
                 {columns.map((col) => {
                   const field = col.field || col.key;
                   const fieldCanEdit = canEdit(col.key);
+                  const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
 
                   if (col.type === 'index') {
                     return (
-                      <td key={col.key} className="border-b border-r px-3 py-2 text-muted-foreground">
-                        {index + 1}
+                      <td key={col.key} className={getCellStyle({ type: "index" })}>
+                        <span className="text-xs">{index + 1}</span>
                       </td>
                     );
                   }
@@ -278,43 +339,35 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.key === 'fecha') {
                     const dateValue = prospect.createdAt ? new Date(prospect.createdAt).toISOString().split('T')[0] : '';
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
-                        {fieldCanEdit ? (
-                          editingCell?.id === prospect.id && editingCell?.field === 'fecha' ? (
-                            <Input
-                              type="date"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => {
-                                if (editValue && editValue !== dateValue) {
-                                  const currentDate = prospect.createdAt ? new Date(prospect.createdAt) : new Date();
-                                  const [year, month, day] = editValue.split('-').map(Number);
-                                  currentDate.setFullYear(year, month - 1, day);
-                                  updateMutation.mutate({ id: prospect.id, data: { createdAt: currentDate.toISOString() } as any });
-                                }
-                                setEditingCell(null);
-                              }}
-                              autoFocus
-                              className="h-7 text-sm w-32"
-                              data-testid={`input-fecha-${prospect.id}`}
-                            />
-                          ) : (
-                            <div 
-                              className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
-                              onClick={() => {
-                                setEditingCell({ id: prospect.id, field: 'fecha' });
-                                setEditValue(dateValue);
-                              }}
-                            >
-                              <Calendar className="w-3 h-3 text-muted-foreground" />
-                              <span>{formatDate(prospect.createdAt)}</span>
-                            </div>
-                          )
+                      <td 
+                        key={col.key} 
+                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                        onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: 'fecha' })}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <Input
+                            type="date"
+                            value={editValue || dateValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onFocus={() => setEditValue(dateValue)}
+                            onBlur={() => {
+                              if (editValue && editValue !== dateValue) {
+                                const currentDate = prospect.createdAt ? new Date(prospect.createdAt) : new Date();
+                                const [year, month, day] = editValue.split('-').map(Number);
+                                currentDate.setFullYear(year, month - 1, day);
+                                updateMutation.mutate({ id: prospect.id, data: { createdAt: currentDate.toISOString() } as any });
+                              }
+                              setEditingCell(null);
+                            }}
+                            autoFocus
+                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-fecha-${prospect.id}`}
+                          />
                         ) : (
                           <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-muted-foreground" />
+                            <Calendar className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                             <span>{formatDate(prospect.createdAt)}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
                       </td>
@@ -324,43 +377,35 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.key === 'hora') {
                     const timeValue = prospect.createdAt ? new Date(prospect.createdAt).toTimeString().slice(0, 5) : '';
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
-                        {fieldCanEdit ? (
-                          editingCell?.id === prospect.id && editingCell?.field === 'hora' ? (
-                            <Input
-                              type="time"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => {
-                                if (editValue && editValue !== timeValue) {
-                                  const currentDate = prospect.createdAt ? new Date(prospect.createdAt) : new Date();
-                                  const [hours, minutes] = editValue.split(':').map(Number);
-                                  currentDate.setHours(hours, minutes);
-                                  updateMutation.mutate({ id: prospect.id, data: { createdAt: currentDate.toISOString() } as any });
-                                }
-                                setEditingCell(null);
-                              }}
-                              autoFocus
-                              className="h-7 text-sm w-24"
-                              data-testid={`input-hora-${prospect.id}`}
-                            />
-                          ) : (
-                            <div 
-                              className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
-                              onClick={() => {
-                                setEditingCell({ id: prospect.id, field: 'hora' });
-                                setEditValue(timeValue);
-                              }}
-                            >
-                              <Clock className="w-3 h-3 text-muted-foreground" />
-                              <span>{formatTime(prospect.createdAt)}</span>
-                            </div>
-                          )
+                      <td 
+                        key={col.key} 
+                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                        onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: 'hora' })}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <Input
+                            type="time"
+                            value={editValue || timeValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onFocus={() => setEditValue(timeValue)}
+                            onBlur={() => {
+                              if (editValue && editValue !== timeValue) {
+                                const currentDate = prospect.createdAt ? new Date(prospect.createdAt) : new Date();
+                                const [hours, minutes] = editValue.split(':').map(Number);
+                                currentDate.setHours(hours, minutes);
+                                updateMutation.mutate({ id: prospect.id, data: { createdAt: currentDate.toISOString() } as any });
+                              }
+                              setEditingCell(null);
+                            }}
+                            autoFocus
+                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-hora-${prospect.id}`}
+                          />
                         ) : (
                           <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-muted-foreground" />
+                            <Clock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                             <span>{formatTime(prospect.createdAt)}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
                       </td>
@@ -370,13 +415,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.key === 'asesorId') {
                     const value = (prospect as any).asesorId;
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'asesorId', v)}
                           >
-                            <SelectTrigger className="h-7 text-sm">
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
@@ -389,7 +434,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         ) : (
                           <div className="flex items-center gap-1">
                             <span>{getAsesorName(value)}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
                       </td>
@@ -399,13 +444,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.key === 'estatus') {
                     const value = (prospect as any).estatus || (prospect as any).status || 'nuevo';
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
                           <Select
                             value={value}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'estatus', v)}
                           >
-                            <SelectTrigger className="h-7 text-sm">
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -419,7 +464,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Badge variant="outline" className="text-xs">
                               {estatusOptions.find(o => o.value === value)?.label || value}
                             </Badge>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
                       </td>
@@ -429,13 +474,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.key === 'comoLlega') {
                     const value = (prospect as any).comoLlega || (prospect as any).source || 'web';
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
                           <Select
                             value={value}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'comoLlega', v)}
                           >
-                            <SelectTrigger className="h-7 text-sm">
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -447,7 +492,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         ) : (
                           <div className="flex items-center gap-1">
                             <span>{comoLlegaOptions.find(o => o.value === value)?.label || value}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
                       </td>
@@ -462,40 +507,33 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(numValue) : 
                       '-';
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
-                        {fieldCanEdit ? (
-                          editingCell?.id === prospect.id && editingCell?.field === col.key ? (
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => {
-                                if (editValue !== String(value ?? '')) {
-                                  updateMutation.mutate({ id: prospect.id, data: { [col.key]: editValue || null } as any });
-                                }
-                                setEditingCell(null);
-                              }}
-                              onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(prospect.id, col.key)}
-                              autoFocus
-                              className="h-7 text-sm w-28"
-                              data-testid={`input-${col.key}-${prospect.id}`}
-                            />
-                          ) : (
-                            <div 
-                              className="cursor-pointer hover:bg-muted/50 rounded px-1"
-                              onClick={() => {
-                                setEditingCell({ id: prospect.id, field: col.key });
-                                setEditValue(String(value ?? ''));
-                              }}
-                            >
-                              <span>{displayValue}</span>
-                            </div>
-                          )
+                      <td 
+                        key={col.key} 
+                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                        onClick={() => fieldCanEdit && !isEditing && handleCellClick(prospect.id, col.key, value)}
+                        data-testid={`cell-${col.key}-${prospect.id}`}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={() => {
+                              if (editValue !== String(value ?? '')) {
+                                updateMutation.mutate({ id: prospect.id, data: { [col.key]: editValue || null } as any });
+                              }
+                              setEditingCell(null);
+                            }}
+                            onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(prospect.id, col.key)}
+                            autoFocus
+                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-${col.key}-${prospect.id}`}
+                          />
                         ) : (
                           <div className="flex items-center gap-1">
                             <span>{displayValue}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
                       </td>
@@ -507,41 +545,33 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const rawValue = (prospect as any)[col.key];
                     const dateValue = rawValue ? new Date(rawValue).toISOString().split('T')[0] : '';
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1">
-                        {fieldCanEdit ? (
-                          editingCell?.id === prospect.id && editingCell?.field === col.key ? (
-                            <Input
-                              type="date"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => {
-                                if (editValue !== dateValue) {
-                                  const newDate = editValue ? new Date(editValue).toISOString() : null;
-                                  updateMutation.mutate({ id: prospect.id, data: { [col.key]: newDate } as any });
-                                }
-                                setEditingCell(null);
-                              }}
-                              autoFocus
-                              className="h-7 text-sm w-32"
-                              data-testid={`input-${col.key}-${prospect.id}`}
-                            />
-                          ) : (
-                            <div 
-                              className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
-                              onClick={() => {
-                                setEditingCell({ id: prospect.id, field: col.key });
-                                setEditValue(dateValue);
-                              }}
-                            >
-                              <Calendar className="w-3 h-3 text-muted-foreground" />
-                              <span>{rawValue ? formatDate(rawValue) : '-'}</span>
-                            </div>
-                          )
+                      <td 
+                        key={col.key} 
+                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                        onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <Input
+                            type="date"
+                            value={editValue || dateValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onFocus={() => setEditValue(dateValue)}
+                            onBlur={() => {
+                              if (editValue !== dateValue) {
+                                const newDate = editValue ? new Date(editValue).toISOString() : null;
+                                updateMutation.mutate({ id: prospect.id, data: { [col.key]: newDate } as any });
+                              }
+                              setEditingCell(null);
+                            }}
+                            autoFocus
+                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-${col.key}-${prospect.id}`}
+                          />
                         ) : (
                           <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-muted-foreground" />
+                            <Calendar className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                             <span>{rawValue ? formatDate(rawValue) : '-'}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50" />
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
                       </td>
@@ -550,14 +580,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.type === 'actions') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-2">
+                      <td key={col.key} className={getCellStyle({ type: "actions" })}>
                         {hasFullAccess && (
                           <Dialog open={deleteId === prospect.id} onOpenChange={(open) => !open && setDeleteId(null)}>
                             <DialogTrigger asChild>
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                className="h-6 w-6 text-destructive hover:text-destructive"
                                 onClick={() => setDeleteId(prospect.id)}
                                 data-testid={`button-delete-${prospect.id}`}
                               >
@@ -594,26 +624,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   return (
                     <td
                       key={col.key}
-                      className={`border-b border-r px-3 py-2 ${fieldCanEdit ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default'}`}
-                      onClick={() => fieldCanEdit && handleCellClick(prospect.id, col.key, value)}
+                      className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                      onClick={() => fieldCanEdit && !isEditing && handleCellClick(prospect.id, col.key, value)}
                       data-testid={`cell-${col.key}-${prospect.id}`}
                     >
-                      {editingCell?.id === prospect.id && editingCell?.field === col.key && fieldCanEdit ? (
+                      {isEditing && fieldCanEdit ? (
                         <Input
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={() => handleCellBlur(prospect.id, col.key)}
                           onKeyDown={(e) => e.key === "Enter" && handleCellBlur(prospect.id, col.key)}
                           autoFocus
-                          className="h-7 text-sm"
+                          className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
                           data-testid={`input-${col.key}-${prospect.id}`}
                         />
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span className="truncate block max-w-[180px]">
+                          <span className="truncate max-w-[180px]">
                             {value || "-"}
                           </span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                         </div>
                       )}
                     </td>
@@ -621,10 +651,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                 })}
               </tr>
             ))}
-            {prospects.length === 0 && (
+            {filteredAndSortedData.length === 0 && (
               <tr>
                 <td colSpan={columns.length} className="text-center py-8 text-muted-foreground">
-                  No hay {isClientView ? "clientes" : "prospectos"}. Haz clic en "Agregar" para crear uno.
+                  {hasActiveFilters 
+                    ? "No hay resultados con los filtros aplicados." 
+                    : `No hay ${isClientView ? "clientes" : "prospectos"}. Haz clic en "Agregar" para crear uno.`}
                 </td>
               </tr>
             )}

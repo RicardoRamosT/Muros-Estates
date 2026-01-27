@@ -6,6 +6,7 @@ import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +16,21 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen } from "lucide-react";
-import { Link } from "wouter";
+import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
+import { Plus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X } from "lucide-react";
+import { getCellStyle, getCellTypeFromColumnType, type CellType } from "@/lib/spreadsheet-utils";
 import type { Developer } from "@shared/schema";
+import { cn } from "@/lib/utils";
+
+interface ColumnDef {
+  key: string;
+  label: string;
+  width: string;
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link';
+  autoField?: boolean;
+  group?: string;
+  cellType?: CellType;
+}
 
 export function DevelopersSpreadsheet() {
   const { toast } = useToast();
@@ -29,6 +42,44 @@ export function DevelopersSpreadsheet() {
   const { data: developers = [], isLoading } = useQuery<Developer[]>({
     queryKey: ["/api/developers"],
   });
+
+  const allColumns: ColumnDef[] = [
+    { key: "id", label: "#", width: "50px", type: "index", autoField: true, cellType: "index" },
+    { key: "tipo", label: "Tipo", width: "100px", autoField: true, cellType: "readonly" },
+    { key: "active", label: "Activo", width: "80px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "name", label: "Desarrollador", width: "180px", cellType: "input" },
+    { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
+    { key: "rfc", label: "RFC", width: "140px", cellType: "input" },
+    { key: "domicilio", label: "Domicilio", width: "200px", cellType: "input" },
+    { key: "antiguedad", label: "Antigüedad", width: "120px", cellType: "input" },
+    { key: "tipos", label: "Tipos", width: "150px", cellType: "input" },
+    { key: "representante", label: "Representante", width: "160px", cellType: "input" },
+    { key: "contactName", label: "Nombre", width: "150px", group: "contacto", cellType: "input" },
+    { key: "contactPhone", label: "Teléfono", width: "140px", group: "contacto", cellType: "input" },
+    { key: "contactEmail", label: "Correo", width: "180px", group: "contacto", cellType: "input" },
+    { key: "legales", label: "Legales", width: "100px", type: "folder-link", cellType: "actions" },
+    { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions" },
+  ];
+
+  const columns = useMemo(() => {
+    return allColumns.filter(col => {
+      if (col.type === 'index' || col.type === 'actions' || col.type === 'folder-link') return true;
+      return canView(col.key);
+    });
+  }, [canView]);
+
+  const {
+    sortConfig,
+    filterConfigs,
+    uniqueValuesMap,
+    filteredAndSortedData,
+    handleSort,
+    handleFilter,
+    handleClearFilter,
+    clearAllFilters,
+  } = useColumnFilters(developers, columns);
+
+  const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<Developer>) => 
@@ -88,31 +139,6 @@ export function DevelopersSpreadsheet() {
     });
   };
 
-  const allColumns = [
-    { key: "id", label: "ID", width: "50px", type: "index", autoField: true },
-    { key: "tipo", label: "Tipo", width: "100px", autoField: true },
-    { key: "active", label: "Activo", width: "80px", type: "toggle", autoField: true },
-    { key: "name", label: "Desarrollador", width: "180px" },
-    { key: "razonSocial", label: "Razón Social", width: "180px" },
-    { key: "rfc", label: "RFC", width: "140px" },
-    { key: "domicilio", label: "Domicilio", width: "200px" },
-    { key: "antiguedad", label: "Antigüedad", width: "120px" },
-    { key: "tipos", label: "Tipos", width: "150px" },
-    { key: "representante", label: "Representante", width: "160px" },
-    { key: "contactName", label: "Nombre", width: "150px", group: "contacto" },
-    { key: "contactPhone", label: "Teléfono", width: "140px", group: "contacto" },
-    { key: "contactEmail", label: "Correo", width: "180px", group: "contacto" },
-    { key: "legales", label: "Legales", width: "150px" },
-    { key: "actions", label: "", width: "60px", type: "actions" },
-  ];
-
-  const columns = useMemo(() => {
-    return allColumns.filter(col => {
-      if (col.type === 'index' || col.type === 'actions') return true;
-      return canView(col.key);
-    });
-  }, [canView]);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -136,12 +162,23 @@ export function DevelopersSpreadsheet() {
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <div className="flex items-center gap-3">
           <Building2 className="w-5 h-5 text-primary" />
-          <span className="font-medium">{developers.length} Desarrolladores</span>
+          <span className="font-medium">{filteredAndSortedData.length} Desarrolladores</span>
           {!hasFullAccess && (
             <Badge variant="outline" className="text-xs">
               <Eye className="w-3 h-3 mr-1" />
               Solo lectura
             </Badge>
+          )}
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 text-xs"
+              onClick={clearAllFilters}
+            >
+              <X className="h-3 w-3 mr-1" />
+              Limpiar filtros
+            </Button>
           )}
         </div>
         {hasFullAccess && (
@@ -154,29 +191,49 @@ export function DevelopersSpreadsheet() {
       
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
+          <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r px-3 py-2 text-left font-medium text-muted-foreground"
+                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs uppercase tracking-wide"
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  {col.label}
+                  <div className="flex items-center">
+                    <span className="truncate">{col.label}</span>
+                    {col.type !== 'index' && col.type !== 'actions' && col.type !== 'folder-link' && (
+                      <ColumnFilter
+                        columnKey={col.key}
+                        columnLabel={col.label}
+                        columnType={col.type === 'toggle' ? 'boolean' : col.type === 'number' ? 'number' : 'text'}
+                        uniqueValues={uniqueValuesMap[col.key] || []}
+                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                        onSort={(dir) => handleSort(col.key, dir)}
+                        onFilter={(state) => handleFilter(col.key, state)}
+                        onClear={() => handleClearFilter(col.key)}
+                      />
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {developers.map((dev, index) => (
-              <tr key={dev.id} className="hover:bg-muted/30" data-testid={`row-developer-${dev.id}`}>
+            {filteredAndSortedData.map((dev, index) => (
+              <tr key={dev.id} className="group" data-testid={`row-developer-${dev.id}`}>
                 {columns.map((col) => {
                   const field = col.key;
                   const fieldCanEdit = canEdit(field);
+                  const isEditing = editingCell?.id === dev.id && editingCell?.field === field;
+                  const cellType = col.cellType || getCellTypeFromColumnType(col.type);
                   
                   if (col.type === 'index') {
                     return (
-                      <td key={field} className="border-b border-r px-3 py-2 text-muted-foreground">
+                      <td 
+                        key={field} 
+                        className={getCellStyle({ type: "index", disabled: false })}
+                      >
                         {index + 1}
                       </td>
                     );
@@ -184,30 +241,32 @@ export function DevelopersSpreadsheet() {
                   
                   if (col.type === 'toggle') {
                     return (
-                      <td key={field} className="border-b border-r px-3 py-2">
-                        <Badge
-                          variant={dev.active ? "default" : "outline"}
-                          className={`${fieldCanEdit ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'} ${dev.active ? "bg-green-500/20 text-green-700 hover:bg-green-500/30" : ""}`}
-                          onClick={() => fieldCanEdit && handleActiveToggle(dev.id, dev.active ?? false)}
-                          data-testid={`toggle-active-${dev.id}`}
-                        >
-                          {dev.active ? "Sí" : "No"}
-                          {!fieldCanEdit && <Eye className="w-3 h-3 ml-1 opacity-50" />}
-                        </Badge>
+                      <td 
+                        key={field} 
+                        className={getCellStyle({ type: "checkbox", disabled: !fieldCanEdit })}
+                      >
+                        <div className="flex items-center justify-center">
+                          <Checkbox
+                            checked={dev.active ?? false}
+                            onCheckedChange={() => fieldCanEdit && handleActiveToggle(dev.id, dev.active ?? false)}
+                            disabled={!fieldCanEdit}
+                            data-testid={`toggle-active-${dev.id}`}
+                          />
+                        </div>
                       </td>
                     );
                   }
                   
-                  if (field === 'legales') {
+                  if (col.type === 'folder-link') {
                     return (
-                      <td key={field} className="border-b border-r px-3 py-2">
+                      <td key={field} className={getCellStyle({ type: "actions" })}>
                         <a
                           href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
-                          className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                          className="inline-flex items-center gap-1.5 text-primary hover:underline text-xs"
                           data-testid={`link-legales-${dev.id}`}
                         >
                           <FolderOpen className="w-4 h-4" />
-                          <span>Ver Docs</span>
+                          <span>Ver</span>
                         </a>
                       </td>
                     );
@@ -215,7 +274,7 @@ export function DevelopersSpreadsheet() {
                   
                   if (col.type === 'actions') {
                     return (
-                      <td key={field} className="border-b border-r px-2 py-2">
+                      <td key={field} className={getCellStyle({ type: "actions" })}>
                         {hasFullAccess && (
                           <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
                             <DialogTrigger asChild>
@@ -259,18 +318,22 @@ export function DevelopersSpreadsheet() {
                   return (
                     <td
                       key={field}
-                      className={`border-b border-r px-3 py-2 ${fieldCanEdit ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default'}`}
+                      className={getCellStyle({ 
+                        type: cellType, 
+                        disabled: !fieldCanEdit,
+                        isEditing 
+                      })}
                       onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
-                      {editingCell?.id === dev.id && editingCell?.field === field && fieldCanEdit ? (
+                      {isEditing && fieldCanEdit ? (
                         <Input
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={() => handleCellBlur(dev.id, field)}
                           onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
                           autoFocus
-                          className="h-7 text-sm"
+                          className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (
@@ -286,10 +349,12 @@ export function DevelopersSpreadsheet() {
                 })}
               </tr>
             ))}
-            {developers.length === 0 && (
+            {filteredAndSortedData.length === 0 && (
               <tr>
                 <td colSpan={columns.length} className="text-center py-8 text-muted-foreground">
-                  No hay desarrolladores. Haz clic en "Agregar" para crear uno.
+                  {developers.length === 0 
+                    ? 'No hay desarrolladores. Haz clic en "Agregar" para crear uno.'
+                    : 'No se encontraron resultados con los filtros aplicados.'}
                 </td>
               </tr>
             )}

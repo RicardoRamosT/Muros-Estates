@@ -16,10 +16,12 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen } from "lucide-react";
+import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
+import { Plus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X } from "lucide-react";
 import { Link } from "wouter";
 import type { Development, Developer } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
+import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
 
 interface ColumnDef {
   key: string;
@@ -28,6 +30,7 @@ interface ColumnDef {
   type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'array' | 'folder-link' | 'actions';
   width: string;
   folderSection?: string;
+  cellType?: CellType;
 }
 
 interface ColumnGroup {
@@ -224,6 +227,19 @@ export function DevelopmentsSpreadsheet() {
     });
   }, [canView, hasFullAccess]);
 
+  const {
+    sortConfig,
+    filterConfigs,
+    uniqueValuesMap,
+    filteredAndSortedData,
+    handleSort,
+    handleFilter,
+    handleClearFilter,
+    clearAllFilters,
+  } = useColumnFilters(developments, visibleColumns);
+
+  const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
+
   const visibleColumnGroups = useMemo(() => {
     const groupColspans: Record<string, number> = {};
     visibleColumns.forEach(col => {
@@ -259,11 +275,22 @@ export function DevelopmentsSpreadsheet() {
       <div className="flex items-center justify-between p-3 border-b bg-muted/30">
         <div className="flex items-center gap-2">
           <Building className="w-5 h-5 text-primary" />
-          <span className="font-medium">{developments.length} desarrollos</span>
+          <span className="font-medium">{filteredAndSortedData.length} desarrollos</span>
           {role && (
             <Badge variant="outline" className="text-xs">
               {role}
             </Badge>
+          )}
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 text-xs"
+              onClick={clearAllFilters}
+            >
+              <X className="h-3 w-3 mr-1" />
+              Limpiar filtros
+            </Button>
           )}
         </div>
         {hasFullAccess && (
@@ -292,21 +319,41 @@ export function DevelopmentsSpreadsheet() {
                 </th>
               ))}
             </tr>
-            <tr className="bg-muted/80">
+            <tr className="bg-gray-100 dark:bg-gray-800">
               {visibleColumns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r px-2 py-2 text-left font-medium whitespace-nowrap text-muted-foreground"
+                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
                   style={{ minWidth: col.width, width: col.width }}
                 >
-                  {col.label}
+                  <div className="flex items-center">
+                    <span className="truncate">{col.label}</span>
+                    {col.type !== 'actions' && col.type !== 'folder-link' && col.key !== 'id' && (
+                      <ColumnFilter
+                        columnKey={col.key}
+                        columnLabel={col.label}
+                        columnType={
+                          col.type === 'boolean' ? 'boolean' : 
+                          col.type === 'number' ? 'number' : 
+                          col.type === 'date' ? 'date' :
+                          (col.type?.includes('select') ? 'select' : 'text')
+                        }
+                        uniqueValues={uniqueValuesMap[col.key] || []}
+                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                        onSort={(dir) => handleSort(col.key, dir)}
+                        onFilter={(state) => handleFilter(col.key, state)}
+                        onClear={() => handleClearFilter(col.key)}
+                      />
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {developments.map((dev) => (
-              <tr key={dev.id} className="hover:bg-muted/20" data-testid={`row-development-${dev.id}`}>
+            {filteredAndSortedData.map((dev) => (
+              <tr key={dev.id} className="group" data-testid={`row-development-${dev.id}`}>
                 {visibleColumns.map((col) => {
                   const fieldCanEdit = canEdit(col.key);
                   const value = (dev as any)[col.key];
@@ -314,35 +361,36 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.key === 'id') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5 text-muted-foreground text-xs font-mono">
-                        {dev.id.slice(0, 8)}...
+                      <td key={col.key} className={getCellStyle({ type: "index" })}>
+                        <span className="text-xs font-mono">{dev.id.slice(0, 8)}...</span>
                       </td>
                     );
                   }
 
                   if (col.type === 'boolean') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5 text-center">
-                        <Checkbox
-                          checked={!!value}
-                          disabled={!fieldCanEdit}
-                          onCheckedChange={(checked) => handleCheckboxChange(dev.id, col.key, !!checked)}
-                          data-testid={`checkbox-${col.key}-${dev.id}`}
-                        />
-                        {!fieldCanEdit && <Lock className="inline-block w-3 h-3 ml-1 text-muted-foreground opacity-50" />}
+                      <td key={col.key} className={getCellStyle({ type: "checkbox", disabled: !fieldCanEdit })}>
+                        <div className="flex items-center justify-center">
+                          <Checkbox
+                            checked={!!value}
+                            disabled={!fieldCanEdit}
+                            onCheckedChange={(checked) => handleCheckboxChange(dev.id, col.key, !!checked)}
+                            data-testid={`checkbox-${col.key}-${dev.id}`}
+                          />
+                        </div>
                       </td>
                     );
                   }
 
                   if (col.type === 'developer-select') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-7 text-sm">
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
@@ -353,7 +401,7 @@ export function DevelopmentsSpreadsheet() {
                             </SelectContent>
                           </Select>
                         ) : (
-                          <div className="flex items-center gap-1 text-muted-foreground">
+                          <div className="flex items-center gap-1">
                             <span>{getDeveloperName(value)}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
@@ -364,33 +412,24 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.type === 'city-select') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
-                          isEditing ? (
-                            <Select
-                              value={value || "__unassigned__"}
-                              onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                            >
-                              <SelectTrigger className="h-7 text-sm">
-                                <SelectValue placeholder="Ciudad" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                                {CITIES.map(c => (
-                                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <span
-                              className="cursor-pointer hover:underline"
-                              onClick={() => setEditingCell({ id: dev.id, field: col.key })}
-                            >
-                              {value || "—"}
-                            </span>
-                          )
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectValue placeholder="Ciudad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {CITIES.map(c => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="flex items-center gap-1 text-muted-foreground">
+                          <div className="flex items-center gap-1">
                             <span>{value || "—"}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
@@ -402,33 +441,24 @@ export function DevelopmentsSpreadsheet() {
                   if (col.type === 'zone-select') {
                     const zones = getZonesForCity(dev.city);
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
-                          isEditing ? (
-                            <Select
-                              value={value || "__unassigned__"}
-                              onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                            >
-                              <SelectTrigger className="h-7 text-sm">
-                                <SelectValue placeholder="Zona" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                                {zones.map(z => (
-                                  <SelectItem key={z} value={z}>{z}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <span
-                              className="cursor-pointer hover:underline"
-                              onClick={() => setEditingCell({ id: dev.id, field: col.key })}
-                            >
-                              {value || "—"}
-                            </span>
-                          )
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectValue placeholder="Zona" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {zones.map(z => (
+                                <SelectItem key={z} value={z}>{z}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="flex items-center gap-1 text-muted-foreground">
+                          <div className="flex items-center gap-1">
                             <span>{value || "—"}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
@@ -439,33 +469,24 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.type === 'type-select') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
-                          isEditing ? (
-                            <Select
-                              value={value || "__unassigned__"}
-                              onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                            >
-                              <SelectTrigger className="h-7 text-sm">
-                                <SelectValue placeholder="Tipo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                                {DEVELOPMENT_TYPES.map(t => (
-                                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <span
-                              className="cursor-pointer hover:underline"
-                              onClick={() => setEditingCell({ id: dev.id, field: col.key })}
-                            >
-                              {value || "—"}
-                            </span>
-                          )
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectValue placeholder="Tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {DEVELOPMENT_TYPES.map(t => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="flex items-center gap-1 text-muted-foreground">
+                          <div className="flex items-center gap-1">
                             <span>{value || "—"}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
@@ -478,18 +499,17 @@ export function DevelopmentsSpreadsheet() {
                     const arrValue = Array.isArray(value) ? value : [];
                     const count = arrValue.length;
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "readonly", disabled: !fieldCanEdit })}>
                         <Badge variant="secondary" className="text-xs">
                           {count} {count === 1 ? 'item' : 'items'}
                         </Badge>
-                        {!fieldCanEdit && <Lock className="inline-block w-3 h-3 ml-1 text-muted-foreground opacity-50" />}
                       </td>
                     );
                   }
 
                   if (col.type === 'folder-link') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "actions" })}>
                         <Link
                           href={`/admin/documentos?developmentId=${dev.id}&sectionType=${col.folderSection}`}
                           className="text-primary hover:underline flex items-center gap-1"
@@ -503,7 +523,7 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.type === 'actions') {
                     return (
-                      <td key={col.key} className="border-b border-r px-2 py-1.5">
+                      <td key={col.key} className={getCellStyle({ type: "actions" })}>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -520,33 +540,32 @@ export function DevelopmentsSpreadsheet() {
                   const displayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
 
                   return (
-                    <td key={col.key} className="border-b border-r px-2 py-1.5">
-                      {fieldCanEdit ? (
-                        isEditing ? (
-                          <Input
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={() => handleCellBlur(dev.id, col.key, col)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(dev.id, col.key, col)}
-                            onFocus={(e) => e.target.select()}
-                            className="h-7 text-sm"
-                            autoFocus
-                            type={col.type === 'number' ? 'number' : 'text'}
-                            data-testid={`input-${col.key}-${dev.id}`}
-                          />
-                        ) : (
-                          <div
-                            className="min-h-[28px] flex items-center cursor-pointer hover:bg-accent/50 rounded px-1"
-                            onClick={() => handleCellClick(dev.id, col.key, value)}
-                            data-testid={`cell-${col.key}-${dev.id}`}
-                          >
-                            {displayValue || <span className="text-muted-foreground">—</span>}
-                          </div>
-                        )
+                    <td 
+                      key={col.key} 
+                      className={getCellStyle({ 
+                        type: col.type === 'number' ? "input" : "input", 
+                        disabled: !fieldCanEdit,
+                        isEditing 
+                      })}
+                      onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, value)}
+                      data-testid={`cell-${col.key}-${dev.id}`}
+                    >
+                      {isEditing && fieldCanEdit ? (
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => handleCellBlur(dev.id, col.key, col)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(dev.id, col.key, col)}
+                          onFocus={(e) => e.target.select()}
+                          className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                          autoFocus
+                          type={col.type === 'number' ? 'number' : 'text'}
+                          data-testid={`input-${col.key}-${dev.id}`}
+                        />
                       ) : (
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <span>{displayValue || '—'}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                        <div className="flex items-center gap-1">
+                          <span className="truncate">{displayValue || '—'}</span>
+                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                         </div>
                       )}
                     </td>

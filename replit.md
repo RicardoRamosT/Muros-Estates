@@ -79,7 +79,31 @@ No specific user preferences were provided in the original document.
 - `/api/auth/*` - Authentication endpoints
 - `/api/catalog/*` - CRUD for catalog data (cities, zones, development-types, amenities, efficiency-features, other-features)
 
+## Spreadsheet Utility System
+Located in `client/src/lib/spreadsheet-utils.ts`:
+- **getCellStyle()**: Returns CSS classes for Excel-like cell styling based on cell type
+- **Cell Types**: input (white), dropdown/checkbox (gray), calculated (light blue), readonly/index (light gray), disabled (dark gray with pattern), actions (neutral)
+- **Formatting Functions**: formatCurrency(), formatPercent(), formatArea(), formatDate() for consistent display
+- **Formula Definitions**: TYPOLOGY_FORMULAS array with 19 formulas for calculated fields (finalPrice, pricePerM2, monthlyPayment, etc.)
+
+## Column Filter System
+Located in `client/src/components/ui/column-filter.tsx`:
+- **ColumnFilter Component**: Popover-based filter with search, multi-select checkboxes, ascending/descending sort
+- **useColumnFilters Hook**: State management for filters and sorting across spreadsheets
+- **FilterState Interface**: { search: string, selectedValues: Set<string | number | boolean> }
+- **Integration**: Used in DevelopersSpreadsheet, DevelopmentsSpreadsheet, ProspectsSpreadsheet
+
+## Formula Tooltip System
+Located in `client/src/components/ui/formula-tooltip.tsx`:
+- **FormulaTooltip Component**: Displays formula and description on hover for calculated fields
+- **TYPOLOGY_FORMULAS**: Array of 19 formula definitions with field, label, formula, description
+
 ## Recent Changes (January 2026)
+- Implemented Excel-style cell coloring system: white=editable input, gray=dropdown/checkbox, light blue=calculated, dark gray=disabled conditional fields
+- Added column filtering and sorting to all 5 admin spreadsheets (Developers, Developments, Typologies, Prospects, Clients)
+- Created unified spreadsheet-utils.ts with formatting functions and formula definitions
+- Added FormulaTooltip component for displaying calculation formulas on hover
+- Fixed database schema: made legacy English columns (name, phone, email, interest, status, source) nullable
 - Added Catálogos admin page with 6 tabs for managing master dropdown values (Cities, Zones, Development Types, Amenities, Efficiency Features, Other Features)
 - Created 6 new database tables for catalogs with Zod validation on all API endpoints
 - Initial data populated: 2 cities, 26 zones (18 Monterrey, 8 CDMX), 5 development types, 32 amenities, 7 efficiency features, 4 other features
