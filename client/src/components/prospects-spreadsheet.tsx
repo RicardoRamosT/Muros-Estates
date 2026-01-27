@@ -141,7 +141,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "apellido", label: "Apellido", width: "140px" },
     { key: "telefono", label: "Teléfono", width: "130px" },
     { key: "correo", label: "Correo", width: "180px" },
-    { key: "tipofil", label: "Tipofil", width: "100px" },
+    { key: "tipofil", label: "Tipo", width: "100px" },
     { key: "perfil", label: "Perfil", width: "120px" },
     { key: "comoLlega", label: "Cómo Llega", width: "120px", type: "select" },
     { key: "brokerExterno", label: "Broker Externo", width: "140px" },
