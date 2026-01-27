@@ -60,7 +60,7 @@ interface SectionDef {
   color: string;
   columns: ColumnDef[];
   subheader?: string;
-  conditionalFields?: { field: TypologyField; dependsOn: TypologyField }[];
+  conditionalFields?: { field: TypologyField; dependsOn: TypologyField | TypologyField[] }[];
 }
 
 const SECTIONS: SectionDef[] = [
@@ -148,8 +148,13 @@ const SECTIONS: SectionDef[] = [
     conditionalFields: [
       { field: "balconySize", dependsOn: "hasBalcony" },
       { field: "terraceSize", dependsOn: "hasTerrace" },
-      { field: "balconySize2", dependsOn: "hasBalcony2" },
-      { field: "terraceSize2", dependsOn: "hasTerrace2" },
+      { field: "bedrooms2", dependsOn: "lockOff" },
+      { field: "bathrooms2", dependsOn: "lockOff" },
+      { field: "areas2", dependsOn: "lockOff" },
+      { field: "hasBalcony2", dependsOn: "lockOff" },
+      { field: "balconySize2", dependsOn: ["lockOff", "hasBalcony2"] },
+      { field: "hasTerrace2", dependsOn: "lockOff" },
+      { field: "terraceSize2", dependsOn: ["lockOff", "hasTerrace2"] },
     ],
   },
   {
@@ -748,10 +753,10 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         className={cn(
           "px-2 py-1 text-sm truncate",
           column.calculated && "bg-muted/50 text-muted-foreground italic",
-          disabled && !column.calculated && "bg-muted/30 text-muted-foreground/60"
+          disabled && !column.calculated && "bg-muted text-muted-foreground/50 cursor-not-allowed"
         )}
         style={{ width: column.width }}
-        title={disabled && !column.calculated ? "Campo deshabilitado" : formatValue(value, column.format)}
+        title={disabled && !column.calculated ? "Campo deshabilitado - active la opción correspondiente" : formatValue(value, column.format)}
         data-testid={`cell-${column.key}-disabled`}
       >
         {formatValue(value, column.format) || "-"}
@@ -1485,9 +1490,13 @@ export function TypologySpreadsheet() {
                         if (col.key === "development") dynamicOpts = developmentOptions;
                         
                         const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
-                        const isConditionallyDisabled = conditionalField 
-                          ? !mergedRow[conditionalField.dependsOn]
-                          : false;
+                        let isConditionallyDisabled = false;
+                        if (conditionalField) {
+                          const deps = Array.isArray(conditionalField.dependsOn) 
+                            ? conditionalField.dependsOn 
+                            : [conditionalField.dependsOn];
+                          isConditionallyDisabled = deps.some(dep => !mergedRow[dep]);
+                        }
                         
                         return (
                           <EditableCell
