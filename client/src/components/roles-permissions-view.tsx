@@ -90,23 +90,23 @@ function PermissionsTable({ section }: { section: string }) {
           <thead>
             <tr className="bg-muted/95 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
               <th className="text-left font-medium py-3 px-3 border-b border-r sticky left-0 top-0 bg-muted/95 backdrop-blur supports-[backdrop-filter]:bg-muted/60 z-20">
-                Campo
+                Rol
               </th>
-              {ROLES.map((role) => (
-                <th key={role} className="text-center font-medium py-3 px-2 border-b border-r min-w-[100px] sticky top-0 bg-muted/95 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
-                  {ROLE_LABELS[role]}
+              {fieldNames.map((field) => (
+                <th key={field} className="text-center font-medium py-3 px-2 border-b border-r min-w-[90px] sticky top-0 bg-muted/95 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
+                  {fieldLabels[field] || field}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {fieldNames.map((field) => (
-              <tr key={field} className="hover:bg-muted/30">
+            {ROLES.map((role) => (
+              <tr key={role} className="hover:bg-muted/30">
                 <td className="border-b border-r py-2 px-3 font-medium sticky left-0 bg-background z-10">
-                  {fieldLabels[field] || field}
+                  {ROLE_LABELS[role]}
                 </td>
-                {ROLES.map((role) => (
-                  <td key={role} className="border-b border-r py-2 px-2 text-center">
+                {fieldNames.map((field) => (
+                  <td key={field} className="border-b border-r py-2 px-2 text-center">
                     {getPermissionBadge(fields[field]?.[role] || "none", field, role)}
                   </td>
                 ))}
