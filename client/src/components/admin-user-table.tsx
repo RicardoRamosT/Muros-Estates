@@ -1,9 +1,8 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, MoreHorizontal, Trash2, Loader2, UserCheck, UserX, Eye, Pencil } from "lucide-react";
+import { Edit, MoreHorizontal, Trash2, Loader2, UserCheck, UserX, Eye, Pencil, Users } from "lucide-react";
 import type { UserPermissions } from "@shared/schema";
 
 interface User {
@@ -95,98 +94,107 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
 
   return (
     <div className="border rounded-lg overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead>Nombre</TableHead>
-            <TableHead>Usuario</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead className="text-center">Rol</TableHead>
-            <TableHead className="text-center">Permisos</TableHead>
-            <TableHead className="text-center">Estado</TableHead>
-            <TableHead className="w-20"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => {
-            const role = roleLabels[user.role] || { label: user.role, variant: "outline" as const };
-            return (
-              <TableRow key={user.id} className="hover-elevate" data-testid={`row-user-${user.id}`}>
-                <TableCell>
-                  <p className="font-medium" data-testid={`text-name-${user.id}`}>{user.name}</p>
-                </TableCell>
-                <TableCell>
-                  <p className="text-sm text-muted-foreground">{user.username}</p>
-                </TableCell>
-                <TableCell>
-                  <p className="text-sm">{user.email || "-"}</p>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant={role.variant} data-testid={`badge-role-${user.id}`}>
-                    {role.label}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <PermissionsSummary permissions={user.permissions} />
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge 
-                    variant={user.active ? "default" : "destructive"} 
-                    data-testid={`badge-status-${user.id}`}
-                  >
-                    {user.active ? "Activo" : "Inactivo"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" data-testid={`button-actions-${user.id}`}>
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        className="cursor-pointer" 
-                        onClick={() => onEdit(user)}
-                        data-testid={`action-edit-${user.id}`}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="cursor-pointer"
-                        onClick={() => onToggleActive(user.id, !user.active)}
-                        data-testid={`action-toggle-${user.id}`}
-                      >
-                        {user.active ? (
-                          <>
-                            <UserX className="w-4 h-4 mr-2" />
-                            Desactivar
-                          </>
-                        ) : (
-                          <>
-                            <UserCheck className="w-4 h-4 mr-2" />
-                            Activar
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="cursor-pointer text-destructive focus:text-destructive"
-                        onClick={() => onDelete(user.id)}
-                        disabled={isDeleting}
-                        data-testid={`action-delete-${user.id}`}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+      <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/50">
+        <Users className="w-4 h-4 text-muted-foreground" />
+        <span className="font-medium text-sm">{users.length} Usuarios</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="bg-muted/95 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
+              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">#</th>
+              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">Nombre</th>
+              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">Usuario</th>
+              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">Email</th>
+              <th className="text-center font-medium py-3 px-3 border-b border-r sticky top-0">Rol</th>
+              <th className="text-center font-medium py-3 px-3 border-b border-r sticky top-0">Permisos</th>
+              <th className="text-center font-medium py-3 px-3 border-b border-r sticky top-0">Estado</th>
+              <th className="text-center font-medium py-3 px-2 border-b sticky top-0 w-12"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user, idx) => {
+              const role = roleLabels[user.role] || { label: user.role, variant: "outline" as const };
+              return (
+                <tr key={user.id} className="hover:bg-muted/30" data-testid={`row-user-${user.id}`}>
+                  <td className="border-b border-r px-3 py-2 text-muted-foreground">{idx + 1}</td>
+                  <td className="border-b border-r px-3 py-2">
+                    <span className="font-medium" data-testid={`text-name-${user.id}`}>{user.name}</span>
+                  </td>
+                  <td className="border-b border-r px-3 py-2">
+                    <span className="text-muted-foreground">{user.username}</span>
+                  </td>
+                  <td className="border-b border-r px-3 py-2">
+                    <span>{user.email || "-"}</span>
+                  </td>
+                  <td className="border-b border-r px-3 py-2 text-center">
+                    <Badge variant={role.variant} data-testid={`badge-role-${user.id}`}>
+                      {role.label}
+                    </Badge>
+                  </td>
+                  <td className="border-b border-r px-3 py-2 text-center">
+                    <PermissionsSummary permissions={user.permissions} />
+                  </td>
+                  <td className="border-b border-r px-3 py-2 text-center">
+                    <Badge 
+                      variant={user.active ? "default" : "destructive"}
+                      className={user.active ? "bg-green-500/20 text-green-700 dark:text-green-400" : ""}
+                      data-testid={`badge-status-${user.id}`}
+                    >
+                      {user.active ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </td>
+                  <td className="border-b px-2 py-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" data-testid={`button-actions-${user.id}`}>
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          className="cursor-pointer" 
+                          onClick={() => onEdit(user)}
+                          data-testid={`action-edit-${user.id}`}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="cursor-pointer"
+                          onClick={() => onToggleActive(user.id, !user.active)}
+                          data-testid={`action-toggle-${user.id}`}
+                        >
+                          {user.active ? (
+                            <>
+                              <UserX className="w-4 h-4 mr-2" />
+                              Desactivar
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="w-4 h-4 mr-2" />
+                              Activar
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="cursor-pointer text-destructive focus:text-destructive"
+                          onClick={() => onDelete(user.id)}
+                          disabled={isDeleting}
+                          data-testid={`action-delete-${user.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
