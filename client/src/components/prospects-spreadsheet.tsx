@@ -199,41 +199,27 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { value: "otro", label: "Otro" },
   ];
 
-  // Column filtering and sorting
-  const {
-    sortConfig,
-    filterConfigs,
-    handleSort,
-    handleFilter,
-    handleClearFilter,
-    clearAllFilters,
-    hasActiveFilters,
-    getFilteredAndSortedData,
-    getUniqueValuesForColumn
-  } = useColumnFilters();
-
-  const filteredAndSortedData = useMemo(() => 
-    getFilteredAndSortedData(prospects), 
-    [prospects, sortConfig, filterConfigs, getFilteredAndSortedData]
-  );
-
-  const uniqueValuesMap = useMemo(() => {
-    const map: Record<string, (string | number | boolean)[]> = {};
-    allColumns.forEach(col => {
-      if (col.type !== 'actions' && col.type !== 'index') {
-        map[col.key] = getUniqueValuesForColumn(prospects, col.key);
-      }
-    });
-    return map;
-  }, [prospects, allColumns, getUniqueValuesForColumn]);
-
   const columns = useMemo(() => {
     return allColumns.filter(col => {
       if (col.type === 'index' || col.type === 'actions') return true;
       // Use col.key for permission check (fecha, hora are defined in permissions, not createdAt)
       return canView(col.key);
     });
-  }, [canView]);
+  }, [allColumns, canView]);
+
+  // Column filtering and sorting
+  const {
+    sortConfig,
+    filterConfigs,
+    uniqueValuesMap,
+    filteredAndSortedData,
+    handleSort,
+    handleFilter,
+    handleClearFilter,
+    clearAllFilters,
+  } = useColumnFilters(prospects, columns);
+
+  const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
   if (isLoading) {
     return (

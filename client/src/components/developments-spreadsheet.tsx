@@ -335,7 +335,6 @@ export function DevelopmentsSpreadsheet() {
                         columnType={
                           col.type === 'boolean' ? 'boolean' : 
                           col.type === 'number' ? 'number' : 
-                          col.type === 'date' ? 'date' :
                           (col.type?.includes('select') ? 'select' : 'text')
                         }
                         uniqueValues={uniqueValuesMap[col.key] || []}

@@ -205,7 +205,7 @@ export function DevelopersSpreadsheet() {
                       <ColumnFilter
                         columnKey={col.key}
                         columnLabel={col.label}
-                        columnType={col.type === 'toggle' ? 'boolean' : col.type === 'number' ? 'number' : 'text'}
+                        columnType={col.type === 'toggle' ? 'boolean' : 'text'}
                         uniqueValues={uniqueValuesMap[col.key] || []}
                         sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
                         filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
