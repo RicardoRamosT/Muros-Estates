@@ -42,6 +42,25 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     contactEmail: "Contacto Email",
     legales: "Legales",
   },
+  prospectos: {
+    id: "ID",
+    fechaAlta: "Fecha Alta",
+    asesor: "Asesor",
+    nombre: "Nombre",
+    apellido: "Apellido",
+    telefono: "Teléfono",
+    correo: "Correo",
+    tipofil: "Tipo",
+    perfil: "Perfil",
+    comoLlega: "Cómo Llega",
+    brokerExterno: "Broker Externo",
+    estatus: "Estatus",
+    embudo: "Embudo",
+    comoPaga: "Cómo Paga",
+    positivos: "Positivos",
+    negativos: "Negativos",
+    comentarios: "Comentarios",
+  },
 };
 
 const ROLES = ["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"];
