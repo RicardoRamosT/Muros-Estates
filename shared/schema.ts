@@ -1735,3 +1735,37 @@ export const insertCatalogNegativoSchema = createInsertSchema(catalogNegativos).
 
 export type InsertCatalogNegativo = z.infer<typeof insertCatalogNegativoSchema>;
 export type CatalogNegativo = typeof catalogNegativos.$inferSelect;
+
+// Asesor catalog (Asesor 1, Asesor 2, etc.)
+export const catalogAsesor = pgTable("catalog_asesor", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogAsesorSchema = createInsertSchema(catalogAsesor).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogAsesor = z.infer<typeof insertCatalogAsesorSchema>;
+export type CatalogAsesor = typeof catalogAsesor.$inferSelect;
+
+// Broker Externo catalog (Externo 1, Externo 2, etc.)
+export const catalogBrokerExterno = pgTable("catalog_broker_externo", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogBrokerExternoSchema = createInsertSchema(catalogBrokerExterno).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogBrokerExterno = z.infer<typeof insertCatalogBrokerExternoSchema>;
+export type CatalogBrokerExterno = typeof catalogBrokerExterno.$inferSelect;

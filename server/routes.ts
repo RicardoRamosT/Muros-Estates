@@ -2413,6 +2413,44 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // Asesor catalog
+  app.get("/api/catalog/asesor", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogAsesor();
+    res.json(items);
+  });
+  app.post("/api/catalog/asesor", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const item = await storage.createCatalogAsesor(req.body);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/asesor/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const item = await storage.updateCatalogAsesor(req.params.id as string, req.body);
+    if (!item) return res.status(404).json({ error: "No encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/asesor/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogAsesor(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Broker Externo catalog
+  app.get("/api/catalog/broker-externo", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogBrokerExterno();
+    res.json(items);
+  });
+  app.post("/api/catalog/broker-externo", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const item = await storage.createCatalogBrokerExterno(req.body);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/broker-externo/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const item = await storage.updateCatalogBrokerExterno(req.params.id as string, req.body);
+    if (!item) return res.status(404).json({ error: "No encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/broker-externo/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogBrokerExterno(req.params.id as string);
+    res.status(204).send();
+  });
+
   // Role Permissions API
   app.get("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {
     const permissions = await storage.getRolePermissions();

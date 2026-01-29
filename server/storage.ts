@@ -40,6 +40,8 @@ import {
   catalogComoPaga, type CatalogComoPaga, type InsertCatalogComoPaga,
   catalogPositivos, type CatalogPositivo, type InsertCatalogPositivo,
   catalogNegativos, type CatalogNegativo, type InsertCatalogNegativo,
+  catalogAsesor, type CatalogAsesor, type InsertCatalogAsesor,
+  catalogBrokerExterno, type CatalogBrokerExterno, type InsertCatalogBrokerExterno,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, ilike } from "drizzle-orm";
@@ -1172,6 +1174,40 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCatalogNegativo(id: string): Promise<boolean> {
     await db.delete(catalogNegativos).where(eq(catalogNegativos.id, id));
+    return true;
+  }
+
+  // Asesor catalog
+  async getCatalogAsesor(): Promise<CatalogAsesor[]> {
+    return db.select().from(catalogAsesor).orderBy(catalogAsesor.order, catalogAsesor.name);
+  }
+  async createCatalogAsesor(item: InsertCatalogAsesor): Promise<CatalogAsesor> {
+    const [created] = await db.insert(catalogAsesor).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogAsesor(id: string, item: Partial<InsertCatalogAsesor>): Promise<CatalogAsesor | undefined> {
+    const [updated] = await db.update(catalogAsesor).set(item as any).where(eq(catalogAsesor.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogAsesor(id: string): Promise<boolean> {
+    await db.delete(catalogAsesor).where(eq(catalogAsesor.id, id));
+    return true;
+  }
+
+  // Broker Externo catalog
+  async getCatalogBrokerExterno(): Promise<CatalogBrokerExterno[]> {
+    return db.select().from(catalogBrokerExterno).orderBy(catalogBrokerExterno.order, catalogBrokerExterno.name);
+  }
+  async createCatalogBrokerExterno(item: InsertCatalogBrokerExterno): Promise<CatalogBrokerExterno> {
+    const [created] = await db.insert(catalogBrokerExterno).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogBrokerExterno(id: string, item: Partial<InsertCatalogBrokerExterno>): Promise<CatalogBrokerExterno | undefined> {
+    const [updated] = await db.update(catalogBrokerExterno).set(item as any).where(eq(catalogBrokerExterno.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogBrokerExterno(id: string): Promise<boolean> {
+    await db.delete(catalogBrokerExterno).where(eq(catalogBrokerExterno.id, id));
     return true;
   }
 }

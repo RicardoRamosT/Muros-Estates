@@ -163,6 +163,8 @@ function ProspectosCatalogs() {
         <TabsTrigger value="tipo-cliente" className="gap-2"><UserCircle className="w-4 h-4" />Tipo Cliente</TabsTrigger>
         <TabsTrigger value="perfil" className="gap-2"><Users className="w-4 h-4" />Perfil</TabsTrigger>
         <TabsTrigger value="fuente" className="gap-2"><Target className="w-4 h-4" />Fuente</TabsTrigger>
+        <TabsTrigger value="asesor" className="gap-2"><UserCircle className="w-4 h-4" />Asesor</TabsTrigger>
+        <TabsTrigger value="broker-externo" className="gap-2"><Users className="w-4 h-4" />Broker Externo</TabsTrigger>
         <TabsTrigger value="status" className="gap-2"><Activity className="w-4 h-4" />Status</TabsTrigger>
         <TabsTrigger value="etapa" className="gap-2"><Target className="w-4 h-4" />Etapa Embudo</TabsTrigger>
         <TabsTrigger value="como-paga" className="gap-2"><CreditCard className="w-4 h-4" />Cómo Paga</TabsTrigger>
@@ -172,6 +174,8 @@ function ProspectosCatalogs() {
       <TabsContent value="tipo-cliente"><ColoredExcelTable title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" icon={UserCircle} /></TabsContent>
       <TabsContent value="perfil"><ColoredExcelTable title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" icon={Users} /></TabsContent>
       <TabsContent value="fuente"><ColoredExcelTable title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" icon={Target} /></TabsContent>
+      <TabsContent value="asesor"><ExcelTable title="Asesor" endpoint="/api/catalog/asesor" queryKey="/api/catalog/asesor" icon={UserCircle} /></TabsContent>
+      <TabsContent value="broker-externo"><ExcelTable title="Broker Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" icon={Users} /></TabsContent>
       <TabsContent value="status"><ColoredExcelTable title="Status" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" icon={Activity} /></TabsContent>
       <TabsContent value="etapa"><ColoredExcelTable title="Etapa Embudo" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" icon={Target} /></TabsContent>
       <TabsContent value="como-paga"><ExcelTable title="Cómo Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" icon={CreditCard} /></TabsContent>
