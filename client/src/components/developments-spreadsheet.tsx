@@ -359,7 +359,7 @@ export function DevelopmentsSpreadsheet() {
               {visibleColumns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
+                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs tracking-wide whitespace-nowrap"
                   style={{ minWidth: col.width, width: col.width }}
                 >
                   <div className="flex items-center">
