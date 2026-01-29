@@ -73,9 +73,9 @@ export function DevelopersSpreadsheet() {
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "140px", type: "rfc", cellType: "input" },
     { key: "domicilio", label: "Domicilio", width: "200px", cellType: "input" },
-    // Antigüedad group - 2 columns under same header (no individual labels, group header shows "ANTIGÜEDAD")
-    { key: "fechaAntiguedad", label: "", width: "120px", type: "date", group: "antiguedad", cellType: "date" },
-    { key: "antiguedadDeclarada", label: "", width: "150px", group: "antiguedad", cellType: "input" },
+    // Antigüedad group - 2 columns under same header
+    { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", group: "antiguedad", cellType: "date" },
+    { key: "antiguedadDeclarada", label: "Antigüedad Declarada", width: "150px", group: "antiguedad", cellType: "input" },
     // Tipos - multiselect dropdown
     { key: "tipos", label: "Tipos", width: "180px", type: "multiselect", cellType: "dropdown" },
     { key: "representante", label: "Representante", width: "160px", cellType: "input" },
