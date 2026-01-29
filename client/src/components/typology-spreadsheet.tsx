@@ -1470,7 +1470,6 @@ export function TypologySpreadsheet() {
       >
         <div className="min-w-max">
           <div className="sticky top-0 z-20 flex bg-background border-b">
-            <div className="w-12 flex-shrink-0 border-r bg-muted/50" />
             <div className="w-12 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
               <span className="text-xs font-medium text-muted-foreground">#</span>
             </div>
@@ -1552,26 +1551,6 @@ export function TypologySpreadsheet() {
                 )}
                 data-testid={`row-typology-${row.id}`}
               >
-                <div className="w-12 flex-shrink-0 border-r flex items-center justify-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "h-6 w-6",
-                      pendingDeleteId === row.id 
-                        ? "text-amber-500 hover:text-amber-600" 
-                        : "text-destructive hover:text-destructive"
-                    )}
-                    onClick={() => handleDeleteRow(row.id)}
-                    data-testid={`button-delete-${row.id}`}
-                  >
-                    {pendingDeleteId === row.id ? (
-                      <CornerDownRight className="w-3 h-3" />
-                    ) : (
-                      <Trash2 className="w-3 h-3" />
-                    )}
-                  </Button>
-                </div>
                 <div 
                   className="w-12 flex-shrink-0 border-r flex items-center justify-center text-sm text-muted-foreground"
                   data-testid={`cell-index-${row.id}`}
