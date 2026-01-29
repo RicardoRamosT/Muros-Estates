@@ -429,7 +429,7 @@ export function DevelopmentsSpreadsheet() {
                           </Select>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <span>{value || "—"}</span>
+                            <span>{value || ""}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
                         )}
@@ -458,7 +458,7 @@ export function DevelopmentsSpreadsheet() {
                           </Select>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <span>{value || "—"}</span>
+                            <span>{value || ""}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
                         )}
@@ -486,7 +486,7 @@ export function DevelopmentsSpreadsheet() {
                           </Select>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <span>{value || "—"}</span>
+                            <span>{value || ""}</span>
                             <Lock className="w-3 h-3 opacity-50" />
                           </div>
                         )}
@@ -563,7 +563,7 @@ export function DevelopmentsSpreadsheet() {
                         />
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span className="truncate">{displayValue || '—'}</span>
+                          <span className="truncate">{displayValue || ''}</span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                         </div>
                       )}

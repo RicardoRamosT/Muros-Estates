@@ -885,7 +885,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       title={formatValue(value, column.format)}
       data-testid={`cell-${column.key}-${rowId}`}
     >
-      {formatValue(value, column.format) || <span className="text-muted-foreground">-</span>}
+      {formatValue(value, column.format) || ""}
     </div>
   );
 }

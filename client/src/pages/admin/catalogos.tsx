@@ -270,7 +270,7 @@ function ZonesTable() {
     },
   });
 
-  const getCityName = (cityId: string | null) => cities.find(c => c.id === cityId)?.name || "-";
+  const getCityName = (cityId: string | null) => cities.find(c => c.id === cityId)?.name || "";
 
   if (isLoading) {
     return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
@@ -511,7 +511,7 @@ function SimpleTable({
                         className="cursor-pointer hover:bg-accent/50 px-2 py-1 rounded block transition-colors text-muted-foreground" 
                         onClick={() => { setEditingCell({ id: item.id, field: "icon" }); setEditValue(item.icon || ""); }}
                       >
-                        {item.icon || "-"}
+                        {item.icon || ""}
                       </span>
                     )}
                   </td>

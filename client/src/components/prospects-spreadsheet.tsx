@@ -111,21 +111,21 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   };
 
   const formatDate = (date: Date | string | null) => {
-    if (!date) return "-";
+    if (!date) return "";
     const d = new Date(date);
     return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   const formatTime = (date: Date | string | null) => {
-    if (!date) return "-";
+    if (!date) return "";
     const d = new Date(date);
     return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   };
 
   const getAsesorName = (asesorId: string | null) => {
-    if (!asesorId) return "-";
+    if (!asesorId) return "";
     const user = users.find(u => u.id === asesorId);
-    return user ? user.name : "-";
+    return user ? user.name : "";
   };
 
   // Columns for Prospectos (22 fields)
