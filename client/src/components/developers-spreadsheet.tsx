@@ -73,9 +73,9 @@ export function DevelopersSpreadsheet() {
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "140px", type: "rfc", cellType: "input" },
     { key: "domicilio", label: "Domicilio", width: "200px", cellType: "input" },
-    // Antigüedad group - 2 columns under same header
-    { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", group: "antiguedad", cellType: "date" },
-    { key: "antiguedadDeclarada", label: "Antigüedad Declarada", width: "150px", group: "antiguedad", cellType: "input" },
+    // Antigüedad group - 2 columns under same header (no individual labels, group header shows "ANTIGÜEDAD")
+    { key: "fechaAntiguedad", label: "", width: "120px", type: "date", group: "antiguedad", cellType: "date" },
+    { key: "antiguedadDeclarada", label: "", width: "150px", group: "antiguedad", cellType: "input" },
     // Tipos - multiselect dropdown
     { key: "tipos", label: "Tipos", width: "180px", type: "multiselect", cellType: "dropdown" },
     { key: "representante", label: "Representante", width: "160px", cellType: "input" },
@@ -240,6 +240,40 @@ export function DevelopersSpreadsheet() {
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
+            {/* Group header row */}
+            <tr>
+              {(() => {
+                const groupHeaders: { key: string; label: string; colSpan: number; bgClass: string }[] = [];
+                let i = 0;
+                while (i < columns.length) {
+                  const col = columns[i];
+                  if (col.group === 'antiguedad') {
+                    let count = 0;
+                    while (i + count < columns.length && columns[i + count].group === 'antiguedad') count++;
+                    groupHeaders.push({ key: 'antiguedad', label: 'ANTIGÜEDAD', colSpan: count, bgClass: 'bg-purple-600 dark:bg-purple-700 text-white' });
+                    i += count;
+                  } else if (col.group === 'contacto') {
+                    let count = 0;
+                    while (i + count < columns.length && columns[i + count].group === 'contacto') count++;
+                    groupHeaders.push({ key: 'contacto', label: 'CONTACTO', colSpan: count, bgClass: 'bg-green-600 dark:bg-green-700 text-white' });
+                    i += count;
+                  } else {
+                    groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '' });
+                    i++;
+                  }
+                }
+                return groupHeaders.map((gh, idx) => (
+                  <th
+                    key={`group-${gh.key}-${idx}`}
+                    colSpan={gh.colSpan}
+                    className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1 text-center font-bold text-xs uppercase tracking-wide", gh.bgClass)}
+                  >
+                    {gh.label}
+                  </th>
+                ));
+              })()}
+            </tr>
+            {/* Individual column headers */}
             <tr>
               {columns.map((col) => (
                 <th
@@ -252,8 +286,8 @@ export function DevelopersSpreadsheet() {
                     {col.type !== 'index' && col.type !== 'actions' && col.type !== 'folder-link' && (
                       <ColumnFilter
                         columnKey={col.key}
-                        columnLabel={col.label}
-                        columnType={col.type === 'toggle' ? 'boolean' : 'text'}
+                        columnLabel={col.label || (col.group === 'antiguedad' ? (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada') : col.key)}
+                        columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
                         uniqueValues={uniqueValuesMap[col.key] || []}
                         sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
                         filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
