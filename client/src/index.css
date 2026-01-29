@@ -325,4 +325,15 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Spreadsheet cell base - consistent sizing for Excel-style spreadsheets */
+  .spreadsheet-cell {
+    display: flex;
+    align-items: center;
+    min-height: 2rem; /* 32px consistent row height */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    border-right: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
+  }
 }

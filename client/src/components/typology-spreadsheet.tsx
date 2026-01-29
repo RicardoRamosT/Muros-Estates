@@ -789,7 +789,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     const content = (
       <div 
         className={cn(
-          "px-2 py-1 text-sm truncate border-r border-b border-gray-200 dark:border-gray-700",
+          "spreadsheet-cell px-2 text-sm truncate",
           column.calculated && "bg-blue-50 dark:bg-blue-950/30 text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
         )}
@@ -816,7 +816,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   if (column.type === "boolean") {
     return (
       <div 
-        className="flex items-center justify-center px-2 py-1 bg-gray-50 dark:bg-gray-800/50 border-r border-b border-gray-200 dark:border-gray-700" 
+        className="spreadsheet-cell justify-center px-2 bg-gray-50 dark:bg-gray-800/50" 
         style={{ width: column.width }}
       >
         <Select
@@ -878,7 +878,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     
     return (
       <div 
-        className="px-1 py-0.5 bg-gray-50 dark:bg-gray-800/50 border-r border-b border-gray-200 dark:border-gray-700" 
+        className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
         style={{ width: column.width }}
       >
         <Select 
@@ -886,7 +886,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className="h-6 text-xs border-0 focus:ring-0 shadow-none bg-transparent"
+            className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent"
             data-testid={`select-${column.key}-${rowId}`}
           >
             <SelectValue placeholder="-" />
@@ -904,7 +904,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   if (isEditing) {
     return (
       <div 
-        className="px-1 py-0.5 bg-white dark:bg-gray-900 border-r border-b border-primary ring-1 ring-primary" 
+        className="spreadsheet-cell px-1 bg-white dark:bg-gray-900 ring-1 ring-primary" 
         style={{ width: column.width }}
       >
         <Input
@@ -915,7 +915,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="h-6 text-xs border-0 focus:ring-0 shadow-none p-1 bg-transparent"
+          className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none p-1 bg-transparent"
           data-testid={`input-${column.key}-${rowId}`}
         />
       </div>
@@ -924,7 +924,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   
   return (
     <div
-      className="px-2 py-1 text-sm truncate cursor-pointer bg-white dark:bg-gray-900/50 border-r border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+      className="spreadsheet-cell px-2 text-sm truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30"
       style={{ width: column.width }}
       onClick={() => setIsEditing(true)}
       title={formatValue(value, column.format)}
@@ -1625,7 +1625,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="w-12 flex-shrink-0 border-r flex items-center justify-center text-sm text-muted-foreground"
+                  className="spreadsheet-cell w-12 flex-shrink-0 justify-center text-sm text-muted-foreground bg-muted/30"
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
@@ -1675,7 +1675,7 @@ export function TypologySpreadsheet() {
                 ))}
                 
                 <div 
-                  className="w-24 flex-shrink-0 border-r flex items-center justify-center gap-0.5"
+                  className="spreadsheet-cell w-24 flex-shrink-0 justify-center gap-0.5"
                   data-testid={`cell-media-${row.id}`}
                 >
                   <Tooltip>
