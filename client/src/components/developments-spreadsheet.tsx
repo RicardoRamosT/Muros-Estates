@@ -396,7 +396,7 @@ export function DevelopmentsSpreadsheet() {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedData.map((dev) => (
+            {filteredAndSortedData.map((dev, rowIndex) => (
               <tr key={dev.id} className="group" data-testid={`row-development-${dev.id}`}>
                 {visibleColumns.map((col) => {
                   const fieldCanEdit = canEdit(col.key);
@@ -406,7 +406,7 @@ export function DevelopmentsSpreadsheet() {
                   if (col.key === 'id') {
                     return (
                       <td key={col.key} className={getCellStyle({ type: "index" })}>
-                        <span className="text-xs font-mono">{dev.id.slice(0, 8)}...</span>
+                        <span className="text-muted-foreground">{rowIndex + 1}</span>
                       </td>
                     );
                   }
