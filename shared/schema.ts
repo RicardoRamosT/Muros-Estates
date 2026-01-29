@@ -1414,6 +1414,55 @@ export const insertCatalogArquitecturaSchema = createInsertSchema(catalogArquite
 export type InsertCatalogArquitectura = z.infer<typeof insertCatalogArquitecturaSchema>;
 export type CatalogArquitectura = typeof catalogArquitectura.$inferSelect;
 
+// Vista catalog (orientations/views for typologies)
+export const catalogVistas = pgTable("catalog_vistas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogVistaSchema = createInsertSchema(catalogVistas).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogVista = z.infer<typeof insertCatalogVistaSchema>;
+export type CatalogVista = typeof catalogVistas.$inferSelect;
+
+// Areas catalog (interior areas like sala, comedor, etc.)
+export const catalogAreas = pgTable("catalog_areas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogAreaSchema = createInsertSchema(catalogAreas).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogArea = z.infer<typeof insertCatalogAreaSchema>;
+export type CatalogArea = typeof catalogAreas.$inferSelect;
+
+// Tipologias catalog (typology names like A1, B2, etc.)
+export const catalogTipologias = pgTable("catalog_tipologias", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  developmentId: varchar("development_id"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogTipologiaSchema = createInsertSchema(catalogTipologias).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogTipologia = z.infer<typeof insertCatalogTipologiaSchema>;
+export type CatalogTipologia = typeof catalogTipologias.$inferSelect;
+
 // Role permissions table - stores custom permission overrides
 export const rolePermissions = pgTable("role_permissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

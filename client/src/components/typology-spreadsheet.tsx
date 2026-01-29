@@ -80,8 +80,8 @@ const SECTIONS: SectionDef[] = [
     color: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 100 },
-      { key: "zone", label: "Zona", type: "select", options: [], width: 120 },
-      { key: "developer", label: "Desarrollador", type: "select", options: DEVELOPERS, width: 120 },
+      { key: "zone", label: "Zona", type: "text", width: 120, calculated: true },
+      { key: "developer", label: "Desarrollador", type: "text", width: 120, calculated: true },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 130 },
     ],
   },
@@ -90,18 +90,18 @@ const SECTIONS: SectionDef[] = [
     label: "GENERALES",
     color: "bg-blue-100 dark:bg-blue-900/30",
     columns: [
-      { key: "type", label: "Tipo", type: "text", width: 60 },
+      { key: "type", label: "Tipología", type: "select", options: [], width: 100 },
       { key: "level", label: "Nivel", type: "number", width: 60 },
-      { key: "view", label: "Vista", type: "select", options: ["Norte", "Sur", "Este", "Oeste", "N/A"] as const, width: 80 },
+      { key: "view", label: "Vista", type: "select", options: [], width: 100 },
     ],
   },
   {
     id: "precio_tamano",
-    label: "PRECIO",
-    color: "bg-green-100 dark:bg-green-900/30",
+    label: "TAMAÑO",
+    color: "bg-yellow-200 dark:bg-yellow-900/40",
     columns: [
-      { key: "size", label: "Tamaño", type: "decimal", width: 70, format: "area" },
-      { key: "sizeFinal", label: "Final", type: "decimal", width: 70, format: "area" },
+      { key: "size", label: "Unidad", type: "decimal", width: 70, format: "area" },
+      { key: "sizeFinal", label: "Total", type: "decimal", width: 70, format: "area" },
     ],
   },
   {
@@ -112,9 +112,9 @@ const SECTIONS: SectionDef[] = [
       { key: "price", label: "Precio", type: "decimal", width: 120, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 60 },
       { key: "discountPercent", label: "%", type: "decimal", width: 60, format: "percent" },
-      { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "finalPrice", label: "Precio Final", type: "decimal", width: 120, format: "currency", calculated: true },
-      { key: "pricePerM2", label: "Precio/M2", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "pricePerM2", label: "Precio/m²", type: "decimal", width: 100, format: "currency", calculated: true },
     ],
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
@@ -136,16 +136,16 @@ const SECTIONS: SectionDef[] = [
     color: "bg-purple-100 dark:bg-purple-900/30",
     columns: [
       { key: "lockOff", label: "LockOff", type: "boolean", width: 60 },
-      { key: "bedrooms", label: "REC", type: "number", width: 50 },
-      { key: "bathrooms", label: "Baños", type: "decimal", width: 60 },
-      { key: "areas", label: "Áreas", type: "decimal", width: 60 },
+      { key: "bedrooms", label: "Recamaras", type: "select", options: ["1", "1 + Flex", "2", "2 + Flex", "3", "3 + Flex", "4", "4 + Flex"] as const, width: 90 },
+      { key: "bathrooms", label: "Baños", type: "select", options: ["1", "1.5", "2", "2.5", "3", "3.5"] as const, width: 70 },
+      { key: "areas", label: "Áreas", type: "select", options: [], width: 80 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize", label: "Tam", type: "decimal", width: 55, format: "area" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60 },
       { key: "terraceSize", label: "Tam", type: "decimal", width: 55, format: "area" },
-      { key: "bedrooms2", label: "REC", type: "number", width: 50 },
-      { key: "bathrooms2", label: "Baños", type: "decimal", width: 60 },
-      { key: "areas2", label: "Áreas", type: "decimal", width: 60 },
+      { key: "bedrooms2", label: "Recamaras", type: "select", options: ["1", "1 + Flex", "2", "2 + Flex", "3", "3 + Flex", "4", "4 + Flex"] as const, width: 90 },
+      { key: "bathrooms2", label: "Baños", type: "select", options: ["1", "1.5", "2", "2.5", "3", "3.5"] as const, width: 70 },
+      { key: "areas2", label: "Áreas", type: "select", options: [], width: 80 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize2", label: "Tam", type: "decimal", width: 55, format: "area" },
       { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60 },
@@ -168,7 +168,7 @@ const SECTIONS: SectionDef[] = [
     label: "CAJONES",
     color: "bg-amber-100 dark:bg-amber-900/30",
     columns: [
-      { key: "parkingIncluded", label: "Incluidos", type: "number", width: 65 },
+      { key: "parkingIncluded", label: "Incluidos", type: "select", options: ["No", "1", "2", "3", "Tandem"] as const, width: 80 },
       { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
     ],
@@ -199,13 +199,13 @@ const SECTIONS: SectionDef[] = [
     color: "bg-yellow-100 dark:bg-yellow-900/30",
     columns: [
       { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent" },
-      { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "duringConstructionPercent", label: "En Plazo", type: "decimal", width: 65, format: "percent" },
-      { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "paymentMonths", label: "Meses", type: "number", width: 55 },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot. Eng.", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "remainingPercent", label: "Resto", type: "decimal", width: 60, format: "percent" },
+      { key: "remainingPercent", label: "Resto", type: "decimal", width: 60, format: "percent", calculated: true },
     ],
   },
   {
@@ -745,9 +745,12 @@ interface EditableCellProps {
   dynamicOptions?: string[];
   allDevelopments?: any[];
   allDevelopers?: any[];
+  vistaOptions?: string[];
+  areaOptions?: string[];
+  tipologiaOptions?: string[];
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -850,17 +853,27 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
     }
     
-    if (column.key === "development" && developer && allDevelopments && allDevelopers) {
-      const developerRecord = allDevelopers.find(d => d.name === developer);
-      if (developerRecord) {
-        const filteredDevs = allDevelopments
-          .filter(d => d.developerId === developerRecord.id)
-          .map(d => d.name)
-          .filter(Boolean);
-        if (filteredDevs.length > 0) {
-          options = filteredDevs;
-        }
+    if (column.key === "development" && city && allDevelopments) {
+      const filteredDevs = allDevelopments
+        .filter(d => d.city === city)
+        .map(d => d.name)
+        .filter(Boolean);
+      if (filteredDevs.length > 0) {
+        options = filteredDevs;
       }
+    }
+    
+    // Use catalog options for specific columns
+    if (column.key === "view" && vistaOptions && vistaOptions.length > 0) {
+      options = vistaOptions;
+    }
+    
+    if ((column.key === "areas" || column.key === "areas2") && areaOptions && areaOptions.length > 0) {
+      options = areaOptions;
+    }
+    
+    if (column.key === "type" && tipologiaOptions && tipologiaOptions.length > 0) {
+      options = tipologiaOptions;
     }
     
     return (
@@ -869,7 +882,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         style={{ width: column.width }}
       >
         <Select 
-          value={value || ""} 
+          value={value?.toString() || ""} 
           onValueChange={onChange}
         >
           <SelectTrigger 
@@ -968,6 +981,30 @@ export function TypologySpreadsheet() {
   const { data: dbDevelopments = [] } = useQuery<any[]>({
     queryKey: ["/api/developments-entity"],
   });
+  
+  const { data: catalogVistas = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/vistas"],
+  });
+  
+  const { data: catalogAreas = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/areas"],
+  });
+  
+  const { data: catalogTipologias = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/tipologias"],
+  });
+  
+  const vistaOptions = useMemo(() => {
+    return catalogVistas.map(v => v.name).filter(Boolean);
+  }, [catalogVistas]);
+  
+  const areaOptions = useMemo(() => {
+    return catalogAreas.map(a => a.name).filter(Boolean);
+  }, [catalogAreas]);
+  
+  const tipologiaOptions = useMemo(() => {
+    return catalogTipologias.map(t => t.name).filter(Boolean);
+  }, [catalogTipologias]);
   
   const developerOptions = useMemo(() => {
     const dbNames = dbDevelopers.map(d => d.name).filter(Boolean);
@@ -1204,6 +1241,28 @@ export function TypologySpreadsheet() {
     
     const updatedRow = { ...currentRow, [field]: value };
     
+    // Auto-populate zone and developer when development changes
+    const autoPopulatedFields: Record<string, any> = {};
+    if (field === "development" && dbDevelopments) {
+      const selectedDev = dbDevelopments.find(d => d.name === value);
+      if (selectedDev) {
+        autoPopulatedFields.zone = selectedDev.zone1 || "";
+        autoPopulatedFields.developer = selectedDev.developerName || "";
+        (updatedRow as any).zone = autoPopulatedFields.zone;
+        (updatedRow as any).developer = autoPopulatedFields.developer;
+      }
+    }
+    
+    // Clear development, zone, and developer when city changes
+    if (field === "city") {
+      autoPopulatedFields.development = null;
+      autoPopulatedFields.zone = "";
+      autoPopulatedFields.developer = "";
+      (updatedRow as any).development = null;
+      (updatedRow as any).zone = "";
+      (updatedRow as any).developer = "";
+    }
+    
     const dependentFieldsToClear: Record<string, string[]> = {
       hasBalcony: ["balconySize"],
       hasTerrace: ["terraceSize"],
@@ -1252,16 +1311,16 @@ export function TypologySpreadsheet() {
     setPendingChanges(prev => {
       const next = new Map(prev);
       const existing = next.get(rowId) || {};
-      next.set(rowId, { ...existing, [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields });
+      next.set(rowId, { ...existing, [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields });
       return next;
     });
     
     const debounceId = setTimeout(() => {
-      updateMutation.mutate({ id: rowId, data: { [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields } });
+      updateMutation.mutate({ id: rowId, data: { [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields } });
     }, 500);
     
     return () => clearTimeout(debounceId);
-  }, [typologies, updateMutation]);
+  }, [typologies, updateMutation, dbDevelopments]);
   
   const handleAddRow = () => {
     createMutation.mutate({
@@ -1384,8 +1443,22 @@ export function TypologySpreadsheet() {
   const getMergedRow = (row: Typology): Typology => {
     const pending = pendingChanges.get(row.id);
     const merged = pending ? { ...row, ...pending } : row;
+    
+    // Auto-populate zone and developer from selected development using zone1 and developerName
+    let autoZone = merged.zone;
+    let autoDeveloper = merged.developer;
+    if (merged.development && dbDevelopments.length > 0) {
+      const dev = dbDevelopments.find(d => d.name === merged.development);
+      if (dev) {
+        // Use zone1 for consistency with handleCellChange
+        autoZone = dev.zone1 || merged.zone;
+        // Use developerName for consistency with handleCellChange
+        autoDeveloper = dev.developerName || merged.developer;
+      }
+    }
+    
     const calculated = calculateFields(merged);
-    return { ...merged, ...calculated } as Typology;
+    return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper } as Typology;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;
@@ -1591,6 +1664,9 @@ export function TypologySpreadsheet() {
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
                             allDevelopers={dbDevelopers}
+                            vistaOptions={vistaOptions}
+                            areaOptions={areaOptions}
+                            tipologiaOptions={tipologiaOptions}
                           />
                         );
                       })}

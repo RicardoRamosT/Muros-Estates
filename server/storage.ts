@@ -19,6 +19,9 @@ import {
   catalogAcabados, type CatalogAcabado, type InsertCatalogAcabado,
   catalogComercializadoras, type CatalogComercializadora, type InsertCatalogComercializadora,
   catalogArquitectura, type CatalogArquitectura, type InsertCatalogArquitectura,
+  catalogVistas, type CatalogVista, type InsertCatalogVista,
+  catalogAreas, type CatalogArea, type InsertCatalogArea,
+  catalogTipologias, type CatalogTipologia, type InsertCatalogTipologia,
   sharedLinks, type SharedLink, type InsertSharedLink,
   rolePermissions, type RolePermission
 } from "@shared/schema";
@@ -156,6 +159,21 @@ export interface IStorage {
   createCatalogArquitectura(arquitectura: InsertCatalogArquitectura): Promise<CatalogArquitectura>;
   updateCatalogArquitectura(id: string, arquitectura: Partial<InsertCatalogArquitectura>): Promise<CatalogArquitectura | undefined>;
   deleteCatalogArquitectura(id: string): Promise<boolean>;
+  
+  getCatalogVistas(): Promise<CatalogVista[]>;
+  createCatalogVista(vista: InsertCatalogVista): Promise<CatalogVista>;
+  updateCatalogVista(id: string, vista: Partial<InsertCatalogVista>): Promise<CatalogVista | undefined>;
+  deleteCatalogVista(id: string): Promise<boolean>;
+  
+  getCatalogAreas(): Promise<CatalogArea[]>;
+  createCatalogArea(area: InsertCatalogArea): Promise<CatalogArea>;
+  updateCatalogArea(id: string, area: Partial<InsertCatalogArea>): Promise<CatalogArea | undefined>;
+  deleteCatalogArea(id: string): Promise<boolean>;
+  
+  getCatalogTipologias(developmentId?: string): Promise<CatalogTipologia[]>;
+  createCatalogTipologia(tipologia: InsertCatalogTipologia): Promise<CatalogTipologia>;
+  updateCatalogTipologia(id: string, tipologia: Partial<InsertCatalogTipologia>): Promise<CatalogTipologia | undefined>;
+  deleteCatalogTipologia(id: string): Promise<boolean>;
   
   // Shared Links
   getSharedLink(id: string): Promise<SharedLink | undefined>;
@@ -738,6 +756,69 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCatalogArquitectura(id: string): Promise<boolean> {
     await db.delete(catalogArquitectura).where(eq(catalogArquitectura.id, id));
+    return true;
+  }
+  
+  // Vistas catalog
+  async getCatalogVistas(): Promise<CatalogVista[]> {
+    return db.select().from(catalogVistas).orderBy(catalogVistas.sortOrder, catalogVistas.name);
+  }
+
+  async createCatalogVista(vista: InsertCatalogVista): Promise<CatalogVista> {
+    const [item] = await db.insert(catalogVistas).values(vista as any).returning();
+    return item;
+  }
+
+  async updateCatalogVista(id: string, vista: Partial<InsertCatalogVista>): Promise<CatalogVista | undefined> {
+    const [item] = await db.update(catalogVistas).set(vista as any).where(eq(catalogVistas.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogVista(id: string): Promise<boolean> {
+    await db.delete(catalogVistas).where(eq(catalogVistas.id, id));
+    return true;
+  }
+
+  // Areas catalog
+  async getCatalogAreas(): Promise<CatalogArea[]> {
+    return db.select().from(catalogAreas).orderBy(catalogAreas.sortOrder, catalogAreas.name);
+  }
+
+  async createCatalogArea(area: InsertCatalogArea): Promise<CatalogArea> {
+    const [item] = await db.insert(catalogAreas).values(area as any).returning();
+    return item;
+  }
+
+  async updateCatalogArea(id: string, area: Partial<InsertCatalogArea>): Promise<CatalogArea | undefined> {
+    const [item] = await db.update(catalogAreas).set(area as any).where(eq(catalogAreas.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogArea(id: string): Promise<boolean> {
+    await db.delete(catalogAreas).where(eq(catalogAreas.id, id));
+    return true;
+  }
+
+  // Tipologias catalog
+  async getCatalogTipologias(developmentId?: string): Promise<CatalogTipologia[]> {
+    if (developmentId) {
+      return db.select().from(catalogTipologias).where(eq(catalogTipologias.developmentId, developmentId)).orderBy(catalogTipologias.sortOrder, catalogTipologias.name);
+    }
+    return db.select().from(catalogTipologias).orderBy(catalogTipologias.sortOrder, catalogTipologias.name);
+  }
+
+  async createCatalogTipologia(tipologia: InsertCatalogTipologia): Promise<CatalogTipologia> {
+    const [item] = await db.insert(catalogTipologias).values(tipologia as any).returning();
+    return item;
+  }
+
+  async updateCatalogTipologia(id: string, tipologia: Partial<InsertCatalogTipologia>): Promise<CatalogTipologia | undefined> {
+    const [item] = await db.update(catalogTipologias).set(tipologia as any).where(eq(catalogTipologias.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteCatalogTipologia(id: string): Promise<boolean> {
+    await db.delete(catalogTipologias).where(eq(catalogTipologias.id, id));
     return true;
   }
   

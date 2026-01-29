@@ -19,9 +19,8 @@ export function FormulaTooltip({ field, children, className }: FormulaTooltipPro
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className={cn("relative inline-flex items-center gap-1", className)}>
+        <div className={cn("relative cursor-help", className)}>
           {children}
-          <Calculator className="h-3 w-3 text-blue-500 dark:text-blue-400 flex-shrink-0" />
         </div>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs">
@@ -82,11 +81,10 @@ export function CalculatedCell({ field, value, format, className }: CalculatedCe
     <Tooltip>
       <TooltipTrigger asChild>
         <span className={cn(
-          "cursor-help inline-flex items-center gap-1",
+          "cursor-help",
           className
         )}>
           {displayValue}
-          <Calculator className="h-3 w-3 text-blue-500 dark:text-blue-400 opacity-60" />
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs">

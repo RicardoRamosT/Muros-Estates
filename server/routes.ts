@@ -1953,6 +1953,92 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // Vistas catalog
+  app.get("/api/catalog/vistas", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogVistas();
+    res.json(items);
+  });
+
+  app.post("/api/catalog/vistas", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, sortOrder } = req.body;
+    if (!name) return res.status(400).json({ error: "Nombre requerido" });
+    const item = await storage.createCatalogVista({ name, sortOrder });
+    res.status(201).json(item);
+  });
+
+  app.put("/api/catalog/vistas/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, sortOrder } = req.body;
+    const updateData: { name?: string; sortOrder?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+    const item = await storage.updateCatalogVista(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Vista no encontrada" });
+    res.json(item);
+  });
+
+  app.delete("/api/catalog/vistas/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogVista(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Areas catalog
+  app.get("/api/catalog/areas", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogAreas();
+    res.json(items);
+  });
+
+  app.post("/api/catalog/areas", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, sortOrder } = req.body;
+    if (!name) return res.status(400).json({ error: "Nombre requerido" });
+    const item = await storage.createCatalogArea({ name, sortOrder });
+    res.status(201).json(item);
+  });
+
+  app.put("/api/catalog/areas/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, sortOrder } = req.body;
+    const updateData: { name?: string; sortOrder?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+    const item = await storage.updateCatalogArea(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Área no encontrada" });
+    res.json(item);
+  });
+
+  app.delete("/api/catalog/areas/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogArea(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Tipologias catalog
+  app.get("/api/catalog/tipologias", requireAuth, async (req, res) => {
+    const developmentId = req.query.developmentId as string | undefined;
+    const items = await storage.getCatalogTipologias(developmentId);
+    res.json(items);
+  });
+
+  app.post("/api/catalog/tipologias", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, developmentId, sortOrder } = req.body;
+    if (!name) return res.status(400).json({ error: "Nombre requerido" });
+    const item = await storage.createCatalogTipologia({ name, developmentId, sortOrder });
+    res.status(201).json(item);
+  });
+
+  app.put("/api/catalog/tipologias/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, developmentId, sortOrder } = req.body;
+    const updateData: { name?: string; developmentId?: string; sortOrder?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof developmentId === "string") updateData.developmentId = developmentId;
+    if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+    const item = await storage.updateCatalogTipologia(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Tipología no encontrada" });
+    res.json(item);
+  });
+
+  app.delete("/api/catalog/tipologias/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogTipologia(req.params.id as string);
+    res.status(204).send();
+  });
+
   // Role Permissions API
   app.get("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {
     const permissions = await storage.getRolePermissions();
