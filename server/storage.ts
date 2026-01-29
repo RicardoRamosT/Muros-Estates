@@ -329,10 +329,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateClient(id: string, clientData: Partial<InsertClient>): Promise<Client | undefined> {
-    const [client] = await db.update(clients).set({
+    const updateData: any = {
       ...clientData,
       updatedAt: new Date(),
-    }).where(eq(clients.id, id)).returning();
+    };
+    
+    // When embudo changes to "Separado", convert prospect to client
+    if (clientData.embudo === "Separado") {
+      updateData.isClient = true;
+      updateData.convertedAt = new Date();
+    }
+    
+    const [client] = await db.update(clients).set(updateData).where(eq(clients.id, id)).returning();
     return client || undefined;
   }
 
