@@ -816,11 +816,30 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         className="flex items-center justify-center px-2 py-1 bg-gray-50 dark:bg-gray-800/50 border-r border-b border-gray-200 dark:border-gray-700" 
         style={{ width: column.width }}
       >
-        <Checkbox
-          checked={Boolean(value)}
-          onCheckedChange={(checked) => onChange(checked)}
-          data-testid={`checkbox-${column.key}-${rowId}`}
-        />
+        <Select
+          value={value === true ? "si" : value === false ? "no" : ""}
+          onValueChange={(val) => onChange(val === "si")}
+        >
+          <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-1" data-testid={`boolean-${column.key}-${rowId}`}>
+            <SelectValue>
+              {value === true ? (
+                <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs px-1.5 py-0">Sí</Badge>
+              ) : value === false ? (
+                <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs px-1.5 py-0">No</Badge>
+              ) : (
+                <span className="text-muted-foreground">-</span>
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="si">
+              <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">Sí</Badge>
+            </SelectItem>
+            <SelectItem value="no">
+              <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs">No</Badge>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     );
   }

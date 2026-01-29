@@ -413,15 +413,43 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.type === 'boolean') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "checkbox", disabled: !fieldCanEdit })}>
-                        <div className="flex items-center justify-center">
-                          <Checkbox
-                            checked={!!value}
-                            disabled={!fieldCanEdit}
-                            onCheckedChange={(checked) => handleCheckboxChange(dev.id, col.key, !!checked)}
-                            data-testid={`checkbox-${col.key}-${dev.id}`}
-                          />
-                        </div>
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value === true ? "si" : value === false ? "no" : ""}
+                            onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
+                          >
+                            <SelectTrigger className="h-7 text-xs border-0 bg-transparent" data-testid={`boolean-${col.key}-${dev.id}`}>
+                              <SelectValue>
+                                {value === true ? (
+                                  <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">Sí</Badge>
+                                ) : value === false ? (
+                                  <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs">No</Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="si">
+                                <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">Sí</Badge>
+                              </SelectItem>
+                              <SelectItem value="no">
+                                <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs">No</Badge>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center justify-center">
+                            {value === true ? (
+                              <Badge className="bg-green-500 text-white text-xs">Sí</Badge>
+                            ) : value === false ? (
+                              <Badge className="bg-red-500 text-white text-xs">No</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </div>
+                        )}
                       </td>
                     );
                   }
