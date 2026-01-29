@@ -539,9 +539,10 @@ interface ColumnFilterProps {
   onFilterChange: (values: Set<string>) => void;
   onSortChange: (direction: "asc" | "desc" | null) => void;
   sectionColor: string;
+  availableValues?: Set<string>;
 }
 
-function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor }: ColumnFilterProps) {
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues }: ColumnFilterProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   
@@ -684,18 +685,30 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             {filteredValues.map((value) => {
               const isChecked = selectedValues.size === 0 || selectedValues.has(value);
               const displayValue = column.format ? formatValue(value, column.format) : value;
+              const isAvailable = !availableValues || availableValues.has(value);
               
               return (
                 <label
                   key={value}
-                  className="flex items-center gap-2 py-1 cursor-pointer hover:bg-muted px-1 rounded"
+                  className={cn(
+                    "flex items-center gap-2 py-1 px-1 rounded",
+                    isAvailable
+                      ? "cursor-pointer hover:bg-muted"
+                      : "opacity-40 cursor-not-allowed"
+                  )}
                 >
                   <Checkbox
                     checked={isChecked}
                     onCheckedChange={() => handleToggleValue(value)}
+                    disabled={!isAvailable}
                     data-testid={`filter-value-${column.key}-${value}`}
                   />
-                  <span className="text-sm truncate">{displayValue}</span>
+                  <span className={cn(
+                    "text-sm truncate",
+                    !isAvailable && "text-muted-foreground line-through"
+                  )}>
+                    {displayValue}
+                  </span>
                 </label>
               );
             })}
@@ -1320,6 +1333,34 @@ export function TypologySpreadsheet() {
     
     return result;
   }, [typologies, columnFilters, columnSorts]);
+
+  const availableValuesMap = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+    const allColumns = SECTIONS.flatMap(s => s.columns);
+    
+    allColumns.forEach((col) => {
+      let filteredData = [...typologies];
+      Object.entries(columnFilters).forEach(([key, values]) => {
+        if (key === col.key) return;
+        if (values.size === 0) return;
+        filteredData = filteredData.filter((row) => {
+          const fieldValue = String(row[key as keyof Typology] ?? "");
+          return values.has(fieldValue);
+        });
+      });
+      
+      const availableValues = new Set<string>();
+      filteredData.forEach((row) => {
+        const val = row[col.key as keyof Typology];
+        if (val !== null && val !== undefined && val !== "") {
+          availableValues.add(String(val));
+        }
+      });
+      map[col.key] = availableValues;
+    });
+    
+    return map;
+  }, [typologies, columnFilters]);
   
   const getMergedRow = (row: Typology): Typology => {
     const pending = pendingChanges.get(row.id);
@@ -1459,6 +1500,7 @@ export function TypologySpreadsheet() {
                             onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
                             onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
                             sectionColor={section.color}
+                            availableValues={availableValuesMap[col.key]}
                           />
                         </div>
                       ))}

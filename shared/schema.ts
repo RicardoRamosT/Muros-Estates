@@ -1363,6 +1363,57 @@ export const insertCatalogOtherFeatureSchema = createInsertSchema(catalogOtherFe
 export type InsertCatalogOtherFeature = z.infer<typeof insertCatalogOtherFeatureSchema>;
 export type CatalogOtherFeature = typeof catalogOtherFeatures.$inferSelect;
 
+// Acabados catalog (finishes: muros, cielos, pisos, iluminación, etc.)
+export const catalogAcabados = pgTable("catalog_acabados", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogAcabadoSchema = createInsertSchema(catalogAcabados).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogAcabado = z.infer<typeof insertCatalogAcabadoSchema>;
+export type CatalogAcabado = typeof catalogAcabados.$inferSelect;
+
+// Comercializadoras catalog (marketing/sales companies)
+export const catalogComercializadoras = pgTable("catalog_comercializadoras", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogComercializadoraSchema = createInsertSchema(catalogComercializadoras).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogComercializadora = z.infer<typeof insertCatalogComercializadoraSchema>;
+export type CatalogComercializadora = typeof catalogComercializadoras.$inferSelect;
+
+// Arquitectura catalog (architecture firms)
+export const catalogArquitectura = pgTable("catalog_arquitectura", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogArquitecturaSchema = createInsertSchema(catalogArquitectura).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogArquitectura = z.infer<typeof insertCatalogArquitecturaSchema>;
+export type CatalogArquitectura = typeof catalogArquitectura.$inferSelect;
+
 // Role permissions table - stores custom permission overrides
 export const rolePermissions = pgTable("role_permissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

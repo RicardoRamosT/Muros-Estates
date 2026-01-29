@@ -217,6 +217,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     handleFilter,
     handleClearFilter,
     clearAllFilters,
+    availableValuesMap,
   } = useColumnFilters(prospects, columns);
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
@@ -294,6 +295,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           col.type === 'select' ? 'select' : 'text'
                         }
                         uniqueValues={uniqueValuesMap[col.key] || []}
+                        availableValues={availableValuesMap[col.key]}
                         sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
                         filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
                         onSort={(dir) => handleSort(col.key, dir)}

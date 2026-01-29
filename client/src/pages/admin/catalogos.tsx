@@ -50,6 +50,18 @@ export default function AdminCatalogos() {
               <Shield className="w-4 h-4" />
               Otras
             </TabsTrigger>
+            <TabsTrigger value="acabados" className="gap-2" data-testid="tab-acabados">
+              <Building className="w-4 h-4" />
+              Acabados
+            </TabsTrigger>
+            <TabsTrigger value="comercializadoras" className="gap-2" data-testid="tab-comercializadoras">
+              <Building className="w-4 h-4" />
+              Comercializadoras
+            </TabsTrigger>
+            <TabsTrigger value="arquitectura" className="gap-2" data-testid="tab-arquitectura">
+              <Building className="w-4 h-4" />
+              Arquitectura
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="cities">
@@ -69,6 +81,30 @@ export default function AdminCatalogos() {
           </TabsContent>
           <TabsContent value="other-features">
             <OtherFeaturesTable />
+          </TabsContent>
+          <TabsContent value="acabados">
+            <SimpleTable 
+              title="Acabados" 
+              endpoint="/api/catalog/acabados" 
+              queryKey="/api/catalog/acabados"
+              icon={Building}
+            />
+          </TabsContent>
+          <TabsContent value="comercializadoras">
+            <SimpleTable 
+              title="Comercializadoras" 
+              endpoint="/api/catalog/comercializadoras" 
+              queryKey="/api/catalog/comercializadoras"
+              icon={Building}
+            />
+          </TabsContent>
+          <TabsContent value="arquitectura">
+            <SimpleTable 
+              title="Arquitectura" 
+              endpoint="/api/catalog/arquitectura" 
+              queryKey="/api/catalog/arquitectura"
+              icon={Building}
+            />
           </TabsContent>
         </Tabs>
       </main>

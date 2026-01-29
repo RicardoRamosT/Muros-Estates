@@ -98,6 +98,7 @@ export function DevelopersSpreadsheet() {
     sortConfig,
     filterConfigs,
     uniqueValuesMap,
+    availableValuesMap,
     filteredAndSortedData,
     handleSort,
     handleFilter,
@@ -289,6 +290,7 @@ export function DevelopersSpreadsheet() {
                         columnLabel={col.label || (col.group === 'antiguedad' ? (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada') : col.key)}
                         columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
                         uniqueValues={uniqueValuesMap[col.key] || []}
+                        availableValues={availableValuesMap[col.key]}
                         sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
                         filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
                         onSort={(dir) => handleSort(col.key, dir)}

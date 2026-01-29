@@ -21,6 +21,7 @@ export interface ColumnFilterProps {
   columnLabel: string;
   columnType?: "text" | "number" | "date" | "select" | "boolean";
   uniqueValues: string[];
+  availableValues?: Set<string>;
   sortDirection: SortDirection;
   filterState: FilterState;
   onSort: (direction: SortDirection) => void;
@@ -33,6 +34,7 @@ export function ColumnFilter({
   columnLabel,
   columnType = "text",
   uniqueValues,
+  availableValues,
   sortDirection,
   filterState,
   onSort,
@@ -184,21 +186,33 @@ export function ColumnFilter({
                   Sin resultados
                 </div>
               ) : (
-                filteredValues.map((value) => (
-                  <label
-                    key={value}
-                    className="flex items-center gap-2 px-1 py-0.5 hover:bg-muted rounded cursor-pointer"
-                  >
-                    <Checkbox
-                      checked={localSelected.has(value)}
-                      onCheckedChange={() => handleToggleValue(value)}
-                      className="h-3 w-3"
-                    />
-                    <span className="text-xs truncate flex-1">
-                      {value || "(vacío)"}
-                    </span>
-                  </label>
-                ))
+                filteredValues.map((value) => {
+                  const isAvailable = !availableValues || availableValues.has(value);
+                  return (
+                    <label
+                      key={value}
+                      className={cn(
+                        "flex items-center gap-2 px-1 py-0.5 rounded",
+                        isAvailable 
+                          ? "hover:bg-muted cursor-pointer" 
+                          : "opacity-40 cursor-not-allowed"
+                      )}
+                    >
+                      <Checkbox
+                        checked={localSelected.has(value)}
+                        onCheckedChange={() => handleToggleValue(value)}
+                        disabled={!isAvailable}
+                        className="h-3 w-3"
+                      />
+                      <span className={cn(
+                        "text-xs truncate flex-1",
+                        !isAvailable && "text-muted-foreground line-through"
+                      )}>
+                        {value || "(vacío)"}
+                      </span>
+                    </label>
+                  );
+                })
               )}
             </div>
           </div>
@@ -238,20 +252,66 @@ export function useColumnFilters<T extends Record<string, any>>(
   });
   const [filterConfigs, setFilterConfigs] = useState<Record<string, FilterState>>({});
 
+  const extractValues = (value: any): string[] => {
+    if (value === null || value === undefined) return [];
+    if (Array.isArray(value)) {
+      return value.filter(v => v !== null && v !== undefined).map(String);
+    }
+    return [String(value)];
+  };
+
+  const matchesFilter = (value: any, selectedValues: Set<string>): boolean => {
+    if (selectedValues.size === 0) return true;
+    if (Array.isArray(value)) {
+      return value.some(v => selectedValues.has(String(v ?? "")));
+    }
+    return selectedValues.has(String(value ?? ""));
+  };
+
   const uniqueValuesMap = useMemo(() => {
     const map: Record<string, string[]> = {};
     columns.forEach((col) => {
       const values = new Set<string>();
       data.forEach((row) => {
-        const value = row[col.key];
-        if (value !== null && value !== undefined) {
-          values.add(String(value));
-        }
+        const rowValues = extractValues(row[col.key]);
+        rowValues.forEach(v => values.add(v));
       });
       map[col.key] = Array.from(values).sort();
     });
     return map;
   }, [data, columns]);
+
+  const availableValuesMap = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+    columns.forEach((col) => {
+      let filteredData = [...data];
+      Object.entries(filterConfigs).forEach(([key, filter]) => {
+        if (key === col.key) return;
+        if (filter.search) {
+          const search = filter.search.toLowerCase();
+          filteredData = filteredData.filter((row) => {
+            const value = row[key];
+            if (Array.isArray(value)) {
+              return value.some(v => String(v ?? "").toLowerCase().includes(search));
+            }
+            return value?.toString().toLowerCase().includes(search);
+          });
+        }
+        if (filter.selectedValues.size > 0) {
+          filteredData = filteredData.filter((row) => {
+            return matchesFilter(row[key], filter.selectedValues);
+          });
+        }
+      });
+      const availableValues = new Set<string>();
+      filteredData.forEach((row) => {
+        const rowValues = extractValues(row[col.key]);
+        rowValues.forEach(v => availableValues.add(v));
+      });
+      map[col.key] = availableValues;
+    });
+    return map;
+  }, [data, columns, filterConfigs]);
 
   const filteredAndSortedData = useMemo(() => {
     let result = [...data];
@@ -261,13 +321,15 @@ export function useColumnFilters<T extends Record<string, any>>(
         const search = filter.search.toLowerCase();
         result = result.filter((row) => {
           const value = row[key];
+          if (Array.isArray(value)) {
+            return value.some(v => String(v ?? "").toLowerCase().includes(search));
+          }
           return value?.toString().toLowerCase().includes(search);
         });
       }
       if (filter.selectedValues.size > 0) {
         result = result.filter((row) => {
-          const value = row[key];
-          return filter.selectedValues.has(String(value ?? ""));
+          return matchesFilter(row[key], filter.selectedValues);
         });
       }
     });
@@ -321,6 +383,7 @@ export function useColumnFilters<T extends Record<string, any>>(
     sortConfig,
     filterConfigs,
     uniqueValuesMap,
+    availableValuesMap,
     filteredAndSortedData,
     handleSort,
     handleFilter,

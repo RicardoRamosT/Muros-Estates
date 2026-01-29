@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -1863,6 +1863,93 @@ export async function registerRoutes(
   
   app.delete("/api/catalog/other-features/:id", requireAuth, requireRole("admin"), async (req, res) => {
     await storage.deleteCatalogOtherFeature(req.params.id as string);
+    res.status(204).send();
+  });
+  
+  // Acabados
+  app.get("/api/catalog/acabados", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogAcabados();
+    res.json(items);
+  });
+  
+  app.post("/api/catalog/acabados", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogAcabadoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogAcabado(result.data);
+    res.status(201).json(item);
+  });
+  
+  app.put("/api/catalog/acabados/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogAcabado(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Acabado no encontrado" });
+    res.json(item);
+  });
+  
+  app.delete("/api/catalog/acabados/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogAcabado(req.params.id as string);
+    res.status(204).send();
+  });
+  
+  // Comercializadoras
+  app.get("/api/catalog/comercializadoras", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogComercializadoras();
+    res.json(items);
+  });
+  
+  app.post("/api/catalog/comercializadoras", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogComercializadoraSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogComercializadora(result.data);
+    res.status(201).json(item);
+  });
+  
+  app.put("/api/catalog/comercializadoras/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogComercializadora(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Comercializadora no encontrada" });
+    res.json(item);
+  });
+  
+  app.delete("/api/catalog/comercializadoras/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogComercializadora(req.params.id as string);
+    res.status(204).send();
+  });
+  
+  // Arquitectura
+  app.get("/api/catalog/arquitectura", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogArquitectura();
+    res.json(items);
+  });
+  
+  app.post("/api/catalog/arquitectura", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogArquitecturaSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogArquitectura(result.data);
+    res.status(201).json(item);
+  });
+  
+  app.put("/api/catalog/arquitectura/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogArquitectura(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Arquitectura no encontrada" });
+    res.json(item);
+  });
+  
+  app.delete("/api/catalog/arquitectura/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogArquitectura(req.params.id as string);
     res.status(204).send();
   });
 
