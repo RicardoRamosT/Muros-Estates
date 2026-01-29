@@ -781,7 +781,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         title={disabled && !column.calculated ? "Campo deshabilitado - active la opción correspondiente" : undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
-        {formatValue(value, column.format) || "-"}
+        {formatValue(value, column.format) || ""}
       </div>
     );
     

@@ -16,17 +16,39 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
-import { Plus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X } from "lucide-react";
-import { getCellStyle, getCellTypeFromColumnType, type CellType } from "@/lib/spreadsheet-utils";
+import { Plus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Check } from "lucide-react";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, type CellType } from "@/lib/spreadsheet-utils";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
+
+// Tipos de desarrollos disponibles
+const DEVELOPER_TIPOS = [
+  { value: "residencial", label: "Residencial" },
+  { value: "comercial", label: "Comercial" },
+  { value: "oficina", label: "Oficina" },
+  { value: "salud", label: "Salud" },
+];
+
+// RFC validation: 12-13 digits, uppercase
+function validateRFC(value: string): { isValid: boolean; message: string } {
+  const rfcClean = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (rfcClean.length < 12 || rfcClean.length > 13) {
+    return { isValid: false, message: "RFC debe tener 12 o 13 caracteres" };
+  }
+  return { isValid: true, message: "" };
+}
 
 interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -49,12 +71,16 @@ export function DevelopersSpreadsheet() {
     { key: "active", label: "Activo", width: "80px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "180px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
-    { key: "rfc", label: "RFC", width: "140px", cellType: "input" },
+    { key: "rfc", label: "RFC", width: "140px", type: "rfc", cellType: "input" },
     { key: "domicilio", label: "Domicilio", width: "200px", cellType: "input" },
-    { key: "antiguedad", label: "Antigüedad", width: "120px", cellType: "input" },
-    { key: "tipos", label: "Tipos", width: "150px", cellType: "input" },
+    // Antigüedad group - 2 columns under same header
+    { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", group: "antiguedad", cellType: "date" },
+    { key: "antiguedadDeclarada", label: "Antigüedad Declarada", width: "150px", group: "antiguedad", cellType: "input" },
+    // Tipos - multiselect dropdown
+    { key: "tipos", label: "Tipos", width: "180px", type: "multiselect", cellType: "dropdown" },
     { key: "representante", label: "Representante", width: "160px", cellType: "input" },
-    { key: "contactName", label: "Nombre", width: "150px", group: "contacto", cellType: "input" },
+    // Contacto group - renamed "Nombre" to "Gerente Comercial"
+    { key: "contactName", label: "Gerente Comercial", width: "150px", group: "contacto", cellType: "input" },
     { key: "contactPhone", label: "Teléfono", width: "140px", group: "contacto", cellType: "input" },
     { key: "contactEmail", label: "Correo", width: "180px", group: "contacto", cellType: "input" },
     { key: "legales", label: "Legales", width: "100px", type: "folder-link", cellType: "actions" },
@@ -121,12 +147,34 @@ export function DevelopersSpreadsheet() {
     const developer = developers.find(d => d.id === id);
     if (!developer) return;
     
+    let valueToSave = editValue;
+    
+    // RFC validation: enforce uppercase and validate length
+    if (field === 'rfc' && valueToSave) {
+      valueToSave = valueToSave.toUpperCase();
+      const validation = validateRFC(valueToSave);
+      if (!validation.isValid) {
+        toast({ title: validation.message, variant: "destructive" });
+        setEditingCell(null);
+        return;
+      }
+    }
+    
     const currentValue = String(developer[field as keyof Developer] ?? "");
-    if (editValue !== currentValue) {
-      updateMutation.mutate({ id, data: { [field]: editValue } });
+    if (valueToSave !== currentValue) {
+      updateMutation.mutate({ id, data: { [field]: valueToSave } });
     }
     setEditingCell(null);
-  }, [editingCell, editValue, developers, updateMutation]);
+  }, [editingCell, editValue, developers, updateMutation, toast]);
+
+  const handleTiposChange = useCallback((id: string, selectedTipos: string[]) => {
+    updateMutation.mutate({ id, data: { tipos: selectedTipos } });
+  }, [updateMutation]);
+
+  const handleDateChange = useCallback((id: string, field: string, value: string) => {
+    const dateValue = value ? new Date(value) : null;
+    updateMutation.mutate({ id, data: { [field]: dateValue } });
+  }, [updateMutation]);
 
   const handleActiveToggle = useCallback((id: string, currentValue: boolean) => {
     updateMutation.mutate({ id, data: { active: !currentValue } });
@@ -312,7 +360,132 @@ export function DevelopersSpreadsheet() {
                       </td>
                     );
                   }
+
+                  // Date field - fechaAntiguedad
+                  if (col.type === 'date') {
+                    const dateValue = dev[field as keyof Developer] as Date | string | null;
+                    const formattedDate = dateValue ? new Date(dateValue).toISOString().split('T')[0] : '';
+                    return (
+                      <td
+                        key={field}
+                        className={getCellStyle({ type: "date", disabled: !fieldCanEdit })}
+                        data-testid={`cell-${field}-${dev.id}`}
+                      >
+                        {fieldCanEdit ? (
+                          <Input
+                            type="date"
+                            value={formattedDate}
+                            onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
+                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-${field}-${dev.id}`}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="truncate">{formatDate(dateValue)}</span>
+                            <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Multiselect dropdown - tipos
+                  if (col.type === 'multiselect') {
+                    const tiposValue = (dev.tipos as string[] | null) || [];
+                    const displayValue = tiposValue.length > 0 
+                      ? tiposValue.map(t => DEVELOPER_TIPOS.find(dt => dt.value === t)?.label || t).join(', ')
+                      : '';
+                    
+                    return (
+                      <td
+                        key={field}
+                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
+                        data-testid={`cell-${field}-${dev.id}`}
+                      >
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-6 w-full justify-between px-1 text-left font-normal text-sm"
+                                data-testid={`select-tipos-${dev.id}`}
+                              >
+                                <span className="truncate">{displayValue || 'Seleccionar...'}</span>
+                                <ChevronDown className="h-3 w-3 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2" align="start">
+                              <div className="space-y-1">
+                                {DEVELOPER_TIPOS.map((tipo) => (
+                                  <label
+                                    key={tipo.value}
+                                    className="flex items-center gap-2 px-2 py-1 hover:bg-muted rounded cursor-pointer"
+                                  >
+                                    <Checkbox
+                                      checked={tiposValue.includes(tipo.value)}
+                                      onCheckedChange={(checked) => {
+                                        const newTipos = checked
+                                          ? [...tiposValue, tipo.value]
+                                          : tiposValue.filter(t => t !== tipo.value);
+                                        handleTiposChange(dev.id, newTipos);
+                                      }}
+                                      data-testid={`checkbox-tipo-${tipo.value}-${dev.id}`}
+                                    />
+                                    <span className="text-sm">{tipo.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="truncate">{displayValue}</span>
+                            <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // RFC field - with uppercase enforcement
+                  if (col.type === 'rfc') {
+                    const value = dev[field as keyof Developer] as string;
+                    return (
+                      <td
+                        key={field}
+                        className={getCellStyle({ 
+                          type: cellType, 
+                          disabled: !fieldCanEdit,
+                          isEditing 
+                        })}
+                        onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
+                        data-testid={`cell-${field}-${dev.id}`}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <Input
+                            value={editValue.toUpperCase()}
+                            onChange={(e) => setEditValue(e.target.value.toUpperCase())}
+                            onBlur={() => handleCellBlur(dev.id, field)}
+                            onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
+                            autoFocus
+                            maxLength={13}
+                            placeholder="12-13 dígitos"
+                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
+                            data-testid={`input-${field}-${dev.id}`}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="truncate block max-w-[180px] uppercase">
+                              {value || ''}
+                            </span>
+                            {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
                   
+                  // Default text field
                   const value = dev[field as keyof Developer] as string;
                   
                   return (
@@ -339,7 +512,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1">
                           <span className="truncate block max-w-[180px]">
-                            {value || "-"}
+                            {value || ''}
                           </span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
                         </div>

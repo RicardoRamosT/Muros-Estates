@@ -361,7 +361,7 @@ export function DevelopmentMediaUploader() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-center hidden lg:table-cell">
-                            {typ.bedrooms || "-"}
+                            {typ.bedrooms || ""}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <Badge variant={typ.mediaCount > 0 ? "default" : "secondary"}>

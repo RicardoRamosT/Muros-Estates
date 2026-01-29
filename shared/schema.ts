@@ -58,7 +58,11 @@ export const PAGE_PERMISSIONS = {
       rfc: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 7. domicilio - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       domicilio: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // 8. antiguedad - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      // 8. fechaAntiguedad - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      fechaAntiguedad: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 8b. antiguedadDeclarada - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      antiguedadDeclarada: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 8c. antiguedad (legacy) - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       antiguedad: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 9. tipos - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       tipos: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
@@ -597,13 +601,17 @@ export const developers = pgTable("developers", {
   // Datos principales
   name: text("name").notNull().unique(), // DESARROLLADOR
   razonSocial: text("razon_social"), // Razón Social
-  rfc: text("rfc"), // RFC
+  rfc: text("rfc"), // RFC (12-13 dígitos, mayúsculas)
   domicilio: text("domicilio"), // Domicilio fiscal/legal
-  antiguedad: text("antiguedad"), // Antigüedad en el mercado
-  tipos: text("tipos"), // Tipos de desarrollos que hace
+  // Antigüedad - dividido en 2 columnas
+  fechaAntiguedad: timestamp("fecha_antiguedad"), // Fecha de antigüedad
+  antiguedadDeclarada: text("antiguedad_declarada"), // Antigüedad declarada por el desarrollador
+  antiguedad: text("antiguedad"), // Campo legacy - Antigüedad en el mercado
+  // Tipos de desarrollos - array de opciones: Residencial, Comercial, Oficina, Salud
+  tipos: text("tipos").array(), // Array de tipos de desarrollos que hace
   representante: text("representante"), // Representante legal
-  // Contacto
-  contactName: text("contact_name"), // Nombre del contacto
+  // Contacto - Gerente Comercial
+  contactName: text("contact_name"), // Gerente Comercial (antes "Nombre")
   contactPhone: text("contact_phone"), // Teléfono del contacto
   contactEmail: text("contact_email"), // Email del contacto
   // Legales

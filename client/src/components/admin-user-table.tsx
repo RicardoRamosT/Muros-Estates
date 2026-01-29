@@ -125,7 +125,7 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
                     <span className="text-muted-foreground">{user.username}</span>
                   </td>
                   <td className="border-b border-r px-3 py-2">
-                    <span>{user.email || "-"}</span>
+                    <span>{user.email || ""}</span>
                   </td>
                   <td className="border-b border-r px-3 py-2 text-center">
                     <Badge variant={role.variant} data-testid={`badge-role-${user.id}`}>

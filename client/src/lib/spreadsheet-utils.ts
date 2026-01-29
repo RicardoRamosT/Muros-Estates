@@ -96,9 +96,9 @@ export function getCellTypeFromColumnType(columnType?: string): CellType {
 }
 
 export function formatCurrency(value: number | string | null | undefined): string {
-  if (value === null || value === undefined || value === "") return "-";
+  if (value === null || value === undefined || value === "") return "";
   const num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "-";
+  if (isNaN(num)) return "";
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
@@ -108,9 +108,9 @@ export function formatCurrency(value: number | string | null | undefined): strin
 }
 
 export function formatNumber(value: number | string | null | undefined, decimals = 0): string {
-  if (value === null || value === undefined || value === "") return "-";
+  if (value === null || value === undefined || value === "") return "";
   const num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "-";
+  if (isNaN(num)) return "";
   return new Intl.NumberFormat("es-MX", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -118,29 +118,35 @@ export function formatNumber(value: number | string | null | undefined, decimals
 }
 
 export function formatPercent(value: number | string | null | undefined): string {
-  if (value === null || value === undefined || value === "") return "-";
+  if (value === null || value === undefined || value === "") return "";
   const num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "-";
+  if (isNaN(num)) return "";
   return `${num.toFixed(2)}%`;
 }
 
 export function formatArea(value: number | string | null | undefined): string {
-  if (value === null || value === undefined || value === "") return "-";
+  if (value === null || value === undefined || value === "") return "";
   const num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "-";
+  if (isNaN(num)) return "";
   return `${num.toFixed(2)} m²`;
 }
 
 export function formatDate(date: Date | string | null): string {
-  if (!date) return "-";
+  if (!date) return "";
   const d = new Date(date);
   return d.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 export function formatTime(date: Date | string | null): string {
-  if (!date) return "-";
+  if (!date) return "";
   const d = new Date(date);
   return d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+}
+
+// Empty value display - use this for text cells instead of "-"
+export function formatEmptyValue(value: string | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "";
+  return value;
 }
 
 export interface FormulaDefinition {
