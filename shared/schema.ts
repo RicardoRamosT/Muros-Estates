@@ -1487,3 +1487,251 @@ export const updateRolePermissionSchema = z.object({
 
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type RolePermission = typeof rolePermissions.$inferSelect;
+
+// ============ NEW CATALOGS FOR PROPERTIES ============
+
+// Niveles catalog (floor levels: 1-7, 110)
+export const catalogNiveles = pgTable("catalog_niveles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogNivelSchema = createInsertSchema(catalogNiveles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogNivel = z.infer<typeof insertCatalogNivelSchema>;
+export type CatalogNivel = typeof catalogNiveles.$inferSelect;
+
+// Torres catalog (towers: 1-8)
+export const catalogTorres = pgTable("catalog_torres", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogTorreSchema = createInsertSchema(catalogTorres).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogTorre = z.infer<typeof insertCatalogTorreSchema>;
+export type CatalogTorre = typeof catalogTorres.$inferSelect;
+
+// Recámaras catalog (bedrooms: Loft, 1, 1+Flex, 2, etc.)
+export const catalogRecamaras = pgTable("catalog_recamaras", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogRecamaraSchema = createInsertSchema(catalogRecamaras).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogRecamara = z.infer<typeof insertCatalogRecamaraSchema>;
+export type CatalogRecamara = typeof catalogRecamaras.$inferSelect;
+
+// Baños catalog (bathrooms: 1, 1.5, 2, 2.5, 3, 3.5)
+export const catalogBanos = pgTable("catalog_banos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogBanoSchema = createInsertSchema(catalogBanos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogBano = z.infer<typeof insertCatalogBanoSchema>;
+export type CatalogBano = typeof catalogBanos.$inferSelect;
+
+// Cajones catalog (parking spots: No, 1, 2, 3, 2 en Tandem)
+export const catalogCajones = pgTable("catalog_cajones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogCajonSchema = createInsertSchema(catalogCajones).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogCajon = z.infer<typeof insertCatalogCajonSchema>;
+export type CatalogCajon = typeof catalogCajones.$inferSelect;
+
+// Nivel de Mantenimiento catalog (AAA→80, A→65, B→45, C→35)
+export const catalogNivelMantenimiento = pgTable("catalog_nivel_mantenimiento", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  valor: integer("valor"), // Associated maintenance cost per m²
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogNivelMantenimientoSchema = createInsertSchema(catalogNivelMantenimiento).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogNivelMantenimiento = z.infer<typeof insertCatalogNivelMantenimientoSchema>;
+export type CatalogNivelMantenimiento = typeof catalogNivelMantenimiento.$inferSelect;
+
+// ============ NEW CATALOGS FOR PROSPECTS ============
+
+// Tipo de Cliente catalog (Inversionista, Uso Propio, Revender)
+export const catalogTipoCliente = pgTable("catalog_tipo_cliente", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  color: text("color"), // Color hex for badge display
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogTipoClienteSchema = createInsertSchema(catalogTipoCliente).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogTipoCliente = z.infer<typeof insertCatalogTipoClienteSchema>;
+export type CatalogTipoCliente = typeof catalogTipoCliente.$inferSelect;
+
+// Perfil catalog (Estudiante, Profesionista, Pareja, etc.)
+export const catalogPerfil = pgTable("catalog_perfil", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  color: text("color"), // Color hex for badge display
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogPerfilSchema = createInsertSchema(catalogPerfil).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogPerfil = z.infer<typeof insertCatalogPerfilSchema>;
+export type CatalogPerfil = typeof catalogPerfil.$inferSelect;
+
+// Fuente catalog (source of leads: Instagram, Facebook, Referido, etc.)
+export const catalogFuente = pgTable("catalog_fuente", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  color: text("color"), // Color hex for badge display
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogFuenteSchema = createInsertSchema(catalogFuente).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogFuente = z.infer<typeof insertCatalogFuenteSchema>;
+export type CatalogFuente = typeof catalogFuente.$inferSelect;
+
+// Status Prospecto catalog (Activo, En Hold, No Activo)
+export const catalogStatusProspecto = pgTable("catalog_status_prospecto", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  color: text("color"), // Color hex for badge display
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogStatusProspectoSchema = createInsertSchema(catalogStatusProspecto).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogStatusProspecto = z.infer<typeof insertCatalogStatusProspectoSchema>;
+export type CatalogStatusProspecto = typeof catalogStatusProspecto.$inferSelect;
+
+// Etapa de Embudo catalog (sales funnel stages)
+export const catalogEtapaEmbudo = pgTable("catalog_etapa_embudo", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  color: text("color"), // Color hex for badge display
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogEtapaEmbudoSchema = createInsertSchema(catalogEtapaEmbudo).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogEtapaEmbudo = z.infer<typeof insertCatalogEtapaEmbudoSchema>;
+export type CatalogEtapaEmbudo = typeof catalogEtapaEmbudo.$inferSelect;
+
+// Como Paga catalog (payment type: Enganche Bajo, Enganche Alto, Capital Semilla)
+export const catalogComoPaga = pgTable("catalog_como_paga", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogComoPagaSchema = createInsertSchema(catalogComoPaga).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogComoPaga = z.infer<typeof insertCatalogComoPagaSchema>;
+export type CatalogComoPaga = typeof catalogComoPaga.$inferSelect;
+
+// Positivos catalog (positive feedback: Precio, Ubicación, Diseño, etc.)
+export const catalogPositivos = pgTable("catalog_positivos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogPositivoSchema = createInsertSchema(catalogPositivos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogPositivo = z.infer<typeof insertCatalogPositivoSchema>;
+export type CatalogPositivo = typeof catalogPositivos.$inferSelect;
+
+// Negativos catalog (negative feedback: Precio, Ubicación, Permisos, etc.)
+export const catalogNegativos = pgTable("catalog_negativos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogNegativoSchema = createInsertSchema(catalogNegativos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogNegativo = z.infer<typeof insertCatalogNegativoSchema>;
+export type CatalogNegativo = typeof catalogNegativos.$inferSelect;

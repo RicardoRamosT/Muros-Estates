@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -2036,6 +2036,380 @@ export async function registerRoutes(
 
   app.delete("/api/catalog/tipologias/:id", requireAuth, requireRole("admin"), async (req, res) => {
     await storage.deleteCatalogTipologia(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // ============ NEW PROPERTY CATALOGS ============
+
+  // Niveles catalog
+  app.get("/api/catalog/niveles", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogNiveles();
+    res.json(items);
+  });
+  app.post("/api/catalog/niveles", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogNivelSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogNivel(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/niveles/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogNivel(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Nivel no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/niveles/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogNivel(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Torres catalog
+  app.get("/api/catalog/torres", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogTorres();
+    res.json(items);
+  });
+  app.post("/api/catalog/torres", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogTorreSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogTorre(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/torres/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogTorre(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Torre no encontrada" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/torres/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogTorre(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Recámaras catalog
+  app.get("/api/catalog/recamaras", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogRecamaras();
+    res.json(items);
+  });
+  app.post("/api/catalog/recamaras", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogRecamaraSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogRecamara(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/recamaras/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogRecamara(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Recámara no encontrada" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/recamaras/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogRecamara(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Baños catalog
+  app.get("/api/catalog/banos", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogBanos();
+    res.json(items);
+  });
+  app.post("/api/catalog/banos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogBanoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogBano(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/banos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogBano(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Baño no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/banos/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogBano(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Cajones catalog
+  app.get("/api/catalog/cajones", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogCajones();
+    res.json(items);
+  });
+  app.post("/api/catalog/cajones", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogCajonSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogCajon(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/cajones/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogCajon(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Cajón no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/cajones/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogCajon(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Nivel Mantenimiento catalog (with valor field)
+  app.get("/api/catalog/nivel-mantenimiento", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogNivelMantenimiento();
+    res.json(items);
+  });
+  app.post("/api/catalog/nivel-mantenimiento", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogNivelMantenimientoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogNivelMantenimiento(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/nivel-mantenimiento/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, valor, active, order } = req.body;
+    const updateData: { name?: string; valor?: number; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof valor === "number") updateData.valor = valor;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogNivelMantenimiento(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Nivel de mantenimiento no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/nivel-mantenimiento/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogNivelMantenimiento(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // ============ NEW PROSPECT CATALOGS ============
+
+  // Tipo Cliente catalog (with color)
+  app.get("/api/catalog/tipo-cliente", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogTipoCliente();
+    res.json(items);
+  });
+  app.post("/api/catalog/tipo-cliente", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogTipoClienteSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogTipoCliente(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/tipo-cliente/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogTipoCliente(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Tipo de cliente no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/tipo-cliente/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogTipoCliente(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Perfil catalog (with color)
+  app.get("/api/catalog/perfil", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogPerfil();
+    res.json(items);
+  });
+  app.post("/api/catalog/perfil", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogPerfilSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogPerfil(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/perfil/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogPerfil(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Perfil no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/perfil/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogPerfil(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Fuente catalog (with color)
+  app.get("/api/catalog/fuente", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogFuente();
+    res.json(items);
+  });
+  app.post("/api/catalog/fuente", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogFuenteSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogFuente(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/fuente/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogFuente(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Fuente no encontrada" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/fuente/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogFuente(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Status Prospecto catalog (with color)
+  app.get("/api/catalog/status-prospecto", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogStatusProspecto();
+    res.json(items);
+  });
+  app.post("/api/catalog/status-prospecto", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogStatusProspectoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogStatusProspecto(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/status-prospecto/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogStatusProspecto(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Status no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/status-prospecto/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogStatusProspecto(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Etapa Embudo catalog (with color)
+  app.get("/api/catalog/etapa-embudo", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogEtapaEmbudo();
+    res.json(items);
+  });
+  app.post("/api/catalog/etapa-embudo", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogEtapaEmbudoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogEtapaEmbudo(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/etapa-embudo/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogEtapaEmbudo(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Etapa no encontrada" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/etapa-embudo/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogEtapaEmbudo(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Como Paga catalog
+  app.get("/api/catalog/como-paga", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogComoPaga();
+    res.json(items);
+  });
+  app.post("/api/catalog/como-paga", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogComoPagaSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogComoPaga(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/como-paga/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogComoPaga(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Opción de pago no encontrada" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/como-paga/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogComoPaga(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Positivos catalog
+  app.get("/api/catalog/positivos", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogPositivos();
+    res.json(items);
+  });
+  app.post("/api/catalog/positivos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogPositivoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogPositivo(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/positivos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogPositivo(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Positivo no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/positivos/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogPositivo(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Negativos catalog
+  app.get("/api/catalog/negativos", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogNegativos();
+    res.json(items);
+  });
+  app.post("/api/catalog/negativos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogNegativoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogNegativo(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/negativos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogNegativo(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Negativo no encontrado" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/negativos/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogNegativo(req.params.id as string);
     res.status(204).send();
   });
 
