@@ -18,8 +18,10 @@ import {
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
-import type { Client, User, Typology, City, Zone, Developer, DevelopmentEntity } from "@shared/schema";
+import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
 
 interface ProspectsSpreadsheetProps {
   isClientView?: boolean;
@@ -50,11 +52,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     queryKey: ["/api/public/typologies"],
   });
 
-  const { data: cities = [] } = useQuery<City[]>({
+  const { data: cities = [] } = useQuery<CatalogCity[]>({
     queryKey: ["/api/catalog/cities"],
   });
 
-  const { data: zones = [] } = useQuery<Zone[]>({
+  const { data: zones = [] } = useQuery<CatalogZone[]>({
     queryKey: ["/api/catalog/zones"],
   });
 
@@ -62,7 +64,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     queryKey: ["/api/developers"],
   });
 
-  const { data: developments = [] } = useQuery<DevelopmentEntity[]>({
+  const { data: developments = [] } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
   });
 
@@ -183,15 +185,15 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "apellido", label: "Apellido", width: "140px" },
     { key: "telefono", label: "Teléfono", width: "130px" },
     { key: "correo", label: "Correo", width: "180px" },
-    { key: "tipofil", label: "Tipo", width: "100px" },
-    { key: "perfil", label: "Perfil", width: "120px" },
-    { key: "comoLlega", label: "Cómo Llega", width: "120px", type: "select" },
+    { key: "tipofil", label: "Tipo", width: "120px", type: "options-select" },
+    { key: "perfil", label: "Perfil", width: "140px", type: "options-select" },
+    { key: "comoLlega", label: "Fuente", width: "160px", type: "options-select" },
     { key: "brokerExterno", label: "Broker Externo", width: "140px" },
-    { key: "estatus", label: "Estatus", width: "120px", type: "select" },
-    { key: "embudo", label: "Embudo", width: "100px" },
-    { key: "comoPaga", label: "Cómo Paga", width: "120px" },
-    { key: "positivos", label: "Positivos", width: "150px" },
-    { key: "negativos", label: "Negativos", width: "150px" },
+    { key: "estatus", label: "Estatus", width: "120px", type: "options-select" },
+    { key: "embudo", label: "Etapa de Embudo", width: "160px", type: "options-select" },
+    { key: "comoPaga", label: "Cómo Paga", width: "140px", type: "options-select" },
+    { key: "positivos", label: "Positivos", width: "180px", type: "multi-select" },
+    { key: "negativos", label: "Negativos", width: "180px", type: "multi-select" },
     { key: "comentarios", label: "Comentarios", width: "200px" },
     { key: "actions", label: "", width: "60px", type: "actions" },
   ];
@@ -219,25 +221,104 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const allColumns = isClientView ? clientColumns : prospectColumns;
 
-  const estatusOptions = [
-    { value: "nuevo", label: "Nuevo" },
-    { value: "contactado", label: "Contactado" },
-    { value: "interesado", label: "Interesado" },
-    { value: "cita_agendada", label: "Cita Agendada" },
-    { value: "negociacion", label: "Negociación" },
-    { value: "cerrado", label: "Cerrado" },
-    { value: "no_interesado", label: "No Interesado" },
+  const tipoOptions = [
+    { value: "inversionista", label: "Inversionista" },
+    { value: "uso_propio", label: "Uso Propio" },
+    { value: "revender", label: "Revender" },
   ];
 
-  const comoLlegaOptions = [
-    { value: "web", label: "Web" },
-    { value: "referido", label: "Referido" },
-    { value: "redes_sociales", label: "Redes Sociales" },
-    { value: "llamada", label: "Llamada" },
-    { value: "whatsapp", label: "WhatsApp" },
-    { value: "evento", label: "Evento" },
-    { value: "otro", label: "Otro" },
+  const perfilOptions = [
+    { value: "estudiante", label: "Estudiante" },
+    { value: "profesionista", label: "Profesionista" },
+    { value: "pareja", label: "Pareja" },
+    { value: "familia_joven", label: "Familia Joven" },
+    { value: "familia_grande", label: "Familia Grande" },
+    { value: "tercera_edad", label: "Tercera Edad" },
   ];
+
+  const fuenteOptions = [
+    { value: "instagram_ads", label: "Instagram Ads" },
+    { value: "instagram_follower", label: "Instagram Follower" },
+    { value: "facebook_ads", label: "Facebook Ads" },
+    { value: "facebook_fan", label: "Facebook Fan" },
+    { value: "landing_page", label: "Landing Page" },
+    { value: "grupo_facebook", label: "Grupo Facebook" },
+    { value: "fb_marketplace", label: "FB Marketplace" },
+    { value: "broker_externo", label: "Broker Externo" },
+    { value: "referido", label: "Referido" },
+    { value: "lead_pasado", label: "Lead Pasado" },
+    { value: "conocido_asesor", label: "Conocido de Asesor" },
+    { value: "base_datos", label: "Base de Datos" },
+    { value: "periodico", label: "Periódico" },
+    { value: "flyer", label: "Flyer" },
+    { value: "rotulo", label: "Rótulo" },
+    { value: "google_ads", label: "Google Ads" },
+    { value: "linkedin", label: "LinkedIn" },
+    { value: "tiktok", label: "TikTok" },
+    { value: "twitter", label: "Twitter" },
+  ];
+
+  const estatusOptions = [
+    { value: "activo", label: "Activo" },
+    { value: "en_hold", label: "En Hold" },
+    { value: "no_activo", label: "No Activo" },
+  ];
+
+  const embudoOptions = [
+    { value: "nuevo", label: "Nuevo" },
+    { value: "asignado", label: "Asignado" },
+    { value: "validado", label: "Validado" },
+    { value: "envio_info", label: "Envío de Info" },
+    { value: "muestra_interes", label: "Muestra Interés" },
+    { value: "presentacion", label: "Presentación" },
+    { value: "showroom", label: "Showroom" },
+    { value: "evaluando", label: "Evaluando" },
+    { value: "negociacion", label: "Negociación" },
+    { value: "cierre_ganado", label: "Cierre Ganado" },
+    { value: "separado", label: "Separado" },
+    { value: "enganche_firma", label: "Enganche y Firma" },
+    { value: "cierre_perdido", label: "Cierre Perdido" },
+    { value: "no_contesta", label: "No Contesta" },
+    { value: "no_le_intereso", label: "No le Interesó" },
+  ];
+
+  const comoPagaOptions = [
+    { value: "enganche_bajo", label: "Enganche Bajo" },
+    { value: "enganche_alto", label: "Enganche Alto" },
+    { value: "capital_semilla", label: "Capital Semilla" },
+  ];
+
+  const positivosOptions = [
+    { value: "precio", label: "Precio" },
+    { value: "ubicacion", label: "Ubicación" },
+    { value: "diseno", label: "Diseño" },
+    { value: "tamano", label: "Tamaño" },
+    { value: "amenidades", label: "Amenidades" },
+    { value: "esquema_pagos", label: "Esquema de Pagos" },
+  ];
+
+  const negativosOptions = [
+    { value: "precio", label: "Precio" },
+    { value: "ubicacion", label: "Ubicación" },
+    { value: "diseno", label: "Diseño" },
+    { value: "tamano", label: "Tamaño" },
+    { value: "amenidades", label: "Amenidades" },
+    { value: "esquema_pagos", label: "Esquema de Pagos" },
+    { value: "permisos", label: "Permisos" },
+    { value: "desarrollador", label: "Desarrollador" },
+    { value: "tiempo_entrega", label: "Tiempo de Entrega" },
+  ];
+
+  const optionsMap: Record<string, { value: string; label: string }[]> = {
+    tipofil: tipoOptions,
+    perfil: perfilOptions,
+    comoLlega: fuenteOptions,
+    estatus: estatusOptions,
+    embudo: embudoOptions,
+    comoPaga: comoPagaOptions,
+    positivos: positivosOptions,
+    negativos: negativosOptions,
+  };
 
   const columns = useMemo(() => {
     return allColumns.filter(col => {
@@ -499,34 +580,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  if (col.key === 'comoLlega') {
-                    const value = (prospect as any).comoLlega || (prospect as any).source || 'web';
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value}
-                            onValueChange={(v) => handleSelectChange(prospect.id, 'comoLlega', v)}
-                          >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {comoLlegaOptions.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{comoLlegaOptions.find(o => o.value === value)?.label || value}</span>
-                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
                   // Handle catalog-select fields (ciudad, zona, desarrollador, desarrollo)
                   if (col.type === 'catalog-select') {
                     const value = (prospect as any)[col.key];
@@ -598,6 +651,87 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         ) : (
                           <div className="flex items-center gap-1">
                             <span>{displayName}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Handle options-select fields (tipofil, perfil, comoLlega, estatus, embudo, comoPaga)
+                  if (col.type === 'options-select') {
+                    const value = (prospect as any)[col.key];
+                    const options = optionsMap[col.key] || [];
+                    const displayLabel = options.find(o => o.value === value)?.label || value || '-';
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {options.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{displayLabel}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Handle multi-select fields (positivos, negativos)
+                  if (col.type === 'multi-select') {
+                    const rawValue = (prospect as any)[col.key];
+                    const selectedValues: string[] = Array.isArray(rawValue) ? rawValue : (rawValue ? [rawValue] : []);
+                    const options = optionsMap[col.key] || [];
+                    const displayLabels = selectedValues
+                      .map(v => options.find(o => o.value === v)?.label || v)
+                      .join(', ') || '-';
+                    
+                    const handleMultiChange = (optValue: string, checked: boolean) => {
+                      const newValues = checked 
+                        ? [...selectedValues, optValue]
+                        : selectedValues.filter(v => v !== optValue);
+                      updateMutation.mutate({ id: prospect.id, data: { [col.key]: newValues } as any });
+                    };
+
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" className="h-6 w-full justify-start text-sm font-normal px-2">
+                                <span className="truncate">{displayLabels}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2" align="start">
+                              <div className="space-y-1 max-h-60 overflow-y-auto">
+                                {options.map(opt => (
+                                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1 hover:bg-muted rounded cursor-pointer">
+                                    <Checkbox
+                                      checked={selectedValues.includes(opt.value)}
+                                      onCheckedChange={(checked) => handleMultiChange(opt.value, !!checked)}
+                                    />
+                                    <span className="text-sm">{opt.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="truncate">{displayLabels}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}

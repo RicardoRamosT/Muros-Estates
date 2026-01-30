@@ -782,9 +782,9 @@ export const clients = pgTable("clients", {
   embudo: text("embudo"),
   comoPaga: text("como_paga"),
   
-  // Evaluation
-  positivos: text("positivos"),
-  negativos: text("negativos"),
+  // Evaluation (multi-select arrays)
+  positivos: text("positivos").array(),
+  negativos: text("negativos").array(),
   comentarios: text("comentarios"),
   
   // Client-specific fields (when isClient=true)
