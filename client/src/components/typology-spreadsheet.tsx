@@ -1247,8 +1247,10 @@ export function TypologySpreadsheet() {
     if (field === "development" && dbDevelopments) {
       const selectedDev = dbDevelopments.find(d => d.name === value);
       if (selectedDev) {
-        autoPopulatedFields.zone = selectedDev.zone1 || "";
-        autoPopulatedFields.developer = selectedDev.developerName || "";
+        autoPopulatedFields.zone = selectedDev.zone || "";
+        // Find developer name from developerId
+        const developerRecord = dbDevelopers.find((dev: any) => dev.id === selectedDev.developerId);
+        autoPopulatedFields.developer = developerRecord?.name || "";
         (updatedRow as any).zone = autoPopulatedFields.zone;
         (updatedRow as any).developer = autoPopulatedFields.developer;
       }
@@ -1321,7 +1323,7 @@ export function TypologySpreadsheet() {
     }, 500);
     
     return () => clearTimeout(debounceId);
-  }, [typologies, updateMutation, dbDevelopments]);
+  }, [typologies, updateMutation, dbDevelopments, dbDevelopers]);
   
   const handleAddRow = () => {
     createMutation.mutate({
