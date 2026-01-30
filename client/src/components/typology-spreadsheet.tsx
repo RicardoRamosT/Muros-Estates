@@ -891,7 +891,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       ? currentValues.length === 1 
         ? currentValues[0] 
         : `${currentValues.length} sel.`
-      : "-";
+      : "";
     
     return (
       <div 
@@ -975,7 +975,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
             className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-start text-left"
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <SelectValue placeholder="-" className="text-left" />
+            <SelectValue placeholder="" className="text-left" />
           </SelectTrigger>
           <SelectContent>
             {finalOptions.map((opt) => (
