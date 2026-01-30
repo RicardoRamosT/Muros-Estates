@@ -276,7 +276,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "tasa_renta",
-    label: "TASA",
+    label: "",
     subheader: "7.0%",
     color: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
@@ -293,12 +293,19 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
-    id: "meses_total",
+    id: "meses",
     label: "",
     subheader: "11.0",
     color: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
       { key: "rentMonths", label: "Meses", type: "number", width: 55 },
+    ],
+  },
+  {
+    id: "total_renta",
+    label: "TOTAL",
+    color: "bg-indigo-100 dark:bg-indigo-900/30",
+    columns: [
       { key: "rentTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
     ],
   },
