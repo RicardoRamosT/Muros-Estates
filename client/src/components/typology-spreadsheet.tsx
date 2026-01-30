@@ -1579,8 +1579,7 @@ export function TypologySpreadsheet() {
                   </div>
                 );
               })}
-              <div className="w-24 flex-shrink-0 border-r bg-muted/50" />
-              <div className="w-16 flex-shrink-0" />
+              <div className="w-24 flex-shrink-0 bg-muted/50" />
             </div>
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
