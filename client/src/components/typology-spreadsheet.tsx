@@ -1542,60 +1542,91 @@ export function TypologySpreadsheet() {
         className="flex-1 overflow-auto"
       >
         <div className="min-w-max">
-          <div className="sticky top-0 z-20 flex bg-background border-b">
-            <div className="w-12 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
-              <span className="text-xs font-medium text-muted-foreground">#</span>
-            </div>
-            {SECTIONS.map((section) => (
-              <Collapsible
-                key={section.id}
-                open={expandedSections.has(section.id)}
-                onOpenChange={() => toggleSection(section.id)}
-              >
-                <div className="flex flex-col border-r">
-                  <CollapsibleTrigger asChild>
+          {/* Header: Two-row structure for consistent alignment */}
+          <div className="sticky top-0 z-20 bg-background">
+            {/* Row 1: Section toggle triggers */}
+            <div className="flex border-b spreadsheet-header-row1">
+              <div className="w-12 flex-shrink-0 border-r bg-muted/50" />
+              {SECTIONS.map((section) => {
+                const sectionWidth = section.columns.reduce((sum, col) => {
+                  const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
+                  return sum + w;
+                }, 0);
+                const isExpanded = expandedSections.has(section.id);
+                return (
+                  <div 
+                    key={section.id} 
+                    className="border-r flex-shrink-0"
+                    style={{ width: sectionWidth }}
+                  >
                     <button
+                      onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "flex items-center gap-1 px-2 py-2 text-sm font-medium",
+                        "w-full h-full flex items-center justify-center gap-1 px-2 text-sm font-medium",
                         section.color,
                         "hover-elevate cursor-pointer"
                       )}
                       data-testid={`section-toggle-${section.id}`}
                     >
-                      {expandedSections.has(section.id) ? (
+                      {isExpanded ? (
                         <ChevronDown className="w-4 h-4" />
                       ) : (
                         <ChevronRight className="w-4 h-4" />
                       )}
                       {section.label}
                     </button>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent>
-                    <div className="flex">
-                      {section.columns.map((col) => (
-                        <div
-                          key={col.key}
-                          className="flex flex-col border-r last:border-r-0"
-                          style={{ width: col.width }}
-                        >
-                          <ColumnFilter
-                            column={col}
-                            data={typologies}
-                            selectedValues={columnFilters[col.key] || new Set()}
-                            sortDirection={columnSorts[col.key] || null}
-                            onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
-                            onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                            sectionColor={section.color}
-                            availableValues={availableValuesMap[col.key]}
-                          />
-                        </div>
-                      ))}
+                  </div>
+                );
+              })}
+              <div className="w-24 flex-shrink-0 border-r bg-muted/50" />
+              <div className="w-16 flex-shrink-0" />
+            </div>
+            
+            {/* Row 2: Column headers */}
+            <div className="flex border-b spreadsheet-header-row2">
+              <div className="w-12 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
+                <span className="text-xs font-medium text-muted-foreground">#</span>
+              </div>
+              {SECTIONS.map((section) => {
+                const sectionWidth = section.columns.reduce((sum, col) => {
+                  const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
+                  return sum + w;
+                }, 0);
+                const isExpanded = expandedSections.has(section.id);
+                if (!isExpanded) {
+                  return (
+                    <div 
+                      key={section.id}
+                      className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.color)}
+                      style={{ width: sectionWidth }}
+                    >
+                      (colapsado)
                     </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            ))}
+                  );
+                }
+                return (
+                  <div key={section.id} className="flex flex-shrink-0">
+                    {section.columns.map((col) => (
+                      <div
+                        key={col.key}
+                        className="border-r last:border-r-0 flex-shrink-0"
+                        style={{ width: col.width }}
+                      >
+                        <ColumnFilter
+                          column={col}
+                          data={typologies}
+                          selectedValues={columnFilters[col.key] || new Set()}
+                          sortDirection={columnSorts[col.key] || null}
+                          onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
+                          onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
+                          sectionColor={section.color}
+                          availableValues={availableValuesMap[col.key]}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
             
             <div className="w-24 flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
               <Tooltip>
@@ -1610,6 +1641,7 @@ export function TypologySpreadsheet() {
                 </TooltipContent>
               </Tooltip>
             </div>
+          </div>
           </div>
           
           {filteredAndSortedTypologies.map((row, rowIndex) => {
@@ -1631,12 +1663,23 @@ export function TypologySpreadsheet() {
                   {rowIndex + 1}
                 </div>
                 
-                {SECTIONS.map((section) => (
-                  <Collapsible
-                    key={section.id}
-                    open={expandedSections.has(section.id)}
-                  >
-                    <CollapsibleContent className="flex border-r">
+                {SECTIONS.map((section) => {
+                  const sectionWidth = section.columns.reduce((sum, col) => {
+                    const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
+                    return sum + w;
+                  }, 0);
+                  const isExpanded = expandedSections.has(section.id);
+                  if (!isExpanded) {
+                    return (
+                      <div 
+                        key={section.id}
+                        className="spreadsheet-cell bg-muted/20 border-r"
+                        style={{ width: sectionWidth }}
+                      />
+                    );
+                  }
+                  return (
+                    <div key={section.id} className="flex border-r">
                       {section.columns.map((col) => {
                         let dynamicOpts: string[] | undefined;
                         if (col.key === "developer") dynamicOpts = developerOptions;
@@ -1670,9 +1713,9 @@ export function TypologySpreadsheet() {
                           />
                         );
                       })}
-                    </CollapsibleContent>
-                  </Collapsible>
-                ))}
+                    </div>
+                  );
+                })}
                 
                 <div 
                   className="spreadsheet-cell w-24 flex-shrink-0 justify-center gap-0.5"

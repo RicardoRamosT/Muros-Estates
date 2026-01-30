@@ -336,4 +336,14 @@
     border-right: 1px solid hsl(var(--border));
     border-bottom: 1px solid hsl(var(--border));
   }
+
+  /* Spreadsheet header heights - consistent across section rows */
+  .spreadsheet-header-row1 {
+    height: 36px;
+    min-height: 36px;
+  }
+  .spreadsheet-header-row2 {
+    height: 32px;
+    min-height: 32px;
+  }
 }
