@@ -933,14 +933,14 @@ export const typologies = pgTable("typologies", {
   lockOff: boolean("lock_off").default(false), // LockOff
   bedrooms: integer("bedrooms"), // REC
   bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }), // Baños
-  areas: decimal("areas", { precision: 5, scale: 2 }), // Áreas
+  areas: text("areas"), // Áreas (text for area type selection)
   hasBalcony: boolean("has_balcony").default(false), // Balcón Sí/No
   balconySize: decimal("balcony_size", { precision: 5, scale: 2 }), // Balcón Tamaño
   hasTerrace: boolean("has_terrace").default(false), // Terraza Sí/No
   terraceSize: decimal("terrace_size", { precision: 5, scale: 2 }), // Terraza Tamaño
   bedrooms2: integer("bedrooms_2"), // REC (2)
   bathrooms2: decimal("bathrooms_2", { precision: 3, scale: 1 }), // Baños (2)
-  areas2: decimal("areas_2", { precision: 5, scale: 2 }), // Áreas (2)
+  areas2: text("areas_2"), // Áreas (2) (text for area type selection)
   hasBalcony2: boolean("has_balcony_2").default(false), // Balcón (2) Sí/No
   balconySize2: decimal("balcony_size_2", { precision: 5, scale: 2 }), // Balcón (2) Tamaño
   hasTerrace2: boolean("has_terrace_2").default(false), // Terraza (2) Sí/No
