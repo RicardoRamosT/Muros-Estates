@@ -894,10 +894,10 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent"
+            className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-start text-left"
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <SelectValue placeholder="-" />
+            <SelectValue placeholder="-" className="text-left" />
           </SelectTrigger>
           <SelectContent>
             {finalOptions.map((opt) => (
