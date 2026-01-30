@@ -198,14 +198,14 @@ const SECTIONS: SectionDef[] = [
     label: "ESQUEMA DE PAGO",
     color: "bg-yellow-100 dark:bg-yellow-900/30",
     columns: [
-      { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent" },
+      { key: "initialPercent", label: "Inicial %", type: "decimal", width: 65, format: "percent" },
       { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "duringConstructionPercent", label: "En Plazo", type: "decimal", width: 65, format: "percent" },
+      { key: "duringConstructionPercent", label: "En Plazo %", type: "decimal", width: 70, format: "percent" },
       { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "paymentMonths", label: "Meses", type: "number", width: 55 },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot. Eng.", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "remainingPercent", label: "Resto", type: "decimal", width: 60, format: "percent", calculated: true },
+      { key: "remainingPercent", label: "Resto %", type: "decimal", width: 65, format: "percent", calculated: true },
     ],
   },
   {

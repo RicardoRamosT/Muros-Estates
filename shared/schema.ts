@@ -919,8 +919,8 @@ export const typologies = pgTable("typologies", {
   // 12-17: Precio (sin agrupación)
   price: decimal("price", { precision: 14, scale: 2 }), // Precio
   hasDiscount: boolean("has_discount").default(false), // Bono Sí/No
-  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // % del bono
-  discountPercentValue: decimal("discount_percent_value", { precision: 5, scale: 2 }), // % (legacy)
+  discountPercent: decimal("discount_percent", { precision: 10, scale: 2 }), // % del bono
+  discountPercentValue: decimal("discount_percent_value", { precision: 10, scale: 2 }), // % (legacy)
   discountAmount: decimal("discount_amount", { precision: 14, scale: 2 }), // Monto
   finalPrice: decimal("final_price", { precision: 14, scale: 2 }), // Precio Final (calculado)
   pricePerM2: decimal("price_per_m2", { precision: 12, scale: 2 }), // Precio/M2 (calculado)
@@ -959,21 +959,21 @@ export const typologies = pgTable("typologies", {
   storagePrice: decimal("storage_price", { precision: 12, scale: 2 }), // Precio
   
   // 43-50: ESQUEMA DE PAGO
-  initialPercent: decimal("initial_percent", { precision: 5, scale: 2 }), // Inicial %
+  initialPercent: decimal("initial_percent", { precision: 10, scale: 2 }), // Inicial %
   initialAmount: decimal("initial_amount", { precision: 14, scale: 2 }), // Monto
-  duringConstructionPercent: decimal("during_construction_percent", { precision: 5, scale: 2 }), // En Plazo %
+  duringConstructionPercent: decimal("during_construction_percent", { precision: 10, scale: 2 }), // En Plazo %
   duringConstructionAmount: decimal("during_construction_amount", { precision: 14, scale: 2 }), // Monto (2)
   paymentMonths: integer("payment_months"), // Meses
   monthlyPayment: decimal("monthly_payment", { precision: 12, scale: 2 }), // Mens. (calculado)
   totalEnganche: decimal("total_enganche", { precision: 14, scale: 2 }), // Tot. Eng. (calculado)
-  remainingPercent: decimal("remaining_percent", { precision: 5, scale: 2 }), // Resto %
+  remainingPercent: decimal("remaining_percent", { precision: 10, scale: 2 }), // Resto %
   
   // 51: Entrega (sin agrupación)
   deliveryDate: text("delivery_date"), // Entrega
   
   // 52-56: Gastos post-entrega (headers: 3.0%, 2.5%)
-  isaPercent: decimal("isa_percent", { precision: 5, scale: 2 }), // ISAI (3.0%)
-  notaryPercent: decimal("notary_percent", { precision: 5, scale: 2 }), // Notario (2.5%)
+  isaPercent: decimal("isa_percent", { precision: 10, scale: 2 }), // ISAI (3.0%)
+  notaryPercent: decimal("notary_percent", { precision: 10, scale: 2 }), // Notario (2.5%)
   equipmentCost: decimal("equipment_cost", { precision: 12, scale: 2 }), // Equipo
   furnitureCost: decimal("furniture_cost", { precision: 12, scale: 2 }), // Muebles
   totalPostDeliveryCosts: decimal("total_post_delivery_costs", { precision: 14, scale: 2 }), // Total (calculado)
@@ -981,7 +981,7 @@ export const typologies = pgTable("typologies", {
   // 57-60: Crédito pre-header (headers: 10.5%, 15)
   mortgageAmount: decimal("mortgage_amount", { precision: 14, scale: 2 }), // Monto
   mortgageStartDate: text("mortgage_start_date"), // Inicia
-  mortgageInterestPercent: decimal("mortgage_interest_percent", { precision: 5, scale: 2 }), // Tasa (10.5%)
+  mortgageInterestPercent: decimal("mortgage_interest_percent", { precision: 10, scale: 2 }), // Tasa (10.5%)
   mortgageYears: integer("mortgage_years"), // Años (15)
   
   // 61-63: CRÉDITO HIPOTECARIO
@@ -1002,7 +1002,7 @@ export const typologies = pgTable("typologies", {
   rentStartDate: text("rent_start_date"), // Fecha
   
   // 72: TASA (7.0%)
-  rentRatePercent: decimal("rent_rate_percent", { precision: 5, scale: 2 }), // Tasa
+  rentRatePercent: decimal("rent_rate_percent", { precision: 10, scale: 2 }), // Tasa
   
   // 73-74: RENTA (2)
   rentFinal: decimal("rent_final", { precision: 12, scale: 2 }), // Final
@@ -1016,10 +1016,10 @@ export const typologies = pgTable("typologies", {
   investmentTotal: decimal("investment_total", { precision: 14, scale: 2 }), // Total (calculado)
   investmentNet: decimal("investment_net", { precision: 14, scale: 2 }), // Neta (calculado)
   investmentMonthly: decimal("investment_monthly", { precision: 12, scale: 2 }), // Mensual (calculado)
-  investmentRate: decimal("investment_rate", { precision: 5, scale: 2 }), // Tasa (calculado)
+  investmentRate: decimal("investment_rate", { precision: 10, scale: 2 }), // Tasa (calculado)
   
   // 81: 7.0% (pre-header plusvalía)
-  appreciationRate: decimal("appreciation_rate", { precision: 5, scale: 2 }), // Tasa
+  appreciationRate: decimal("appreciation_rate", { precision: 10, scale: 2 }), // Tasa
   
   // 82-86: PLUSVALÍA
   appreciationDays: integer("appreciation_days"), // Días
@@ -1039,11 +1039,11 @@ export const typologies = pgTable("typologies", {
   serviceRoom: boolean("service_room").default(false),
   parkingSpots: integer("parking_spots").default(1),
   storage: boolean("storage").default(false),
-  downPaymentPercent: decimal("down_payment_percent", { precision: 5, scale: 2 }),
+  downPaymentPercent: decimal("down_payment_percent", { precision: 10, scale: 2 }),
   remainingAmount: decimal("remaining_amount", { precision: 14, scale: 2 }),
   notaryFees: decimal("notary_fees", { precision: 12, scale: 2 }),
   maintenanceDate: text("maintenance_date"),
-  appreciationTotalYears: decimal("appreciation_total_years", { precision: 5, scale: 2 }),
+  appreciationTotalYears: decimal("appreciation_total_years", { precision: 10, scale: 2 }),
   
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
