@@ -430,7 +430,8 @@ export class DatabaseStorage implements IStorage {
     for (const property of allProperties) {
       const existingTypology = await this.getTypologyByPropertyId(property.id);
       
-      const typologyData: InsertTypology = {
+      // Property-derived fields that should be synced from properties
+      const propertyDerivedData = {
         propertyId: property.id,
         city: property.city,
         zone: property.zone,
@@ -447,13 +448,12 @@ export class DatabaseStorage implements IStorage {
       };
       
       if (existingTypology) {
-        // Only update basic property-derived fields, preserve user-edited fields like type, view, areas, etc.
-        const { type, view, areas, areas2, development, zone, developer, ...updateData } = typologyData as any;
-        // Preserve existing values for these user-editable fields
-        await this.updateTypology(existingTypology.id, updateData);
+        // Update property-derived fields but preserve user-edited fields (type, view, areas, areas2)
+        // These user-editable fields are NOT included in propertyDerivedData, so they won't be overwritten
+        await this.updateTypology(existingTypology.id, propertyDerivedData);
       } else {
-        // For new typologies, set defaults for type and view
-        await this.createTypology({ ...typologyData, type: null, view: null });
+        // For new typologies, set defaults for user-editable fields
+        await this.createTypology({ ...propertyDerivedData, type: null, view: null, areas: null, areas2: null });
       }
     }
     
