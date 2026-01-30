@@ -257,7 +257,7 @@ const SECTIONS: SectionDef[] = [
     label: "MANTENIMIENTO",
     color: "bg-teal-100 dark:bg-teal-900/30",
     columns: [
-      { key: "maintenanceM2", label: "M²", type: "decimal", width: 60, format: "currency" },
+      { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "area" },
       { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
       { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 90 },
       { key: "maintenanceFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
