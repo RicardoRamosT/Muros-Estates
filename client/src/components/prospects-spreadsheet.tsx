@@ -128,8 +128,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         data: { 
           [field]: actualValue,
           isClient: true,
-          convertedAt: new Date().toISOString(),
-        } 
+          convertedAt: new Date(),
+        } as any
       });
       toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes." });
     } else {
