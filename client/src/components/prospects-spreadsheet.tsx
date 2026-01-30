@@ -120,8 +120,22 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     // Convert special unassigned value to null for database
     const actualValue = value === '__unassigned__' ? null : (value || null);
-    updateMutation.mutate({ id, data: { [field]: actualValue } });
-  }, [updateMutation]);
+    
+    // If embudo is set to "separado", convert prospect to client
+    if (field === 'embudo' && value === 'separado') {
+      updateMutation.mutate({ 
+        id, 
+        data: { 
+          [field]: actualValue,
+          isClient: true,
+          convertedAt: new Date().toISOString(),
+        } 
+      });
+      toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes." });
+    } else {
+      updateMutation.mutate({ id, data: { [field]: actualValue } });
+    }
+  }, [updateMutation, toast]);
 
   const handleTypologySelect = useCallback((prospectId: string, typologyId: string) => {
     if (typologyId === '__unassigned__') {
