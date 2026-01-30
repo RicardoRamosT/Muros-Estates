@@ -1447,16 +1447,17 @@ export function TypologySpreadsheet() {
     const pending = pendingChanges.get(row.id);
     const merged = pending ? { ...row, ...pending } : row;
     
-    // Auto-populate zone and developer from selected development using zone1 and developerName
+    // Auto-populate zone and developer from selected development
+    // Use same logic as handleCellChange: zone from development.zone, developer from developerId lookup
     let autoZone = merged.zone;
     let autoDeveloper = merged.developer;
     if (merged.development && dbDevelopments.length > 0) {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev) {
-        // Use zone1 for consistency with handleCellChange
-        autoZone = dev.zone1 || merged.zone;
-        // Use developerName for consistency with handleCellChange
-        autoDeveloper = dev.developerName || merged.developer;
+        autoZone = dev.zone || merged.zone;
+        // Find developer name from developerId
+        const developerRecord = dbDevelopers.find((d: any) => d.id === dev.developerId);
+        autoDeveloper = developerRecord?.name || merged.developer;
       }
     }
     
