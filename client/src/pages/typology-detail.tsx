@@ -318,6 +318,16 @@ export default function TypologyDetail() {
                     <p className="text-3xl font-bold text-primary" data-testid="text-price">
                       {formatPrice(typology.finalPrice || typology.price)}
                     </p>
+                    {typology.hasDiscount && typology.price && typology.finalPrice && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm line-through text-muted-foreground">
+                          {formatPrice(typology.price)}
+                        </span>
+                        <Badge variant="destructive" className="text-xs">
+                          -{typology.discountPercent}%
+                        </Badge>
+                      </div>
+                    )}
                     {typology.pricePerM2 && (
                       <p className="text-sm text-muted-foreground">
                         {formatPrice(typology.pricePerM2)} / m²
@@ -338,6 +348,10 @@ export default function TypologyDetail() {
                       <span>Entrega: {typology.deliveryDate}</span>
                     </div>
                   )}
+
+                  {(typology.lockOff) && (
+                    <Badge variant="secondary" className="text-xs">Lock-Off disponible</Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -351,6 +365,62 @@ export default function TypologyDetail() {
                 <p className="text-sm text-muted-foreground">Por {typology.developer}</p>
               </CardContent>
             </Card>
+
+            {(typology.initialPercent || typology.duringConstructionPercent || typology.remainingPercent) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Esquema de Pago</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  {typology.initialPercent && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Inicial</span>
+                      <span className="font-medium">{typology.initialPercent}%</span>
+                    </div>
+                  )}
+                  {typology.duringConstructionPercent && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Durante construcción</span>
+                      <span className="font-medium">{typology.duringConstructionPercent}%</span>
+                    </div>
+                  )}
+                  {typology.paymentMonths && typology.monthlyPayment && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Mensualidad ({typology.paymentMonths} meses)</span>
+                      <span className="font-medium">{formatPrice(typology.monthlyPayment)}</span>
+                    </div>
+                  )}
+                  {typology.remainingPercent && (
+                    <div className="flex justify-between gap-2 border-t pt-2">
+                      <span className="text-muted-foreground">Contra entrega</span>
+                      <span className="font-medium">{typology.remainingPercent}%</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {(typology.isaPercent || typology.notaryPercent) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Costos Adicionales</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  {typology.isaPercent && typology.isaAmount && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">ISAI ({typology.isaPercent}%)</span>
+                      <span className="font-medium">{formatPrice(typology.isaAmount)}</span>
+                    </div>
+                  )}
+                  {typology.notaryPercent && typology.notaryAmount && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Notario ({typology.notaryPercent}%)</span>
+                      <span className="font-medium">{formatPrice(typology.notaryAmount)}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </main>
