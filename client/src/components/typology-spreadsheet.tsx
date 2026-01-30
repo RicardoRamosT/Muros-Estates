@@ -1319,7 +1319,8 @@ export function TypologySpreadsheet() {
     });
     
     const debounceId = setTimeout(() => {
-      updateMutation.mutate({ id: rowId, data: { [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields } });
+      const updateData = { [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields };
+      updateMutation.mutate({ id: rowId, data: updateData });
     }, 500);
     
     return () => clearTimeout(debounceId);

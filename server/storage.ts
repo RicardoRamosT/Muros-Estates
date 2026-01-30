@@ -436,9 +436,7 @@ export class DatabaseStorage implements IStorage {
         zone: property.zone,
         developer: property.developer,
         development: property.developmentName,
-        type: null,
         level: property.floor || null,
-        view: null,
         size: property.area,
         price: property.price,
         bedrooms: property.bedrooms ? parseInt(property.bedrooms) : null,
@@ -449,9 +447,13 @@ export class DatabaseStorage implements IStorage {
       };
       
       if (existingTypology) {
-        await this.updateTypology(existingTypology.id, typologyData);
+        // Only update basic property-derived fields, preserve user-edited fields like type, view, areas, etc.
+        const { type, view, areas, areas2, development, zone, developer, ...updateData } = typologyData as any;
+        // Preserve existing values for these user-editable fields
+        await this.updateTypology(existingTypology.id, updateData);
       } else {
-        await this.createTypology(typologyData);
+        // For new typologies, set defaults for type and view
+        await this.createTypology({ ...typologyData, type: null, view: null });
       }
     }
     
