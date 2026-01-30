@@ -1556,11 +1556,12 @@ export function TypologySpreadsheet() {
                   return sum + w;
                 }, 0);
                 const isExpanded = expandedSections.has(section.id);
+                const collapsedWidth = 40;
                 return (
                   <div 
                     key={section.id} 
                     className="border-r flex-shrink-0"
-                    style={{ width: sectionWidth }}
+                    style={{ width: isExpanded ? sectionWidth : collapsedWidth }}
                   >
                     <button
                       onClick={() => toggleSection(section.id)}
@@ -1576,7 +1577,7 @@ export function TypologySpreadsheet() {
                       ) : (
                         <ChevronRight className="w-4 h-4" />
                       )}
-                      {section.label}
+                      {isExpanded && section.label}
                     </button>
                   </div>
                 );
@@ -1590,20 +1591,15 @@ export function TypologySpreadsheet() {
                 <span className="text-xs font-medium text-muted-foreground">#</span>
               </div>
               {SECTIONS.flatMap((section) => {
-                const sectionWidth = section.columns.reduce((sum, col) => {
-                  const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
-                  return sum + w;
-                }, 0);
+                const collapsedWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
                 if (!isExpanded) {
                   return [(
                     <div 
                       key={`collapsed-${section.id}`}
                       className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.color)}
-                      style={{ width: sectionWidth }}
-                    >
-                      (colapsado)
-                    </div>
+                      style={{ width: collapsedWidth }}
+                    />
                   )];
                 }
                 return section.columns.map((col, colIndex) => (
@@ -1666,17 +1662,14 @@ export function TypologySpreadsheet() {
                 
                 {/* Flat cell structure for perfect row alignment */}
                 {SECTIONS.flatMap((section) => {
-                  const sectionWidth = section.columns.reduce((sum, col) => {
-                    const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
-                    return sum + w;
-                  }, 0);
+                  const collapsedWidth = 40;
                   const isExpanded = expandedSections.has(section.id);
                   if (!isExpanded) {
                     return [(
                       <div 
                         key={`collapsed-${section.id}`}
                         className="spreadsheet-cell bg-muted/20 border-r"
-                        style={{ width: sectionWidth }}
+                        style={{ width: collapsedWidth }}
                       />
                     )];
                   }
