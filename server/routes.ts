@@ -22,6 +22,23 @@ function broadcastTypologyUpdate(action: "create" | "update" | "delete", typolog
   });
 }
 
+// Integer fields in typology that need empty string to null conversion
+const typologyIntegerFields = [
+  'level', 'parkingIncluded', 'paymentMonths', 'mortgageYears', 'rentMonths',
+  'appreciationDays', 'appreciationMonths', 'appreciationYears', 'parkingSpots'
+];
+
+// Clean typology data: convert empty strings to null for integer fields
+function cleanTypologyData(data: Record<string, any>): Record<string, any> {
+  const cleaned = { ...data };
+  for (const field of typologyIntegerFields) {
+    if (field in cleaned && cleaned[field] === '') {
+      cleaned[field] = null;
+    }
+  }
+  return cleaned;
+}
+
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -853,10 +870,10 @@ export async function registerRoutes(
     try {
       const id = req.params.id as string;
       
-      const updateData = {
+      const updateData = cleanTypologyData({
         ...req.body,
         updatedBy: req.user!.id,
-      };
+      });
       
       const typology = await storage.updateTypology(id, updateData);
       
@@ -878,10 +895,10 @@ export async function registerRoutes(
     try {
       const id = req.params.id as string;
       
-      const updateData = {
+      const updateData = cleanTypologyData({
         ...req.body,
         updatedBy: req.user!.id,
-      };
+      });
       
       const typology = await storage.updateTypology(id, updateData);
       

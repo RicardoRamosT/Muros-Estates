@@ -409,8 +409,11 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const investmentRate = investmentTotal > 0 ? (investmentNet / investmentTotal) * 100 : 0;
   
   const appreciationRate = parseFloat(row.appreciationRate as string) || 7.0;
+  const appreciationDays = (row.appreciationDays as number) || 0;
+  const appreciationMonths = (row.appreciationMonths as number) || 0;
   const appreciationYears = (row.appreciationYears as number) || 0;
-  const appreciationTotal = finalPrice * Math.pow(1 + appreciationRate / 100, appreciationYears) - finalPrice;
+  const totalYearsForAppreciation = appreciationDays / 365 + appreciationMonths / 12 + appreciationYears;
+  const appreciationTotal = finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice;
   const finalValue = finalPrice + appreciationTotal;
   
   return {
