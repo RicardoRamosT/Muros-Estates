@@ -1056,7 +1056,12 @@ export async function registerRoutes(
   app.put("/api/developers/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
       const id = req.params.id as string;
-      const dev = await storage.updateDeveloper(id, req.body);
+      // Convert date strings to Date objects for timestamp fields
+      const data = { ...req.body };
+      if (data.fechaAntiguedad && typeof data.fechaAntiguedad === 'string') {
+        data.fechaAntiguedad = new Date(data.fechaAntiguedad);
+      }
+      const dev = await storage.updateDeveloper(id, data);
       if (!dev) {
         return res.status(404).json({ error: "Desarrollador no encontrado" });
       }
