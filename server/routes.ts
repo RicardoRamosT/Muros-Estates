@@ -466,7 +466,19 @@ export async function registerRoutes(
   
   app.put("/api/clients/:id", requireAuth, requireRole("admin", "perfilador", "asesor"), async (req, res) => {
     try {
-      const client = await storage.updateClient(req.params.id as string, req.body);
+      // Convert date strings to Date objects for timestamp fields
+      const data = { ...req.body };
+      if (data.convertedAt && typeof data.convertedAt === 'string') {
+        data.convertedAt = new Date(data.convertedAt);
+      }
+      if (data.fechaSeparacion && typeof data.fechaSeparacion === 'string') {
+        data.fechaSeparacion = new Date(data.fechaSeparacion);
+      }
+      if (data.fechaEnganche && typeof data.fechaEnganche === 'string') {
+        data.fechaEnganche = new Date(data.fechaEnganche);
+      }
+      
+      const client = await storage.updateClient(req.params.id as string, data);
       if (!client) {
         return res.status(404).json({ error: "Cliente no encontrado" });
       }
