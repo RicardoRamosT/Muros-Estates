@@ -972,10 +972,12 @@ export const typologies = pgTable("typologies", {
   deliveryDate: text("delivery_date"), // Entrega
   
   // 52-56: Gastos post-entrega (headers: 3.0%, 2.5%)
-  isaPercent: decimal("isa_percent", { precision: 10, scale: 2 }), // ISAI (3.0%)
-  notaryPercent: decimal("notary_percent", { precision: 10, scale: 2 }), // Notario (2.5%)
-  equipmentCost: decimal("equipment_cost", { precision: 12, scale: 2 }), // Equipo
-  furnitureCost: decimal("furniture_cost", { precision: 12, scale: 2 }), // Muebles
+  isaPercent: decimal("isa_percent", { precision: 10, scale: 2 }), // ISAI % (default 3.0%)
+  isaAmount: decimal("isa_amount", { precision: 14, scale: 2 }), // ISAI monto (calculado: precio × %)
+  notaryPercent: decimal("notary_percent", { precision: 10, scale: 2 }), // Notario % (default 2.5%)
+  notaryAmount: decimal("notary_amount", { precision: 14, scale: 2 }), // Notario monto (calculado: precio × %)
+  equipmentCost: decimal("equipment_cost", { precision: 12, scale: 2 }), // Equipo (monto manual)
+  furnitureCost: decimal("furniture_cost", { precision: 12, scale: 2 }), // Muebles (monto manual)
   totalPostDeliveryCosts: decimal("total_post_delivery_costs", { precision: 14, scale: 2 }), // Total (calculado)
   
   // 57-60: Crédito pre-header (headers: 10.5%, 15)
