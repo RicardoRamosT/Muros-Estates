@@ -19,7 +19,7 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X } from "lucide-react";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
-import type { Client, User, Typology } from "@shared/schema";
+import type { Client, User, Typology, City, Zone, Developer, DevelopmentEntity } from "@shared/schema";
 
 interface ProspectsSpreadsheetProps {
   isClientView?: boolean;
@@ -48,6 +48,22 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const { data: typologies = [] } = useQuery<Typology[]>({
     queryKey: ["/api/public/typologies"],
+  });
+
+  const { data: cities = [] } = useQuery<City[]>({
+    queryKey: ["/api/catalog/cities"],
+  });
+
+  const { data: zones = [] } = useQuery<Zone[]>({
+    queryKey: ["/api/catalog/zones"],
+  });
+
+  const { data: developers = [] } = useQuery<Developer[]>({
+    queryKey: ["/api/developers"],
+  });
+
+  const { data: developments = [] } = useQuery<DevelopmentEntity[]>({
+    queryKey: ["/api/developments-entity"],
   });
 
   const prospects = allClients.filter(c => isClientView ? c.isClient === true : c.isClient !== true);
@@ -158,11 +174,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "140px", type: "select" },
-    { key: "ciudad", label: "Ciudad", width: "120px" },
-    { key: "zona", label: "Zona", width: "120px" },
-    { key: "desarrollador", label: "Desarrollador", width: "150px" },
-    { key: "desarrollo", label: "Desarrollo", width: "150px" },
-    { key: "tipologia", label: "Tipología", width: "120px" },
+    { key: "ciudad", label: "Ciudad", width: "120px", type: "catalog-select" },
+    { key: "zona", label: "Zona", width: "120px", type: "catalog-select" },
+    { key: "desarrollador", label: "Desarrollador", width: "150px", type: "catalog-select" },
+    { key: "desarrollo", label: "Desarrollo", width: "150px", type: "catalog-select" },
+    { key: "tipologia", label: "Tipología", width: "150px", type: "typology-select" },
     { key: "nombre", label: "Nombre", width: "140px" },
     { key: "apellido", label: "Apellido", width: "140px" },
     { key: "telefono", label: "Teléfono", width: "130px" },
@@ -190,9 +206,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "apellido", label: "Apellido", width: "140px" },
     { key: "telefono", label: "Teléfono", width: "130px" },
     { key: "correo", label: "Correo", width: "180px" },
-    { key: "desarrollador", label: "Desarrollador", width: "150px" },
-    { key: "desarrollo", label: "Desarrollo", width: "150px" },
-    { key: "tipologia", label: "Tipología", width: "120px" },
+    { key: "desarrollador", label: "Desarrollador", width: "150px", type: "catalog-select" },
+    { key: "desarrollo", label: "Desarrollo", width: "150px", type: "catalog-select" },
+    { key: "tipologia", label: "Tipología", width: "150px", type: "typology-select" },
     { key: "precioFinal", label: "Precio Final", width: "130px", type: "currency" },
     { key: "separacion", label: "Separación", width: "120px", type: "currency" },
     { key: "fechaSeparacion", label: "Fecha Separación", width: "140px", type: "date" },
@@ -511,7 +527,50 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  if (col.key === 'tipologia') {
+                  // Handle catalog-select fields (ciudad, zona, desarrollador, desarrollo)
+                  if (col.type === 'catalog-select') {
+                    const value = (prospect as any)[col.key];
+                    let options: { value: string; label: string }[] = [];
+                    
+                    if (col.key === 'ciudad') {
+                      options = cities.map(c => ({ value: c.name, label: c.name }));
+                    } else if (col.key === 'zona') {
+                      options = zones.map(z => ({ value: z.name, label: z.name }));
+                    } else if (col.key === 'desarrollador') {
+                      options = developers.map(d => ({ value: d.name, label: d.name }));
+                    } else if (col.key === 'desarrollo') {
+                      options = developments.map(d => ({ value: d.name, label: d.name }));
+                    }
+                    
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {options.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{value || '-'}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Handle typology-select field
+                  if (col.type === 'typology-select') {
                     const value = (prospect as any).tipologia;
                     const selectedTypology = typologies.find(t => t.id === value);
                     const displayName = selectedTypology 
