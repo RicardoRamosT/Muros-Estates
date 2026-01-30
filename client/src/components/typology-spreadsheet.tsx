@@ -106,7 +106,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "precio_valores",
-    label: "",
+    label: "PRECIO",
     color: "bg-green-50 dark:bg-green-900/20",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 120, format: "currency" },
