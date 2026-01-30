@@ -748,9 +748,10 @@ interface EditableCellProps {
   vistaOptions?: string[];
   areaOptions?: string[];
   tipologiaOptions?: string[];
+  isLastInSection?: boolean;
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, isLastInSection }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1582,50 +1583,49 @@ export function TypologySpreadsheet() {
               <div className="w-16 flex-shrink-0" />
             </div>
             
-            {/* Row 2: Column headers */}
+            {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
               <div className="w-12 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
                 <span className="text-xs font-medium text-muted-foreground">#</span>
               </div>
-              {SECTIONS.map((section) => {
+              {SECTIONS.flatMap((section) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
                   return sum + w;
                 }, 0);
                 const isExpanded = expandedSections.has(section.id);
                 if (!isExpanded) {
-                  return (
+                  return [(
                     <div 
-                      key={section.id}
+                      key={`collapsed-${section.id}`}
                       className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.color)}
                       style={{ width: sectionWidth }}
                     >
                       (colapsado)
                     </div>
-                  );
+                  )];
                 }
-                return (
-                  <div key={section.id} className="flex flex-shrink-0">
-                    {section.columns.map((col) => (
-                      <div
-                        key={col.key}
-                        className="border-r last:border-r-0 flex-shrink-0"
-                        style={{ width: col.width }}
-                      >
-                        <ColumnFilter
-                          column={col}
-                          data={typologies}
-                          selectedValues={columnFilters[col.key] || new Set()}
-                          sortDirection={columnSorts[col.key] || null}
-                          onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
-                          onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                          sectionColor={section.color}
-                          availableValues={availableValuesMap[col.key]}
-                        />
-                      </div>
-                    ))}
+                return section.columns.map((col, colIndex) => (
+                  <div
+                    key={col.key}
+                    className={cn(
+                      "flex-shrink-0 h-full",
+                      colIndex === section.columns.length - 1 ? "border-r" : "border-r"
+                    )}
+                    style={{ width: col.width }}
+                  >
+                    <ColumnFilter
+                      column={col}
+                      data={typologies}
+                      selectedValues={columnFilters[col.key] || new Set()}
+                      sortDirection={columnSorts[col.key] || null}
+                      onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
+                      onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
+                      sectionColor={section.color}
+                      availableValues={availableValuesMap[col.key]}
+                    />
                   </div>
-                );
+                ));
               })}
             
             <div className="w-24 flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
@@ -1663,58 +1663,56 @@ export function TypologySpreadsheet() {
                   {rowIndex + 1}
                 </div>
                 
-                {SECTIONS.map((section) => {
+                {/* Flat cell structure for perfect row alignment */}
+                {SECTIONS.flatMap((section) => {
                   const sectionWidth = section.columns.reduce((sum, col) => {
                     const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
                     return sum + w;
                   }, 0);
                   const isExpanded = expandedSections.has(section.id);
                   if (!isExpanded) {
-                    return (
+                    return [(
                       <div 
-                        key={section.id}
+                        key={`collapsed-${section.id}`}
                         className="spreadsheet-cell bg-muted/20 border-r"
                         style={{ width: sectionWidth }}
                       />
-                    );
+                    )];
                   }
-                  return (
-                    <div key={section.id} className="flex border-r">
-                      {section.columns.map((col) => {
-                        let dynamicOpts: string[] | undefined;
-                        if (col.key === "developer") dynamicOpts = developerOptions;
-                        if (col.key === "development") dynamicOpts = developmentOptions;
-                        
-                        const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
-                        let isConditionallyDisabled = false;
-                        if (conditionalField) {
-                          const deps = Array.isArray(conditionalField.dependsOn) 
-                            ? conditionalField.dependsOn 
-                            : [conditionalField.dependsOn];
-                          isConditionallyDisabled = deps.some(dep => !mergedRow[dep]);
-                        }
-                        
-                        return (
-                          <EditableCell
-                            key={col.key}
-                            value={mergedRow[col.key]}
-                            column={col}
-                            rowId={row.id}
-                            city={mergedRow.city}
-                            developer={mergedRow.developer}
-                            onChange={(value) => handleCellChange(row.id, col.key, value)}
-                            disabled={isConditionallyDisabled}
-                            dynamicOptions={dynamicOpts}
-                            allDevelopments={dbDevelopments}
-                            allDevelopers={dbDevelopers}
-                            vistaOptions={vistaOptions}
-                            areaOptions={areaOptions}
-                            tipologiaOptions={tipologiaOptions}
-                          />
-                        );
-                      })}
-                    </div>
-                  );
+                  return section.columns.map((col, colIndex) => {
+                    let dynamicOpts: string[] | undefined;
+                    if (col.key === "developer") dynamicOpts = developerOptions;
+                    if (col.key === "development") dynamicOpts = developmentOptions;
+                    
+                    const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
+                    let isConditionallyDisabled = false;
+                    if (conditionalField) {
+                      const deps = Array.isArray(conditionalField.dependsOn) 
+                        ? conditionalField.dependsOn 
+                        : [conditionalField.dependsOn];
+                      isConditionallyDisabled = deps.some(dep => !mergedRow[dep]);
+                    }
+                    
+                    return (
+                      <EditableCell
+                        key={col.key}
+                        value={mergedRow[col.key]}
+                        column={col}
+                        rowId={row.id}
+                        city={mergedRow.city}
+                        developer={mergedRow.developer}
+                        onChange={(value) => handleCellChange(row.id, col.key, value)}
+                        disabled={isConditionallyDisabled}
+                        dynamicOptions={dynamicOpts}
+                        allDevelopments={dbDevelopments}
+                        allDevelopers={dbDevelopers}
+                        vistaOptions={vistaOptions}
+                        areaOptions={areaOptions}
+                        tipologiaOptions={tipologiaOptions}
+                        isLastInSection={colIndex === section.columns.length - 1}
+                      />
+                    );
+                  });
                 })}
                 
                 <div 
