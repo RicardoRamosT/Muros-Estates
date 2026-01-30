@@ -1147,7 +1147,7 @@ export function TypologySpreadsheet() {
         },
       });
       if (!res.ok) throw new Error("Delete failed");
-      return res.json();
+      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
