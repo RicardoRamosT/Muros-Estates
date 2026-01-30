@@ -37,6 +37,7 @@ interface ColumnDef {
   width: string;
   folderSection?: string;
   cellType?: CellType;
+  suffix?: string;
 }
 
 interface ColumnGroup {
@@ -83,11 +84,11 @@ const columns: ColumnDef[] = [
   { key: 'amenities', label: 'Amenidades', group: 'features', type: 'multiselect-amenities', width: '120px', cellType: 'dropdown' },
   { key: 'efficiency', label: 'Eficiencia', group: 'features', type: 'multiselect-efficiency', width: '110px', cellType: 'dropdown' },
   { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '100px', cellType: 'dropdown' },
-  { key: 'tamanoDesde', label: 'Desde (m²)', group: 'tamano', type: 'number', width: '90px', cellType: 'input' },
-  { key: 'tamanoHasta', label: 'Hasta (m²)', group: 'tamano', type: 'number', width: '90px', cellType: 'input' },
+  { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
+  { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
   { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '80px', cellType: 'checkbox' },
-  { key: 'recDesde', label: 'Desde', group: 'rec', type: 'number', width: '80px', cellType: 'input' },
-  { key: 'recHasta', label: 'Hasta', group: 'rec', type: 'number', width: '80px', cellType: 'input' },
+  { key: 'recDesde', label: 'Desde', group: 'rec', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
+  { key: 'recHasta', label: 'Hasta', group: 'rec', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
   { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'acabados-select', width: '130px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader3', width: '110px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo Transc.', group: 'noheader3', width: '110px', cellType: 'input' },
@@ -830,7 +831,8 @@ export function DevelopmentsSpreadsheet() {
                     );
                   }
 
-                  const displayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+                  const rawDisplayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+                  const displayValue = rawDisplayValue && col.suffix ? `${rawDisplayValue} ${col.suffix}` : rawDisplayValue;
 
                   return (
                     <td 
