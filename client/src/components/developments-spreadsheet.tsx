@@ -33,7 +33,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'acabados-select' | 'comercializadora-select' | 'arquitectura-select' | 'folder-link' | 'actions' | 'index';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'comercializadora-select' | 'arquitectura-select' | 'folder-link' | 'actions' | 'index';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -89,7 +89,7 @@ const columns: ColumnDef[] = [
   { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '80px', cellType: 'checkbox' },
   { key: 'recDesde', label: 'Desde', group: 'rec', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
   { key: 'recHasta', label: 'Hasta', group: 'rec', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
-  { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'acabados-select', width: '130px', cellType: 'dropdown' },
+  { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '130px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader3', width: '110px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo Transc.', group: 'noheader3', width: '110px', cellType: 'input' },
   { key: 'depasUnidades', label: 'Unidades', group: 'depas', type: 'number', width: '85px', cellType: 'input' },
@@ -709,30 +709,30 @@ export function DevelopmentsSpreadsheet() {
                     );
                   }
 
-                  if (col.type === 'acabados-select') {
+                  if (col.type === 'multiselect-acabados') {
+                    const arrValue: string[] = Array.isArray(value) ? value : [];
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
-                              <SelectValue placeholder="Acabados" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {acabados.map(a => (
-                                <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" className="h-6 w-full justify-between px-2 text-xs">
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                            {acabados.map(item => (
+                              <div key={item.id} className="flex items-center gap-2 py-1">
+                                <Checkbox
+                                  checked={arrValue.includes(item.name)}
+                                  disabled={!fieldCanEdit}
+                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                />
+                                <span className="text-sm">{item.name}</span>
+                              </div>
+                            ))}
+                          </PopoverContent>
+                        </Popover>
                       </td>
                     );
                   }

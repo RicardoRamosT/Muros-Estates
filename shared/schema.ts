@@ -663,7 +663,7 @@ export const developments = pgTable("developments", {
   // REC
   recDesde: decimal("rec_desde", { precision: 10, scale: 2 }),
   recHasta: decimal("rec_hasta", { precision: 10, scale: 2 }),
-  acabados: text("acabados"),
+  acabados: text("acabados").array(),
   
   // Unidades y Metros Cuadrados
   depasM2: decimal("depas_m2", { precision: 10, scale: 2 }),
