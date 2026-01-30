@@ -604,7 +604,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex items-center justify-between gap-1 w-full px-2 py-1 text-xs font-medium text-left",
+            "flex items-center justify-between gap-1 w-full h-full px-2 py-1 text-xs font-medium text-left",
             sectionColor,
             "hover-elevate cursor-pointer",
             (isFiltered || isSorted) && "bg-primary/20"
@@ -1585,7 +1585,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-12 flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
+              <div className="w-12 h-full flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
                 <span className="text-xs font-medium text-muted-foreground">#</span>
               </div>
               {SECTIONS.flatMap((section) => {
@@ -1628,7 +1628,7 @@ export function TypologySpreadsheet() {
                 ));
               })}
             
-            <div className="w-24 flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
+            <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
