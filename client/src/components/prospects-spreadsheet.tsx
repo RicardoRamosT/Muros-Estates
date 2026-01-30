@@ -19,7 +19,7 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X } from "lucide-react";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
-import type { Client, User } from "@shared/schema";
+import type { Client, User, Typology } from "@shared/schema";
 
 interface ProspectsSpreadsheetProps {
   isClientView?: boolean;
@@ -44,6 +44,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
+  });
+
+  const { data: typologies = [] } = useQuery<Typology[]>({
+    queryKey: ["/api/public/typologies"],
   });
 
   const prospects = allClients.filter(c => isClientView ? c.isClient === true : c.isClient !== true);
@@ -100,6 +104,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     const actualValue = value === '__unassigned__' ? null : (value || null);
     updateMutation.mutate({ id, data: { [field]: actualValue } });
   }, [updateMutation]);
+
+  const handleTypologySelect = useCallback((prospectId: string, typologyId: string) => {
+    if (typologyId === '__unassigned__') {
+      updateMutation.mutate({ id: prospectId, data: { tipologia: null } });
+      return;
+    }
+    const selectedTypology = typologies.find(t => t.id === typologyId);
+    if (selectedTypology) {
+      updateMutation.mutate({ 
+        id: prospectId, 
+        data: { 
+          tipologia: typologyId,
+          ciudad: selectedTypology.city || null,
+          zona: selectedTypology.zone || null,
+          desarrollador: selectedTypology.developer || null,
+          desarrollo: selectedTypology.development || null,
+        } 
+      });
+    }
+  }, [typologies, updateMutation]);
 
   const handleCreateNew = () => {
     createMutation.mutate({
@@ -480,6 +504,41 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         ) : (
                           <div className="flex items-center gap-1">
                             <span>{comoLlegaOptions.find(o => o.value === value)?.label || value}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (col.key === 'tipologia') {
+                    const value = (prospect as any).tipologia;
+                    const selectedTypology = typologies.find(t => t.id === value);
+                    const displayName = selectedTypology 
+                      ? `${selectedTypology.development} - ${selectedTypology.type || 'Sin tipo'}`
+                      : value || '';
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleTypologySelect(prospect.id, v)}
+                          >
+                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {typologies.map(t => (
+                                <SelectItem key={t.id} value={t.id}>
+                                  {t.development} - {t.type || 'Sin tipo'} ({t.city})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{displayName}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}

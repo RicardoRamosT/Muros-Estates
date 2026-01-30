@@ -403,7 +403,11 @@ export default function PropertyDetail() {
         <FloatingContactForm 
           propertyInterest={{
             title: property.title,
-            developmentName: property.developmentName
+            developmentName: property.developmentName,
+            desarrollador: property.developer || undefined,
+            desarrollo: property.developmentName || undefined,
+            ciudad: property.city || undefined,
+            zona: property.zone || undefined,
           }}
           showInterestButton={true}
         />

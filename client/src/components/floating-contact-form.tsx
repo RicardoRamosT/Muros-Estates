@@ -19,6 +19,12 @@ interface FloatingContactFormProps {
   propertyInterest?: {
     title: string;
     developmentName: string;
+    typologyId?: string;
+    developmentId?: string;
+    desarrollador?: string;
+    desarrollo?: string;
+    ciudad?: string;
+    zona?: string;
   };
   showInterestButton?: boolean;
 }
@@ -44,7 +50,16 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
 
   const contactMutation = useMutation({
     mutationFn: async (data: typeof contactForm) => {
-      const res = await apiRequest("POST", "/api/contact", data);
+      const payload = {
+        ...data,
+        typologyId: propertyInterest?.typologyId,
+        developmentId: propertyInterest?.developmentId,
+        desarrollador: propertyInterest?.desarrollador,
+        desarrollo: propertyInterest?.desarrollo,
+        ciudad: propertyInterest?.ciudad,
+        zona: propertyInterest?.zona,
+      };
+      const res = await apiRequest("POST", "/api/contact", payload);
       if (!res.ok) {
         const error = await res.json().catch(() => ({ message: "Error al enviar" }));
         throw new Error(error.message || "Error al enviar");

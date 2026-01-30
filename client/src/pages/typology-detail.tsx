@@ -435,7 +435,12 @@ export default function TypologyDetail() {
         showInterestButton={true}
         propertyInterest={{
           title: title,
-          developmentName: `${typology.developer} - ${typology.zone}, ${typology.city}`
+          developmentName: `${typology.developer} - ${typology.zone}, ${typology.city}`,
+          typologyId: typology.id,
+          desarrollador: typology.developer || undefined,
+          desarrollo: typology.development || undefined,
+          ciudad: typology.city || undefined,
+          zona: typology.zone || undefined,
         }}
       />
     </div>

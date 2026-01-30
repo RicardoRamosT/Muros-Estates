@@ -1126,6 +1126,12 @@ export const contactFormSchema = z.object({
   phone: z.string().min(10, "Teléfono debe tener al menos 10 dígitos"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   interest: z.string().optional(),
+  typologyId: z.string().optional(),
+  developmentId: z.string().optional(),
+  desarrollador: z.string().optional(),
+  desarrollo: z.string().optional(),
+  ciudad: z.string().optional(),
+  zona: z.string().optional(),
 });
 
 export type ContactFormInput = z.infer<typeof contactFormSchema>;

@@ -403,6 +403,11 @@ export async function registerRoutes(
         developmentInterest: validationResult.data.interest || null,
         comoLlega: "web",
         estatus: "nuevo",
+        tipologia: validationResult.data.typologyId || null,
+        desarrollo: validationResult.data.desarrollo || null,
+        desarrollador: validationResult.data.desarrollador || null,
+        ciudad: validationResult.data.ciudad || null,
+        zona: validationResult.data.zona || null,
       });
       
       res.status(201).json({ success: true, message: "Gracias por contactarnos. Un asesor te contactará pronto." });
