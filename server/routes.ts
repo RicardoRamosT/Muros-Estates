@@ -2024,11 +2024,12 @@ export async function registerRoutes(
   });
 
   app.put("/api/catalog/tipologias/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, developmentId, sortOrder } = req.body;
-    const updateData: { name?: string; developmentId?: string; sortOrder?: number } = {};
+    const { name, developmentId, sortOrder, active } = req.body;
+    const updateData: { name?: string; developmentId?: string; sortOrder?: number; active?: boolean } = {};
     if (typeof name === "string") updateData.name = name;
     if (typeof developmentId === "string") updateData.developmentId = developmentId;
     if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+    if (typeof active === "boolean") updateData.active = active;
     const item = await storage.updateCatalogTipologia(req.params.id as string, updateData);
     if (!item) return res.status(404).json({ error: "Tipología no encontrada" });
     res.json(item);
