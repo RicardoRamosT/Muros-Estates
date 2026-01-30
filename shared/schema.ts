@@ -1451,6 +1451,7 @@ export const catalogTipologias = pgTable("catalog_tipologias", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   developmentId: varchar("development_id"),
+  active: boolean("active").default(true),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
