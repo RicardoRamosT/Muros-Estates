@@ -877,13 +877,20 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       options = tipologiaOptions;
     }
     
+    // Ensure current value is always in options to prevent disappearing values
+    const currentValue = value?.toString() || "";
+    let finalOptions = [...options];
+    if (currentValue && !finalOptions.includes(currentValue)) {
+      finalOptions = [currentValue, ...finalOptions];
+    }
+    
     return (
       <div 
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
         style={{ width: column.width }}
       >
         <Select 
-          value={value?.toString() || ""} 
+          value={currentValue} 
           onValueChange={onChange}
         >
           <SelectTrigger 
@@ -893,7 +900,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
             <SelectValue placeholder="-" />
           </SelectTrigger>
           <SelectContent>
-            {options.map((opt) => (
+            {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
           </SelectContent>
