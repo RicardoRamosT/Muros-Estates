@@ -49,7 +49,7 @@ type TypologyField = keyof Typology;
 interface ColumnDef {
   key: TypologyField;
   label: string;
-  type: "text" | "number" | "decimal" | "select" | "boolean" | "date";
+  type: "text" | "number" | "decimal" | "select" | "multiselect" | "boolean" | "date";
   options?: readonly string[];
   width?: number;
   calculated?: boolean;
@@ -138,14 +138,14 @@ const SECTIONS: SectionDef[] = [
       { key: "lockOff", label: "LockOff", type: "boolean", width: 60 },
       { key: "bedrooms", label: "Recamaras", type: "select", options: ["1", "1 + Flex", "2", "2 + Flex", "3", "3 + Flex", "4", "4 + Flex"] as const, width: 90 },
       { key: "bathrooms", label: "Baños", type: "select", options: ["1", "1.5", "2", "2.5", "3", "3.5"] as const, width: 70 },
-      { key: "areas", label: "Áreas", type: "select", options: [], width: 80 },
+      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 80 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize", label: "Tam", type: "decimal", width: 55, format: "area" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60 },
       { key: "terraceSize", label: "Tam", type: "decimal", width: 55, format: "area" },
       { key: "bedrooms2", label: "Recamaras", type: "select", options: ["1", "1 + Flex", "2", "2 + Flex", "3", "3 + Flex", "4", "4 + Flex"] as const, width: 90 },
       { key: "bathrooms2", label: "Baños", type: "select", options: ["1", "1.5", "2", "2.5", "3", "3.5"] as const, width: 70 },
-      { key: "areas2", label: "Áreas", type: "select", options: [], width: 80 },
+      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 80 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize2", label: "Tam", type: "decimal", width: 55, format: "area" },
       { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60 },
@@ -848,6 +848,75 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     );
   }
   
+  // Multi-select with checkboxes (for areas)
+  if (column.type === "multiselect") {
+    // Use areaOptions if available, fallback to column.options
+    const baseOptions: string[] = areaOptions && areaOptions.length > 0 
+      ? [...areaOptions] 
+      : (column.options ? [...column.options] : []);
+    
+    // Parse current value - stored as comma-separated string, use Set to avoid duplicates
+    const currentValuesSet = new Set(
+      value ? String(value).split(",").map(v => v.trim()).filter(Boolean) : []
+    );
+    const currentValues = Array.from(currentValuesSet);
+    
+    // Ensure current values are in options (in case they were saved before options changed)
+    const allOptions = Array.from(new Set([...baseOptions, ...currentValues]));
+    
+    const handleToggle = (opt: string) => {
+      const newSet = new Set(currentValues);
+      if (newSet.has(opt)) {
+        newSet.delete(opt);
+      } else {
+        newSet.add(opt);
+      }
+      onChange(Array.from(newSet).join(", "));
+    };
+    
+    const displayValue = currentValues.length > 0 
+      ? currentValues.length === 1 
+        ? currentValues[0] 
+        : `${currentValues.length} sel.`
+      : "-";
+    
+    return (
+      <div 
+        className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
+        style={{ width: column.width }}
+      >
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center justify-between w-full h-6 text-xs px-1 cursor-pointer bg-transparent border-0 focus:ring-0 focus:outline-none text-left"
+              data-testid={`multiselect-${column.key}-${rowId}`}
+            >
+              <span className="truncate">{displayValue}</span>
+              <ChevronDown className="ml-auto h-3 w-3 shrink-0 opacity-50" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" align="start">
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {allOptions.map((opt) => (
+                <label
+                  key={opt}
+                  className="flex items-center gap-2 px-2 py-1 text-sm rounded hover:bg-accent cursor-pointer"
+                >
+                  <Checkbox
+                    checked={currentValues.includes(opt)}
+                    onCheckedChange={() => handleToggle(opt)}
+                  />
+                  <span>{opt}</span>
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+  
   if (column.type === "select") {
     let options: readonly string[] = dynamicOptions || column.options || [];
     if (column.key === "zone" && city) {
@@ -867,10 +936,6 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     // Use catalog options for specific columns
     if (column.key === "view" && vistaOptions && vistaOptions.length > 0) {
       options = vistaOptions;
-    }
-    
-    if ((column.key === "areas" || column.key === "areas2") && areaOptions && areaOptions.length > 0) {
-      options = areaOptions;
     }
     
     if (column.key === "type" && tipologiaOptions && tipologiaOptions.length > 0) {
