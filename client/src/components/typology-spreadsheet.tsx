@@ -830,9 +830,14 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   }
   
   if (column.type === "boolean") {
+    const cellBgClass = value === true 
+      ? "bg-green-50 dark:bg-green-900/30" 
+      : value === false 
+        ? "bg-red-50 dark:bg-red-900/30" 
+        : "bg-gray-50 dark:bg-gray-800/50";
     return (
       <div 
-        className="spreadsheet-cell justify-center px-2 bg-gray-50 dark:bg-gray-800/50" 
+        className={`spreadsheet-cell justify-center px-2 ${cellBgClass}`}
         style={{ width: column.width }}
       >
         <Select
