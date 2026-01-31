@@ -40,10 +40,8 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
     interest: "",
   });
 
-  const validateName = (name: string): boolean => {
-    const words = name.trim().split(/\s+/);
-    if (words.length < 2) return false;
-    return words.every(word => word.length >= 3);
+  const validateNameField = (name: string): boolean => {
+    return name.trim().length >= 3;
   };
 
   useEffect(() => {
@@ -105,7 +103,7 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
       });
       return;
     }
-    if (!validateName(`${contactForm.firstName} ${contactForm.lastName}`)) {
+    if (!validateNameField(contactForm.firstName) || !validateNameField(contactForm.lastName)) {
       toast({
         title: "Nombre inválido",
         description: "El nombre y apellido deben tener al menos 3 letras cada uno.",
