@@ -98,15 +98,23 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
     if (!contactForm.firstName || !contactForm.lastName || !contactForm.phone) {
       toast({
         title: "Campos requeridos",
-        description: "Por favor ingresa tu nombre, apellido y teléfono.",
+        description: "Por favor ingresa tu nombre (mín. 3 letras), apellido (mín. 3 letras) y teléfono.",
         variant: "destructive",
       });
       return;
     }
-    if (!validateNameField(contactForm.firstName) || !validateNameField(contactForm.lastName)) {
+    if (!validateNameField(contactForm.firstName)) {
       toast({
-        title: "Nombre inválido",
-        description: "El nombre y apellido deben tener al menos 3 letras cada uno.",
+        title: "Nombre muy corto",
+        description: "El nombre debe tener al menos 3 letras.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!validateNameField(contactForm.lastName)) {
+      toast({
+        title: "Apellido muy corto",
+        description: "El apellido debe tener al menos 3 letras.",
         variant: "destructive",
       });
       return;
