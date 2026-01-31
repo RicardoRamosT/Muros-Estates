@@ -396,8 +396,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       maps['asesorId'][user.id] = fullName;
     });
     
+    // Tipología ID to name map
+    maps['tipologia'] = {};
+    typologies.forEach(typ => {
+      // Combina desarrollo + tipo para un nombre descriptivo
+      const displayName = [typ.development, typ.type].filter(Boolean).join(' - ') || 'Sin nombre';
+      maps['tipologia'][typ.id] = displayName;
+    });
+    
     return maps;
-  }, [users]);
+  }, [users, typologies]);
 
   // Column filtering and sorting
   const {
