@@ -33,11 +33,18 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
   const [isOpen, setIsOpen] = useState(!showInterestButton);
   const { toast } = useToast();
   const [contactForm, setContactForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     phone: "",
     email: "",
     interest: "",
   });
+
+  const validateName = (name: string): boolean => {
+    const words = name.trim().split(/\s+/);
+    if (words.length < 2) return false;
+    return words.every(word => word.length >= 3);
+  };
 
   useEffect(() => {
     if (propertyInterest && isOpen) {
@@ -51,7 +58,12 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
   const contactMutation = useMutation({
     mutationFn: async (data: typeof contactForm) => {
       const payload = {
-        ...data,
+        name: `${data.firstName} ${data.lastName}`.trim(),
+        nombre: data.firstName,
+        apellido: data.lastName,
+        phone: data.phone,
+        email: data.email,
+        interest: data.interest,
         typologyId: propertyInterest?.typologyId,
         developmentId: propertyInterest?.developmentId,
         desarrollador: propertyInterest?.desarrollador,
@@ -71,7 +83,7 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
         title: "¡Gracias por contactarnos!",
         description: "Un asesor te contactará pronto.",
       });
-      setContactForm({ name: "", phone: "", email: "", interest: "" });
+      setContactForm({ firstName: "", lastName: "", phone: "", email: "", interest: "" });
       setIsOpen(false);
     },
     onError: (error: Error) => {
@@ -85,10 +97,18 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactForm.name || !contactForm.phone) {
+    if (!contactForm.firstName || !contactForm.lastName || !contactForm.phone) {
       toast({
         title: "Campos requeridos",
-        description: "Por favor ingresa tu nombre y teléfono.",
+        description: "Por favor ingresa tu nombre, apellido y teléfono.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!validateName(`${contactForm.firstName} ${contactForm.lastName}`)) {
+      toast({
+        title: "Nombre inválido",
+        description: "El nombre y apellido deben tener al menos 3 letras cada uno.",
         variant: "destructive",
       });
       return;
@@ -147,17 +167,35 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="space-y-1">
-                <Label htmlFor="float-name" className="text-xs">Nombre *</Label>
+                <Label htmlFor="float-firstname" className="text-xs">Nombre *</Label>
                 <div className="relative">
                   <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="float-name"
+                    id="float-firstname"
                     placeholder="Tu nombre"
-                    value={contactForm.name}
-                    onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                    value={contactForm.firstName}
+                    onChange={(e) => setContactForm(prev => ({ ...prev, firstName: e.target.value }))}
                     className="pl-8 h-9 text-sm"
                     required
-                    data-testid="input-float-name"
+                    minLength={3}
+                    data-testid="input-float-firstname"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="float-lastname" className="text-xs">Apellido *</Label>
+                <div className="relative">
+                  <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="float-lastname"
+                    placeholder="Tu apellido"
+                    value={contactForm.lastName}
+                    onChange={(e) => setContactForm(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="pl-8 h-9 text-sm"
+                    required
+                    minLength={3}
+                    data-testid="input-float-lastname"
                   />
                 </div>
               </div>

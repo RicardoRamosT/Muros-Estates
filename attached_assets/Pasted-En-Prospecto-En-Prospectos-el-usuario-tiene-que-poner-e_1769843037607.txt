@@ -1,0 +1,33 @@
+En Prospecto:
+
+En Prospectos, el usuario tiene que poner el Desarrollador, el desarrollo, y en base a esas respuesta, le aparecera las tipologias que coinciden con esos valores, esto sera automatic si se registra desde la pagina.
+
+En Nombre que lo minimo requerido sean 2 palabras, minimo de 3 palabras.
+
+En el formulario del landing, que el formulario tenga 2 campos, Nombre y Apellido lo minimo requerido sean 2 palabras, minimo de 3 palabras.
+
+En Broker Externo, es un si o no.
+
+Estatus en automatic seria Activo.
+
+ETAPA DE EMBUDO, en automatic seria Nuevo.
+
+En ASESOR, si no hay asignado, que este un SIN ASIGNAR rojo, y al elegir del dropdown ya cambia.
+
+Si no hay ASESOR, solamente se puede editar NOMBRE, APELLIDO, TELEFONO y CORREO, las demas columnas estaran bloqueadas hasta que se asigne un asesor.
+
+En COMO PAGA, POSITIVOS, NEGATIVOS igual que tengan un SIN ASIGNAR Rojo.
+
+En ESTATUS, activo es #1, en hold #2, no activo #3, y que podamos filtrarlo en ascendente, descendente, igual poder filtrar uno unico. Y que el icono de ordenar este alado del icono de filtro.
+
+En ETAPA DE EMBUDO, poder filtrar en orden, ya que por ejemplo, Nuevo es #1, Asignado #2, y asi... igual vicebersa de #12, hasta el #1. Y que el icono de ordenar este alado del icono de filtro.
+
+Al ordenar, en caso de elegir por ejemplo #4, #6, #9, si Eligo ascendente poder verlo 4,6,9 o descendente, 9,6,4.
+
+En ETAPA DE EMBUDO que todas las Etapas tengan su color.
+
+En las columnas POSITIVOS y NEGATIVOS, al elegir varias opciones se alarga la columna, no quier eso, Tansolo deberia decir cuantos hay seleccionados.
+
+Alado de "+ Agrega", crear un boton que se llame Ver Resumen, funcionara de la siguiente manera:
+
+En base a todos los filtros seleccionados en FECHA, ASESOR, CIUDAD, ZONA, DESARROLLADOR, DESARROLLO y TIPOLOGIA, me aparecera un resumen de esos que tienen en TIPO, PERFIL, FUENTE, BROKER EXTERNO, ESTATUS, ETAPA DE EMBUDO, COMO PAGA, POSITIVOS y NEGATIVOS. Deben incluir las cantidades que hay de cada opcion de cada columna, los porcentajes de esa cantidad que involucra de esos filtros, y que el resumen se pueda descargar en jpg. Las columnas que no fueron mencionadas no deberian aparecer en el Resumen. Que en el JPG este ordenado, puede ser en hoja membretada o algo asi para que quepen todos los datos, con Titulo y fecha del resumen con el logo de muros.

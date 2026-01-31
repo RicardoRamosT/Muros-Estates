@@ -17,7 +17,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X } from "lucide-react";
+import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
@@ -34,6 +34,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -161,7 +162,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     createMutation.mutate({
       nombre: "Nuevo Prospecto",
       telefono: "",
-      estatus: "nuevo",
+      estatus: "activo",
+      embudo: "nuevo",
       comoLlega: "web",
     } as any);
   };
@@ -202,13 +204,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "tipofil", label: "Tipo", width: "120px", type: "options-select" },
     { key: "perfil", label: "Perfil", width: "140px", type: "options-select" },
     { key: "comoLlega", label: "Fuente", width: "160px", type: "options-select" },
-    { key: "brokerExterno", label: "Broker Externo", width: "140px" },
+    { key: "brokerExterno", label: "Broker Externo", width: "120px", type: "boolean-select" },
     { key: "estatus", label: "Estatus", width: "120px", type: "options-select" },
     { key: "embudo", label: "Etapa de Embudo", width: "160px", type: "options-select" },
     { key: "comoPaga", label: "Cómo Paga", width: "140px", type: "options-select" },
     { key: "positivos", label: "Positivos", width: "180px", type: "multi-select" },
     { key: "negativos", label: "Negativos", width: "180px", type: "multi-select" },
-    { key: "comentarios", label: "Comentarios", width: "200px" },
+    { key: "comentarios", label: "Comentarios", width: "200px", noFilter: true },
     { key: "actions", label: "", width: "60px", type: "actions" },
   ];
 
@@ -273,27 +275,27 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   ];
 
   const estatusOptions = [
-    { value: "activo", label: "Activo" },
-    { value: "en_hold", label: "En Hold" },
-    { value: "no_activo", label: "No Activo" },
+    { value: "activo", label: "Activo", order: 1 },
+    { value: "en_hold", label: "En Hold", order: 2 },
+    { value: "no_activo", label: "No Activo", order: 3 },
   ];
 
   const embudoOptions = [
-    { value: "nuevo", label: "Nuevo" },
-    { value: "asignado", label: "Asignado" },
-    { value: "validado", label: "Validado" },
-    { value: "envio_info", label: "Envío de Info" },
-    { value: "muestra_interes", label: "Muestra Interés" },
-    { value: "presentacion", label: "Presentación" },
-    { value: "showroom", label: "Showroom" },
-    { value: "evaluando", label: "Evaluando" },
-    { value: "negociacion", label: "Negociación" },
-    { value: "cierre_ganado", label: "Cierre Ganado" },
-    { value: "separado", label: "Separado" },
-    { value: "enganche_firma", label: "Enganche y Firma" },
-    { value: "cierre_perdido", label: "Cierre Perdido" },
-    { value: "no_contesta", label: "No Contesta" },
-    { value: "no_le_intereso", label: "No le Interesó" },
+    { value: "nuevo", label: "Nuevo", order: 1, color: "#87CEEB" },
+    { value: "asignado", label: "Asignado", order: 2, color: "#90EE90" },
+    { value: "no_contesta", label: "No Contesta", order: 3, color: "#FFD700" },
+    { value: "no_le_intereso", label: "No le Interesó", order: 4, color: "#FF6B6B" },
+    { value: "validado", label: "Validado", order: 5, color: "#32CD32" },
+    { value: "envio_info", label: "Envío de Info", order: 6, color: "#9370DB" },
+    { value: "muestra_interes", label: "Muestra Interés", order: 7, color: "#FF69B4" },
+    { value: "presentacion", label: "Presentación", order: 8, color: "#FFA500" },
+    { value: "showroom", label: "Showroom", order: 9, color: "#4169E1" },
+    { value: "evaluando", label: "Evaluando", order: 10, color: "#40E0D0" },
+    { value: "negociacion", label: "Negociación", order: 11, color: "#228B22" },
+    { value: "cierre_ganado", label: "Cierre Ganado", order: 12, color: "#00FF00" },
+    { value: "cierre_perdido", label: "Cierre Perdido", order: 13, color: "#DC143C" },
+    { value: "separado", label: "Separado", order: 14, color: "#FF1493" },
+    { value: "enganche_firma", label: "Enganche y Firma", order: 15, color: "#8B008B" },
   ];
 
   const comoPagaOptions = [
@@ -399,12 +401,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             </Button>
           )}
         </div>
-        {hasFullAccess && (
-          <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
-            <Plus className="w-4 h-4 mr-2" />
-            Agregar
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!isClientView && (
+            <Button size="sm" variant="outline" onClick={() => setShowSummary(true)} data-testid="button-view-summary">
+              <FileText className="w-4 h-4 mr-2" />
+              Ver Resumen
+            </Button>
+          )}
+          {hasFullAccess && (
+            <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">
@@ -420,7 +430,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                 >
                   <div className="flex items-center">
                     <span className="truncate">{col.label}</span>
-                    {col.type !== 'actions' && col.type !== 'index' && (
+                    {col.type !== 'actions' && col.type !== 'index' && !(col as any).noFilter && (
                       <ColumnFilter
                         columnKey={col.key}
                         columnLabel={col.label}
@@ -448,7 +458,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               <tr key={prospect.id} className="group" data-testid={`row-prospect-${prospect.id}`}>
                 {columns.map((col) => {
                   const field = col.field || col.key;
-                  const fieldCanEdit = canEdit(col.key);
+                  const hasAsesor = !!(prospect as any).asesorId;
+                  const editableWithoutAsesor = ['nombre', 'apellido', 'telefono', 'correo', 'estatus', 'embudo', 'comoPaga', 'positivos', 'negativos', 'comentarios'];
+                  const isBlockedByAsesor = !hasAsesor && !editableWithoutAsesor.includes(col.key);
+                  const fieldCanEdit = canEdit(col.key) && !isBlockedByAsesor;
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
 
                   if (col.type === 'index') {
@@ -537,6 +550,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.key === 'asesorId') {
                     const value = (prospect as any).asesorId;
+                    const asesorName = getAsesorName(value);
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
@@ -544,11 +558,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'asesorId', v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className={`h-6 text-sm border-0 bg-transparent ${!value ? 'text-red-500 font-medium' : ''}`}>
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              <SelectItem value="__unassigned__" className="text-red-500 font-medium">SIN ASIGNAR</SelectItem>
                               {users.filter(u => u.role === 'asesor' || u.role === 'admin').map(u => (
                                 <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                               ))}
@@ -556,7 +570,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           </Select>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <span>{getAsesorName(value)}</span>
+                            {value ? (
+                              <span>{asesorName}</span>
+                            ) : (
+                              <span className="text-red-500 font-medium">SIN ASIGNAR</span>
+                            )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -636,9 +654,19 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  // Handle typology-select field
+                  // Handle typology-select field (cascaded by developer and development)
                   if (col.type === 'typology-select') {
                     const value = (prospect as any).tipologia;
+                    const prospectDeveloper = (prospect as any).desarrollador;
+                    const prospectDevelopment = (prospect as any).desarrollo;
+                    
+                    // Filter typologies based on selected developer and development
+                    const filteredTypologies = typologies.filter(t => {
+                      if (prospectDeveloper && t.developer !== prospectDeveloper) return false;
+                      if (prospectDevelopment && t.development !== prospectDevelopment) return false;
+                      return true;
+                    });
+                    
                     const selectedTypology = typologies.find(t => t.id === value);
                     const displayName = selectedTypology 
                       ? `${selectedTypology.development} - ${selectedTypology.type || 'Sin tipo'}`
@@ -655,11 +683,19 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
                               <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {typologies.map(t => (
-                                <SelectItem key={t.id} value={t.id}>
-                                  {t.development} - {t.type || 'Sin tipo'} ({t.city})
+                              {filteredTypologies.length > 0 ? (
+                                filteredTypologies.map(t => (
+                                  <SelectItem key={t.id} value={t.id}>
+                                    {t.development} - {t.type || 'Sin tipo'} ({t.city})
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="__no_options__" disabled>
+                                  {prospectDeveloper || prospectDevelopment 
+                                    ? 'No hay tipologías para esta selección' 
+                                    : 'Selecciona desarrollador/desarrollo primero'}
                                 </SelectItem>
-                              ))}
+                              )}
                             </SelectContent>
                           </Select>
                         ) : (
@@ -672,11 +708,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  // Handle options-select fields (tipofil, perfil, comoLlega, estatus, embudo, comoPaga)
-                  if (col.type === 'options-select') {
+                  // Handle boolean-select field (Broker Externo)
+                  if (col.type === 'boolean-select') {
                     const value = (prospect as any)[col.key];
-                    const options = optionsMap[col.key] || [];
-                    const displayLabel = options.find(o => o.value === value)?.label || value || '-';
+                    const displayValue = value === 'si' ? 'Sí' : value === 'no' ? 'No' : null;
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
@@ -687,16 +722,78 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-60">
+                            <SelectContent>
                               <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              <SelectItem value="si">Sí</SelectItem>
+                              <SelectItem value="no">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{displayValue || '-'}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Handle options-select fields (tipofil, perfil, comoLlega, estatus, embudo, comoPaga)
+                  if (col.type === 'options-select') {
+                    const value = (prospect as any)[col.key];
+                    const options = optionsMap[col.key] || [];
+                    const selectedOption = options.find(o => o.value === value);
+                    const displayLabel = selectedOption?.label || value || null;
+                    const isComoPaga = col.key === 'comoPaga';
+                    const isEmbudo = col.key === 'embudo';
+                    const embudoColor = isEmbudo && selectedOption ? (selectedOption as any).color : null;
+                    
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                          >
+                            <SelectTrigger 
+                              className={`h-6 text-sm border-0 bg-transparent ${isComoPaga && !value ? 'text-red-500 font-medium' : ''}`}
+                              style={embudoColor ? { backgroundColor: embudoColor, color: '#000', fontWeight: 500 } : {}}
+                            >
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              <SelectItem value="__unassigned__" className={isComoPaga ? 'text-red-500 font-medium' : ''}>
+                                {isComoPaga ? 'SIN ASIGNAR' : 'Sin asignar'}
+                              </SelectItem>
                               {options.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                <SelectItem 
+                                  key={opt.value} 
+                                  value={opt.value}
+                                  style={isEmbudo && (opt as any).color ? { backgroundColor: (opt as any).color } : {}}
+                                >
+                                  {opt.label}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <span>{displayLabel}</span>
+                            {displayLabel ? (
+                              isEmbudo && embudoColor ? (
+                                <span 
+                                  className="px-2 py-0.5 rounded text-xs font-medium" 
+                                  style={{ backgroundColor: embudoColor, color: '#000' }}
+                                >
+                                  {displayLabel}
+                                </span>
+                              ) : (
+                                <span>{displayLabel}</span>
+                              )
+                            ) : (
+                              <span className={isComoPaga ? 'text-red-500 font-medium' : ''}>
+                                {isComoPaga ? 'SIN ASIGNAR' : '-'}
+                              </span>
+                            )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -709,9 +806,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const rawValue = (prospect as any)[col.key];
                     const selectedValues: string[] = Array.isArray(rawValue) ? rawValue : (rawValue ? [rawValue] : []);
                     const options = optionsMap[col.key] || [];
-                    const displayLabels = selectedValues
-                      .map(v => options.find(o => o.value === v)?.label || v)
-                      .join(', ') || '-';
+                    const count = selectedValues.length;
+                    const displayText = count === 0 ? null : `${count} seleccionado${count > 1 ? 's' : ''}`;
                     
                     const handleMultiChange = (optValue: string, checked: boolean) => {
                       const newValues = checked 
@@ -725,8 +821,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         {fieldCanEdit ? (
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" className="h-6 w-full justify-start text-sm font-normal px-2">
-                                <span className="truncate">{displayLabels}</span>
+                              <Button variant="ghost" className={`h-6 w-full justify-start text-sm font-normal px-2 ${!displayText ? 'text-red-500 font-medium' : ''}`}>
+                                <span className="truncate">{displayText || 'SIN ASIGNAR'}</span>
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-56 p-2" align="start">
@@ -745,7 +841,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           </Popover>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <span className="truncate">{displayLabels}</span>
+                            {displayText ? (
+                              <span className="truncate">{displayText}</span>
+                            ) : (
+                              <span className="text-red-500 font-medium">SIN ASIGNAR</span>
+                            )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -917,6 +1017,214 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           </tbody>
         </table>
       </div>
+
+      {/* Summary Modal */}
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Resumen de Prospectos
+            </DialogTitle>
+          </DialogHeader>
+          <div id="summary-content" className="space-y-6 p-4 bg-white">
+            {/* Header with logo and date */}
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                  M
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">MUROS</h2>
+                  <p className="text-sm text-gray-500">Plataforma Inmobiliaria</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">Resumen de Prospectos</p>
+                <p className="text-xs text-gray-500">{new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p className="text-xs text-gray-400">Total: {filteredAndSortedData.length} prospectos</p>
+              </div>
+            </div>
+
+            {/* Statistics grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {/* TIPO */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">TIPO</h3>
+                {tipoOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).tipofil === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* PERFIL */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">PERFIL</h3>
+                {perfilOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).perfil === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* FUENTE */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">FUENTE</h3>
+                {fuenteOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).comoLlega === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  if (count === 0) return null;
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* BROKER EXTERNO */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">BROKER EXTERNO</h3>
+                {[{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }].map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).brokerExterno === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ESTATUS */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">ESTATUS</h3>
+                {estatusOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).estatus === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ETAPA DE EMBUDO */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">ETAPA DE EMBUDO</h3>
+                {embudoOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).embudo === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  if (count === 0) return null;
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: opt.color }}></span>
+                        {opt.label}
+                      </span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* COMO PAGA */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">CÓMO PAGA</h3>
+                {comoPagaOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => (p as any).comoPaga === opt.value).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* POSITIVOS */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">POSITIVOS</h3>
+                {positivosOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => {
+                    const vals = (p as any).positivos;
+                    return Array.isArray(vals) && vals.includes(opt.value);
+                  }).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* NEGATIVOS */}
+              <div className="border rounded-lg p-3">
+                <h3 className="font-semibold text-sm mb-2 text-gray-700">NEGATIVOS</h3>
+                {negativosOptions.map(opt => {
+                  const count = filteredAndSortedData.filter(p => {
+                    const vals = (p as any).negativos;
+                    return Array.isArray(vals) && vals.includes(opt.value);
+                  }).length;
+                  const percent = filteredAndSortedData.length > 0 ? ((count / filteredAndSortedData.length) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={opt.value} className="flex justify-between text-xs py-0.5">
+                      <span>{opt.label}</span>
+                      <span className="font-medium">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const element = document.getElementById('summary-content');
+                if (element) {
+                  try {
+                    const html2canvas = (await import('html2canvas')).default;
+                    const canvas = await html2canvas(element, { backgroundColor: '#ffffff', scale: 2 });
+                    const link = document.createElement('a');
+                    link.download = `resumen-prospectos-${new Date().toISOString().split('T')[0]}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                    toast({ title: "Resumen descargado" });
+                  } catch (err) {
+                    toast({ title: "Error al descargar", variant: "destructive" });
+                  }
+                }
+              }}
+              data-testid="button-download-summary"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar JPG
+            </Button>
+            <DialogClose asChild>
+              <Button variant="default">Cerrar</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
