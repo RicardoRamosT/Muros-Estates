@@ -111,12 +111,23 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     const prospect = prospects.find(p => p.id === id);
     if (!prospect) return;
     
+    // Validación: nombre y apellido deben tener más de 3 caracteres
+    if ((field === 'nombre' || field === 'apellido') && editValue && editValue.trim().length < 4) {
+      toast({ 
+        title: "Error de validación", 
+        description: `${field === 'nombre' ? 'Nombre' : 'Apellido'} debe tener al menos 4 caracteres`, 
+        variant: "destructive" 
+      });
+      setEditingCell(null);
+      return;
+    }
+    
     const currentValue = String((prospect as any)[field] ?? "");
     if (editValue !== currentValue) {
       updateMutation.mutate({ id, data: { [field]: editValue || null } });
     }
     setEditingCell(null);
-  }, [editingCell, editValue, prospects, updateMutation]);
+  }, [editingCell, editValue, prospects, updateMutation, toast]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     // Convert special unassigned value to null for database
