@@ -27,6 +27,7 @@ export interface ColumnFilterProps {
   onSort: (direction: SortDirection) => void;
   onFilter: (state: FilterState) => void;
   onClear: () => void;
+  labelMap?: Record<string, string>;
 }
 
 export function ColumnFilter({
@@ -40,6 +41,7 @@ export function ColumnFilter({
   onSort,
   onFilter,
   onClear,
+  labelMap,
 }: ColumnFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState(filterState.search);
@@ -52,10 +54,11 @@ export function ColumnFilter({
   const filteredValues = useMemo(() => {
     if (!localSearch) return uniqueValues;
     const search = localSearch.toLowerCase();
-    return uniqueValues.filter(v => 
-      v?.toLowerCase().includes(search)
-    );
-  }, [uniqueValues, localSearch]);
+    return uniqueValues.filter(v => {
+      const displayValue = labelMap?.[v] ?? v;
+      return displayValue?.toLowerCase().includes(search);
+    });
+  }, [uniqueValues, localSearch, labelMap]);
 
   const handleSort = (dir: SortDirection) => {
     onSort(dir);
@@ -208,7 +211,7 @@ export function ColumnFilter({
                         "text-xs truncate flex-1",
                         !isAvailable && "text-muted-foreground line-through"
                       )}>
-                        {value || "(vacío)"}
+                        {(labelMap?.[value] ?? value) || "(vacío)"}
                       </span>
                     </label>
                   );

@@ -385,6 +385,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     return maps;
   }, []);
 
+  // Create label maps for columns that need display transformations (e.g., IDs to names)
+  const labelMaps = useMemo(() => {
+    const maps: Record<string, Record<string, string>> = {};
+    
+    // Asesor ID to name map
+    maps['asesorId'] = {};
+    users.forEach(user => {
+      const fullName = user.name || user.username || 'Sin nombre';
+      maps['asesorId'][user.id] = fullName;
+    });
+    
+    return maps;
+  }, [users]);
+
   // Column filtering and sorting
   const {
     sortConfig,
@@ -487,6 +501,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         onSort={(dir) => handleSort(col.key, dir)}
                         onFilter={(state) => handleFilter(col.key, state)}
                         onClear={() => handleClearFilter(col.key)}
+                        labelMap={labelMaps[col.key]}
                       />
                     )}
                   </div>
