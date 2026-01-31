@@ -244,7 +244,8 @@ export function ColumnFilter({
 
 export function useColumnFilters<T extends Record<string, any>>(
   data: T[],
-  columns: { key: string; type?: string }[]
+  columns: { key: string; type?: string }[],
+  orderMaps?: Record<string, Record<string, number>>
 ) {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({
     key: "",
@@ -336,12 +337,20 @@ export function useColumnFilters<T extends Record<string, any>>(
 
     if (sortConfig.key && sortConfig.direction) {
       const { key, direction } = sortConfig;
+      const orderMap = orderMaps?.[key];
       result.sort((a, b) => {
         const aVal = a[key];
         const bVal = b[key];
         
         if (aVal === null || aVal === undefined) return direction === "asc" ? 1 : -1;
         if (bVal === null || bVal === undefined) return direction === "asc" ? -1 : 1;
+        
+        // Use order map if available (for options-select fields)
+        if (orderMap) {
+          const aIdx = orderMap[String(aVal)] ?? 9999;
+          const bIdx = orderMap[String(bVal)] ?? 9999;
+          return direction === "asc" ? aIdx - bIdx : bIdx - aIdx;
+        }
         
         if (typeof aVal === "number" && typeof bVal === "number") {
           return direction === "asc" ? aVal - bVal : bVal - aVal;
@@ -356,7 +365,7 @@ export function useColumnFilters<T extends Record<string, any>>(
     }
 
     return result;
-  }, [data, sortConfig, filterConfigs]);
+  }, [data, sortConfig, filterConfigs, orderMaps]);
 
   const handleSort = (key: string, direction: SortDirection) => {
     setSortConfig({ key, direction });

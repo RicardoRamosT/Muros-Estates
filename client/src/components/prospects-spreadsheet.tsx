@@ -344,6 +344,25 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     });
   }, [allColumns, canView]);
 
+  // Create order maps for options-select columns (for proper sorting by position)
+  const orderMaps = useMemo(() => {
+    const maps: Record<string, Record<string, number>> = {};
+    
+    // Estatus order map
+    maps['estatus'] = {};
+    estatusOptions.forEach((opt, idx) => {
+      maps['estatus'][opt.value] = idx;
+    });
+    
+    // Embudo order map
+    maps['embudo'] = {};
+    embudoOptions.forEach((opt, idx) => {
+      maps['embudo'][opt.value] = idx;
+    });
+    
+    return maps;
+  }, []);
+
   // Column filtering and sorting
   const {
     sortConfig,
@@ -355,7 +374,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     handleClearFilter,
     clearAllFilters,
     availableValuesMap,
-  } = useColumnFilters(prospects, columns);
+  } = useColumnFilters(prospects, columns, orderMaps);
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
