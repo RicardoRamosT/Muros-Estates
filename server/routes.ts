@@ -404,6 +404,7 @@ export async function registerRoutes(
         developmentInterest: validationResult.data.interest || null,
         comoLlega: "web",
         estatus: "activo",
+        embudo: "nuevo",
         tipologia: validationResult.data.typologyId || null,
         desarrollo: validationResult.data.desarrollo || null,
         desarrollador: validationResult.data.desarrollador || null,
