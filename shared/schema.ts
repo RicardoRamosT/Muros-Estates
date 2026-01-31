@@ -779,7 +779,7 @@ export const clients = pgTable("clients", {
   brokerExterno: text("broker_externo"),
   
   // Status and funnel
-  estatus: text("estatus").notNull().default("nuevo"),
+  estatus: text("estatus").notNull().default("activo"),
   embudo: text("embudo"),
   comoPaga: text("como_paga"),
   
