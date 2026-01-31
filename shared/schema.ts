@@ -907,7 +907,7 @@ export const typologies = pgTable("typologies", {
   zone: text("zone").notNull(), // Zona
   developer: text("developer").notNull(), // Desarrollador
   development: text("development").notNull(), // Desarrollo
-  tipoDesarrollo: text("tipo_desarrollo"), // Tipo de desarrollo (heredado del desarrollo)
+  tipoDesarrollo: text("tipo_desarrollo").array(), // Tipos de desarrollo (multi-select, heredado del desarrollo/desarrollador)
   
   // 7-9: GENERALES
   type: text("type"), // Tipo (e.g., A, B, C)

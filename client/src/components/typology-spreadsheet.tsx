@@ -989,7 +989,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     );
   }
   
-  // Development type select - shows types from the selected development or developer
+  // Development type multi-select - shows types from the selected development or developer
   if (column.type === "development-type-select") {
     const developmentName = row?.development;
     const selectedDevelopment = allDevelopments?.find(d => d.name === developmentName);
@@ -1004,11 +1004,13 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         availableTypes = selectedDeveloper.tipos as string[];
       }
     }
-    const currentType = value?.toString() || "";
     
-    // Auto-select if only one type available
-    if (availableTypes.length === 1 && !currentType) {
-      setTimeout(() => onChange(availableTypes[0]), 0);
+    // Value is now an array
+    const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value] : []);
+    
+    // Auto-select all if only one type available and none selected
+    if (availableTypes.length === 1 && currentTypes.length === 0) {
+      setTimeout(() => onChange(availableTypes), 0);
     }
     
     if (availableTypes.length === 0) {
@@ -1022,27 +1024,55 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       );
     }
     
+    const handleTypeToggle = (tipo: string) => {
+      const newTypes = currentTypes.includes(tipo)
+        ? currentTypes.filter(t => t !== tipo)
+        : [...currentTypes, tipo];
+      onChange(newTypes);
+    };
+    
+    const displayText = currentTypes.length > 0 
+      ? currentTypes.join(", ") 
+      : "";
+    
     return (
       <div 
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
         style={{ width: column.width }}
       >
-        <Select 
-          value={currentType} 
-          onValueChange={onChange}
-        >
-          <SelectTrigger 
-            className={`h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-between text-left ${!currentType ? 'text-red-500 font-medium' : ''}`}
-            data-testid={`select-${column.key}-${rowId}`}
-          >
-            <SelectValue placeholder={!currentType ? "SIN ASIGNAR" : ""} className="text-left" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableTypes.map((tipo) => (
-              <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              className={`h-6 w-full justify-between px-1 text-xs font-normal ${currentTypes.length === 0 ? 'text-red-500 font-medium' : ''}`}
+              data-testid={`multiselect-${column.key}-${rowId}`}
+            >
+              <span className="truncate text-left">
+                {currentTypes.length === 0 ? "SIN ASIGNAR" : displayText}
+              </span>
+              <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" align="start">
+            <div className="space-y-1">
+              {availableTypes.map((tipo) => (
+                <div key={tipo} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`tipo-${rowId}-${tipo}`}
+                    checked={currentTypes.includes(tipo)}
+                    onCheckedChange={() => handleTypeToggle(tipo)}
+                  />
+                  <label
+                    htmlFor={`tipo-${rowId}-${tipo}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {tipo}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     );
   }
