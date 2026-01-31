@@ -247,7 +247,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "actions", label: "", width: "60px", type: "actions" },
   ];
 
-  // Columns for Clientes (15 fields - focused on purchase/financial data)
+  // Columns for Clientes (16 fields - focused on purchase/financial data)
   const clientColumns = [
     { key: "index", label: "#", width: "50px", type: "index" },
     { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
@@ -257,6 +257,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "apellido", label: "Apellido", width: "140px" },
     { key: "telefono", label: "Teléfono", width: "130px" },
     { key: "correo", label: "Correo", width: "180px" },
+    { key: "embudo", label: "Etapa de Embudo", width: "160px", type: "options-select" },
     { key: "desarrollador", label: "Desarrollador", width: "150px", type: "catalog-select" },
     { key: "desarrollo", label: "Desarrollo", width: "150px", type: "catalog-select" },
     { key: "tipologia", label: "Tipología", width: "150px", type: "typology-select" },
