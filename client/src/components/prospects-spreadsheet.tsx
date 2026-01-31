@@ -111,11 +111,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     const prospect = prospects.find(p => p.id === id);
     if (!prospect) return;
     
-    // Validación: nombre y apellido deben tener más de 3 caracteres
-    if ((field === 'nombre' || field === 'apellido') && editValue && editValue.trim().length < 4) {
+    // Validación: nombre y apellido deben tener al menos 3 caracteres
+    if ((field === 'nombre' || field === 'apellido') && editValue && editValue.trim().length < 3) {
       toast({ 
         title: "Error de validación", 
-        description: `${field === 'nombre' ? 'Nombre' : 'Apellido'} debe tener al menos 4 caracteres`, 
+        description: `${field === 'nombre' ? 'Nombre' : 'Apellido'} debe tener al menos 3 caracteres`, 
         variant: "destructive" 
       });
       setEditingCell(null);
