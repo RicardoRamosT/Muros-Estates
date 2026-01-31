@@ -397,12 +397,13 @@ export async function registerRoutes(
       }
       
       const client = await storage.createClient({
-        nombre: validationResult.data.name,
+        nombre: validationResult.data.nombre || validationResult.data.name?.split(' ')[0] || "",
+        apellido: validationResult.data.apellido || validationResult.data.name?.split(' ').slice(1).join(' ') || "",
         telefono: validationResult.data.phone,
         correo: validationResult.data.email || null,
         developmentInterest: validationResult.data.interest || null,
         comoLlega: "web",
-        estatus: "nuevo",
+        estatus: "activo",
         tipologia: validationResult.data.typologyId || null,
         desarrollo: validationResult.data.desarrollo || null,
         desarrollador: validationResult.data.desarrollador || null,

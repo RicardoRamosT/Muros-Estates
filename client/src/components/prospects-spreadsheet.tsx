@@ -534,7 +534,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                 {columns.map((col) => {
                   const field = col.field || col.key;
                   const hasAsesor = !!(prospect as any).asesorId;
-                  const editableWithoutAsesor = ['nombre', 'apellido', 'telefono', 'correo', 'estatus', 'embudo', 'comoPaga', 'positivos', 'negativos', 'comentarios'];
+                  const editableWithoutAsesor = ['asesorId', 'nombre', 'apellido', 'telefono', 'correo', 'estatus', 'embudo', 'comoPaga', 'positivos', 'negativos', 'comentarios'];
                   const isBlockedByAsesor = !hasAsesor && !editableWithoutAsesor.includes(col.key);
                   const fieldCanEdit = canEdit(col.key) && !isBlockedByAsesor;
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;

@@ -1124,7 +1124,9 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 // Contact form schema
 export const contactFormSchema = z.object({
-  name: z.string().min(1, "Nombre requerido"),
+  name: z.string().optional(),
+  nombre: z.string().min(3, "Nombre debe tener al menos 3 caracteres").optional(),
+  apellido: z.string().min(3, "Apellido debe tener al menos 3 caracteres").optional(),
   phone: z.string().min(10, "Teléfono debe tener al menos 10 dígitos"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   interest: z.string().optional(),
@@ -1134,7 +1136,15 @@ export const contactFormSchema = z.object({
   desarrollo: z.string().optional(),
   ciudad: z.string().optional(),
   zona: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    // Must have either (nombre AND apellido) OR name with at least 3 chars
+    const hasNombreApellido = data.nombre && data.nombre.length >= 3 && data.apellido && data.apellido.length >= 3;
+    const hasName = data.name && data.name.trim().length >= 3;
+    return hasNombreApellido || hasName;
+  },
+  { message: "Nombre y apellido son requeridos (mínimo 3 caracteres cada uno)" }
+);
 
 export type ContactFormInput = z.infer<typeof contactFormSchema>;
 
