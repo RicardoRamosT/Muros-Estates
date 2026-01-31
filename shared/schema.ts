@@ -646,7 +646,8 @@ export const developments = pgTable("developments", {
   zone: text("zone"),
   zone2: text("zone_2"), // Zona 2
   zone3: text("zone_3"), // Zona 3
-  type: text("type"), // Tipo de desarrollo (Residencial, Uso mixto, etc.)
+  type: text("type"), // Tipo de desarrollo (Residencial, Uso mixto, etc.) - legacy
+  tipos: text("tipos").array(), // Array de tipos de desarrollo (heredados del desarrollador)
   nivel: text("nivel"), // Nivel
   torres: integer("torres"), // Número de torres
   niveles: integer("niveles"), // Número de niveles
@@ -906,6 +907,7 @@ export const typologies = pgTable("typologies", {
   zone: text("zone").notNull(), // Zona
   developer: text("developer").notNull(), // Desarrollador
   development: text("development").notNull(), // Desarrollo
+  tipoDesarrollo: text("tipo_desarrollo"), // Tipo de desarrollo (heredado del desarrollo)
   
   // 7-9: GENERALES
   type: text("type"), // Tipo (e.g., A, B, C)

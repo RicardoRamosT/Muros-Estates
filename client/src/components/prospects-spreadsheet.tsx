@@ -122,21 +122,43 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     // Convert special unassigned value to null for database
     const actualValue = value === '__unassigned__' ? null : (value || null);
     
-    // If embudo is set to "separado", convert prospect to client
-    if (field === 'embudo' && value === 'separado') {
-      updateMutation.mutate({ 
-        id, 
-        data: { 
-          [field]: actualValue,
-          isClient: true,
-          convertedAt: new Date(),
-        } as any
-      });
-      toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes." });
-    } else {
-      updateMutation.mutate({ id, data: { [field]: actualValue } });
+    // Define client funnel stages (stages that make someone a client)
+    const clientFunnelStages = ['separado', 'enganche_firma'];
+    
+    if (field === 'embudo') {
+      const currentRecord = prospects.find(p => p.id === id);
+      const isCurrentlyClient = currentRecord?.isClient === true;
+      const shouldBeClient = clientFunnelStages.includes(value);
+      
+      if (!isCurrentlyClient && shouldBeClient) {
+        // Convert Prospect to Client
+        updateMutation.mutate({ 
+          id, 
+          data: { 
+            [field]: actualValue,
+            isClient: true,
+            convertedAt: new Date(),
+          } as any
+        });
+        toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes." });
+        return;
+      } else if (isCurrentlyClient && !shouldBeClient) {
+        // Convert Client back to Prospect
+        updateMutation.mutate({ 
+          id, 
+          data: { 
+            [field]: actualValue,
+            isClient: false,
+            convertedAt: null,
+          } as any
+        });
+        toast({ title: "Cliente regresado a Prospecto", description: "El cliente ahora aparece en la sección de Prospectos." });
+        return;
+      }
     }
-  }, [updateMutation, toast]);
+    
+    updateMutation.mutate({ id, data: { [field]: actualValue } });
+  }, [updateMutation, toast, prospects]);
 
   const handleTypologySelect = useCallback((prospectId: string, typologyId: string) => {
     if (typologyId === '__unassigned__') {
@@ -731,6 +753,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.type === 'boolean-select') {
                     const value = (prospect as any)[col.key];
                     const displayValue = value === 'si' ? 'Sí' : value === 'no' ? 'No' : null;
+                    // Styling: Sí = green, No/Sin asignar = red/pink
+                    const getBooleanStyle = (val: string | null) => {
+                      if (val === 'si') return { backgroundColor: '#dcfce7', color: '#166534' }; // green-100, green-800
+                      return { backgroundColor: '#fee2e2', color: '#dc2626' }; // red-100, red-600
+                    };
+                    const boolStyle = getBooleanStyle(value);
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
@@ -738,18 +766,24 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
-                              <SelectValue placeholder="Seleccionar" />
+                            <SelectTrigger 
+                              className="h-6 text-sm border-0 rounded px-2 font-medium"
+                              style={boolStyle}
+                            >
+                              <SelectValue placeholder="Sin asignar" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              <SelectItem value="si">Sí</SelectItem>
-                              <SelectItem value="no">No</SelectItem>
+                              <SelectItem value="__unassigned__" className="text-red-600 bg-red-50">Sin asignar</SelectItem>
+                              <SelectItem value="si" className="text-green-800 bg-green-50">Sí</SelectItem>
+                              <SelectItem value="no" className="text-red-600 bg-red-50">No</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{displayValue || '-'}</span>
+                          <div 
+                            className="flex items-center gap-1 px-2 py-1 rounded font-medium"
+                            style={boolStyle}
+                          >
+                            <span>{displayValue || 'Sin asignar'}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}

@@ -194,7 +194,10 @@ function CitiesTable() {
   const { data: cities = [], isLoading } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
 
   const createMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/catalog/cities", { name: "Nueva Ciudad", active: true }),
+    mutationFn: () => {
+      const nextOrder = cities.length > 0 ? Math.max(...cities.map(c => c.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", "/api/catalog/cities", { name: "Nueva Ciudad", active: true, order: nextOrder });
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); toast({ title: "Ciudad creada" }); },
   });
 
@@ -286,7 +289,10 @@ function ZonesTable() {
   const filteredZones = filterCityId === "all" ? zones : zones.filter(z => z.cityId === filterCityId);
 
   const createMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/catalog/zones", { name: "Nueva Zona", active: true, cityId: filterCityId !== "all" ? filterCityId : cities[0]?.id }),
+    mutationFn: () => {
+      const nextOrder = zones.length > 0 ? Math.max(...zones.map(z => z.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", "/api/catalog/zones", { name: "Nueva Zona", active: true, order: nextOrder, cityId: filterCityId !== "all" ? filterCityId : cities[0]?.id });
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona creada" }); },
   });
 
@@ -383,7 +389,10 @@ function ExcelTable({ title, endpoint, queryKey, hasIcon = false, icon: IconComp
   const { data: items = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
 
   const createMutation = useMutation({
-    mutationFn: () => apiRequest("POST", endpoint, { name: "Nuevo", active: true }),
+    mutationFn: () => {
+      const nextOrder = items.length > 0 ? Math.max(...items.map(i => i.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", endpoint, { name: "Nuevo", active: true, order: nextOrder });
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `${title} creado` }); },
   });
 
@@ -474,7 +483,10 @@ function ColoredExcelTable({ title, endpoint, queryKey, icon: IconComponent }: {
   const { data: items = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
 
   const createMutation = useMutation({
-    mutationFn: () => apiRequest("POST", endpoint, { name: "Nuevo", active: true, color: "#6366f1" }),
+    mutationFn: () => {
+      const nextOrder = items.length > 0 ? Math.max(...items.map(i => i.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", endpoint, { name: "Nuevo", active: true, color: "#6366f1", order: nextOrder });
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `${title} creado` }); },
   });
 
@@ -567,7 +579,10 @@ function NivelMantenimientoTable() {
   const { data: items = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: ["/api/catalog/nivel-mantenimiento"] });
 
   const createMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/catalog/nivel-mantenimiento", { name: "Nuevo", valor: 50, active: true }),
+    mutationFn: () => {
+      const nextOrder = items.length > 0 ? Math.max(...items.map(i => i.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", "/api/catalog/nivel-mantenimiento", { name: "Nuevo", valor: 50, active: true, order: nextOrder });
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }); toast({ title: "Nivel creado" }); },
   });
 

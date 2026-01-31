@@ -33,7 +33,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'comercializadora-select' | 'arquitectura-select' | 'folder-link' | 'actions' | 'index';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'comercializadora-select' | 'arquitectura-select' | 'folder-link' | 'actions' | 'index';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -77,7 +77,7 @@ const columns: ColumnDef[] = [
   { key: 'zone', label: 'Zona 1', group: 'location', type: 'zone-select', width: '120px', cellType: 'dropdown' },
   { key: 'zone2', label: 'Zona 2', group: 'location', type: 'zone-select', width: '120px', cellType: 'dropdown' },
   { key: 'zone3', label: 'Zona 3', group: 'location', type: 'zone-select', width: '120px', cellType: 'dropdown' },
-  { key: 'type', label: 'Tipo', group: 'structure', type: 'type-select', width: '130px', cellType: 'readonly' },
+  { key: 'tipos', label: 'Tipos', group: 'structure', type: 'multiselect-tipos', width: '150px', cellType: 'dropdown' },
   { key: 'nivel', label: 'Nivel', group: 'structure', type: 'nivel-select', width: '80px', cellType: 'dropdown' },
   { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '70px', cellType: 'dropdown' },
   { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '80px', cellType: 'dropdown' },
@@ -532,11 +532,65 @@ export function DevelopmentsSpreadsheet() {
                     );
                   }
 
-                  if (col.type === 'type-select') {
-                    const autoType = getTypeFromDeveloper(dev.developerId);
+                  if (col.type === 'multiselect-tipos') {
+                    const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
+                    const selectedTipos = (dev.tipos as string[] | null) || [];
+                    
+                    // If developer has only one type, auto-select it
+                    if (developerTipos.length === 1 && selectedTipos.length === 0) {
+                      // Auto-assign the single type
+                      setTimeout(() => {
+                        updateMutation.mutate({ id: dev.id, data: { tipos: developerTipos } });
+                      }, 0);
+                    }
+                    
+                    const displayValue = selectedTipos.length > 0 
+                      ? `${selectedTipos.length} tipo${selectedTipos.length > 1 ? 's' : ''}`
+                      : developerTipos.length > 0 ? 'Seleccionar' : 'Sin tipos';
+                    
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "readonly" })}>
-                        <span className="text-muted-foreground">{autoType || ""}</span>
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 })}>
+                        {fieldCanEdit && developerTipos.length > 0 ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-full justify-between text-sm font-normal px-2"
+                              >
+                                <span className={selectedTipos.length === 0 ? 'text-red-500 font-medium' : ''}>
+                                  {selectedTipos.length === 0 ? 'SIN ASIGNAR' : displayValue}
+                                </span>
+                                <ChevronDown className="w-3 h-3 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2" align="start">
+                              <div className="space-y-1">
+                                {developerTipos.map((tipo: string) => (
+                                  <label key={tipo} className="flex items-center gap-2 cursor-pointer hover:bg-muted p-1 rounded">
+                                    <Checkbox
+                                      checked={selectedTipos.includes(tipo)}
+                                      onCheckedChange={(checked) => {
+                                        const newTipos = checked
+                                          ? [...selectedTipos, tipo]
+                                          : selectedTipos.filter((t: string) => t !== tipo);
+                                        updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
+                                      }}
+                                    />
+                                    <span className="text-sm">{tipo}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className={selectedTipos.length === 0 && developerTipos.length > 0 ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
+                              {selectedTipos.length === 0 && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipos.join(', ') || 'Sin tipos')}
+                            </span>
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50" />}
+                          </div>
+                        )}
                       </td>
                     );
                   }

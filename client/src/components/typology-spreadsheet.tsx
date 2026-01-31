@@ -49,7 +49,7 @@ type TypologyField = keyof Typology;
 interface ColumnDef {
   key: TypologyField;
   label: string;
-  type: "text" | "number" | "decimal" | "select" | "multiselect" | "boolean" | "date";
+  type: "text" | "number" | "decimal" | "select" | "multiselect" | "boolean" | "date" | "development-type-select";
   options?: readonly string[];
   width?: number;
   calculated?: boolean;
@@ -83,6 +83,7 @@ const SECTIONS: SectionDef[] = [
       { key: "zone", label: "Zona", type: "text", width: 120, calculated: true },
       { key: "developer", label: "Desarrollador", type: "text", width: 120, calculated: true },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 130 },
+      { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 120 },
     ],
   },
   {
@@ -762,9 +763,10 @@ interface EditableCellProps {
   areaOptions?: string[];
   tipologiaOptions?: string[];
   isLastInSection?: boolean;
+  row?: Typology;
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, isLastInSection }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, isLastInSection, row }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -980,6 +982,54 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           <SelectContent>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+  
+  // Development type select - shows types from the selected development
+  if (column.type === "development-type-select") {
+    const developmentName = row?.development;
+    const selectedDev = allDevelopments?.find(d => d.name === developmentName);
+    const availableTypes = (selectedDev?.tipos as string[] | null) || [];
+    const currentType = value?.toString() || "";
+    
+    // Auto-select if only one type available
+    if (availableTypes.length === 1 && !currentType) {
+      setTimeout(() => onChange(availableTypes[0]), 0);
+    }
+    
+    if (availableTypes.length === 0) {
+      return (
+        <div 
+          className="spreadsheet-cell px-1 bg-gray-100 dark:bg-gray-800/50" 
+          style={{ width: column.width }}
+        >
+          <span className="text-xs text-muted-foreground">Sin tipos</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div 
+        className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
+        style={{ width: column.width }}
+      >
+        <Select 
+          value={currentType} 
+          onValueChange={onChange}
+        >
+          <SelectTrigger 
+            className={`h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-between text-left ${!currentType ? 'text-red-500 font-medium' : ''}`}
+            data-testid={`select-${column.key}-${rowId}`}
+          >
+            <SelectValue placeholder={!currentType ? "SIN ASIGNAR" : ""} className="text-left" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableTypes.map((tipo) => (
+              <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -1791,6 +1841,7 @@ export function TypologySpreadsheet() {
                         areaOptions={areaOptions}
                         tipologiaOptions={tipologiaOptions}
                         isLastInSection={colIndex === section.columns.length - 1}
+                        row={mergedRow as Typology}
                       />
                     );
                   });
