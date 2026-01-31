@@ -149,8 +149,8 @@ export const PAGE_PERMISSIONS = {
       comentarios: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
-  // Permisos para Clientes (convertidos) - 15 campos
-  // Admin: Todo 2, Finanzas: 111110011111111, Asesor: 111222222222222, Desarrollador: 111110011111111
+  // Permisos para Clientes (convertidos) - 16 campos
+  // Admin: Todo 2, Finanzas: 1111100111111111, Asesor: 1112222222222222, Desarrollador: 1111100111111111
   clientes: {
     allowedRoles: ['admin', 'finanzas', 'asesor', 'desarrollador'],
     fields: {
@@ -168,7 +168,9 @@ export const PAGE_PERMISSIONS = {
       telefono: { admin: 'edit', finanzas: 'none', asesor: 'edit', desarrollador: 'none' },
       // 7. correo - Finanzas: 0, Asesor: 2, Desarrollador: 0
       correo: { admin: 'edit', finanzas: 'none', asesor: 'edit', desarrollador: 'none' },
-      // 8. desarrollador - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      // 8. embudo (Etapa de Embudo) - Finanzas: 1, Asesor: 2, Desarrollador: 1
+      embudo: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // 9. desarrollador - Finanzas: 1, Asesor: 2, Desarrollador: 1
       desarrollador: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       // 9. desarrollo - Finanzas: 1, Asesor: 2, Desarrollador: 1
       desarrollo: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
