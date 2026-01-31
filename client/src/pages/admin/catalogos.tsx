@@ -196,7 +196,14 @@ function CitiesTable() {
   const createMutation = useMutation({
     mutationFn: () => {
       const nextOrder = cities.length > 0 ? Math.max(...cities.map(c => c.order ?? 0)) + 1 : 1;
-      return apiRequest("POST", "/api/catalog/cities", { name: "Nueva Ciudad", active: true, order: nextOrder });
+      let baseName = "Nueva Ciudad";
+      let counter = 1;
+      let uniqueName = baseName;
+      while (cities.some(c => c.name === uniqueName)) {
+        counter++;
+        uniqueName = `${baseName} ${counter}`;
+      }
+      return apiRequest("POST", "/api/catalog/cities", { name: uniqueName, active: true, order: nextOrder });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); toast({ title: "Ciudad creada" }); },
   });
@@ -291,7 +298,14 @@ function ZonesTable() {
   const createMutation = useMutation({
     mutationFn: () => {
       const nextOrder = zones.length > 0 ? Math.max(...zones.map(z => z.order ?? 0)) + 1 : 1;
-      return apiRequest("POST", "/api/catalog/zones", { name: "Nueva Zona", active: true, order: nextOrder, cityId: filterCityId !== "all" ? filterCityId : cities[0]?.id });
+      let baseName = "Nueva Zona";
+      let counter = 1;
+      let uniqueName = baseName;
+      while (zones.some(z => z.name === uniqueName)) {
+        counter++;
+        uniqueName = `${baseName} ${counter}`;
+      }
+      return apiRequest("POST", "/api/catalog/zones", { name: uniqueName, active: true, order: nextOrder, cityId: filterCityId !== "all" ? filterCityId : cities[0]?.id });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona creada" }); },
   });
