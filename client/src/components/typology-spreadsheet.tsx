@@ -989,11 +989,21 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     );
   }
   
-  // Development type select - shows types from the selected development
+  // Development type select - shows types from the selected development or developer
   if (column.type === "development-type-select") {
     const developmentName = row?.development;
-    const selectedDev = allDevelopments?.find(d => d.name === developmentName);
-    const availableTypes = (selectedDev?.tipos as string[] | null) || [];
+    const selectedDevelopment = allDevelopments?.find(d => d.name === developmentName);
+    
+    // First try development tipos, then fallback to developer tipos
+    let availableTypes: string[] = [];
+    if (selectedDevelopment?.tipos && (selectedDevelopment.tipos as string[]).length > 0) {
+      availableTypes = selectedDevelopment.tipos as string[];
+    } else if (selectedDevelopment?.developerId && allDevelopers) {
+      const selectedDeveloper = allDevelopers.find(dev => dev.id === selectedDevelopment.developerId);
+      if (selectedDeveloper?.tipos && (selectedDeveloper.tipos as string[]).length > 0) {
+        availableTypes = selectedDeveloper.tipos as string[];
+      }
+    }
     const currentType = value?.toString() || "";
     
     // Auto-select if only one type available
