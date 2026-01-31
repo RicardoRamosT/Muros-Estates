@@ -174,8 +174,6 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
                     value={contactForm.firstName}
                     onChange={(e) => setContactForm(prev => ({ ...prev, firstName: e.target.value }))}
                     className="pl-8 h-9 text-sm"
-                    required
-                    minLength={3}
                     data-testid="input-float-firstname"
                   />
                 </div>
@@ -191,8 +189,6 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
                     value={contactForm.lastName}
                     onChange={(e) => setContactForm(prev => ({ ...prev, lastName: e.target.value }))}
                     className="pl-8 h-9 text-sm"
-                    required
-                    minLength={3}
                     data-testid="input-float-lastname"
                   />
                 </div>
@@ -209,7 +205,6 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
                     value={contactForm.phone}
                     onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
                     className="pl-8 h-9 text-sm"
-                    required
                     data-testid="input-float-phone"
                   />
                 </div>
