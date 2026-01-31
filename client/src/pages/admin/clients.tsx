@@ -1,9 +1,7 @@
 import { useLocation } from "wouter";
 import { Header } from "@/components/header";
-import { Suspense, lazy } from "react";
-import { Users, UserCheck, Loader2 } from "lucide-react";
-
-const ProspectsSpreadsheet = lazy(() => import("@/components/prospects-spreadsheet").then(m => ({ default: m.ProspectsSpreadsheet })));
+import { Users, UserCheck } from "lucide-react";
+import { ProspectsSpreadsheet } from "@/components/prospects-spreadsheet";
 
 export default function AdminClients() {
   const [location] = useLocation();
@@ -32,9 +30,7 @@ export default function AdminClients() {
         </div>
         
         <div className="flex-1 border-t">
-          <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="w-8 h-8 animate-spin" /></div>}>
-            <ProspectsSpreadsheet isClientView={isClientView} />
-          </Suspense>
+          <ProspectsSpreadsheet isClientView={isClientView} />
         </div>
       </main>
     </div>
