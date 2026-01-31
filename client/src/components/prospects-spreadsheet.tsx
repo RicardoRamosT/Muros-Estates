@@ -247,7 +247,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "actions", label: "", width: "60px", type: "actions" },
   ];
 
-  // Columns for Clientes (16 fields - focused on purchase/financial data)
+  // Columns for Clientes (17 fields - focused on purchase/financial data with embudo)
   const clientColumns = [
     { key: "index", label: "#", width: "50px", type: "index" },
     { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
