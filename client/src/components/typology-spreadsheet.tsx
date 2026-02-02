@@ -780,11 +780,10 @@ interface EditableCellProps {
   tipologiaOptions?: string[];
   isLastInSection?: boolean;
   row?: Typology;
-  sectionCellColor?: string;  // Color for calculated cells in this section
-  sectionHeaderColor?: string;  // Color for disabled cells in this section
+  sectionCellColor?: string;  // Color for calculated and disabled cells in this section
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, isLastInSection, row, sectionCellColor, sectionHeaderColor }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, isLastInSection, row, sectionCellColor }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -826,7 +825,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           "spreadsheet-cell px-2 text-sm truncate",
           column.calculated && (sectionCellColor || "bg-blue-50 dark:bg-blue-950/30"),
           column.calculated && "text-muted-foreground",
-          disabled && !column.calculated && (sectionHeaderColor || "bg-gray-200 dark:bg-gray-700"),
+          disabled && !column.calculated && (sectionCellColor || "bg-gray-100 dark:bg-gray-800"),
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed"
         )}
         style={{ width: column.width }}
@@ -1911,7 +1910,6 @@ export function TypologySpreadsheet() {
                         isLastInSection={colIndex === section.columns.length - 1}
                         row={mergedRow as Typology}
                         sectionCellColor={section.cellColor}
-                        sectionHeaderColor={section.headerColor}
                       />
                     );
                   });
