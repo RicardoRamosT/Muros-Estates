@@ -830,38 +830,41 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   }
   
   if (column.type === "boolean") {
-    const cellBgClass = value === true 
-      ? "bg-green-50 dark:bg-green-900/30" 
+    // Cell background: light green for Sí, light red for No
+    const cellBgColor = value === true 
+      ? '#dcfce7'  // green-100 
       : value === false 
-        ? "bg-red-50 dark:bg-red-900/30" 
-        : "bg-gray-50 dark:bg-gray-800/50";
+        ? '#fee2e2'  // red-100
+        : undefined;
+    // Text color: dark green for Sí, dark red for No
+    const textColorClass = value === true 
+      ? 'text-green-700 font-medium' 
+      : value === false 
+        ? 'text-red-600 font-medium' 
+        : 'text-muted-foreground';
     return (
       <div 
-        className={`spreadsheet-cell justify-center px-2 ${cellBgClass}`}
-        style={{ width: column.width }}
+        className="spreadsheet-cell justify-center px-2"
+        style={{ width: column.width, backgroundColor: cellBgColor }}
       >
         <Select
           value={value === true ? "si" : value === false ? "no" : ""}
           onValueChange={(val) => onChange(val === "si")}
         >
-          <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-1" data-testid={`boolean-${column.key}-${rowId}`}>
+          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
             <SelectValue>
               {value === true ? (
-                <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs px-1.5 py-0">Sí</Badge>
+                <span>Sí</span>
               ) : value === false ? (
-                <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs px-1.5 py-0">No</Badge>
+                <span>No</span>
               ) : (
-                <span className="text-muted-foreground">-</span>
+                <span>-</span>
               )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="si">
-              <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">Sí</Badge>
-            </SelectItem>
-            <SelectItem value="no">
-              <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs">No</Badge>
-            </SelectItem>
+            <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+            <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -405,41 +405,49 @@ export function DevelopmentsSpreadsheet() {
                   }
 
                   if (col.type === 'boolean') {
+                    // Cell background: light green for Sí, light red for No
+                    const cellBgColor = value === true 
+                      ? '#dcfce7'  // green-100 
+                      : value === false 
+                        ? '#fee2e2'  // red-100
+                        : undefined;
+                    // Text color: dark green for Sí, dark red for No
+                    const textColorClass = value === true 
+                      ? 'text-green-700 font-medium' 
+                      : value === false 
+                        ? 'text-red-600 font-medium' 
+                        : 'text-muted-foreground';
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} style={{ backgroundColor: cellBgColor }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value === true ? "si" : value === false ? "no" : ""}
                             onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                           >
-                            <SelectTrigger className="h-7 text-xs border-0 bg-transparent" data-testid={`boolean-${col.key}-${dev.id}`}>
+                            <SelectTrigger className={`h-7 text-xs border-0 bg-transparent ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
                               <SelectValue>
                                 {value === true ? (
-                                  <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">Sí</Badge>
+                                  <span>Sí</span>
                                 ) : value === false ? (
-                                  <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs">No</Badge>
+                                  <span>No</span>
                                 ) : (
-                                  <span className="text-muted-foreground">-</span>
+                                  <span>-</span>
                                 )}
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="si">
-                                <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">Sí</Badge>
-                              </SelectItem>
-                              <SelectItem value="no">
-                                <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs">No</Badge>
-                              </SelectItem>
+                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
-                          <div className="flex items-center justify-center">
+                          <div className={`flex items-center justify-center ${textColorClass}`}>
                             {value === true ? (
-                              <Badge className="bg-green-500 text-white text-xs">Sí</Badge>
+                              <span>Sí</span>
                             ) : value === false ? (
-                              <Badge className="bg-red-500 text-white text-xs">No</Badge>
+                              <span>No</span>
                             ) : (
-                              <span className="text-muted-foreground">-</span>
+                              <span>-</span>
                             )}
                           </div>
                         )}
