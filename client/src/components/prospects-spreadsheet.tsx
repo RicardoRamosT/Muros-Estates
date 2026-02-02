@@ -808,9 +808,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectValue placeholder="Sin asignar" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__" className="text-red-600 bg-red-50">Sin asignar</SelectItem>
-                              <SelectItem value="si" className="text-green-800 bg-green-50">Sí</SelectItem>
-                              <SelectItem value="no" className="text-red-600 bg-red-50">No</SelectItem>
+                              <SelectItem value="__unassigned__" className="text-red-600 font-medium">Sin asignar</SelectItem>
+                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
