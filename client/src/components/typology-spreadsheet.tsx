@@ -1845,7 +1845,7 @@ export function TypologySpreadsheet() {
                       sortDirection={columnSorts[col.key] || null}
                       onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
                       onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                      sectionColor={section.columnHeaderColor || section.headerColor}
+                      sectionColor={section.headerColor}
                       availableValues={availableValuesMap[col.key]}
                     />
                   </div>
