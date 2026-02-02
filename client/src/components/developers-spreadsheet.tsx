@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -177,8 +184,8 @@ export function DevelopersSpreadsheet() {
     updateMutation.mutate({ id, data: { [field]: dateValue } });
   }, [updateMutation]);
 
-  const handleActiveToggle = useCallback((id: string, currentValue: boolean) => {
-    updateMutation.mutate({ id, data: { active: !currentValue } });
+  const handleActiveToggle = useCallback((id: string, newValue: boolean) => {
+    updateMutation.mutate({ id, data: { active: newValue } });
   }, [updateMutation]);
 
   const handleCreateNew = () => {
@@ -326,19 +333,38 @@ export function DevelopersSpreadsheet() {
                   }
                   
                   if (col.type === 'toggle') {
+                    // Boolean dropdown: Sí/No with colored cell background
+                    const isActive = dev.active ?? false;
+                    const cellBgColor = isActive ? '#dcfce7' : '#fee2e2'; // green-100 or red-100
+                    const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
                     return (
                       <td 
                         key={field} 
-                        className={getCellStyle({ type: "checkbox", disabled: !fieldCanEdit })}
+                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
+                        style={{ backgroundColor: cellBgColor }}
                       >
-                        <div className="flex items-center justify-center">
-                          <Checkbox
-                            checked={dev.active ?? false}
-                            onCheckedChange={() => fieldCanEdit && handleActiveToggle(dev.id, dev.active ?? false)}
-                            disabled={!fieldCanEdit}
-                            data-testid={`toggle-active-${dev.id}`}
-                          />
-                        </div>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={isActive ? "si" : "no"}
+                            onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
+                          >
+                            <SelectTrigger 
+                              className={`h-6 text-sm border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                              data-testid={`toggle-active-${dev.id}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
+                            <span>{isActive ? 'Sí' : 'No'}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
                       </td>
                     );
                   }
