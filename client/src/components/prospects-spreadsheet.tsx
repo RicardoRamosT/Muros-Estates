@@ -788,22 +788,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.type === 'boolean-select') {
                     const value = (prospect as any)[col.key];
                     const displayValue = value === 'si' ? 'Sí' : value === 'no' ? 'No' : null;
-                    // Styling: Sí = green, No/Sin asignar = red/pink
-                    const getBooleanStyle = (val: string | null) => {
-                      if (val === 'si') return { backgroundColor: '#dcfce7', color: '#166534' }; // green-100, green-800
-                      return { backgroundColor: '#fee2e2', color: '#dc2626' }; // red-100, red-600
+                    // Styling: cell background = light color, text = dark color (no badge)
+                    const getCellBgColor = (val: string | null) => {
+                      if (val === 'si') return '#dcfce7'; // green-100
+                      return '#fee2e2'; // red-100
                     };
-                    const boolStyle = getBooleanStyle(value);
+                    const getTextColor = (val: string | null) => {
+                      if (val === 'si') return 'text-green-700';
+                      return 'text-red-600';
+                    };
+                    const cellBgColor = getCellBgColor(value);
+                    const textColorClass = getTextColor(value);
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} style={{ backgroundColor: cellBgColor }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
                             <SelectTrigger 
-                              className="h-6 text-sm border-0 rounded px-2 font-medium"
-                              style={boolStyle}
+                              className={`h-6 text-sm border-0 bg-transparent px-2 font-medium ${textColorClass}`}
                             >
                               <SelectValue placeholder="Sin asignar" />
                             </SelectTrigger>
@@ -814,10 +818,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </SelectContent>
                           </Select>
                         ) : (
-                          <div 
-                            className="flex items-center gap-1 px-2 py-1 rounded font-medium"
-                            style={boolStyle}
-                          >
+                          <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
                             <span>{displayValue || 'Sin asignar'}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
