@@ -116,19 +116,12 @@ const SECTIONS: SectionDef[] = [
       { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "finalPrice", label: "Precio Final", type: "decimal", width: 120, format: "currency", calculated: true },
       { key: "pricePerM2", label: "Precio/m²", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "hasSeedCapital", label: "Cap. Semilla", type: "boolean", width: 70 },
+      { key: "hasPromo", label: "Promo", type: "boolean", width: 60 },
     ],
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
       { field: "discountAmount", dependsOn: "hasDiscount" },
-    ],
-  },
-  {
-    id: "capital_promo",
-    label: "",
-    color: "bg-green-50 dark:bg-green-900/20",
-    columns: [
-      { key: "hasSeedCapital", label: "Cap. Semilla", type: "boolean", width: 70 },
-      { key: "hasPromo", label: "Promo", type: "boolean", width: 60 },
     ],
   },
   {
