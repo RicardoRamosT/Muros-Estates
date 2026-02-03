@@ -1617,14 +1617,31 @@ export function TypologySpreadsheet() {
         const aVal = a[sortKey as keyof Typology];
         const bVal = b[sortKey as keyof Typology];
         
-        if (isNumeric) {
-          const aNum = parseFloat(String(aVal)) || 0;
-          const bNum = parseFloat(String(bVal)) || 0;
+        const aStr = String(aVal ?? "").trim();
+        const bStr = String(bVal ?? "").trim();
+        
+        // Handle empty values - push them to the end regardless of sort direction
+        const aEmpty = aStr === "" || aVal === null || aVal === undefined;
+        const bEmpty = bStr === "" || bVal === null || bVal === undefined;
+        if (aEmpty && bEmpty) return 0;
+        if (aEmpty) return 1; // a goes after b
+        if (bEmpty) return -1; // b goes after a
+        
+        // Parse numeric values (strip commas and currency symbols for formatted values)
+        const parseNum = (s: string) => {
+          const cleaned = s.replace(/[$,]/g, "").trim();
+          return parseFloat(cleaned);
+        };
+        const aNum = parseNum(aStr);
+        const bNum = parseNum(bStr);
+        
+        // Check if both values are numeric (by column type or by value detection)
+        const bothNumeric = isNumeric || (!isNaN(aNum) && !isNaN(bNum));
+        
+        if (bothNumeric) {
           return sortDir === "asc" ? aNum - bNum : bNum - aNum;
         }
         
-        const aStr = String(aVal ?? "");
-        const bStr = String(bVal ?? "");
         return sortDir === "asc" 
           ? aStr.localeCompare(bStr, "es")
           : bStr.localeCompare(aStr, "es");
@@ -1826,7 +1843,9 @@ export function TypologySpreadsheet() {
                           onClick={(e) => {
                             e.stopPropagation();
                             const firstCol = section.columns[0].key;
-                            handleColumnSortChange(firstCol, 'asc');
+                            // Toggle: if already asc, clear; otherwise set asc
+                            const newDir = columnSorts[firstCol] === 'asc' ? null : 'asc';
+                            handleColumnSortChange(firstCol, newDir);
                           }}
                           className={cn(
                             "h-5 w-5",
@@ -1843,7 +1862,9 @@ export function TypologySpreadsheet() {
                           onClick={(e) => {
                             e.stopPropagation();
                             const firstCol = section.columns[0].key;
-                            handleColumnSortChange(firstCol, 'desc');
+                            // Toggle: if already desc, clear; otherwise set desc
+                            const newDir = columnSorts[firstCol] === 'desc' ? null : 'desc';
+                            handleColumnSortChange(firstCol, newDir);
                           }}
                           className={cn(
                             "h-5 w-5",
