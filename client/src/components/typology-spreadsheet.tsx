@@ -229,7 +229,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-yellow-100 dark:bg-yellow-800",
     cellColor: "bg-yellow-50 dark:bg-yellow-900/20",
     columns: [
-      { key: "deliveryDate", label: "Entrega", type: "date", width: 100 },
+      { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
     ],
   },
   {
@@ -1673,10 +1673,10 @@ export function TypologySpreadsheet() {
     const pending = pendingChanges.get(row.id);
     const merged = pending ? { ...row, ...pending } : row;
     
-    // Auto-populate zone and developer from selected development
-    // Use same logic as handleCellChange: zone from development.zone, developer from developerId lookup
+    // Auto-populate zone, developer, and deliveryDate from selected development
     let autoZone = merged.zone;
     let autoDeveloper = merged.developer;
+    let autoDeliveryDate: string | null = null;
     if (merged.development && dbDevelopments.length > 0) {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev) {
@@ -1684,11 +1684,17 @@ export function TypologySpreadsheet() {
         // Find developer name from developerId
         const developerRecord = dbDevelopers.find((d: any) => d.id === dev.developerId);
         autoDeveloper = developerRecord?.name || merged.developer;
+        // Get delivery date from development and format as Mes/Año
+        if (dev.entregaProyectada) {
+          const date = new Date(dev.entregaProyectada);
+          const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+          autoDeliveryDate = `${months[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+        }
       }
     }
     
     const calculated = calculateFields(merged);
-    return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper } as Typology;
+    return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper, deliveryDate: autoDeliveryDate } as Typology;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;

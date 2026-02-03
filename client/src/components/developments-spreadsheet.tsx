@@ -355,36 +355,40 @@ export function DevelopmentsSpreadsheet() {
                 </th>
               ))}
             </tr>
-            <tr className="bg-gray-100 dark:bg-gray-800">
-              {visibleColumns.map((col) => (
-                <th
-                  key={col.key}
-                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs tracking-wide whitespace-nowrap"
-                  style={{ minWidth: col.width, width: col.width }}
-                >
-                  <div className="flex items-center">
-                    <span className="truncate">{col.label}</span>
-                    {col.type !== 'actions' && col.type !== 'folder-link' && col.key !== 'id' && (
-                      <ColumnFilter
-                        columnKey={col.key}
-                        columnLabel={col.label}
-                        columnType={
-                          col.type === 'boolean' ? 'boolean' : 
-                          col.type === 'number' ? 'number' : 
-                          (col.type?.includes('select') ? 'select' : 'text')
-                        }
-                        uniqueValues={uniqueValuesMap[col.key] || []}
-                        availableValues={availableValuesMap[col.key]}
-                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                        onSort={(dir) => handleSort(col.key, dir)}
-                        onFilter={(state) => handleFilter(col.key, state)}
-                        onClear={() => handleClearFilter(col.key)}
-                      />
-                    )}
-                  </div>
-                </th>
-              ))}
+            <tr>
+              {visibleColumns.map((col) => {
+                const group = columnGroups.find(g => g.key === col.group);
+                const bgColor = group?.color ? `${group.color}80` : undefined;
+                return (
+                  <th
+                    key={col.key}
+                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs tracking-wide whitespace-nowrap ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                    style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
+                  >
+                    <div className="flex items-center">
+                      <span className="truncate">{col.label}</span>
+                      {col.type !== 'actions' && col.type !== 'folder-link' && col.key !== 'id' && (
+                        <ColumnFilter
+                          columnKey={col.key}
+                          columnLabel={col.label}
+                          columnType={
+                            col.type === 'boolean' ? 'boolean' : 
+                            col.type === 'number' ? 'number' : 
+                            (col.type?.includes('select') ? 'select' : 'text')
+                          }
+                          uniqueValues={uniqueValuesMap[col.key] || []}
+                          availableValues={availableValuesMap[col.key]}
+                          sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                          filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                          onSort={(dir) => handleSort(col.key, dir)}
+                          onFilter={(state) => handleFilter(col.key, state)}
+                          onClear={() => handleClearFilter(col.key)}
+                        />
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
