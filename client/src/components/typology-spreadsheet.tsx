@@ -1793,26 +1793,33 @@ export function TypologySpreadsheet() {
                 return (
                   <div 
                     key={section.id} 
-                    className={cn("border-r flex-shrink-0 flex items-center", section.headerColor)}
+                    className={cn("border-r flex-shrink-0 relative", section.headerColor)}
                     style={{ width: isExpanded ? sectionWidth : collapsedWidth }}
                   >
+                    {/* Centered label */}
+                    {isExpanded && (
+                      <span className="absolute inset-0 flex items-center justify-center text-sm font-medium pointer-events-none">
+                        {section.label}
+                      </span>
+                    )}
+                    {/* Left: collapse button */}
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "h-full flex items-center justify-center gap-1 px-2 text-sm font-medium min-w-0 flex-shrink",
+                        "absolute left-0 top-0 h-full flex items-center justify-center px-2",
                         "hover-elevate cursor-pointer"
                       )}
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className="w-3 h-3 flex-shrink-0" />
+                        <Minus className="w-3 h-3" />
                       ) : (
-                        <Plus className="w-3 h-3 flex-shrink-0" />
+                        <Plus className="w-3 h-3" />
                       )}
-                      {isExpanded && <span className="truncate">{section.label}</span>}
                     </button>
+                    {/* Right: sort icons */}
                     {isExpanded && section.columns.length > 0 && (
-                      <div className="flex items-center gap-0.5 ml-auto pr-1 flex-shrink-0">
+                      <div className="absolute right-1 top-0 h-full flex items-center gap-0.5">
                         <Button
                           variant="ghost"
                           size="icon"
