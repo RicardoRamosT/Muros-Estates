@@ -38,6 +38,7 @@ interface ColumnDef {
   folderSection?: string;
   cellType?: CellType;
   suffix?: string;
+  hasInmediato?: boolean;
 }
 
 interface ColumnGroup {
@@ -100,10 +101,8 @@ const columns: ColumnDef[] = [
   { key: 'oficinasM2', label: 'm²', group: 'oficinas', type: 'number', width: '70px', cellType: 'input', suffix: 'm²' },
   { key: 'saludUnidades', label: 'Unidades', group: 'salud', type: 'number', width: '85px', cellType: 'input' },
   { key: 'saludM2', label: 'm²', group: 'salud', type: 'number', width: '70px', cellType: 'input', suffix: 'm²' },
-  { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '100px', cellType: 'input' },
-  { key: 'inicioReal', label: 'Real', group: 'inicio', width: '100px', cellType: 'input' },
-  { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '100px', cellType: 'input' },
-  { key: 'entregaActualizada', label: 'Actualizada', group: 'entrega', width: '100px', cellType: 'input' },
+  { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '100px', cellType: 'input', hasInmediato: true },
+  { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '100px', cellType: 'input', hasInmediato: true },
   { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '120px', cellType: 'input' },
   { key: 'ventasTelefono', label: 'Teléfono', group: 'ventas', width: '100px', cellType: 'input' },
   { key: 'ventasCorreo', label: 'Correo', group: 'ventas', width: '150px', cellType: 'input' },

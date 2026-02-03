@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ChevronDown, ChevronRight, Plus, Trash2, Save, X, 
+  ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, 
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
   ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical
 } from "lucide-react";
@@ -492,7 +492,7 @@ function formatValue(value: any, format?: string): string {
     case "percent":
       return `${num.toFixed(1)}%`;
     case "area":
-      return `${num.toFixed(1)} m²`;
+      return `${num.toFixed(2)} m²`;
     default:
       return num.toString();
   }
@@ -848,7 +848,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           "spreadsheet-cell px-2 text-sm truncate",
           column.calculated && (sectionCellColor || "bg-blue-50 dark:bg-blue-950/30"),
           column.calculated && "text-muted-foreground",
-          disabled && !column.calculated && (sectionCellColor || "bg-gray-100 dark:bg-gray-800"),
+          disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed"
         )}
         style={{ width: column.width }}
@@ -1800,9 +1800,9 @@ export function TypologySpreadsheet() {
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
+                        <Minus className="w-3 h-3" />
                       ) : (
-                        <ChevronRight className="w-4 h-4" />
+                        <Plus className="w-3 h-3" />
                       )}
                       {isExpanded && section.label}
                     </button>
