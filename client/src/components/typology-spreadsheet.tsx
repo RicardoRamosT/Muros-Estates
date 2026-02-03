@@ -1799,27 +1799,27 @@ export function TypologySpreadsheet() {
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "h-full flex items-center justify-center gap-1 px-2 text-sm font-medium",
+                        "h-full flex items-center justify-center gap-1 px-2 text-sm font-medium min-w-0 flex-shrink",
                         "hover-elevate cursor-pointer"
                       )}
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3 h-3 flex-shrink-0" />
                       ) : (
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3 flex-shrink-0" />
                       )}
-                      {isExpanded && section.label}
+                      {isExpanded && <span className="truncate">{section.label}</span>}
                     </button>
                     {isExpanded && section.columns.length > 0 && (
-                      <div className="flex items-center gap-0.5 ml-auto pr-2">
+                      <div className="flex items-center gap-0.5 ml-auto pr-1 flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
                             const firstCol = section.columns[0].key;
-                            handleColumnSort(firstCol, 'asc');
+                            handleColumnSortChange(firstCol, 'asc');
                           }}
                           className={cn(
                             "h-5 w-5",
@@ -1836,7 +1836,7 @@ export function TypologySpreadsheet() {
                           onClick={(e) => {
                             e.stopPropagation();
                             const firstCol = section.columns[0].key;
-                            handleColumnSort(firstCol, 'desc');
+                            handleColumnSortChange(firstCol, 'desc');
                           }}
                           className={cn(
                             "h-5 w-5",
