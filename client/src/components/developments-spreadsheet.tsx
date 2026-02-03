@@ -896,6 +896,79 @@ export function DevelopmentsSpreadsheet() {
                     );
                   }
 
+                  if (col.hasInmediato) {
+                    const dateValue = value ? String(value) : '';
+                    const formattedDate = dateValue ? new Date(dateValue).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '';
+                    
+                    return (
+                      <td 
+                        key={col.key} 
+                        className={getCellStyle({ 
+                          type: "input", 
+                          disabled: !fieldCanEdit,
+                          isEditing 
+                        })}
+                        onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, dateValue)}
+                        data-testid={`cell-${col.key}-${dev.id}`}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <div className="flex flex-col gap-0.5">
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const today = new Date().toISOString().split('T')[0];
+                                updateMutation.mutate({ 
+                                  id: dev.id, 
+                                  data: { [col.key]: today } 
+                                });
+                                setEditingCell(null);
+                              }}
+                              className="h-4 p-0 text-[10px] self-start"
+                              data-testid={`button-inmediato-${col.key}-${dev.id}`}
+                            >
+                              Inmediato
+                            </Button>
+                            <Input
+                              type="date"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => {
+                                if (editValue !== dateValue) {
+                                  updateMutation.mutate({ 
+                                    id: dev.id, 
+                                    data: { [col.key]: editValue || null } 
+                                  });
+                                }
+                                setEditingCell(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  if (editValue !== dateValue) {
+                                    updateMutation.mutate({ 
+                                      id: dev.id, 
+                                      data: { [col.key]: editValue || null } 
+                                    });
+                                  }
+                                  setEditingCell(null);
+                                }
+                              }}
+                              className="h-5 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                              autoFocus
+                              data-testid={`input-${col.key}-${dev.id}`}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="truncate text-xs">{formattedDate || ''}</span>
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
                   const rawDisplayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
                   const displayValue = rawDisplayValue && col.suffix ? `${rawDisplayValue} ${col.suffix}` : rawDisplayValue;
 

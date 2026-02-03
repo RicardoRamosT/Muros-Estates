@@ -1793,14 +1793,13 @@ export function TypologySpreadsheet() {
                 return (
                   <div 
                     key={section.id} 
-                    className="border-r flex-shrink-0"
+                    className={cn("border-r flex-shrink-0 flex items-center", section.headerColor)}
                     style={{ width: isExpanded ? sectionWidth : collapsedWidth }}
                   >
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "w-full h-full flex items-center justify-center gap-1 px-2 text-sm font-medium",
-                        section.headerColor,
+                        "h-full flex items-center justify-center gap-1 px-2 text-sm font-medium",
                         "hover-elevate cursor-pointer"
                       )}
                       data-testid={`section-toggle-${section.id}`}
@@ -1812,6 +1811,44 @@ export function TypologySpreadsheet() {
                       )}
                       {isExpanded && section.label}
                     </button>
+                    {isExpanded && section.columns.length > 0 && (
+                      <div className="flex items-center gap-0.5 ml-auto pr-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const firstCol = section.columns[0].key;
+                            handleColumnSort(firstCol, 'asc');
+                          }}
+                          className={cn(
+                            "h-5 w-5",
+                            columnSorts[section.columns[0].key] === 'asc' && "bg-black/20 dark:bg-white/20"
+                          )}
+                          title="Ordenar ascendente"
+                          data-testid={`section-sort-asc-${section.id}`}
+                        >
+                          <ArrowUp01 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const firstCol = section.columns[0].key;
+                            handleColumnSort(firstCol, 'desc');
+                          }}
+                          className={cn(
+                            "h-5 w-5",
+                            columnSorts[section.columns[0].key] === 'desc' && "bg-black/20 dark:bg-white/20"
+                          )}
+                          title="Ordenar descendente"
+                          data-testid={`section-sort-desc-${section.id}`}
+                        >
+                          <ArrowDown10 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
