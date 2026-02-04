@@ -144,15 +144,15 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-purple-50 dark:bg-purple-900/20",
     columns: [
       { key: "lockOff", label: "LockOff", type: "boolean", width: 60 },
-      { key: "bedrooms", label: "Recamaras", type: "select", options: ["1", "1 + Flex", "2", "2 + Flex", "3", "3 + Flex", "4", "4 + Flex"] as const, width: 90 },
-      { key: "bathrooms", label: "Baños", type: "select", options: ["1", "1.5", "2", "2.5", "3", "3.5"] as const, width: 70 },
+      { key: "bedrooms", label: "Recamaras", type: "select", options: [] as string[], width: 90 },
+      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 70 },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 80 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize", label: "Tam", type: "decimal", width: 55, format: "area" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60 },
       { key: "terraceSize", label: "Tam", type: "decimal", width: 55, format: "area" },
-      { key: "bedrooms2", label: "Recamaras", type: "select", options: ["1", "1 + Flex", "2", "2 + Flex", "3", "3 + Flex", "4", "4 + Flex"] as const, width: 90 },
-      { key: "bathrooms2", label: "Baños", type: "select", options: ["1", "1.5", "2", "2.5", "3", "3.5"] as const, width: 70 },
+      { key: "bedrooms2", label: "Recamaras", type: "select", options: [] as string[], width: 90 },
+      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 70 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 80 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize2", label: "Tam", type: "decimal", width: 55, format: "area" },
@@ -178,7 +178,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-amber-100 dark:bg-amber-800",
     cellColor: "bg-amber-50 dark:bg-amber-900/20",
     columns: [
-      { key: "parkingIncluded", label: "Incluidos", type: "select", options: ["No", "1", "2", "3", "Tandem"] as const, width: 80 },
+      { key: "parkingIncluded", label: "Incluidos", type: "select", options: [] as string[], width: 80 },
       { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
     ],
@@ -801,12 +801,15 @@ interface EditableCellProps {
   vistaOptions?: string[];
   areaOptions?: string[];
   tipologiaOptions?: string[];
+  recamaraOptions?: string[];
+  banoOptions?: string[];
+  cajonOptions?: string[];
   isLastInSection?: boolean;
   row?: Typology;
   sectionCellColor?: string;  // Color for calculated and disabled cells in this section
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, isLastInSection, row, sectionCellColor }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, recamaraOptions, banoOptions, cajonOptions, isLastInSection, row, sectionCellColor }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1005,6 +1008,21 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     
     if (column.key === "type" && tipologiaOptions && tipologiaOptions.length > 0) {
       options = tipologiaOptions;
+    }
+    
+    // Use catalog options for bedrooms (recamaras)
+    if ((column.key === "bedrooms" || column.key === "bedrooms2") && recamaraOptions && recamaraOptions.length > 0) {
+      options = recamaraOptions;
+    }
+    
+    // Use catalog options for bathrooms (baños)
+    if ((column.key === "bathrooms" || column.key === "bathrooms2") && banoOptions && banoOptions.length > 0) {
+      options = banoOptions;
+    }
+    
+    // Use catalog options for parking included (cajones)
+    if (column.key === "parkingIncluded" && cajonOptions && cajonOptions.length > 0) {
+      options = cajonOptions;
     }
     
     // Ensure current value is always in options to prevent disappearing values
@@ -2025,6 +2043,9 @@ export function TypologySpreadsheet() {
                         vistaOptions={vistaOptions}
                         areaOptions={areaOptions}
                         tipologiaOptions={tipologiaOptions}
+                        recamaraOptions={recamaraOptions}
+                        banoOptions={banoOptions}
+                        cajonOptions={cajonOptions}
                         isLastInSection={colIndex === section.columns.length - 1}
                         row={mergedRow as Typology}
                         sectionCellColor={section.cellColor}
