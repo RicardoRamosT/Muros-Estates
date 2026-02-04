@@ -102,14 +102,14 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-muted/95 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
-              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">#</th>
-              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">Nombre</th>
-              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">Usuario</th>
-              <th className="text-left font-medium py-3 px-3 border-b border-r sticky top-0">Email</th>
-              <th className="text-center font-medium py-3 px-3 border-b border-r sticky top-0">Rol</th>
-              <th className="text-center font-medium py-3 px-3 border-b border-r sticky top-0">Permisos</th>
-              <th className="text-center font-medium py-3 px-3 border-b border-r sticky top-0">Estado</th>
-              <th className="text-center font-medium py-3 px-2 border-b sticky top-0 w-12"></th>
+              <th className="text-left font-medium py-2 px-2 border-b border-r sticky top-0 w-8">#</th>
+              <th className="text-left font-medium py-2 px-2 border-b border-r sticky top-0">Nombre</th>
+              <th className="text-left font-medium py-2 px-2 border-b border-r sticky top-0">Usuario</th>
+              <th className="text-left font-medium py-2 px-2 border-b border-r sticky top-0">Email</th>
+              <th className="text-center font-medium py-2 px-2 border-b border-r sticky top-0 w-28">Rol</th>
+              <th className="text-center font-medium py-2 px-2 border-b border-r sticky top-0">Permisos</th>
+              <th className="text-center font-medium py-2 px-2 border-b border-r sticky top-0 w-20">Estado</th>
+              <th className="text-center font-medium py-2 px-1 border-b sticky top-0 w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -117,34 +117,34 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
               const role = roleLabels[user.role] || { label: user.role, variant: "outline" as const };
               return (
                 <tr key={user.id} className="hover:bg-muted/30" data-testid={`row-user-${user.id}`}>
-                  <td className="border-b border-r px-3 py-2 text-muted-foreground">{idx + 1}</td>
-                  <td className="border-b border-r px-3 py-2">
-                    <span className="font-medium" data-testid={`text-name-${user.id}`}>{user.name}</span>
+                  <td className="border-b border-r px-2 py-1.5 text-muted-foreground text-xs">{idx + 1}</td>
+                  <td className="border-b border-r px-2 py-1.5">
+                    <span className="font-medium text-sm" data-testid={`text-name-${user.id}`}>{user.name}</span>
                   </td>
-                  <td className="border-b border-r px-3 py-2">
-                    <span className="text-muted-foreground">{user.username}</span>
+                  <td className="border-b border-r px-2 py-1.5">
+                    <span className="text-muted-foreground text-sm">{user.username}</span>
                   </td>
-                  <td className="border-b border-r px-3 py-2">
-                    <span>{user.email || ""}</span>
+                  <td className="border-b border-r px-2 py-1.5">
+                    <span className="text-sm">{user.email || ""}</span>
                   </td>
-                  <td className="border-b border-r px-3 py-2 text-center">
-                    <Badge variant={role.variant} data-testid={`badge-role-${user.id}`}>
+                  <td className="border-b border-r px-2 py-1.5 text-center">
+                    <Badge variant={role.variant} className="text-xs" data-testid={`badge-role-${user.id}`}>
                       {role.label}
                     </Badge>
                   </td>
-                  <td className="border-b border-r px-3 py-2 text-center">
+                  <td className="border-b border-r px-2 py-1.5 text-center">
                     <PermissionsSummary permissions={user.permissions} />
                   </td>
-                  <td className="border-b border-r px-3 py-2 text-center">
+                  <td className="border-b border-r px-2 py-1.5 text-center">
                     <Badge 
                       variant={user.active ? "default" : "destructive"}
-                      className={user.active ? "bg-green-500/20 text-green-700 dark:text-green-400" : ""}
+                      className={`text-xs ${user.active ? "bg-green-500/20 text-green-700 dark:text-green-400" : ""}`}
                       data-testid={`badge-status-${user.id}`}
                     >
                       {user.active ? "Activo" : "Inactivo"}
                     </Badge>
                   </td>
-                  <td className="border-b px-2 py-2">
+                  <td className="border-b px-1 py-1.5">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" data-testid={`button-actions-${user.id}`}>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { PAGE_PERMISSIONS, type PermissionLevel, type RolePermission } from "@shared/schema";
 import { Eye, Pencil, EyeOff, Shield, Loader2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -71,6 +70,16 @@ function getNextPermissionLevel(current: PermissionLevel): PermissionLevel {
   return "none";
 }
 
+function getPermissionCellStyle(level: PermissionLevel): string {
+  if (level === "edit") {
+    return "bg-green-100 dark:bg-green-950/50";
+  }
+  if (level === "view") {
+    return "bg-yellow-100 dark:bg-yellow-950/50";
+  }
+  return "bg-red-50 dark:bg-red-950/30";
+}
+
 function PermissionBadge({ 
   level, 
   fieldName, 
@@ -85,52 +94,49 @@ function PermissionBadge({
   isLoading: boolean;
 }) {
   const testId = `badge-permission-${fieldName}-${roleName}`;
-  const baseClasses = "cursor-pointer gap-1 transition-all";
+  const baseClasses = "cursor-pointer gap-1 transition-all bg-transparent border-0 shadow-none hover:bg-transparent";
   
   if (isLoading) {
     return (
-      <Badge variant="outline" className={baseClasses} data-testid={testId}>
-        <Loader2 className="w-3 h-3 animate-spin" />
-      </Badge>
+      <span className="inline-flex items-center gap-1" data-testid={testId}>
+        <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+      </span>
     );
   }
   
   if (level === "edit") {
     return (
-      <Badge 
-        variant="default" 
-        className={`bg-green-600 ${baseClasses}`} 
+      <span 
+        className="inline-flex items-center gap-1 cursor-pointer text-green-600 dark:text-green-500 font-medium text-sm"
         onClick={onClick}
         data-testid={testId}
       >
         <Pencil className="w-3 h-3" />
         Editar
-      </Badge>
+      </span>
     );
   }
   if (level === "view") {
     return (
-      <Badge 
-        variant="secondary" 
-        className={`bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 ${baseClasses}`} 
+      <span 
+        className="inline-flex items-center gap-1 cursor-pointer text-yellow-600 dark:text-yellow-500 font-medium text-sm"
         onClick={onClick}
         data-testid={testId}
       >
         <Eye className="w-3 h-3" />
         Ver
-      </Badge>
+      </span>
     );
   }
   return (
-    <Badge 
-      variant="outline" 
-      className={`text-muted-foreground ${baseClasses}`} 
+    <span 
+      className="inline-flex items-center gap-1 cursor-pointer text-red-500 dark:text-red-400 font-medium text-sm"
       onClick={onClick}
       data-testid={testId}
     >
       <EyeOff className="w-3 h-3" />
       Sin acceso
-    </Badge>
+    </span>
   );
 }
 
@@ -211,17 +217,20 @@ function PermissionsTable({ section }: { section: string }) {
                 <td className="border-b border-r py-2 px-3 font-medium sticky left-0 bg-background z-10">
                   {ROLE_LABELS[role]}
                 </td>
-                {fieldNames.map((field) => (
-                  <td key={field} className="border-b border-r py-2 px-2 text-center">
-                    <PermissionBadge 
-                      level={getEffectivePermission(field, role)}
-                      fieldName={field}
-                      roleName={role}
-                      onClick={() => handleClick(field, role)}
-                      isLoading={pendingUpdate === `${field}-${role}`}
-                    />
-                  </td>
-                ))}
+                {fieldNames.map((field) => {
+                  const level = getEffectivePermission(field, role);
+                  return (
+                    <td key={field} className={`border-b border-r py-2 px-2 text-center ${getPermissionCellStyle(level)}`}>
+                      <PermissionBadge 
+                        level={level}
+                        fieldName={field}
+                        roleName={role}
+                        onClick={() => handleClick(field, role)}
+                        isLoading={pendingUpdate === `${field}-${role}`}
+                      />
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
@@ -253,24 +262,24 @@ export function RolesPermissionsView() {
       <CardContent>
         <div className="mb-4 flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <Badge variant="default" className="bg-green-600 no-default-hover-elevate">
-              <Pencil className="w-3 h-3 mr-1" />
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-500 font-medium">
+              <Pencil className="w-3 h-3" />
               Editar
-            </Badge>
+            </span>
             <span className="text-muted-foreground">= puede ver y modificar</span>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 no-default-hover-elevate">
-              <Eye className="w-3 h-3 mr-1" />
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-950/50 text-yellow-600 dark:text-yellow-500 font-medium">
+              <Eye className="w-3 h-3" />
               Ver
-            </Badge>
+            </span>
             <span className="text-muted-foreground">= solo lectura</span>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-muted-foreground no-default-hover-elevate">
-              <EyeOff className="w-3 h-3 mr-1" />
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400 font-medium">
+              <EyeOff className="w-3 h-3" />
               Sin acceso
-            </Badge>
+            </span>
             <span className="text-muted-foreground">= campo oculto</span>
           </div>
         </div>
