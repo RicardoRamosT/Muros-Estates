@@ -915,24 +915,21 @@ export function DevelopmentsSpreadsheet() {
                           disabled: !fieldCanEdit,
                           isEditing 
                         })}
-                        onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, dateValue)}
                         data-testid={`cell-${col.key}-${dev.id}`}
                       >
-                        {isEditing && fieldCanEdit ? (
-                          <div className="flex flex-col gap-0.5">
+                        <div className="flex flex-col gap-0.5">
+                          {fieldCanEdit && (
                             <Button
+                              type="button"
                               variant="ghost"
                               size="sm"
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 const today = new Date().toISOString().split('T')[0];
                                 updateMutation.mutate({ 
                                   id: dev.id, 
                                   data: { [col.key]: today } 
-                                }, {
-                                  onSuccess: () => {
-                                    setEditingCell(null);
-                                  }
                                 });
                               }}
                               className="h-4 px-1 text-[10px] self-start text-primary underline"
@@ -940,6 +937,8 @@ export function DevelopmentsSpreadsheet() {
                             >
                               Inmediato
                             </Button>
+                          )}
+                          {isEditing && fieldCanEdit ? (
                             <Input
                               type="date"
                               value={editValue}
@@ -968,13 +967,16 @@ export function DevelopmentsSpreadsheet() {
                               autoFocus
                               data-testid={`input-${col.key}-${dev.id}`}
                             />
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span className="truncate text-xs">{formattedDate || ''}</span>
-                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
-                          </div>
-                        )}
+                          ) : (
+                            <div 
+                              className="flex items-center gap-1 cursor-pointer min-h-[20px]"
+                              onClick={() => fieldCanEdit && handleCellClick(dev.id, col.key, dateValue)}
+                            >
+                              <span className="truncate text-xs">{formattedDate || ''}</span>
+                              {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                            </div>
+                          )}
+                        </div>
                       </td>
                     );
                   }
