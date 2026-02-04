@@ -123,6 +123,7 @@ export function DevelopmentsSpreadsheet() {
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
 
   const { data: developments = [], isLoading: developmentsLoading } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
@@ -898,7 +899,6 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.hasInmediato) {
                     const dateValue = (value && value !== null && value !== undefined) ? String(value) : '';
-                    // Only format if we have a valid date string
                     let formattedDate = '';
                     if (dateValue && dateValue !== 'null' && dateValue !== 'undefined') {
                       const parsed = new Date(dateValue);
@@ -912,71 +912,79 @@ export function DevelopmentsSpreadsheet() {
                         key={col.key} 
                         className={getCellStyle({ 
                           type: "input", 
-                          disabled: !fieldCanEdit,
-                          isEditing 
+                          disabled: !fieldCanEdit
                         })}
                         data-testid={`cell-${col.key}-${dev.id}`}
                       >
-                        <div className="flex flex-col gap-0.5">
-                          {fieldCanEdit && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const today = new Date().toISOString().split('T')[0];
-                                updateMutation.mutate({ 
-                                  id: dev.id, 
-                                  data: { [col.key]: today } 
-                                });
-                              }}
-                              className="h-4 px-1 text-[10px] self-start text-primary underline"
-                              data-testid={`button-inmediato-${col.key}-${dev.id}`}
-                            >
-                              Inmediato
-                            </Button>
-                          )}
-                          {isEditing && fieldCanEdit ? (
-                            <Input
-                              type="date"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={() => {
-                                if (editValue !== dateValue) {
-                                  updateMutation.mutate({ 
-                                    id: dev.id, 
-                                    data: { [col.key]: editValue || null } 
-                                  });
-                                }
-                                setEditingCell(null);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  if (editValue !== dateValue) {
+                        {fieldCanEdit ? (
+                          <Popover 
+                            open={openDatePopover === `${dev.id}-${col.key}`}
+                            onOpenChange={(open) => setOpenDatePopover(open ? `${dev.id}-${col.key}` : null)}
+                          >
+                            <PopoverTrigger asChild>
+                              <div 
+                                className="flex items-center gap-1 cursor-pointer min-h-[20px] w-full"
+                                data-testid={`trigger-${col.key}-${dev.id}`}
+                              >
+                                <span className="truncate text-xs">{formattedDate || '-'}</span>
+                              </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2" align="start">
+                              <div className="flex flex-col gap-2">
+                                <Input
+                                  type="date"
+                                  defaultValue={dateValue}
+                                  onBlur={(e) => {
+                                    const newValue = e.target.value;
+                                    if (newValue !== dateValue) {
+                                      updateMutation.mutate({ 
+                                        id: dev.id, 
+                                        data: { [col.key]: newValue || null } 
+                                      });
+                                    }
+                                    setOpenDatePopover(null);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const newValue = (e.target as HTMLInputElement).value;
+                                      if (newValue !== dateValue) {
+                                        updateMutation.mutate({ 
+                                          id: dev.id, 
+                                          data: { [col.key]: newValue || null } 
+                                        });
+                                      }
+                                      setOpenDatePopover(null);
+                                    }
+                                  }}
+                                  className="text-xs"
+                                  data-testid={`input-${col.key}-${dev.id}`}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const today = new Date().toISOString().split('T')[0];
                                     updateMutation.mutate({ 
                                       id: dev.id, 
-                                      data: { [col.key]: editValue || null } 
+                                      data: { [col.key]: today } 
                                     });
-                                  }
-                                  setEditingCell(null);
-                                }
-                              }}
-                              className="h-5 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                              autoFocus
-                              data-testid={`input-${col.key}-${dev.id}`}
-                            />
-                          ) : (
-                            <div 
-                              className="flex items-center gap-1 cursor-pointer min-h-[20px]"
-                              onClick={() => fieldCanEdit && handleCellClick(dev.id, col.key, dateValue)}
-                            >
-                              <span className="truncate text-xs">{formattedDate || ''}</span>
-                              {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
-                            </div>
-                          )}
-                        </div>
+                                    setOpenDatePopover(null);
+                                  }}
+                                  className="text-xs"
+                                  data-testid={`button-inmediato-${col.key}-${dev.id}`}
+                                >
+                                  Inmediato
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1 min-h-[20px]">
+                            <span className="truncate text-xs">{formattedDate || '-'}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
                       </td>
                     );
                   }
