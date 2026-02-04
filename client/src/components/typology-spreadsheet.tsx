@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -623,24 +623,10 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   const [localMax, setLocalMax] = useState(rangeFilter?.max || "");
   const isRangeColumn = column.key === "size";
   
-  const onRangeFilterChangeRef = useRef(onRangeFilterChange);
-  onRangeFilterChangeRef.current = onRangeFilterChange;
-  
   useEffect(() => {
     setLocalMin(rangeFilter?.min || "");
     setLocalMax(rangeFilter?.max || "");
   }, [rangeFilter?.min, rangeFilter?.max]);
-  
-  // Auto-apply range filter on change with debounce
-  useEffect(() => {
-    if (!isRangeColumn) return;
-    const timer = setTimeout(() => {
-      if (onRangeFilterChangeRef.current) {
-        onRangeFilterChangeRef.current({ min: localMin, max: localMax });
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [localMin, localMax, isRangeColumn]);
   
   const uniqueValues = useMemo(() => {
     const values = new Set<string>();
@@ -2065,7 +2051,7 @@ export function TypologySpreadsheet() {
     }
     
     return result;
-  }, [typologies, columnFilters, columnSorts]);
+  }, [typologies, columnFilters, columnSorts, rangeFilters]);
 
   const availableValuesMap = useMemo(() => {
     const map: Record<string, Set<string>> = {};
