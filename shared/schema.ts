@@ -213,9 +213,11 @@ export const PAGE_PERMISSIONS = {
       zone2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
       // 8. zone3 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:0
       zone3: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'none' },
-      // 9. type - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      // 9. tipos - Array de tipos de desarrollo (heredados del desarrollador) - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      tipos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // 10. type - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1 (legacy)
       type: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
-      // 10. nivel - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
+      // 11. nivel - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       nivel: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 11. torres - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       torres: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
