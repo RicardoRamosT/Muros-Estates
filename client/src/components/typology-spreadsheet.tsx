@@ -813,6 +813,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         onClick={handleSortClick}
         className={cn(
           "flex items-center justify-center h-full px-1",
+          sectionColor,
           "hover-elevate cursor-pointer",
           isSorted && "bg-primary/10"
         )}
