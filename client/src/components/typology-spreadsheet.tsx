@@ -1852,18 +1852,12 @@ export function TypologySpreadsheet() {
                 return (
                   <div 
                     key={section.id} 
-                    className={cn("border-r flex-shrink-0 relative", section.headerColor)}
+                    className={cn("border-r flex-shrink-0 flex items-center justify-between h-full", section.headerColor)}
                     style={{ width: isExpanded ? sectionWidth : collapsedWidth }}
                   >
-                    {/* Centered label */}
-                    {isExpanded && (
-                      <span className="absolute inset-0 flex items-center justify-center text-sm font-medium pointer-events-none">
-                        {section.label}
-                      </span>
-                    )}
                     {/* Left: sort icons */}
-                    {isExpanded && section.columns.length > 0 && (
-                      <div className="absolute left-1 top-0 h-full flex items-center gap-0.5">
+                    {isExpanded && section.columns.length > 0 ? (
+                      <div className="flex items-center gap-0.5 pl-1">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1901,12 +1895,20 @@ export function TypologySpreadsheet() {
                           <ArrowDown10 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
+                    ) : (
+                      <div />
+                    )}
+                    {/* Centered label */}
+                    {isExpanded && (
+                      <span className="text-sm font-medium flex-1 text-center pointer-events-none">
+                        {section.label}
+                      </span>
                     )}
                     {/* Right: collapse button */}
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "absolute right-1 top-0 h-full flex items-center justify-center px-2 z-10",
+                        "flex items-center justify-center px-2 h-full",
                         "hover-elevate cursor-pointer"
                       )}
                       data-testid={`section-toggle-${section.id}`}
