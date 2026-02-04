@@ -25,7 +25,7 @@ function broadcastTypologyUpdate(action: "create" | "update" | "delete", typolog
 // Numeric fields in typology that need empty string to null conversion
 const typologyNumericFields = [
   // Integer fields
-  'level', 'parkingIncluded', 'paymentMonths', 'mortgageYears', 'rentMonths',
+  'level', 'paymentMonths', 'mortgageYears', 'rentMonths',
   'appreciationDays', 'appreciationMonths', 'appreciationYears', 'parkingSpots',
   // Decimal fields - sizes/areas
   'size', 'sizeFinal', 'balconySize', 'terraceSize', 'balconySize2', 'terraceSize2',

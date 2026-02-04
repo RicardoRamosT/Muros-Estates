@@ -951,7 +951,7 @@ export const typologies = pgTable("typologies", {
   terraceSize2: decimal("terrace_size_2", { precision: 5, scale: 2 }), // Terraza (2) Tamaño
   
   // 35-37: CAJONES
-  parkingIncluded: integer("parking_included"), // Incluidos
+  parkingIncluded: text("parking_included"), // Incluidos (uses catalog values like "2 en Tandem")
   hasParkingOptional: boolean("has_parking_optional").default(false), // Opcional Sí/No
   parkingOptionalPrice: decimal("parking_optional_price", { precision: 12, scale: 2 }), // Opcional Precio
   
