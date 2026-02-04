@@ -22,16 +22,28 @@ function broadcastTypologyUpdate(action: "create" | "update" | "delete", typolog
   });
 }
 
-// Integer fields in typology that need empty string to null conversion
-const typologyIntegerFields = [
+// Numeric fields in typology that need empty string to null conversion
+const typologyNumericFields = [
+  // Integer fields
   'level', 'parkingIncluded', 'paymentMonths', 'mortgageYears', 'rentMonths',
-  'appreciationDays', 'appreciationMonths', 'appreciationYears', 'parkingSpots'
+  'appreciationDays', 'appreciationMonths', 'appreciationYears', 'parkingSpots',
+  // Decimal fields - sizes/areas
+  'size', 'sizeFinal', 'balconySize', 'terraceSize', 'balconySize2', 'terraceSize2',
+  'storageSize', 'storageSize2', 'maintenanceM2',
+  // Decimal fields - prices/amounts
+  'price', 'discountPercent', 'parkingOptionalPrice', 'storagePrice',
+  'initialPercent', 'duringConstructionPercent',
+  'isaPercent', 'notaryPercent', 'equipmentCost', 'furnitureCost',
+  'mortgageAmount', 'mortgageInterestPercent',
+  'maintenanceInitial', 'maintenanceFinal',
+  'rentInitial', 'rentRatePercent', 'rentFinal',
+  'appreciationRate'
 ];
 
-// Clean typology data: convert empty strings to null for integer fields
+// Clean typology data: convert empty strings to null for numeric fields
 function cleanTypologyData(data: Record<string, any>): Record<string, any> {
   const cleaned = { ...data };
-  for (const field of typologyIntegerFields) {
+  for (const field of typologyNumericFields) {
     if (field in cleaned && cleaned[field] === '') {
       cleaned[field] = null;
     }
