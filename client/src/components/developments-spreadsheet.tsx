@@ -897,8 +897,15 @@ export function DevelopmentsSpreadsheet() {
                   }
 
                   if (col.hasInmediato) {
-                    const dateValue = value ? String(value) : '';
-                    const formattedDate = dateValue ? new Date(dateValue).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' }) : '';
+                    const dateValue = (value && value !== null && value !== undefined) ? String(value) : '';
+                    // Only format if we have a valid date string
+                    let formattedDate = '';
+                    if (dateValue && dateValue !== 'null' && dateValue !== 'undefined') {
+                      const parsed = new Date(dateValue);
+                      if (!isNaN(parsed.getTime())) {
+                        formattedDate = parsed.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
+                      }
+                    }
                     
                     return (
                       <td 
@@ -914,7 +921,7 @@ export function DevelopmentsSpreadsheet() {
                         {isEditing && fieldCanEdit ? (
                           <div className="flex flex-col gap-0.5">
                             <Button
-                              variant="link"
+                              variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -925,7 +932,7 @@ export function DevelopmentsSpreadsheet() {
                                 });
                                 setEditingCell(null);
                               }}
-                              className="h-4 p-0 text-[10px] self-start"
+                              className="h-4 px-1 text-[10px] self-start text-primary underline"
                               data-testid={`button-inmediato-${col.key}-${dev.id}`}
                             >
                               Inmediato
