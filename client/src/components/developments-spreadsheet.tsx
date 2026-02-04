@@ -308,7 +308,7 @@ export function DevelopmentsSpreadsheet() {
 
   return (
     <div className="h-full flex flex-col" data-testid="developments-spreadsheet">
-      <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+      <div className="flex items-center justify-between p-2 border-b bg-muted/30">
         <div className="flex items-center gap-2">
           <Building className="w-5 h-5 text-primary" />
           <span className="font-medium">{filteredAndSortedData.length} desarrollos</span>
@@ -362,7 +362,7 @@ export function DevelopmentsSpreadsheet() {
                 return (
                   <th
                     key={col.key}
-                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs tracking-wide whitespace-nowrap ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 text-left font-semibold text-xs tracking-wide whitespace-nowrap ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                     style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
                   >
                     <div className="flex items-center">

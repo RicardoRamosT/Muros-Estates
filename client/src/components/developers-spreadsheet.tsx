@@ -217,7 +217,7 @@ export function DevelopersSpreadsheet() {
 
   return (
     <div className="flex flex-col h-full" data-testid="developers-spreadsheet">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 py-2 border-b">
         <div className="flex items-center gap-3">
           <Building2 className="w-5 h-5 text-primary" />
           <span className="font-medium">{filteredAndSortedData.length} Desarrolladores</span>
@@ -288,7 +288,7 @@ export function DevelopersSpreadsheet() {
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2 text-left font-semibold text-xs uppercase tracking-wide"
+                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 text-left font-semibold text-xs uppercase tracking-wide"
                   style={{ width: col.width, minWidth: col.width }}
                 >
                   <div className="flex items-center">
