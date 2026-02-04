@@ -1220,6 +1220,18 @@ export function TypologySpreadsheet() {
     queryKey: ["/api/catalog/tipologias"],
   });
   
+  const { data: catalogRecamaras = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/recamaras"],
+  });
+  
+  const { data: catalogBanos = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/banos"],
+  });
+  
+  const { data: catalogCajones = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/cajones"],
+  });
+  
   const vistaOptions = useMemo(() => {
     return catalogVistas.map(v => v.name).filter(Boolean);
   }, [catalogVistas]);
@@ -1231,6 +1243,18 @@ export function TypologySpreadsheet() {
   const tipologiaOptions = useMemo(() => {
     return catalogTipologias.map(t => t.name).filter(Boolean);
   }, [catalogTipologias]);
+  
+  const recamaraOptions = useMemo(() => {
+    return catalogRecamaras.map(r => r.name).filter(Boolean);
+  }, [catalogRecamaras]);
+  
+  const banoOptions = useMemo(() => {
+    return catalogBanos.map(b => b.name).filter(Boolean);
+  }, [catalogBanos]);
+  
+  const cajonOptions = useMemo(() => {
+    return catalogCajones.map(c => c.name).filter(Boolean);
+  }, [catalogCajones]);
   
   const developerOptions = useMemo(() => {
     const dbNames = dbDevelopers.map(d => d.name).filter(Boolean);
