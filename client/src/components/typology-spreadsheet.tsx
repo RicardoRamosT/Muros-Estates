@@ -623,6 +623,9 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   const [localMax, setLocalMax] = useState(rangeFilter?.max || "");
   const isRangeColumn = column.key === "size";
   
+  const onRangeFilterChangeRef = useRef(onRangeFilterChange);
+  onRangeFilterChangeRef.current = onRangeFilterChange;
+  
   useEffect(() => {
     setLocalMin(rangeFilter?.min || "");
     setLocalMax(rangeFilter?.max || "");
@@ -630,12 +633,14 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   
   // Auto-apply range filter on change with debounce
   useEffect(() => {
-    if (!isRangeColumn || !onRangeFilterChange) return;
+    if (!isRangeColumn) return;
     const timer = setTimeout(() => {
-      onRangeFilterChange({ min: localMin, max: localMax });
+      if (onRangeFilterChangeRef.current) {
+        onRangeFilterChangeRef.current({ min: localMin, max: localMax });
+      }
     }, 500);
     return () => clearTimeout(timer);
-  }, [localMin, localMax, isRangeColumn, onRangeFilterChange]);
+  }, [localMin, localMax, isRangeColumn]);
   
   const uniqueValues = useMemo(() => {
     const values = new Set<string>();
@@ -1982,12 +1987,12 @@ export function TypologySpreadsheet() {
     });
   };
   
-  const handleRangeFilterChange = (columnKey: string, range: RangeFilter) => {
+  const handleRangeFilterChange = useCallback((columnKey: string, range: RangeFilter) => {
     setRangeFilters(prev => ({
       ...prev,
       [columnKey]: range,
     }));
-  };
+  }, []);
   
   const filteredAndSortedTypologies = useMemo(() => {
     let result = typologies.filter(t => {
