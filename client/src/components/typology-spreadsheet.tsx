@@ -410,8 +410,19 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const initialPercent = parseFloat(row.initialPercent as string) || 0;
   const duringConstructionPercent = parseFloat(row.duringConstructionPercent as string) || 0;
   const paymentMonths = (row.paymentMonths as number) || 0;
-  const initialAmount = finalPrice * (initialPercent / 100);
-  const duringConstructionAmount = finalPrice * (duringConstructionPercent / 100);
+  
+  // Use existing initialAmount from row if available, otherwise calculate from percent
+  let initialAmount = parseFloat(row.initialAmount as string) || 0;
+  if (initialAmount === 0 && initialPercent > 0 && finalPrice > 0) {
+    initialAmount = finalPrice * (initialPercent / 100);
+  }
+  
+  // Use existing duringConstructionAmount from row if available, otherwise calculate from percent
+  let duringConstructionAmount = parseFloat(row.duringConstructionAmount as string) || 0;
+  if (duringConstructionAmount === 0 && duringConstructionPercent > 0 && finalPrice > 0) {
+    duringConstructionAmount = finalPrice * (duringConstructionPercent / 100);
+  }
+  
   const monthlyPayment = paymentMonths > 0 ? duringConstructionAmount / paymentMonths : 0;
   const totalEnganche = initialAmount + duringConstructionAmount;
   const remainingPercent = 100 - initialPercent - duringConstructionPercent;
@@ -460,11 +471,10 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const finalValue = finalPrice + appreciationTotal;
   
   return {
-    // discountAmount is calculated bidirectionally in handleCellChange, not here
+    // discountAmount, initialAmount, duringConstructionAmount are calculated bidirectionally in handleCellChange, not here
     finalPrice: finalPrice.toFixed(2),
     pricePerM2: pricePerM2.toFixed(2),
-    initialAmount: initialAmount.toFixed(2),
-    duringConstructionAmount: duringConstructionAmount.toFixed(2),
+    // initialAmount and duringConstructionAmount are now bidirectional, don't overwrite here
     monthlyPayment: monthlyPayment.toFixed(2),
     totalEnganche: totalEnganche.toFixed(2),
     remainingPercent: remainingPercent.toFixed(2),
@@ -1599,6 +1609,40 @@ export function TypologySpreadsheet() {
       (updatedRow as any).discountPercent = ((amount / price) * 100).toFixed(2);
     }
     
+    // Calculate finalPrice for payment scheme bidirectional calculations
+    // Must consider both discountPercent and discountAmount to get the most current value
+    const hasDiscount = updatedRow.hasDiscount === true;
+    let discountAmountForFinal = 0;
+    if (hasDiscount) {
+      // First try to use discountAmount, fallback to calculating from discountPercent
+      discountAmountForFinal = parseFloat((updatedRow as any).discountAmount as string) || 0;
+      if (discountAmountForFinal === 0) {
+        const discountPct = parseFloat((updatedRow as any).discountPercent as string) || 0;
+        if (discountPct > 0 && price > 0) {
+          discountAmountForFinal = price * discountPct / 100;
+        }
+      }
+    }
+    const finalPrice = price - discountAmountForFinal;
+    
+    // Bidirectional calculation for initialPercent/initialAmount
+    if (field === "initialPercent" && finalPrice > 0) {
+      const percent = parseFloat(value as string) || 0;
+      (updatedRow as any).initialAmount = (finalPrice * percent / 100).toFixed(2);
+    } else if (field === "initialAmount" && finalPrice > 0) {
+      const amount = parseFloat(value as string) || 0;
+      (updatedRow as any).initialPercent = ((amount / finalPrice) * 100).toFixed(2);
+    }
+    
+    // Bidirectional calculation for duringConstructionPercent/duringConstructionAmount
+    if (field === "duringConstructionPercent" && finalPrice > 0) {
+      const percent = parseFloat(value as string) || 0;
+      (updatedRow as any).duringConstructionAmount = (finalPrice * percent / 100).toFixed(2);
+    } else if (field === "duringConstructionAmount" && finalPrice > 0) {
+      const amount = parseFloat(value as string) || 0;
+      (updatedRow as any).duringConstructionPercent = ((amount / finalPrice) * 100).toFixed(2);
+    }
+    
     const calculatedFields = calculateFields(updatedRow);
     const fullUpdate = { ...updatedRow, ...calculatedFields };
     
@@ -1609,12 +1653,24 @@ export function TypologySpreadsheet() {
       });
     }
     
-    // Include bidirectional discount fields if they were calculated
+    // Include bidirectional fields if they were calculated
     const bidirectionalFields: Record<string, any> = {};
     if (field === "discountPercent" && price > 0) {
       bidirectionalFields.discountAmount = (updatedRow as any).discountAmount;
     } else if (field === "discountAmount" && price > 0) {
       bidirectionalFields.discountPercent = (updatedRow as any).discountPercent;
+    }
+    
+    // Include payment scheme bidirectional fields
+    if (field === "initialPercent" && finalPrice > 0) {
+      bidirectionalFields.initialAmount = (updatedRow as any).initialAmount;
+    } else if (field === "initialAmount" && finalPrice > 0) {
+      bidirectionalFields.initialPercent = (updatedRow as any).initialPercent;
+    }
+    if (field === "duringConstructionPercent" && finalPrice > 0) {
+      bidirectionalFields.duringConstructionAmount = (updatedRow as any).duringConstructionAmount;
+    } else if (field === "duringConstructionAmount" && finalPrice > 0) {
+      bidirectionalFields.duringConstructionPercent = (updatedRow as any).duringConstructionPercent;
     }
     
     setPendingChanges(prev => {
