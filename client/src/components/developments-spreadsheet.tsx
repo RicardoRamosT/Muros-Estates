@@ -70,51 +70,51 @@ const columnGroups: ColumnGroup[] = [
 ];
 
 const columns: ColumnDef[] = [
-  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '50px', cellType: 'index' },
-  { key: 'active', label: 'Activo', group: 'basic', type: 'boolean', width: '70px', cellType: 'checkbox' },
-  { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '160px', cellType: 'dropdown' },
-  { key: 'name', label: 'Desarrollo', group: 'basic', width: '160px', cellType: 'input' },
-  { key: 'city', label: 'Ciudad', group: 'location', type: 'city-select', width: '110px', cellType: 'dropdown' },
-  { key: 'zone', label: 'Zona 1', group: 'location', type: 'zone-select', width: '120px', cellType: 'dropdown' },
-  { key: 'zone2', label: 'Zona 2', group: 'location', type: 'zone-select', width: '120px', cellType: 'dropdown' },
-  { key: 'zone3', label: 'Zona 3', group: 'location', type: 'zone-select', width: '120px', cellType: 'dropdown' },
-  { key: 'tipos', label: 'Tipos', group: 'structure', type: 'multiselect-tipos', width: '150px', cellType: 'dropdown' },
-  { key: 'nivel', label: 'Nivel', group: 'structure', type: 'nivel-select', width: '80px', cellType: 'dropdown' },
-  { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '70px', cellType: 'dropdown' },
-  { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '80px', cellType: 'dropdown' },
-  { key: 'amenities', label: 'Amenidades', group: 'features', type: 'multiselect-amenities', width: '120px', cellType: 'dropdown' },
-  { key: 'efficiency', label: 'Eficiencia', group: 'features', type: 'multiselect-efficiency', width: '110px', cellType: 'dropdown' },
-  { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '100px', cellType: 'dropdown' },
-  { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
-  { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
-  { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '80px', cellType: 'checkbox' },
-  { key: 'recDesde', label: 'Desde', group: 'rec', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
-  { key: 'recHasta', label: 'Hasta', group: 'rec', type: 'number', width: '100px', cellType: 'input', suffix: 'm²' },
-  { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '130px', cellType: 'dropdown' },
-  { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader3', width: '110px', cellType: 'input' },
-  { key: 'tiempoTransc', label: 'Tiempo Transc.', group: 'noheader3', width: '110px', cellType: 'input' },
-  { key: 'depasUnidades', label: 'Unidades', group: 'depas', type: 'number', width: '85px', cellType: 'input' },
-  { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '70px', cellType: 'input', suffix: 'm²' },
-  { key: 'localesUnidades', label: 'Unidades', group: 'locales', type: 'number', width: '85px', cellType: 'input' },
-  { key: 'localesM2', label: 'm²', group: 'locales', type: 'number', width: '70px', cellType: 'input', suffix: 'm²' },
-  { key: 'oficinasUnidades', label: 'Unidades', group: 'oficinas', type: 'number', width: '85px', cellType: 'input' },
-  { key: 'oficinasM2', label: 'm²', group: 'oficinas', type: 'number', width: '70px', cellType: 'input', suffix: 'm²' },
-  { key: 'saludUnidades', label: 'Unidades', group: 'salud', type: 'number', width: '85px', cellType: 'input' },
-  { key: 'saludM2', label: 'm²', group: 'salud', type: 'number', width: '70px', cellType: 'input', suffix: 'm²' },
-  { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '100px', cellType: 'input', hasInmediato: true },
-  { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '100px', cellType: 'input', hasInmediato: true },
-  { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '120px', cellType: 'input' },
-  { key: 'ventasTelefono', label: 'Teléfono', group: 'ventas', width: '100px', cellType: 'input' },
-  { key: 'ventasCorreo', label: 'Correo', group: 'ventas', width: '150px', cellType: 'input' },
-  { key: 'pagosNombre', label: 'Nombre', group: 'pagos', width: '120px', cellType: 'input' },
-  { key: 'pagosTelefono', label: 'Teléfono', group: 'pagos', width: '100px', cellType: 'input' },
-  { key: 'pagosCorreo', label: 'Correo', group: 'pagos', width: '150px', cellType: 'input' },
-  { key: 'comercializacion', label: 'Comercializadora', group: 'noheader4', type: 'comercializadora-select', width: '150px', cellType: 'dropdown' },
-  { key: 'arquitectura', label: 'Arquitectura', group: 'noheader4', type: 'arquitectura-select', width: '120px', cellType: 'dropdown' },
-  { key: 'location', label: 'Ubicación', group: 'noheader4', width: '100px', cellType: 'input' },
-  { key: 'legalesFolder', label: 'Legales', group: 'noheader4', type: 'folder-link', folderSection: 'legales', width: '100px' },
-  { key: 'ventaFolder', label: 'Venta', group: 'noheader4', type: 'folder-link', folderSection: 'venta', width: '100px' },
-  { key: 'actions', label: '', group: 'actions', type: 'actions', width: '60px' },
+  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '40px', cellType: 'index' },
+  { key: 'active', label: 'Activo', group: 'basic', type: 'boolean', width: '60px', cellType: 'checkbox' },
+  { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '130px', cellType: 'dropdown' },
+  { key: 'name', label: 'Desarrollo', group: 'basic', width: '140px', cellType: 'input' },
+  { key: 'city', label: 'Ciudad', group: 'location', type: 'city-select', width: '95px', cellType: 'dropdown' },
+  { key: 'zone', label: 'Zona 1', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
+  { key: 'zone2', label: 'Zona 2', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
+  { key: 'zone3', label: 'Zona 3', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
+  { key: 'tipos', label: 'Tipos', group: 'structure', type: 'multiselect-tipos', width: '110px', cellType: 'dropdown' },
+  { key: 'nivel', label: 'Nivel', group: 'structure', type: 'nivel-select', width: '75px', cellType: 'dropdown' },
+  { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '60px', cellType: 'dropdown' },
+  { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '65px', cellType: 'dropdown' },
+  { key: 'amenities', label: 'Amenidades', group: 'features', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
+  { key: 'efficiency', label: 'Eficiencia', group: 'features', type: 'multiselect-efficiency', width: '90px', cellType: 'dropdown' },
+  { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
+  { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
+  { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
+  { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '70px', cellType: 'checkbox' },
+  { key: 'recDesde', label: 'Desde', group: 'rec', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
+  { key: 'recHasta', label: 'Hasta', group: 'rec', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
+  { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
+  { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader3', width: '90px', cellType: 'input' },
+  { key: 'tiempoTransc', label: 'Tiempo', group: 'noheader3', width: '75px', cellType: 'input' },
+  { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'localesUnidades', label: 'Uds', group: 'locales', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'localesM2', label: 'm²', group: 'locales', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'oficinasUnidades', label: 'Uds', group: 'oficinas', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'oficinasM2', label: 'm²', group: 'oficinas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'saludUnidades', label: 'Uds', group: 'salud', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'saludM2', label: 'm²', group: 'salud', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '85px', cellType: 'input', hasInmediato: true },
+  { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '85px', cellType: 'input', hasInmediato: true },
+  { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '100px', cellType: 'input' },
+  { key: 'ventasTelefono', label: 'Teléfono', group: 'ventas', width: '90px', cellType: 'input' },
+  { key: 'ventasCorreo', label: 'Correo', group: 'ventas', width: '120px', cellType: 'input' },
+  { key: 'pagosNombre', label: 'Nombre', group: 'pagos', width: '100px', cellType: 'input' },
+  { key: 'pagosTelefono', label: 'Teléfono', group: 'pagos', width: '90px', cellType: 'input' },
+  { key: 'pagosCorreo', label: 'Correo', group: 'pagos', width: '120px', cellType: 'input' },
+  { key: 'comercializacion', label: 'Comercializadora', group: 'noheader4', type: 'comercializadora-select', width: '120px', cellType: 'dropdown' },
+  { key: 'arquitectura', label: 'Arquitectura', group: 'noheader4', type: 'arquitectura-select', width: '100px', cellType: 'dropdown' },
+  { key: 'location', label: 'Ubicación', group: 'noheader4', width: '80px', cellType: 'input' },
+  { key: 'legalesFolder', label: 'Legales', group: 'noheader4', type: 'folder-link', folderSection: 'legales', width: '70px' },
+  { key: 'ventaFolder', label: 'Venta', group: 'noheader4', type: 'folder-link', folderSection: 'venta', width: '70px' },
+  { key: 'actions', label: '', group: 'actions', type: 'actions', width: '50px' },
 ];
 
 export function DevelopmentsSpreadsheet() {
@@ -427,7 +427,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value === true ? "si" : value === false ? "no" : ""}
                             onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                           >
-                            <SelectTrigger className={`h-7 text-xs border-0 bg-transparent ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
+                            <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
                               <SelectValue>
                                 {value === true ? (
                                   <span>Sí</span>
@@ -466,7 +466,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
@@ -494,7 +494,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Ciudad" />
                             </SelectTrigger>
                             <SelectContent>
@@ -523,7 +523,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Zona" />
                             </SelectTrigger>
                             <SelectContent>
@@ -567,7 +567,7 @@ export function DevelopmentsSpreadsheet() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-full justify-between text-sm font-normal px-2"
+                                className="w-full justify-between text-xs font-normal"
                               >
                                 <span className={selectedTipos.length === 0 ? 'text-red-500 font-medium' : ''}>
                                   {selectedTipos.length === 0 ? 'SIN ASIGNAR' : displayValue}
@@ -614,7 +614,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Nivel" />
                             </SelectTrigger>
                             <SelectContent>
@@ -642,7 +642,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value?.toString() || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="#" />
                             </SelectTrigger>
                             <SelectContent>
@@ -670,7 +670,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value?.toString() || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="#" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
@@ -696,7 +696,7 @@ export function DevelopmentsSpreadsheet() {
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="ghost" className="h-6 w-full justify-between px-2 text-xs">
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
                             </Button>
@@ -724,7 +724,7 @@ export function DevelopmentsSpreadsheet() {
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="ghost" className="h-6 w-full justify-between px-2 text-xs">
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
                             </Button>
@@ -752,7 +752,7 @@ export function DevelopmentsSpreadsheet() {
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="ghost" className="h-6 w-full justify-between px-2 text-xs">
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
                             </Button>
@@ -780,7 +780,7 @@ export function DevelopmentsSpreadsheet() {
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="ghost" className="h-6 w-full justify-between px-2 text-xs">
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
                             </Button>
@@ -810,7 +810,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Comercializadora" />
                             </SelectTrigger>
                             <SelectContent>
@@ -838,7 +838,7 @@ export function DevelopmentsSpreadsheet() {
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Arquitectura" />
                             </SelectTrigger>
                             <SelectContent>
