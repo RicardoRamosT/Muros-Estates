@@ -1906,15 +1906,15 @@ export function TypologySpreadsheet() {
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "absolute right-0 top-0 h-full flex items-center justify-center px-2",
+                        "absolute right-1 top-0 h-full flex items-center justify-center px-2 z-10",
                         "hover-elevate cursor-pointer"
                       )}
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                       ) : (
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                       )}
                     </button>
                   </div>
