@@ -628,6 +628,15 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     setLocalMax(rangeFilter?.max || "");
   }, [rangeFilter?.min, rangeFilter?.max]);
   
+  // Auto-apply range filter on change with debounce
+  useEffect(() => {
+    if (!isRangeColumn || !onRangeFilterChange) return;
+    const timer = setTimeout(() => {
+      onRangeFilterChange({ min: localMin, max: localMax });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localMin, localMax, isRangeColumn, onRangeFilterChange]);
+  
   const uniqueValues = useMemo(() => {
     const values = new Set<string>();
     data.forEach(row => {
