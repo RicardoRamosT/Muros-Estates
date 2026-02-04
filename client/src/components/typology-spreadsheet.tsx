@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, 
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
-  ArrowUp01, ArrowDown10, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical
+  ArrowUp01, ArrowDown10, ArrowUpDown, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical
 } from "lucide-react";
 import {
   DndContext,
@@ -652,28 +652,50 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   const isSorted = sortDirection !== null;
   const isNumeric = column.type === "number" || column.type === "decimal";
   
+  const handleSortClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (sortDirection === null) {
+      onSortChange("asc");
+    } else if (sortDirection === "asc") {
+      onSortChange("desc");
+    } else {
+      onSortChange(null);
+    }
+  };
+
+  const SortIcon = () => {
+    if (sortDirection === "asc") {
+      return isNumeric ? <ArrowUp01 className="w-3 h-3 text-primary" /> : <ArrowUpAZ className="w-3 h-3 text-primary" />;
+    }
+    if (sortDirection === "desc") {
+      return isNumeric ? <ArrowDown10 className="w-3 h-3 text-primary" /> : <ArrowDownAZ className="w-3 h-3 text-primary" />;
+    }
+    return <ArrowUpDown className="w-3 h-3 text-muted-foreground" />;
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          className={cn(
-            "flex items-center justify-between gap-1 w-full h-full px-2 py-1 text-xs font-medium text-left",
-            sectionColor,
-            "hover-elevate cursor-pointer",
-            (isFiltered || isSorted) && "bg-primary/20"
-          )}
-          data-testid={`filter-trigger-${column.key}`}
-        >
-          <span className="truncate">
-            {column.label}
-            {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
-          </span>
-          <ChevronDown className={cn(
-            "w-3 h-3 flex-shrink-0",
-            (isFiltered || isSorted) && "text-primary"
-          )} />
-        </button>
-      </PopoverTrigger>
+    <div className="flex items-center h-full w-full">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center gap-1 flex-1 h-full px-2 py-1 text-xs font-medium text-left",
+              sectionColor,
+              "hover-elevate cursor-pointer",
+              isFiltered && "bg-primary/20"
+            )}
+            data-testid={`filter-trigger-${column.key}`}
+          >
+            <span className="truncate">
+              {column.label}
+              {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
+            </span>
+            <ChevronDown className={cn(
+              "w-3 h-3 flex-shrink-0",
+              isFiltered && "text-primary"
+            )} />
+          </button>
+        </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <div className="flex flex-col">
           <div className="px-3 py-2 border-b bg-muted/50">
@@ -783,7 +805,20 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           </div>
         </div>
       </PopoverContent>
-    </Popover>
+      </Popover>
+      <button
+        onClick={handleSortClick}
+        className={cn(
+          "flex items-center justify-center h-full px-1",
+          "hover-elevate cursor-pointer",
+          isSorted && "bg-primary/10"
+        )}
+        title={sortDirection === null ? "Ordenar" : sortDirection === "asc" ? "Ordenar descendente" : "Quitar orden"}
+        data-testid={`sort-toggle-${column.key}`}
+      >
+        <SortIcon />
+      </button>
+    </div>
   );
 }
 
@@ -1855,49 +1890,6 @@ export function TypologySpreadsheet() {
                     className={cn("border-r flex-shrink-0 flex items-center justify-between h-full", section.headerColor)}
                     style={{ width: isExpanded ? sectionWidth : collapsedWidth }}
                   >
-                    {/* Left: sort icons */}
-                    {isExpanded && section.columns.length > 0 ? (
-                      <div className="flex items-center gap-0.5 pl-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const firstCol = section.columns[0].key;
-                            const newDir = columnSorts[firstCol] === 'asc' ? null : 'asc';
-                            handleColumnSortChange(firstCol, newDir);
-                          }}
-                          className={cn(
-                            "h-5 w-5",
-                            columnSorts[section.columns[0].key] === 'asc' && "bg-black/20 dark:bg-white/20"
-                          )}
-                          title="Ordenar ascendente"
-                          data-testid={`section-sort-asc-${section.id}`}
-                        >
-                          <ArrowUp01 className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const firstCol = section.columns[0].key;
-                            const newDir = columnSorts[firstCol] === 'desc' ? null : 'desc';
-                            handleColumnSortChange(firstCol, newDir);
-                          }}
-                          className={cn(
-                            "h-5 w-5",
-                            columnSorts[section.columns[0].key] === 'desc' && "bg-black/20 dark:bg-white/20"
-                          )}
-                          title="Ordenar descendente"
-                          data-testid={`section-sort-desc-${section.id}`}
-                        >
-                          <ArrowDown10 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div />
-                    )}
                     {/* Centered label */}
                     {isExpanded && (
                       <span className="text-sm font-medium flex-1 text-center pointer-events-none">
