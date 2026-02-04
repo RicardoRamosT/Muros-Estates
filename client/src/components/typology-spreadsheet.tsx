@@ -597,6 +597,11 @@ function SortableMediaItem({ doc, index, onDelete, isDeleting }: SortableMediaIt
   );
 }
 
+interface RangeFilter {
+  min: string;
+  max: string;
+}
+
 interface ColumnFilterProps {
   column: ColumnDef;
   data: Typology[];
@@ -606,11 +611,22 @@ interface ColumnFilterProps {
   onSortChange: (direction: "asc" | "desc" | null) => void;
   sectionColor: string;
   availableValues?: Set<string>;
+  rangeFilter?: RangeFilter;
+  onRangeFilterChange?: (range: RangeFilter) => void;
+  groupedOptions?: { group: string; values: string[] }[];
 }
 
-function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues }: ColumnFilterProps) {
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions }: ColumnFilterProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [localMin, setLocalMin] = useState(rangeFilter?.min || "");
+  const [localMax, setLocalMax] = useState(rangeFilter?.max || "");
+  const isRangeColumn = column.key === "size";
+  
+  useEffect(() => {
+    setLocalMin(rangeFilter?.min || "");
+    setLocalMax(rangeFilter?.max || "");
+  }, [rangeFilter?.min, rangeFilter?.max]);
   
   const uniqueValues = useMemo(() => {
     const values = new Set<string>();
@@ -658,10 +674,24 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   const handleClearFilter = () => {
     onFilterChange(new Set());
     onSortChange(null);
+    if (onRangeFilterChange) {
+      onRangeFilterChange({ min: "", max: "" });
+      setLocalMin("");
+      setLocalMax("");
+    }
+    setOpen(false);
+  };
+  
+  const handleApplyRange = () => {
+    if (onRangeFilterChange) {
+      onRangeFilterChange({ min: localMin, max: localMax });
+    }
     setOpen(false);
   };
   
   const isFiltered = selectedValues.size > 0 && selectedValues.size < uniqueValues.length;
+  const isRangeFiltered = rangeFilter && (rangeFilter.min !== "" || rangeFilter.max !== "");
+  const hasActiveFilter = isFiltered || isRangeFiltered;
   const isSorted = sortDirection !== null;
   const isNumeric = column.type === "number" || column.type === "decimal";
   
@@ -695,7 +725,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
               "flex items-center gap-1 flex-1 h-full px-2 py-1 text-xs font-medium text-left",
               sectionColor,
               "hover-elevate cursor-pointer",
-              isFiltered && "bg-primary/20"
+              hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40"
             )}
             data-testid={`filter-trigger-${column.key}`}
           >
@@ -705,7 +735,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             </span>
             <ChevronDown className={cn(
               "w-3 h-3 flex-shrink-0",
-              isFiltered && "text-primary"
+              hasActiveFilter && "text-amber-700 dark:text-amber-300"
             )} />
           </button>
         </PopoverTrigger>
@@ -736,7 +766,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           
           <div className="border-t" />
           
-          {(isFiltered || isSorted) && (
+          {(hasActiveFilter || isSorted) && (
             <>
               <button
                 className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left text-muted-foreground"
@@ -750,72 +780,190 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             </>
           )}
           
-          <div className="p-2">
-            <Input
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8 text-sm"
-              data-testid={`search-filter-${column.key}`}
-            />
-          </div>
-          
-          <div className="max-h-48 overflow-y-auto px-2 pb-2">
-            <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
-              <Checkbox
-                checked={allSelected}
-                onCheckedChange={handleSelectAll}
-                data-testid={`select-all-${column.key}`}
-              />
-              <span className="text-sm font-medium">(Seleccionar todo)</span>
-            </label>
-            
-            {filteredValues.map((value) => {
-              const isChecked = selectedValues.size === 0 || selectedValues.has(value);
-              const displayValue = column.format ? formatValue(value, column.format) : value;
-              const isAvailable = !availableValues || availableValues.has(value);
+          {isRangeColumn ? (
+            <>
+              <div className="p-3 space-y-3">
+                <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Filtrar por rango</div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground mb-1 block">Mínimo (m²)</label>
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={localMin}
+                      onChange={(e) => setLocalMin(e.target.value)}
+                      className="h-8 text-sm"
+                      data-testid={`range-min-${column.key}`}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground mb-1 block">Máximo (m²)</label>
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={localMax}
+                      onChange={(e) => setLocalMax(e.target.value)}
+                      className="h-8 text-sm"
+                      data-testid={`range-max-${column.key}`}
+                    />
+                  </div>
+                </div>
+              </div>
               
-              return (
-                <label
-                  key={value}
-                  className={cn(
-                    "flex items-center gap-2 py-1 px-1 rounded",
-                    isAvailable
-                      ? "cursor-pointer hover:bg-muted"
-                      : "opacity-40 cursor-not-allowed"
-                  )}
-                >
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={() => handleToggleValue(value)}
-                    disabled={!isAvailable}
-                    data-testid={`filter-value-${column.key}-${value}`}
-                  />
-                  <span className={cn(
-                    "text-sm truncate",
-                    !isAvailable && "text-muted-foreground line-through"
-                  )}>
-                    {displayValue}
-                  </span>
-                </label>
-              );
-            })}
-            
-            {filteredValues.length === 0 && (
-              <p className="text-sm text-muted-foreground py-2 text-center">
-                Sin resultados
-              </p>
-            )}
-          </div>
-          
-          <div className="border-t p-2 flex justify-end gap-2">
-            <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-            <Button size="sm" onClick={() => setOpen(false)} data-testid={`apply-filter-${column.key}`}>
-              Aceptar
-            </Button>
-          </div>
+              <div className="border-t" />
+              
+              <div className="px-3 py-2">
+                <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Valores disponibles</div>
+                <div className="max-h-32 overflow-y-auto text-xs text-muted-foreground space-y-0.5">
+                  {uniqueValues.map((value) => {
+                    const displayValue = column.format ? formatValue(value, column.format) : value;
+                    return (
+                      <div key={value} className="py-0.5">
+                        {displayValue}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <div className="border-t p-2 flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button size="sm" onClick={handleApplyRange} data-testid={`apply-filter-${column.key}`}>
+                  Aplicar
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-2">
+                <Input
+                  placeholder="Buscar..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid={`search-filter-${column.key}`}
+                />
+              </div>
+              
+              <div className="max-h-48 overflow-y-auto px-2 pb-2">
+                {groupedOptions && groupedOptions.length > 0 ? (
+                  <>
+                    <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded mb-2 border-b pb-2">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={handleSelectAll}
+                        data-testid={`select-all-${column.key}`}
+                      />
+                      <span className="text-sm font-medium">(Seleccionar todo)</span>
+                    </label>
+                    {groupedOptions.map(group => {
+                      if (!group.group) return null;
+                      const groupFilteredValues = group.values.filter(v => 
+                        v && (!search || v.toLowerCase().includes(search.toLowerCase()))
+                      );
+                      if (groupFilteredValues.length === 0) return null;
+                      return (
+                        <div key={group.group} className="mb-2">
+                          <div className="text-xs font-semibold text-muted-foreground px-1 py-1 bg-muted/50 rounded mb-1">
+                            {group.group}
+                          </div>
+                          {groupFilteredValues.map((value) => {
+                            const isChecked = selectedValues.size === 0 || selectedValues.has(value);
+                            const displayValue = column.format ? formatValue(value, column.format) : value;
+                            const isAvailable = !availableValues || availableValues.has(value);
+                            
+                            return (
+                              <label
+                                key={value}
+                                className={cn(
+                                  "flex items-center gap-2 py-1 px-1 rounded ml-2",
+                                  isAvailable
+                                    ? "cursor-pointer hover:bg-muted"
+                                    : "opacity-40 cursor-not-allowed"
+                                )}
+                              >
+                                <Checkbox
+                                  checked={isChecked}
+                                  onCheckedChange={() => handleToggleValue(value)}
+                                  disabled={!isAvailable}
+                                  data-testid={`filter-value-${column.key}-${value}`}
+                                />
+                                <span className={cn(
+                                  "text-sm truncate",
+                                  !isAvailable && "text-muted-foreground line-through"
+                                )}>
+                                  {displayValue}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <>
+                    <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={handleSelectAll}
+                        data-testid={`select-all-${column.key}`}
+                      />
+                      <span className="text-sm font-medium">(Seleccionar todo)</span>
+                    </label>
+                    
+                    {filteredValues.map((value) => {
+                      const isChecked = selectedValues.size === 0 || selectedValues.has(value);
+                      const displayValue = column.format ? formatValue(value, column.format) : value;
+                      const isAvailable = !availableValues || availableValues.has(value);
+                      
+                      return (
+                        <label
+                          key={value}
+                          className={cn(
+                            "flex items-center gap-2 py-1 px-1 rounded",
+                            isAvailable
+                              ? "cursor-pointer hover:bg-muted"
+                              : "opacity-40 cursor-not-allowed"
+                          )}
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => handleToggleValue(value)}
+                            disabled={!isAvailable}
+                            data-testid={`filter-value-${column.key}-${value}`}
+                          />
+                          <span className={cn(
+                            "text-sm truncate",
+                            !isAvailable && "text-muted-foreground line-through"
+                          )}>
+                            {displayValue}
+                          </span>
+                        </label>
+                      );
+                    })}
+                    
+                    {filteredValues.length === 0 && (
+                      <p className="text-sm text-muted-foreground py-2 text-center">
+                        Sin resultados
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              <div className="border-t p-2 flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button size="sm" onClick={() => setOpen(false)} data-testid={`apply-filter-${column.key}`}>
+                  Aceptar
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </PopoverContent>
       </Popover>
@@ -1230,6 +1378,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
 
 type ColumnFilters = Record<string, Set<string>>;
 type ColumnSorts = Record<string, "asc" | "desc" | null>;
+type RangeFilters = Record<string, RangeFilter>;
 
 export function TypologySpreadsheet() {
   const { toast } = useToast();
@@ -1238,6 +1387,7 @@ export function TypologySpreadsheet() {
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
+  const [rangeFilters, setRangeFilters] = useState<RangeFilters>({});
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
@@ -1299,6 +1449,14 @@ export function TypologySpreadsheet() {
     queryKey: ["/api/catalog/cajones"],
   });
   
+  const { data: catalogCities = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/cities"],
+  });
+  
+  const { data: catalogZones = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/zones"],
+  });
+  
   const vistaOptions = useMemo(() => {
     return catalogVistas.map(v => v.name).filter(Boolean);
   }, [catalogVistas]);
@@ -1336,6 +1494,86 @@ export function TypologySpreadsheet() {
     const allNames = Array.from(new Set([...dbNames, ...constantNames]));
     return allNames.sort();
   }, [dbDevelopments]);
+  
+  const zoneGroupedOptions = useMemo(() => {
+    const groups: { group: string; values: string[] }[] = [];
+    const cityMap: Record<string, string[]> = {};
+    const allZoneNames = new Set<string>();
+    
+    catalogZones.forEach((zone: any) => {
+      if (!zone.name) return;
+      allZoneNames.add(zone.name);
+      const cityId = zone.cityId;
+      const city = catalogCities.find((c: any) => c.id === cityId);
+      const cityName = city?.name || "Sin Ciudad";
+      if (!cityMap[cityName]) {
+        cityMap[cityName] = [];
+      }
+      if (!cityMap[cityName].includes(zone.name)) {
+        cityMap[cityName].push(zone.name);
+      }
+    });
+    
+    typologies.forEach((t: any) => {
+      if (t.zone && !allZoneNames.has(t.zone)) {
+        if (!cityMap["Otras Zonas"]) {
+          cityMap["Otras Zonas"] = [];
+        }
+        if (!cityMap["Otras Zonas"].includes(t.zone)) {
+          cityMap["Otras Zonas"].push(t.zone);
+        }
+      }
+    });
+    
+    Object.keys(cityMap).sort().forEach(cityName => {
+      groups.push({
+        group: cityName,
+        values: cityMap[cityName].filter(Boolean).sort(),
+      });
+    });
+    
+    return groups;
+  }, [catalogZones, catalogCities, typologies]);
+  
+  const developmentGroupedOptions = useMemo(() => {
+    const groups: { group: string; values: string[] }[] = [];
+    const developerMap: Record<string, string[]> = {};
+    const allDevNames = new Set<string>();
+    
+    dbDevelopments.forEach((dev: any) => {
+      if (!dev.name) return;
+      allDevNames.add(dev.name);
+      const developerId = dev.developerId;
+      const developer = dbDevelopers.find((d: any) => d.id === developerId);
+      const developerName = developer?.name || "Sin Desarrollador";
+      if (!developerMap[developerName]) {
+        developerMap[developerName] = [];
+      }
+      if (!developerMap[developerName].includes(dev.name)) {
+        developerMap[developerName].push(dev.name);
+      }
+    });
+    
+    typologies.forEach((t: any) => {
+      if (t.development && !allDevNames.has(t.development)) {
+        if (!developerMap["Otros Desarrollos"]) {
+          developerMap["Otros Desarrollos"] = [];
+        }
+        if (!developerMap["Otros Desarrollos"].includes(t.development)) {
+          developerMap["Otros Desarrollos"].push(t.development);
+        }
+      }
+    });
+    
+    Object.keys(developerMap).sort().forEach(developerName => {
+      groups.push({
+        group: developerName,
+        values: developerMap[developerName].filter(Boolean).sort(),
+      });
+    });
+    
+    return groups;
+  }, [dbDevelopments, dbDevelopers, typologies]);
   
   const getTypologyDocCount = useCallback((typologyId: string) => {
     return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores").length;
@@ -1735,13 +1973,33 @@ export function TypologySpreadsheet() {
     });
   };
   
+  const handleRangeFilterChange = (columnKey: string, range: RangeFilter) => {
+    setRangeFilters(prev => ({
+      ...prev,
+      [columnKey]: range,
+    }));
+  };
+  
   const filteredAndSortedTypologies = useMemo(() => {
     let result = typologies.filter(t => {
-      return Object.entries(columnFilters).every(([key, values]) => {
+      const passesCheckboxFilters = Object.entries(columnFilters).every(([key, values]) => {
         if (values.size === 0) return true;
         const fieldValue = String(t[key as keyof Typology] ?? "");
         return values.has(fieldValue);
       });
+      
+      const passesRangeFilters = Object.entries(rangeFilters).every(([key, range]) => {
+        if (range.min === "" && range.max === "") return true;
+        const fieldValue = parseFloat(String(t[key as keyof Typology] ?? ""));
+        if (isNaN(fieldValue)) return false;
+        const minVal = range.min !== "" ? parseFloat(range.min) : null;
+        const maxVal = range.max !== "" ? parseFloat(range.max) : null;
+        if (minVal !== null && !isNaN(minVal) && fieldValue < minVal) return false;
+        if (maxVal !== null && !isNaN(maxVal) && fieldValue > maxVal) return false;
+        return true;
+      });
+      
+      return passesCheckboxFilters && passesRangeFilters;
     });
     
     const sortEntries = Object.entries(columnSorts).filter(([_, dir]) => dir !== null);
@@ -1883,13 +2141,14 @@ export function TypologySpreadsheet() {
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
-          {(activeFilterCount > 0 || activeSortKey) && (
+          {(activeFilterCount > 0 || activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)) && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
                 setColumnFilters({});
                 setColumnSorts({});
+                setRangeFilters({});
               }}
               data-testid="button-clear-all-filters"
             >
@@ -2012,6 +2271,13 @@ export function TypologySpreadsheet() {
                       onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
                       sectionColor={section.headerColor}
                       availableValues={availableValuesMap[col.key]}
+                      rangeFilter={rangeFilters[col.key]}
+                      onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
+                      groupedOptions={
+                        col.key === "zone" ? zoneGroupedOptions :
+                        col.key === "development" ? developmentGroupedOptions :
+                        undefined
+                      }
                     />
                   </div>
                 ));
