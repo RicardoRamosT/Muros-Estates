@@ -1153,6 +1153,29 @@ export async function registerRoutes(
       if (!dev) {
         return res.status(404).json({ error: "Desarrollo no encontrado" });
       }
+      
+      // If entregaProyectada was updated, propagate to typologies
+      if ('entregaProyectada' in req.body && dev.name) {
+        try {
+          // Find typologies by development name and update their deliveryDate
+          const typologies = await storage.getAllTypologies();
+          const matchingTypologies = typologies.filter((t: { development: string | null }) => t.development === dev.name);
+          
+          // Use the date value from the update (can be null to clear)
+          const deliveryDate = req.body.entregaProyectada || null;
+          
+          for (const typology of matchingTypologies) {
+            await storage.updateTypology(typology.id, { deliveryDate });
+          }
+          
+          if (matchingTypologies.length > 0) {
+            console.log(`Propagated entregaProyectada to ${matchingTypologies.length} typologies for development ${dev.name}`);
+          }
+        } catch (propError) {
+          console.error("Error propagating date to typologies:", propError);
+        }
+      }
+      
       res.json(dev);
     } catch (error) {
       console.error("Error updating development:", error);
