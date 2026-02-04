@@ -67,6 +67,9 @@ interface SectionDef {
   conditionalFields?: { field: TypologyField; dependsOn: TypologyField | TypologyField[] }[];
 }
 
+// Extra width for sort icon per column header
+const SORT_ICON_WIDTH = 18;
+
 const SECTIONS: SectionDef[] = [
   {
     id: "basico",
@@ -889,7 +892,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed"
         )}
-        style={{ width: column.width }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         title={disabled && !column.calculated ? "Campo deshabilitado - active la opción correspondiente" : undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
@@ -925,7 +928,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className="spreadsheet-cell justify-center px-2"
-        style={{ width: column.width, backgroundColor: cellBgColor }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <Select
           value={value === true ? "si" : value === false ? "no" : ""}
@@ -986,7 +989,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
-        style={{ width: column.width }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Popover>
           <PopoverTrigger asChild>
@@ -1070,7 +1073,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
-        style={{ width: column.width }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Select 
           value={currentValue} 
@@ -1120,7 +1123,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       return (
         <div 
           className="spreadsheet-cell px-1 bg-gray-100 dark:bg-gray-800/50" 
-          style={{ width: column.width }}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           <span className="text-xs text-muted-foreground">Sin tipos</span>
         </div>
@@ -1141,7 +1144,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
-        style={{ width: column.width }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Popover>
           <PopoverTrigger asChild>
@@ -1184,7 +1187,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className="spreadsheet-cell px-1 bg-white dark:bg-gray-900 ring-1 ring-primary" 
-        style={{ width: column.width }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Input
           ref={inputRef}
@@ -1204,7 +1207,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   return (
     <div
       className="spreadsheet-cell px-2 text-sm truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-      style={{ width: column.width }}
+      style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       onClick={() => setIsEditing(true)}
       title={formatValue(value, column.format)}
       data-testid={`cell-${column.key}-${rowId}`}
@@ -1880,7 +1883,7 @@ export function TypologySpreadsheet() {
               {SECTIONS.map((section) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
-                  return sum + w;
+                  return sum + w + SORT_ICON_WIDTH;
                 }, 0);
                 const isExpanded = expandedSections.has(section.id);
                 const collapsedWidth = 40;
@@ -1941,7 +1944,7 @@ export function TypologySpreadsheet() {
                       "flex-shrink-0 h-full",
                       colIndex === section.columns.length - 1 ? "border-r" : "border-r"
                     )}
-                    style={{ width: col.width }}
+                    style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
                   >
                     <ColumnFilter
                       column={col}
