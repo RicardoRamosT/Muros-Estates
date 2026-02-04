@@ -901,9 +901,13 @@ export function DevelopmentsSpreadsheet() {
                     const dateValue = (value && value !== null && value !== undefined) ? String(value) : '';
                     let formattedDate = '';
                     if (dateValue && dateValue !== 'null' && dateValue !== 'undefined') {
-                      const parsed = new Date(dateValue);
-                      if (!isNaN(parsed.getTime())) {
-                        formattedDate = parsed.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
+                      const parts = dateValue.split('-');
+                      if (parts.length === 3) {
+                        const [year, month, day] = parts.map(Number);
+                        const parsed = new Date(year, month - 1, day);
+                        if (!isNaN(parsed.getTime())) {
+                          formattedDate = parsed.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
+                        }
                       }
                     }
                     
@@ -964,7 +968,11 @@ export function DevelopmentsSpreadsheet() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
-                                    const today = new Date().toISOString().split('T')[0];
+                                    const now = new Date();
+                                    const year = now.getFullYear();
+                                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                                    const day = String(now.getDate()).padStart(2, '0');
+                                    const today = `${year}-${month}-${day}`;
                                     updateMutation.mutate({ 
                                       id: dev.id, 
                                       data: { [col.key]: today } 
