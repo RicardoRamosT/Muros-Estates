@@ -1861,31 +1861,15 @@ export function TypologySpreadsheet() {
                         {section.label}
                       </span>
                     )}
-                    {/* Left: collapse button */}
-                    <button
-                      onClick={() => toggleSection(section.id)}
-                      className={cn(
-                        "absolute left-0 top-0 h-full flex items-center justify-center px-2",
-                        "hover-elevate cursor-pointer"
-                      )}
-                      data-testid={`section-toggle-${section.id}`}
-                    >
-                      {isExpanded ? (
-                        <Minus className="w-3 h-3" />
-                      ) : (
-                        <Plus className="w-3 h-3" />
-                      )}
-                    </button>
-                    {/* Right: sort icons */}
+                    {/* Left: sort icons */}
                     {isExpanded && section.columns.length > 0 && (
-                      <div className="absolute right-1 top-0 h-full flex items-center gap-0.5">
+                      <div className="absolute left-1 top-0 h-full flex items-center gap-0.5">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
                             const firstCol = section.columns[0].key;
-                            // Toggle: if already asc, clear; otherwise set asc
                             const newDir = columnSorts[firstCol] === 'asc' ? null : 'asc';
                             handleColumnSortChange(firstCol, newDir);
                           }}
@@ -1904,7 +1888,6 @@ export function TypologySpreadsheet() {
                           onClick={(e) => {
                             e.stopPropagation();
                             const firstCol = section.columns[0].key;
-                            // Toggle: if already desc, clear; otherwise set desc
                             const newDir = columnSorts[firstCol] === 'desc' ? null : 'desc';
                             handleColumnSortChange(firstCol, newDir);
                           }}
@@ -1919,6 +1902,21 @@ export function TypologySpreadsheet() {
                         </Button>
                       </div>
                     )}
+                    {/* Right: collapse button */}
+                    <button
+                      onClick={() => toggleSection(section.id)}
+                      className={cn(
+                        "absolute right-0 top-0 h-full flex items-center justify-center px-2",
+                        "hover-elevate cursor-pointer"
+                      )}
+                      data-testid={`section-toggle-${section.id}`}
+                    >
+                      {isExpanded ? (
+                        <Minus className="w-3 h-3" />
+                      ) : (
+                        <Plus className="w-3 h-3" />
+                      )}
+                    </button>
                   </div>
                 );
               })}
