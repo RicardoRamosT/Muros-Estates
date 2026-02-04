@@ -929,8 +929,11 @@ export function DevelopmentsSpreadsheet() {
                                 updateMutation.mutate({ 
                                   id: dev.id, 
                                   data: { [col.key]: today } 
+                                }, {
+                                  onSuccess: () => {
+                                    setEditingCell(null);
+                                  }
                                 });
-                                setEditingCell(null);
                               }}
                               className="h-4 px-1 text-[10px] self-start text-primary underline"
                               data-testid={`button-inmediato-${col.key}-${dev.id}`}
