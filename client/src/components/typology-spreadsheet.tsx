@@ -216,9 +216,9 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-yellow-50 dark:bg-yellow-900/20",
     columns: [
       { key: "initialPercent", label: "Inicial %", type: "decimal", width: 70, format: "percent" },
-      { key: "initialAmount", label: "Monto", type: "decimal", width: 105, format: "currency", calculated: true },
+      { key: "initialAmount", label: "Monto", type: "decimal", width: 105, format: "currency" },
       { key: "duringConstructionPercent", label: "En Plazo %", type: "decimal", width: 70, format: "percent" },
-      { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 105, format: "currency", calculated: true },
+      { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 105, format: "currency" },
       { key: "paymentMonths", label: "Meses", type: "number", width: 55 },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 105, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot. Eng.", type: "decimal", width: 115, format: "currency", calculated: true },
