@@ -85,6 +85,7 @@ export function DevelopersSpreadsheet() {
     { key: "antiguedadDeclarada", label: "Antigüedad Declarada", width: "150px", group: "antiguedad", cellType: "input" },
     // Tipos - multiselect dropdown
     { key: "tipos", label: "Tipos", width: "180px", type: "multiselect", cellType: "dropdown" },
+    { key: "contratos", label: "Contratos", width: "150px", cellType: "input" },
     { key: "representante", label: "Representante", width: "160px", cellType: "input" },
     // Contacto group - renamed "Nombre" to "Gerente Comercial"
     { key: "contactName", label: "Gerente Comercial", width: "150px", group: "contacto", cellType: "input" },

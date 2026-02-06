@@ -66,6 +66,8 @@ export const PAGE_PERMISSIONS = {
       antiguedad: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 9. tipos - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       tipos: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 9b. contratos - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
+      contratos: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 10. representante - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       representante: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 11. contactName - Admin:2, Updater:2, Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
@@ -613,6 +615,7 @@ export const developers = pgTable("developers", {
   antiguedad: text("antiguedad"), // Campo legacy - Antigüedad en el mercado
   // Tipos de desarrollos - array de opciones: Residencial, Comercial, Oficina, Salud
   tipos: text("tipos").array(), // Array de tipos de desarrollos que hace
+  contratos: text("contratos"), // Contratos del desarrollador
   representante: text("representante"), // Representante legal
   // Contacto - Gerente Comercial
   contactName: text("contact_name"), // Gerente Comercial (antes "Nombre")
