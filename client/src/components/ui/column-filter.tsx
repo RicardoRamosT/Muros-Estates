@@ -28,6 +28,7 @@ export interface ColumnFilterProps {
   onFilter: (state: FilterState) => void;
   onClear: () => void;
   labelMap?: Record<string, string>;
+  groupMap?: Record<string, string[]>;
 }
 
 export function ColumnFilter({
@@ -42,6 +43,7 @@ export function ColumnFilter({
   onFilter,
   onClear,
   labelMap,
+  groupMap,
 }: ColumnFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState(filterState.search);
@@ -188,6 +190,81 @@ export function ColumnFilter({
                 <div className="text-xs text-muted-foreground text-center py-2">
                   Sin resultados
                 </div>
+              ) : groupMap ? (
+                (() => {
+                  const filteredSet = new Set(filteredValues);
+                  const groupedEntries = Object.entries(groupMap)
+                    .map(([group, values]) => [group, values.filter(v => filteredSet.has(v))] as const)
+                    .filter(([, values]) => values.length > 0);
+                  const groupedValues = new Set(groupedEntries.flatMap(([, values]) => values));
+                  const ungrouped = filteredValues.filter(v => !groupedValues.has(v));
+
+                  return (
+                    <>
+                      {groupedEntries.map(([group, values]) => (
+                        <div key={group}>
+                          <div className="text-[10px] font-semibold text-muted-foreground uppercase px-1 pt-1 pb-0.5">
+                            {group}
+                          </div>
+                          {values.map((value) => {
+                            const isAvailable = !availableValues || availableValues.has(value);
+                            return (
+                              <label
+                                key={value}
+                                className={cn(
+                                  "flex items-center gap-2 px-1 pl-3 py-0.5 rounded",
+                                  isAvailable 
+                                    ? "hover:bg-muted cursor-pointer" 
+                                    : "opacity-40 cursor-not-allowed"
+                                )}
+                              >
+                                <Checkbox
+                                  checked={localSelected.has(value)}
+                                  onCheckedChange={() => handleToggleValue(value)}
+                                  disabled={!isAvailable}
+                                  className="h-3 w-3"
+                                />
+                                <span className={cn(
+                                  "text-xs truncate flex-1",
+                                  !isAvailable && "text-muted-foreground line-through"
+                                )}>
+                                  {(labelMap?.[value] ?? value) || "(vacío)"}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ))}
+                      {ungrouped.map((value) => {
+                        const isAvailable = !availableValues || availableValues.has(value);
+                        return (
+                          <label
+                            key={value}
+                            className={cn(
+                              "flex items-center gap-2 px-1 py-0.5 rounded",
+                              isAvailable 
+                                ? "hover:bg-muted cursor-pointer" 
+                                : "opacity-40 cursor-not-allowed"
+                            )}
+                          >
+                            <Checkbox
+                              checked={localSelected.has(value)}
+                              onCheckedChange={() => handleToggleValue(value)}
+                              disabled={!isAvailable}
+                              className="h-3 w-3"
+                            />
+                            <span className={cn(
+                              "text-xs truncate flex-1",
+                              !isAvailable && "text-muted-foreground line-through"
+                            )}>
+                              {(labelMap?.[value] ?? value) || "(vacío)"}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </>
+                  );
+                })()
               ) : (
                 filteredValues.map((value) => {
                   const isAvailable = !availableValues || availableValues.has(value);

@@ -418,6 +418,31 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     return maps;
   }, [users, typologies]);
 
+  const groupMaps = useMemo(() => {
+    const maps: Record<string, Record<string, string[]>> = {};
+
+    const desGroups: Record<string, Set<string>> = {};
+    developments.forEach(d => {
+      const dev = developers.find(dev => dev.id === d.developerId);
+      const devName = dev?.name || 'Sin Desarrollador';
+      if (!desGroups[devName]) desGroups[devName] = new Set();
+      desGroups[devName].add(d.name);
+    });
+    maps['desarrollo'] = {};
+    Object.entries(desGroups).forEach(([k, v]) => { maps['desarrollo'][k] = Array.from(v).sort(); });
+
+    const tipGroups: Record<string, Set<string>> = {};
+    typologies.forEach(typ => {
+      const devName = typ.development || 'Sin Desarrollo';
+      if (!tipGroups[devName]) tipGroups[devName] = new Set();
+      tipGroups[devName].add(typ.id);
+    });
+    maps['tipologia'] = {};
+    Object.entries(tipGroups).forEach(([k, v]) => { maps['tipologia'][k] = Array.from(v); });
+
+    return maps;
+  }, [developments, developers, typologies]);
+
   // Column filtering and sorting
   const {
     sortConfig,
@@ -521,6 +546,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         onFilter={(state) => handleFilter(col.key, state)}
                         onClear={() => handleClearFilter(col.key)}
                         labelMap={labelMaps[col.key]}
+                        groupMap={groupMaps[col.key]}
                       />
                     )}
                   </div>
