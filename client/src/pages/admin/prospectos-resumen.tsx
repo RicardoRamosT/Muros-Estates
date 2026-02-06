@@ -144,10 +144,10 @@ export default function ProspectosResumen() {
     return `Del ${fmt(min)} al ${fmt(max)}`;
   };
 
-  const renderRow = (label: string, count: number, total: number, colorDot?: string) => {
+  const renderRow = (label: string, count: number, total: number, colorDot?: string, idx?: number) => {
     const percent = total > 0 ? Math.round((count / total) * 100) : 0;
     return (
-      <div key={label} className="flex items-center justify-between gap-1" style={{ fontSize: '9px', lineHeight: '14px', borderBottom: '1px solid #f3f4f6', padding: '1px 0' }}>
+      <div key={idx !== undefined ? idx : label} className="flex items-center justify-between gap-1" style={{ fontSize: '9px', lineHeight: '14px', borderBottom: '1px solid #f3f4f6', padding: '1px 0' }}>
         <span className="text-gray-700 truncate flex items-center gap-1" style={{ maxWidth: '60%' }}>
           {colorDot && <span className="inline-block rounded-full flex-shrink-0" style={{ width: 6, height: 6, backgroundColor: colorDot }}></span>}
           {label}
@@ -166,7 +166,7 @@ export default function ProspectosResumen() {
       <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '4px 6px' }}>
         <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', borderBottom: '1px solid #d1d5db', paddingBottom: '2px', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{title}</div>
         <div>
-          {items.map(item => renderRow(item.label, item.count, total, item.color))}
+          {items.map((item, idx) => renderRow(item.label, item.count, total, item.color, idx))}
         </div>
       </div>
     );
@@ -175,15 +175,33 @@ export default function ProspectosResumen() {
   const captureElement = async () => {
     const element = document.getElementById('summary-content');
     if (!element) return null;
-    const html2canvas = (await import('html2canvas')).default;
-    return html2canvas(element, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      width: 1056,
-      height: 816,
-      windowWidth: 1056,
-      windowHeight: 816,
-    });
+
+    const origWidth = element.style.width;
+    const origHeight = element.style.height;
+    const origMaxWidth = element.style.maxWidth;
+    const origOverflow = element.style.overflow;
+    element.style.width = '1056px';
+    element.style.height = '816px';
+    element.style.maxWidth = '1056px';
+    element.style.overflow = 'hidden';
+
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        width: 1056,
+        height: 816,
+        windowWidth: 1056,
+        windowHeight: 816,
+      });
+      return canvas;
+    } finally {
+      element.style.width = origWidth;
+      element.style.height = origHeight;
+      element.style.maxWidth = origMaxWidth;
+      element.style.overflow = origOverflow;
+    }
   };
 
   const handleDownloadJPG = async () => {
@@ -248,9 +266,10 @@ export default function ProspectosResumen() {
     count: prospects.filter(p => (p as any).desarrollador === d.name).length,
   }));
 
-  const developmentStats = developments.map(d => ({
-    label: d.name,
-    count: prospects.filter(p => (p as any).desarrollo === d.name).length,
+  const uniqueDevNames = Array.from(new Set(developments.map(d => d.name))).sort();
+  const developmentStats = uniqueDevNames.map(name => ({
+    label: name,
+    count: prospects.filter(p => (p as any).desarrollo === name).length,
   }));
 
   const developmentTypeStats = developmentTypes.map(dt => ({
@@ -337,15 +356,14 @@ export default function ProspectosResumen() {
         </div>
       </div>
 
-      <div className="flex justify-center py-4 print:py-0">
+      <div className="py-4 px-4 print:py-0">
         <div
           id="summary-content"
           style={{
-            width: '1056px',
-            height: '816px',
+            width: '100%',
+            minHeight: '400px',
             padding: '16px 20px',
             backgroundColor: '#ffffff',
-            overflow: 'hidden',
             boxSizing: 'border-box',
             fontFamily: 'Inter, system-ui, sans-serif',
           }}
