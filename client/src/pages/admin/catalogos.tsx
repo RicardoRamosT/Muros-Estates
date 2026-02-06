@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Database, Plus, Trash2, Loader2, MapPin, Building, Home, Sparkles, Users, Layers, Grid3X3, DoorOpen, Bath, Car, Wrench, Paintbrush, Eye, LayoutGrid, Tag, UserCircle, Target, Activity, CreditCard, ThumbsUp, ThumbsDown, Factory, Pencil } from "lucide-react";
+import { Database, Plus, Trash2, Loader2, MapPin, Building, Home, Sparkles, Users, Layers, Grid3X3, DoorOpen, Bath, Car, Wrench, Paintbrush, Eye, LayoutGrid, Tag, UserCircle, Target, Activity, CreditCard, ThumbsUp, ThumbsDown, Factory, Pencil, FileText, Scale, Presentation } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCellStyle } from "@/lib/spreadsheet-utils";
@@ -95,6 +95,9 @@ function DesarrollosCatalogs() {
         <TabsTrigger value="development-types" className="gap-2"><Building className="w-4 h-4" />Tipos</TabsTrigger>
         <TabsTrigger value="comercializadoras" className="gap-2"><Factory className="w-4 h-4" />Comercializadoras</TabsTrigger>
         <TabsTrigger value="arquitectura" className="gap-2"><Pencil className="w-4 h-4" />Arquitectura</TabsTrigger>
+        <TabsTrigger value="tipo-contrato" className="gap-2"><FileText className="w-4 h-4" />Tipo Contrato</TabsTrigger>
+        <TabsTrigger value="cesion-derechos" className="gap-2"><Scale className="w-4 h-4" />Cesión</TabsTrigger>
+        <TabsTrigger value="presentacion" className="gap-2"><Presentation className="w-4 h-4" />Presentación</TabsTrigger>
       </TabsList>
       <TabsContent value="development-types">
         <ExcelTable title="Tipos de Desarrollo" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" icon={Building} />
@@ -104,6 +107,15 @@ function DesarrollosCatalogs() {
       </TabsContent>
       <TabsContent value="arquitectura">
         <ExcelTable title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" icon={Pencil} />
+      </TabsContent>
+      <TabsContent value="tipo-contrato">
+        <ExcelTable title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" icon={FileText} />
+      </TabsContent>
+      <TabsContent value="cesion-derechos">
+        <ExcelTable title="Cesión de Derechos" endpoint="/api/catalog/cesion-derechos" queryKey="/api/catalog/cesion-derechos" icon={Scale} />
+      </TabsContent>
+      <TabsContent value="presentacion">
+        <ExcelTable title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" icon={Presentation} />
       </TabsContent>
     </Tabs>
   );

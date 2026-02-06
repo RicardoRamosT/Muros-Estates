@@ -42,6 +42,9 @@ import {
   catalogNegativos, type CatalogNegativo, type InsertCatalogNegativo,
   catalogAsesor, type CatalogAsesor, type InsertCatalogAsesor,
   catalogBrokerExterno, type CatalogBrokerExterno, type InsertCatalogBrokerExterno,
+  catalogTipoContrato, type CatalogTipoContrato, type InsertCatalogTipoContrato,
+  catalogCesionDerechos, type CatalogCesionDerechos, type InsertCatalogCesionDerechos,
+  catalogPresentacion, type CatalogPresentacion, type InsertCatalogPresentacion,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, ilike } from "drizzle-orm";
@@ -211,6 +214,21 @@ export interface IStorage {
   getRolePermissionsBySection(section: string): Promise<RolePermission[]>;
   upsertRolePermission(section: string, field: string, role: string, permissionLevel: string): Promise<RolePermission>;
   deleteRolePermission(id: string): Promise<boolean>;
+  
+  getCatalogTipoContrato(): Promise<CatalogTipoContrato[]>;
+  createCatalogTipoContrato(item: InsertCatalogTipoContrato): Promise<CatalogTipoContrato>;
+  updateCatalogTipoContrato(id: string, item: Partial<InsertCatalogTipoContrato>): Promise<CatalogTipoContrato | undefined>;
+  deleteCatalogTipoContrato(id: string): Promise<boolean>;
+  
+  getCatalogCesionDerechos(): Promise<CatalogCesionDerechos[]>;
+  createCatalogCesionDerechos(item: InsertCatalogCesionDerechos): Promise<CatalogCesionDerechos>;
+  updateCatalogCesionDerechos(id: string, item: Partial<InsertCatalogCesionDerechos>): Promise<CatalogCesionDerechos | undefined>;
+  deleteCatalogCesionDerechos(id: string): Promise<boolean>;
+  
+  getCatalogPresentacion(): Promise<CatalogPresentacion[]>;
+  createCatalogPresentacion(item: InsertCatalogPresentacion): Promise<CatalogPresentacion>;
+  updateCatalogPresentacion(id: string, item: Partial<InsertCatalogPresentacion>): Promise<CatalogPresentacion | undefined>;
+  deleteCatalogPresentacion(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1218,6 +1236,57 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCatalogBrokerExterno(id: string): Promise<boolean> {
     await db.delete(catalogBrokerExterno).where(eq(catalogBrokerExterno.id, id));
+    return true;
+  }
+
+  // Tipo de Contrato catalog
+  async getCatalogTipoContrato(): Promise<CatalogTipoContrato[]> {
+    return db.select().from(catalogTipoContrato).orderBy(catalogTipoContrato.order, catalogTipoContrato.name);
+  }
+  async createCatalogTipoContrato(item: InsertCatalogTipoContrato): Promise<CatalogTipoContrato> {
+    const [created] = await db.insert(catalogTipoContrato).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogTipoContrato(id: string, item: Partial<InsertCatalogTipoContrato>): Promise<CatalogTipoContrato | undefined> {
+    const [updated] = await db.update(catalogTipoContrato).set(item as any).where(eq(catalogTipoContrato.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogTipoContrato(id: string): Promise<boolean> {
+    await db.delete(catalogTipoContrato).where(eq(catalogTipoContrato.id, id));
+    return true;
+  }
+
+  // Cesión de Derechos catalog
+  async getCatalogCesionDerechos(): Promise<CatalogCesionDerechos[]> {
+    return db.select().from(catalogCesionDerechos).orderBy(catalogCesionDerechos.order, catalogCesionDerechos.name);
+  }
+  async createCatalogCesionDerechos(item: InsertCatalogCesionDerechos): Promise<CatalogCesionDerechos> {
+    const [created] = await db.insert(catalogCesionDerechos).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogCesionDerechos(id: string, item: Partial<InsertCatalogCesionDerechos>): Promise<CatalogCesionDerechos | undefined> {
+    const [updated] = await db.update(catalogCesionDerechos).set(item as any).where(eq(catalogCesionDerechos.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogCesionDerechos(id: string): Promise<boolean> {
+    await db.delete(catalogCesionDerechos).where(eq(catalogCesionDerechos.id, id));
+    return true;
+  }
+
+  // Presentación catalog
+  async getCatalogPresentacion(): Promise<CatalogPresentacion[]> {
+    return db.select().from(catalogPresentacion).orderBy(catalogPresentacion.order, catalogPresentacion.name);
+  }
+  async createCatalogPresentacion(item: InsertCatalogPresentacion): Promise<CatalogPresentacion> {
+    const [created] = await db.insert(catalogPresentacion).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogPresentacion(id: string, item: Partial<InsertCatalogPresentacion>): Promise<CatalogPresentacion | undefined> {
+    const [updated] = await db.update(catalogPresentacion).set(item as any).where(eq(catalogPresentacion.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogPresentacion(id: string): Promise<boolean> {
+    await db.delete(catalogPresentacion).where(eq(catalogPresentacion.id, id));
     return true;
   }
 }

@@ -20,7 +20,7 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura } from "@shared/schema";
+import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'comercializadora-select' | 'arquitectura-select' | 'folder-link' | 'actions' | 'index';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'folder-link' | 'actions' | 'index';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -63,6 +63,7 @@ const columnGroups: ColumnGroup[] = [
   { key: 'salud', label: 'SALUD', color: '#009b77' },
   { key: 'inicio', label: 'INICIO', color: '#dd4124' },
   { key: 'entrega', label: 'ENTREGA', color: '#d65076' },
+  { key: 'noheader_contrato', label: '' },
   { key: 'ventas', label: 'VENTAS', color: '#45b8ac' },
   { key: 'pagos', label: 'PAGOS', color: '#efc050' },
   { key: 'noheader4', label: '' },
@@ -103,6 +104,8 @@ const columns: ColumnDef[] = [
   { key: 'saludM2', label: 'm²', group: 'salud', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
   { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '85px', cellType: 'input', hasInmediato: true },
+  { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
+  { key: 'cesionDerechos', label: 'Cesión', group: 'noheader_contrato', type: 'cesion-derechos-select', width: '90px', cellType: 'dropdown' },
   { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '100px', cellType: 'input' },
   { key: 'ventasTelefono', label: 'Teléfono', group: 'ventas', width: '90px', cellType: 'input' },
   { key: 'ventasCorreo', label: 'Correo', group: 'ventas', width: '120px', cellType: 'input' },
@@ -112,6 +115,7 @@ const columns: ColumnDef[] = [
   { key: 'comercializacion', label: 'Comercializadora', group: 'noheader4', type: 'comercializadora-select', width: '120px', cellType: 'dropdown' },
   { key: 'arquitectura', label: 'Arquitectura', group: 'noheader4', type: 'arquitectura-select', width: '100px', cellType: 'dropdown' },
   { key: 'location', label: 'Ubicación', group: 'noheader4', width: '80px', cellType: 'input' },
+  { key: 'presentacion', label: 'Presentación', group: 'noheader4', type: 'presentacion-select', width: '100px', cellType: 'dropdown' },
   { key: 'legalesFolder', label: 'Legales', group: 'noheader4', type: 'folder-link', folderSection: 'legales', width: '70px' },
   { key: 'ventaFolder', label: 'Venta', group: 'noheader4', type: 'folder-link', folderSection: 'venta', width: '70px' },
   { key: 'actions', label: '', group: 'actions', type: 'actions', width: '50px' },
@@ -155,6 +159,18 @@ export function DevelopmentsSpreadsheet() {
 
   const { data: arquitecturas = [] } = useQuery<CatalogArquitectura[]>({
     queryKey: ["/api/catalog/arquitectura"],
+  });
+
+  const { data: tiposContrato = [] } = useQuery<CatalogTipoContrato[]>({
+    queryKey: ["/api/catalog/tipo-contrato"],
+  });
+
+  const { data: cesionDerechosList = [] } = useQuery<CatalogCesionDerechos[]>({
+    queryKey: ["/api/catalog/cesion-derechos"],
+  });
+
+  const { data: presentaciones = [] } = useQuery<CatalogPresentacion[]>({
+    queryKey: ["/api/catalog/presentacion"],
   });
 
   const isLoading = authLoading || developmentsLoading;
@@ -846,6 +862,90 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem value="__unassigned__">Sin asignar</SelectItem>
                               {arquitecturas.map(a => (
                                 <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{value || ""}</span>
+                            <Lock className="w-3 h-3 opacity-50" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'tipo-contrato-select') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} data-testid={`cell-${col.key}-${dev.id}`}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                              <SelectValue placeholder="Contrato" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {tiposContrato.filter(t => t.active !== false).map(t => (
+                                <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{value || ""}</span>
+                            <Lock className="w-3 h-3 opacity-50" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'cesion-derechos-select') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} data-testid={`cell-${col.key}-${dev.id}`}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                              <SelectValue placeholder="Cesión" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {cesionDerechosList.filter(c => c.active !== false).map(c => (
+                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{value || ""}</span>
+                            <Lock className="w-3 h-3 opacity-50" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'presentacion-select') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} data-testid={`cell-${col.key}-${dev.id}`}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                              <SelectValue placeholder="Presentación" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {presentaciones.filter(p => p.active !== false).map(p => (
+                                <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>

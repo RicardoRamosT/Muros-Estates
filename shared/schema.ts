@@ -287,6 +287,10 @@ export const PAGE_PERMISSIONS = {
       entregaProyectada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 43. entregaActualizada - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       entregaActualizada: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 43b. tipoContrato
+      tipoContrato: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 43c. cesionDerechos
+      cesionDerechos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 44. ventasNombre - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       ventasNombre: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 45. ventasTelefono - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
@@ -305,6 +309,8 @@ export const PAGE_PERMISSIONS = {
       arquitectura: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
       // 52. location - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
       location: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+      // 52b. presentacion - Profiler:0, Finanzas:1, Asesor:0, Desarrollador:1
+      presentacion: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
       // 53. legalesFolder - Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
       legalesFolder: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 54. ventaFolder - Profiler:0, Finanzas:1, Asesor:1, Desarrollador:1
@@ -723,6 +729,11 @@ export const developments = pgTable("developments", {
   comercializacion: text("comercializacion"),
   arquitectura: text("arquitectura"),
   convenios: text("convenios"),
+  
+  // Tipo de Contrato, Cesión de Derechos, Presentación
+  tipoContrato: text("tipo_contrato"),
+  cesionDerechos: text("cesion_derechos"),
+  presentacion: text("presentacion"),
   
   // Location y Venta
   location: text("location"),
@@ -1797,3 +1808,54 @@ export const insertCatalogBrokerExternoSchema = createInsertSchema(catalogBroker
 
 export type InsertCatalogBrokerExterno = z.infer<typeof insertCatalogBrokerExternoSchema>;
 export type CatalogBrokerExterno = typeof catalogBrokerExterno.$inferSelect;
+
+// Tipo de Contrato catalog
+export const catalogTipoContrato = pgTable("catalog_tipo_contrato", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogTipoContratoSchema = createInsertSchema(catalogTipoContrato).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogTipoContrato = z.infer<typeof insertCatalogTipoContratoSchema>;
+export type CatalogTipoContrato = typeof catalogTipoContrato.$inferSelect;
+
+// Cesión de Derechos catalog
+export const catalogCesionDerechos = pgTable("catalog_cesion_derechos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogCesionDerechosSchema = createInsertSchema(catalogCesionDerechos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogCesionDerechos = z.infer<typeof insertCatalogCesionDerechosSchema>;
+export type CatalogCesionDerechos = typeof catalogCesionDerechos.$inferSelect;
+
+// Presentación catalog
+export const catalogPresentacion = pgTable("catalog_presentacion", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCatalogPresentacionSchema = createInsertSchema(catalogPresentacion).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCatalogPresentacion = z.infer<typeof insertCatalogPresentacionSchema>;
+export type CatalogPresentacion = typeof catalogPresentacion.$inferSelect;

@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -2525,6 +2525,93 @@ export async function registerRoutes(
   });
   app.delete("/api/catalog/broker-externo/:id", requireAuth, requireRole("admin"), async (req, res) => {
     await storage.deleteCatalogBrokerExterno(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Tipo de Contrato
+  app.get("/api/catalog/tipo-contrato", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogTipoContrato();
+    res.json(items);
+  });
+  
+  app.post("/api/catalog/tipo-contrato", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogTipoContratoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogTipoContrato(result.data);
+    res.status(201).json(item);
+  });
+  
+  app.put("/api/catalog/tipo-contrato/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogTipoContrato(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "No encontrado" });
+    res.json(item);
+  });
+  
+  app.delete("/api/catalog/tipo-contrato/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogTipoContrato(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Cesión de Derechos
+  app.get("/api/catalog/cesion-derechos", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogCesionDerechos();
+    res.json(items);
+  });
+  
+  app.post("/api/catalog/cesion-derechos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogCesionDerechosSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogCesionDerechos(result.data);
+    res.status(201).json(item);
+  });
+  
+  app.put("/api/catalog/cesion-derechos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogCesionDerechos(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "No encontrado" });
+    res.json(item);
+  });
+  
+  app.delete("/api/catalog/cesion-derechos/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogCesionDerechos(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Presentación
+  app.get("/api/catalog/presentacion", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogPresentacion();
+    res.json(items);
+  });
+  
+  app.post("/api/catalog/presentacion", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogPresentacionSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogPresentacion(result.data);
+    res.status(201).json(item);
+  });
+  
+  app.put("/api/catalog/presentacion/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, active, order } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogPresentacion(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "No encontrado" });
+    res.json(item);
+  });
+  
+  app.delete("/api/catalog/presentacion/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogPresentacion(req.params.id as string);
     res.status(204).send();
   });
 
