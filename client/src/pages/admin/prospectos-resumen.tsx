@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import { ArrowLeft, Download, FileText, FileImage } from "lucide-react";
 import type { Client, User, CatalogCity, CatalogZone, Developer, Development, CatalogDevelopmentType } from "@shared/schema";
 
 export default function ProspectosResumen() {
@@ -130,78 +129,93 @@ export default function ProspectosResumen() {
 
   const asesores = users.filter(u => u.role === "asesor");
 
-  const getDateGroups = () => {
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
-    
-    const groups = [
-      { label: "Este Mes", filter: (d: Date) => d.getMonth() === thisMonth && d.getFullYear() === thisYear },
-      { label: "Mes Pasado", filter: (d: Date) => {
-        const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-        const lastYear = thisMonth === 0 ? thisYear - 1 : thisYear;
-        return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
-      }},
-      { label: "Este Año", filter: (d: Date) => d.getFullYear() === thisYear },
-      { label: "Año Pasado", filter: (d: Date) => d.getFullYear() === thisYear - 1 },
-    ];
-    
-    return groups.map(g => {
-      const count = prospects.filter(p => {
-        if (!p.createdAt) return false;
-        const date = new Date(p.createdAt);
-        return g.filter(date);
-      }).length;
-      return { label: g.label, count };
-    });
+  const getDateRange = () => {
+    const dates = prospects
+      .filter(p => p.createdAt)
+      .map(p => new Date(p.createdAt!));
+    if (dates.length === 0) return null;
+    const min = new Date(Math.min(...dates.map(d => d.getTime())));
+    const max = new Date(Math.max(...dates.map(d => d.getTime())));
+    const fmt = (d: Date) => d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' });
+    if (min.getFullYear() !== max.getFullYear()) {
+      const fmtY = (d: Date) => d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+      return `Del ${fmtY(min)} al ${fmtY(max)}`;
+    }
+    return `Del ${fmt(min)} al ${fmt(max)}`;
   };
 
-  const renderSummaryRow = (label: string, count: number, total: number) => {
+  const renderRow = (label: string, count: number, total: number, colorDot?: string) => {
     const percent = total > 0 ? Math.round((count / total) * 100) : 0;
     return (
-      <div key={label} className="flex items-center justify-between text-sm py-1 border-b border-gray-100 last:border-0">
-        <span className="text-gray-700">{label}</span>
-        <div className="flex items-center gap-4">
-          <span className="font-bold text-gray-900 w-12 text-right">{count}</span>
-          <span className="text-gray-500 w-10 text-right">{percent}%</span>
+      <div key={label} className="flex items-center justify-between gap-1" style={{ fontSize: '9px', lineHeight: '14px', borderBottom: '1px solid #f3f4f6', padding: '1px 0' }}>
+        <span className="text-gray-700 truncate flex items-center gap-1" style={{ maxWidth: '60%' }}>
+          {colorDot && <span className="inline-block rounded-full flex-shrink-0" style={{ width: 6, height: 6, backgroundColor: colorDot }}></span>}
+          {label}
+        </span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="font-bold text-gray-900" style={{ minWidth: '16px', textAlign: 'right' }}>{count}</span>
+          <span className="text-gray-400" style={{ minWidth: '24px', textAlign: 'right' }}>{percent}%</span>
         </div>
       </div>
     );
   };
 
-  const renderSection = (title: string, items: { label: string; count: number }[]) => {
+  const renderSection = (title: string, items: { label: string; count: number; color?: string }[]) => {
     const total = prospects.length;
-    const filteredItems = items.filter(item => item.count > 0);
-    if (filteredItems.length === 0) return null;
-    
     return (
-      <Card className="p-4">
-        <h3 className="font-semibold text-sm mb-3 text-gray-800 border-b pb-2">{title}</h3>
-        <div className="space-y-0">
-          {filteredItems.map(item => renderSummaryRow(item.label, item.count, total))}
+      <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '4px 6px' }}>
+        <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', borderBottom: '1px solid #d1d5db', paddingBottom: '2px', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{title}</div>
+        <div>
+          {items.map(item => renderRow(item.label, item.count, total, item.color))}
         </div>
-      </Card>
+      </div>
     );
   };
 
-  const handleDownload = async () => {
+  const captureElement = async () => {
     const element = document.getElementById('summary-content');
-    if (element) {
-      try {
-        const html2canvas = (await import('html2canvas')).default;
-        const canvas = await html2canvas(element, { backgroundColor: '#ffffff', scale: 2 });
-        const link = document.createElement('a');
-        link.download = `resumen-prospectos-${new Date().toISOString().split('T')[0]}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
-        link.click();
-        toast({ title: "Resumen descargado" });
-      } catch (err) {
-        toast({ title: "Error al descargar", variant: "destructive" });
-      }
+    if (!element) return null;
+    const html2canvas = (await import('html2canvas')).default;
+    return html2canvas(element, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      width: 1056,
+      height: 816,
+      windowWidth: 1056,
+      windowHeight: 816,
+    });
+  };
+
+  const handleDownloadJPG = async () => {
+    try {
+      const canvas = await captureElement();
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = `resumen-prospectos-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+      toast({ title: "JPG descargado" });
+    } catch (err) {
+      toast({ title: "Error al descargar", variant: "destructive" });
     }
   };
 
-  const dateGroups = getDateGroups();
+  const handleDownloadPDF = async () => {
+    try {
+      const canvas = await captureElement();
+      if (!canvas) return;
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'in', format: 'letter' });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 11, 8.5);
+      pdf.save(`resumen-prospectos-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast({ title: "PDF descargado" });
+    } catch (err) {
+      toast({ title: "Error al descargar", variant: "destructive" });
+    }
+  };
+
+  const dateRange = getDateRange();
 
   const asesorStats = asesores.map(u => ({
     label: u.name || u.username,
@@ -213,10 +227,21 @@ export default function ProspectosResumen() {
     count: prospects.filter(p => (p as any).ciudad === c.name).length,
   }));
 
-  const zoneStats = zones.map(z => ({
-    label: z.name,
-    count: prospects.filter(p => (p as any).zona === z.name).length,
-  }));
+  const citiesWithProspects = cityStats.filter(c => c.count > 0);
+  const showAllZones = citiesWithProspects.length > 1;
+
+  const zoneStats = showAllZones
+    ? [{ label: "Todas", count: prospects.length }]
+    : (() => {
+        const singleCity = citiesWithProspects.length === 1 ? citiesWithProspects[0].label : null;
+        const filteredZones = singleCity
+          ? zones.filter(z => (z as any).cityId ? cities.find(c => c.id === (z as any).cityId)?.name === singleCity : true)
+          : zones;
+        return filteredZones.map(z => ({
+          label: z.name,
+          count: prospects.filter(p => (p as any).zona === z.name).length,
+        }));
+      })();
 
   const developerStats = developers.map(d => ({
     label: d.name,
@@ -287,81 +312,91 @@ export default function ProspectosResumen() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-white border-b shadow-sm print:hidden">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => setLocation("/admin/prospectos")} data-testid="button-back">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-1" />
               Volver
             </Button>
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              <h1 className="text-lg font-semibold">Resumen de Prospectos</h1>
+              <FileText className="w-4 h-4 text-primary" />
+              <h1 className="text-sm font-semibold">Resumen de Prospectos</h1>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleDownload} data-testid="button-download-summary">
-            <Download className="w-4 h-4 mr-2" />
-            Descargar JPG
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleDownloadJPG} data-testid="button-download-jpg">
+              <FileImage className="w-4 h-4 mr-1" />
+              JPG
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadPDF} data-testid="button-download-pdf">
+              <Download className="w-4 h-4 mr-1" />
+              PDF
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div id="summary-content" className="max-w-7xl mx-auto p-6 bg-white min-h-screen">
-        <div className="flex items-center justify-between border-b pb-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              M
+      <div className="flex justify-center py-4 print:py-0">
+        <div
+          id="summary-content"
+          style={{
+            width: '1056px',
+            height: '816px',
+            padding: '16px 20px',
+            backgroundColor: '#ffffff',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #e5e7eb', paddingBottom: '6px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '32px', height: '32px', backgroundColor: 'hsl(var(--primary))', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '14px' }}>
+                M
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>MUROS</div>
+                <div style={{ fontSize: '9px', color: '#6b7280' }}>Plataforma Inmobiliaria</div>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">MUROS</h2>
-              <p className="text-sm text-gray-500">Plataforma Inmobiliaria</p>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: '#111827' }}>Resumen de Prospectos</div>
+              <div style={{ fontSize: '9px', color: '#6b7280' }}>
+                {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+              <div style={{ fontSize: '10px', fontWeight: 600, color: '#374151' }}>
+                Total: {prospects.length} prospectos
+              </div>
+              {dateRange && (
+                <div style={{ fontSize: '8px', color: '#9ca3af' }}>{dateRange}</div>
+              )}
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">Resumen de Prospectos</p>
-            <p className="text-xs text-gray-500">{new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            <p className="text-xs text-gray-400">Total: {prospects.length} prospectos</p>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: '6px',
+          }}>
+            {renderSection("ASESOR", asesorStats)}
+            {renderSection("CIUDAD", cityStats)}
+            {renderSection("ZONA", zoneStats)}
+            {renderSection("DESARROLLADOR", developerStats)}
+            {renderSection("DESARROLLO", developmentStats)}
+
+            {renderSection("TIPO DESARROLLO", developmentTypeStats)}
+            {renderSection("TIPO DE PROSPECTO", tipoStats)}
+            {renderSection("PERFIL", perfilStats)}
+            {renderSection("ESTATUS", estatusStats)}
+            {renderSection("BROKER EXTERNO", brokerStats)}
+
+            {renderSection("FUENTE", fuenteStats)}
+            {renderSection("ETAPA DE EMBUDO", embudoStats)}
+            {renderSection("CÓMO PAGA", comoPagaStats)}
+            {renderSection("POSITIVOS", positivosStats)}
+            {renderSection("NEGATIVOS", negativosStats)}
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {renderSection("FECHA", dateGroups)}
-          {renderSection("ASESOR", asesorStats)}
-          {renderSection("CIUDAD", cityStats)}
-          {renderSection("ZONA", zoneStats)}
-          {renderSection("DESARROLLADOR", developerStats)}
-          {renderSection("DESARROLLO", developmentStats)}
-          {renderSection("TIPO", developmentTypeStats)}
-          {renderSection("TIPO DE PROSPECTO", tipoStats)}
-          {renderSection("PERFIL", perfilStats)}
-          {renderSection("FUENTE", fuenteStats)}
-          {renderSection("BROKER EXTERNO", brokerStats)}
-          {renderSection("ESTATUS", estatusStats)}
-          
-          <Card className="p-4">
-            <h3 className="font-semibold text-sm mb-3 text-gray-800 border-b pb-2">ETAPA DE EMBUDO</h3>
-            <div className="space-y-0">
-              {embudoStats.filter(s => s.count > 0).map(item => {
-                const percent = prospects.length > 0 ? Math.round((item.count / prospects.length) * 100) : 0;
-                return (
-                  <div key={item.label} className="flex items-center justify-between text-sm py-1 border-b border-gray-100 last:border-0">
-                    <span className="flex items-center gap-2 text-gray-700">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
-                      {item.label}
-                    </span>
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold text-gray-900 w-12 text-right">{item.count}</span>
-                      <span className="text-gray-500 w-10 text-right">{percent}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-
-          {renderSection("CÓMO PAGA", comoPagaStats)}
-          {renderSection("POSITIVOS", positivosStats)}
-          {renderSection("NEGATIVOS", negativosStats)}
         </div>
       </div>
     </div>

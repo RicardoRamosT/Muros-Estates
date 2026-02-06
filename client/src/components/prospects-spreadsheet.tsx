@@ -6,7 +6,7 @@ import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -699,7 +699,44 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     } else if (col.key === 'desarrollador') {
                       options = developers.map(d => ({ value: d.name, label: d.name }));
                     } else if (col.key === 'desarrollo') {
-                      options = developments.map(d => ({ value: d.name, label: d.name }));
+                      const developerGroups: Record<string, { id: string; name: string }[]> = {};
+                      developments.forEach(d => {
+                        const dev = developers.find(dev => dev.id === d.developerId);
+                        const devName = dev?.name || 'Sin Desarrollador';
+                        if (!developerGroups[devName]) developerGroups[devName] = [];
+                        developerGroups[devName].push({ id: d.id, name: d.name });
+                      });
+                      
+                      return (
+                        <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                          {fieldCanEdit ? (
+                            <Select
+                              value={value || "__unassigned__"}
+                              onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                            >
+                              <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                                <SelectValue placeholder="Seleccionar" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-60">
+                                <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                                {Object.entries(developerGroups).map(([devName, devDevelopments]) => (
+                                  <SelectGroup key={devName}>
+                                    <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
+                                    {devDevelopments.map(d => (
+                                      <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <span>{value || '-'}</span>
+                              <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                            </div>
+                          )}
+                        </td>
+                      );
                     }
                     
                     return (
@@ -759,11 +796,24 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <SelectContent className="max-h-60">
                               <SelectItem value="__unassigned__">Sin asignar</SelectItem>
                               {filteredTypologies.length > 0 ? (
-                                filteredTypologies.map(t => (
-                                  <SelectItem key={t.id} value={t.id}>
-                                    {t.development} - {t.type || 'Sin tipo'} ({t.city})
-                                  </SelectItem>
-                                ))
+                                (() => {
+                                  const groupedByDev: Record<string, typeof filteredTypologies> = {};
+                                  filteredTypologies.forEach(t => {
+                                    const devName = t.development || 'Sin Desarrollo';
+                                    if (!groupedByDev[devName]) groupedByDev[devName] = [];
+                                    groupedByDev[devName].push(t);
+                                  });
+                                  return Object.entries(groupedByDev).map(([devName, typs]) => (
+                                    <SelectGroup key={devName}>
+                                      <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
+                                      {typs.map(t => (
+                                        <SelectItem key={t.id} value={t.id}>
+                                          {t.type || 'Sin tipo'} ({t.city})
+                                        </SelectItem>
+                                      ))}
+                                    </SelectGroup>
+                                  ));
+                                })()
                               ) : (
                                 <SelectItem value="__no_options__" disabled>
                                   {prospectDeveloper || prospectDevelopment 
