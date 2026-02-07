@@ -1273,11 +1273,6 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     // Value is now an array
     const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value] : []);
     
-    // Auto-select all if only one type available and none selected
-    if (availableTypes.length === 1 && currentTypes.length === 0) {
-      setTimeout(() => onChange(availableTypes), 0);
-    }
-    
     if (availableTypes.length === 0) {
       return (
         <div 
@@ -1802,11 +1797,21 @@ export function TypologySpreadsheet() {
       const selectedDev = dbDevelopments.find(d => d.name === value);
       if (selectedDev) {
         autoPopulatedFields.zone = selectedDev.zone || "";
-        // Find developer name from developerId
         const developerRecord = dbDevelopers.find((dev: any) => dev.id === selectedDev.developerId);
         autoPopulatedFields.developer = developerRecord?.name || "";
         (updatedRow as any).zone = autoPopulatedFields.zone;
         (updatedRow as any).developer = autoPopulatedFields.developer;
+        const devTipos = (selectedDev as any).tipos as string[] | null;
+        if (devTipos && devTipos.length > 0) {
+          autoPopulatedFields.tipoDesarrollo = devTipos;
+          (updatedRow as any).tipoDesarrollo = devTipos;
+        } else if (developerRecord) {
+          const devRecTipos = (developerRecord as any).tipos as string[] | null;
+          if (devRecTipos && devRecTipos.length > 0) {
+            autoPopulatedFields.tipoDesarrollo = devRecTipos;
+            (updatedRow as any).tipoDesarrollo = devRecTipos;
+          }
+        }
       }
     }
     
