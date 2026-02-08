@@ -570,7 +570,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.type === 'index') {
                     return (
                       <td key={col.key} className={getCellStyle({ type: "index" })} title={prospect.id}>
-                        <span className="text-xs font-mono">{prospect.id.substring(0, 8)}</span>
+                        <span className="text-xs font-mono">{index + 1}</span>
                       </td>
                     );
                   }

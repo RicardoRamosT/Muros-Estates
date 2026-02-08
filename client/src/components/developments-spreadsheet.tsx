@@ -435,7 +435,7 @@ export function DevelopmentsSpreadsheet() {
                   if (col.key === 'id') {
                     return (
                       <td key={col.key} className={getCellStyle({ type: "index" })} title={dev.id}>
-                        <span className="text-muted-foreground font-mono">{dev.id.substring(0, 8)}</span>
+                        <span className="text-muted-foreground font-mono">{rowIndex + 1}</span>
                       </td>
                     );
                   }

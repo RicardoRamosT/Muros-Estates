@@ -346,7 +346,7 @@ export function DevelopersSpreadsheet() {
                         className={getCellStyle({ type: "index", disabled: false })}
                         title={dev.id}
                       >
-                        <span className="font-mono">{dev.id.substring(0, 8)}</span>
+                        <span className="font-mono">{index + 1}</span>
                       </td>
                     );
                   }
