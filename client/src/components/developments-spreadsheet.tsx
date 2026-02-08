@@ -29,17 +29,20 @@ import { cn } from "@/lib/utils";
 const NIVEL_OPTIONS = ['AAA', 'A', 'B', 'C'] as const;
 const TORRES_OPTIONS = Array.from({ length: 9 }, (_, i) => i + 1);
 const NIVELES_OPTIONS = Array.from({ length: 110 }, (_, i) => i + 1);
+const EMPRESA_TIPO_OPTIONS = ['Desarrollador', 'Comercializadora'] as const;
+const RECAMARAS_OPTIONS = ['Loft', '1 + flex', '2 + flex', '3 + flex'] as const;
 
 interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'folder-link' | 'actions' | 'index';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-recamaras' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index';
   width: string;
   folderSection?: string;
   cellType?: CellType;
   suffix?: string;
   hasInmediato?: boolean;
+  calcFrom?: { unidades: string; vendidas: string };
 }
 
 interface ColumnGroup {
@@ -74,6 +77,7 @@ const columnGroups: ColumnGroup[] = [
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
   { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
+  { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'basic', width: '130px', cellType: 'input' },
   { key: 'city', label: 'Ciudad', group: 'location', type: 'city-select', width: '95px', cellType: 'dropdown' },
@@ -90,19 +94,26 @@ const columns: ColumnDef[] = [
   { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '70px', cellType: 'checkbox' },
-  { key: 'recDesde', label: 'Desde', group: 'rec', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
-  { key: 'recHasta', label: 'Hasta', group: 'rec', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
+  { key: 'recamaras', label: 'Recámaras', group: 'rec', type: 'multiselect-recamaras', width: '110px', cellType: 'dropdown' },
   { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader3', width: '90px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo', group: 'noheader3', width: '75px', cellType: 'input' },
   { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
   { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'depasVendidas', label: 'Vendidas', group: 'depas', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'depasPorcentajeCalc', label: '%', group: 'depas', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
   { key: 'localesUnidades', label: 'Uds', group: 'locales', type: 'number', width: '55px', cellType: 'input' },
   { key: 'localesM2', label: 'm²', group: 'locales', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'localesVendidas', label: 'Vendidas', group: 'locales', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'localesPorcentajeCalc', label: '%', group: 'locales', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'localesUnidades', vendidas: 'localesVendidas' } },
   { key: 'oficinasUnidades', label: 'Uds', group: 'oficinas', type: 'number', width: '55px', cellType: 'input' },
   { key: 'oficinasM2', label: 'm²', group: 'oficinas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'oficinasVendidas', label: 'Vendidas', group: 'oficinas', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'oficinasPorcentajeCalc', label: '%', group: 'oficinas', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'oficinasUnidades', vendidas: 'oficinasVendidas' } },
   { key: 'saludUnidades', label: 'Uds', group: 'salud', type: 'number', width: '55px', cellType: 'input' },
   { key: 'saludM2', label: 'm²', group: 'salud', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'saludVendidas', label: 'Vendidas', group: 'salud', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'saludPorcentajeCalc', label: '%', group: 'salud', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'saludUnidades', vendidas: 'saludVendidas' } },
   { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
@@ -386,7 +397,7 @@ export function DevelopmentsSpreadsheet() {
                     className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'} ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                     style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
                   >
-                    {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' ? (
+                    {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
                       <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
                         <span className="truncate">{col.label}</span>
                       </div>
@@ -480,7 +491,49 @@ export function DevelopmentsSpreadsheet() {
                     );
                   }
 
+                  if (col.type === 'empresa-tipo-select') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => {
+                              handleSelectChange(dev.id, col.key, v);
+                              if (dev.developerId) {
+                                const selectedDev = developers.find(d => d.id === dev.developerId);
+                                if (selectedDev && selectedDev.tipo !== (v === '__unassigned__' ? null : v)) {
+                                  updateMutation.mutate({ id: dev.id, data: { developerId: null } });
+                                }
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              {EMPRESA_TIPO_OPTIONS.map(t => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{value || ""}</span>
+                            <Lock className="w-3 h-3 opacity-50" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
                   if (col.type === 'developer-select') {
+                    const filteredDevs = developers.filter(d => {
+                      if (dev.empresaTipo) {
+                        return d.tipo === dev.empresaTipo;
+                      }
+                      return d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora';
+                    });
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
@@ -493,7 +546,7 @@ export function DevelopmentsSpreadsheet() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {developers.filter(d => d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora').map(d => (
+                              {filteredDevs.map(d => (
                                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                               ))}
                             </SelectContent>
@@ -810,6 +863,57 @@ export function DevelopmentsSpreadsheet() {
                             <Lock className="w-3 h-3 opacity-50 shrink-0" />
                           </div>
                         )}
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'multiselect-recamaras') {
+                    const arrValue: string[] = Array.isArray(value) ? value : [];
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2">
+                              {RECAMARAS_OPTIONS.map(opt => (
+                                <div key={opt} className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    checked={arrValue.includes(opt)}
+                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, opt)}
+                                  />
+                                  <span className="text-xs">{opt}</span>
+                                </div>
+                              ))}
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'calculated-percent') {
+                    const calcFrom = col.calcFrom;
+                    let percentValue = '';
+                    if (calcFrom) {
+                      const unidades = Number((dev as any)[calcFrom.unidades]) || 0;
+                      const vendidas = Number((dev as any)[calcFrom.vendidas]) || 0;
+                      if (unidades > 0) {
+                        percentValue = `${((vendidas / unidades) * 100).toFixed(1)}%`;
+                      }
+                    }
+                    return (
+                      <td key={col.key} className="border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 px-2 text-xs text-center" style={{ width: col.width, minWidth: col.width }}>
+                        <span className="text-muted-foreground">{percentValue}</span>
                       </td>
                     );
                   }

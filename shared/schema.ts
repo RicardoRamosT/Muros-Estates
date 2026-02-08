@@ -203,6 +203,8 @@ export const PAGE_PERMISSIONS = {
       id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 2. active - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // empresaTipo - Tipo de empresa (Desarrollador/Comercializadora)
+      empresaTipo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 3. developerId - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       developerId: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 4. name - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
@@ -241,6 +243,8 @@ export const PAGE_PERMISSIONS = {
       recDesde: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 20. recHasta - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       recHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // recamaras - Selector controlado de recámaras
+      recamaras: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 21. acabados - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       acabados: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 22. depasM2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
@@ -653,6 +657,7 @@ export type Developer = typeof developers.$inferSelect;
 // Developments (proyectos/edificios)
 export const developments = pgTable("developments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  empresaTipo: text("empresa_tipo"),
   developerId: varchar("developer_id").references(() => developers.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   city: text("city"),
@@ -675,8 +680,9 @@ export const developments = pgTable("developments", {
   dish: boolean("dish"),
   
   // REC
-  recDesde: decimal("rec_desde", { precision: 10, scale: 2 }),
-  recHasta: decimal("rec_hasta", { precision: 10, scale: 2 }),
+  recDesde: decimal("rec_desde", { precision: 10, scale: 2 }), // legacy
+  recHasta: decimal("rec_hasta", { precision: 10, scale: 2 }), // legacy
+  recamaras: text("recamaras").array(),
   acabados: text("acabados").array(),
   
   // Unidades y Metros Cuadrados
