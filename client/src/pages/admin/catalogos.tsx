@@ -32,10 +32,10 @@ export default function AdminCatalogos() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Database className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">Catálogos</h1>
+      <main className="container mx-auto px-4 py-3">
+        <div className="flex items-center gap-2 mb-3">
+          <Database className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Catálogos</h1>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -327,10 +327,10 @@ export function DevelopmentsSpreadsheet() {
 
   return (
     <div className="h-full flex flex-col" data-testid="developments-spreadsheet">
-      <div className="flex items-center justify-between p-2 border-b bg-muted/30">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
         <div className="flex items-center gap-2">
-          <Building className="w-5 h-5 text-primary" />
-          <span className="font-medium">{filteredAndSortedData.length} desarrollos</span>
+          <Building className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrollos</h1>
           {role && (
             <Badge variant="outline" className="text-xs">
               {role}
@@ -340,20 +340,22 @@ export function DevelopmentsSpreadsheet() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 text-xs"
               onClick={clearAllFilters}
             >
-              <X className="h-3 w-3 mr-1" />
+              <X className="w-3 h-3 mr-1" />
               Limpiar filtros
             </Button>
           )}
         </div>
-        {hasFullAccess && (
-          <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">
-            <Plus className="w-4 h-4 mr-1" />
-            Nuevo
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {hasFullAccess && (
+            <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
+            </Button>
+          )}
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} registros</span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto spreadsheet-scroll">

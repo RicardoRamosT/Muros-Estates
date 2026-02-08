@@ -15,7 +15,8 @@ import {
   Phone,
   Calendar,
   ArrowRight,
-  Activity
+  Activity,
+  LayoutDashboard
 } from "lucide-react";
 import { useMemo } from "react";
 import { 
@@ -173,10 +174,10 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold" data-testid="text-page-title">Dashboard</h1>
-          <p className="text-muted-foreground">Panel de control de Muros</p>
+      <main className="container mx-auto px-4 py-3">
+        <div className="flex items-center gap-2 mb-3">
+          <LayoutDashboard className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Dashboard</h1>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

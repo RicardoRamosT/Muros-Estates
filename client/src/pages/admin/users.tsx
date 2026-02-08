@@ -5,7 +5,7 @@ import { AdminUserTable } from "@/components/admin-user-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Users, Search } from "lucide-react";
+import { Plus, Users, Users2, Search } from "lucide-react";
 import { RolesPermissionsView } from "@/components/roles-permissions-view";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -130,18 +130,16 @@ export default function AdminUsers() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold" data-testid="text-page-title">Gestión de Usuarios</h1>
-              <p className="text-muted-foreground">Administra perfiladores, asesores y actualizadores</p>
-            </div>
+      <main className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users2 className="w-4 h-4 text-primary" />
+            <h1 className="text-sm font-bold" data-testid="text-page-title">Usuarios</h1>
           </div>
           <Link href="/admin/users/new">
-            <Button data-testid="button-add-user">
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Usuario
+            <Button size="sm" data-testid="button-add-user">
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
             </Button>
           </Link>
         </div>

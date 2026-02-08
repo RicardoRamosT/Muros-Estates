@@ -632,11 +632,11 @@ export default function AdminDocuments() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto p-4 space-y-4">
+      <div className="container mx-auto px-4 py-3 space-y-3">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">Documentos</h1>
-            <p className="text-muted-foreground">Gestiona los documentos para asesores y clientes</p>
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-primary" />
+            <h1 className="text-sm font-bold" data-testid="text-page-title">Documentos</h1>
           </div>
         
           <div className="flex items-center gap-2">

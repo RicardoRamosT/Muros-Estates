@@ -217,10 +217,10 @@ export function DevelopersSpreadsheet() {
 
   return (
     <div className="flex flex-col h-full" data-testid="developers-spreadsheet">
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <div className="flex items-center gap-3">
-          <Building2 className="w-5 h-5 text-primary" />
-          <span className="font-medium">{filteredAndSortedData.length} Desarrolladores</span>
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
+        <div className="flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrolladores</h1>
           {!hasFullAccess && (
             <Badge variant="outline" className="text-xs">
               <Eye className="w-3 h-3 mr-1" />
@@ -231,20 +231,22 @@ export function DevelopersSpreadsheet() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 text-xs"
               onClick={clearAllFilters}
             >
-              <X className="h-3 w-3 mr-1" />
+              <X className="w-3 h-3 mr-1" />
               Limpiar filtros
             </Button>
           )}
         </div>
-        {hasFullAccess && (
-          <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
-            <Plus className="w-4 h-4 mr-2" />
-            Agregar
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {hasFullAccess && (
+            <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
+            </Button>
+          )}
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} registros</span>
+        </div>
       </div>
       
       <div className="flex-1 overflow-auto spreadsheet-scroll">

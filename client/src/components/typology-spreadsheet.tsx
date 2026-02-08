@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, 
+  ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
   ArrowUp01, ArrowDown10, ArrowUpDown, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical
 } from "lucide-react";
@@ -2127,17 +2127,10 @@ export function TypologySpreadsheet() {
   
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between gap-4 p-4 border-b bg-background sticky top-0 z-10">
+      <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b bg-background sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <Button 
-            onClick={handleAddRow} 
-            size="sm"
-            disabled={createMutation.isPending}
-            data-testid="button-add-typology"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Nueva Fila
-          </Button>
+          <Layers className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Tipologías</h1>
           <Button
             variant="ghost"
             size="sm"
@@ -2148,7 +2141,7 @@ export function TypologySpreadsheet() {
           </Button>
           {(activeFilterCount > 0 || activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)) && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => {
                 setColumnFilters({});
@@ -2157,27 +2150,28 @@ export function TypologySpreadsheet() {
               }}
               data-testid="button-clear-all-filters"
             >
-              <X className="w-4 h-4 mr-1" />
+              <X className="w-3 h-3 mr-1" />
               Limpiar filtros
             </Button>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary">
-              <Filter className="w-3 h-3 mr-1" />
-              {activeFilterCount} filtro{activeFilterCount > 1 ? "s" : ""}
-            </Badge>
-          )}
-          <Badge variant="outline">
-            {filteredAndSortedTypologies.length} tipologías
-          </Badge>
+          <Button 
+            onClick={handleAddRow} 
+            size="sm"
+            disabled={createMutation.isPending}
+            data-testid="button-add-typology"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Nuevo
+          </Button>
           {pendingChanges.size > 0 && (
             <Badge variant="secondary" className="animate-pulse">
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               Guardando...
             </Badge>
           )}
+          <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} registros</span>
         </div>
       </div>
       

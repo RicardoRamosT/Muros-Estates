@@ -479,10 +479,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   return (
     <div className="flex flex-col h-full" data-testid="prospects-spreadsheet">
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
-        <div className="flex items-center gap-3">
-          <Users className="w-5 h-5 text-primary" />
-          <span className="font-medium">{filteredAndSortedData.length} {isClientView ? "Clientes" : "Prospectos"}</span>
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-bold" data-testid="text-page-title">{isClientView ? "Clientes" : "Prospectos"}</h1>
           {!hasFullAccess && (
             <Badge variant="outline" className="text-xs">
               <Eye className="w-3 h-3 mr-1" />
@@ -493,10 +493,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 text-xs"
               onClick={clearAllFilters}
             >
-              <X className="h-3 w-3 mr-1" />
+              <X className="w-3 h-3 mr-1" />
               Limpiar filtros
             </Button>
           )}
@@ -504,16 +503,17 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         <div className="flex items-center gap-2">
           {!isClientView && (
             <Button size="sm" variant="outline" onClick={() => window.location.href = "/admin/prospectos/resumen"} data-testid="button-view-summary">
-              <FileText className="w-4 h-4 mr-2" />
-              Ver Resumen
+              <FileText className="w-4 h-4 mr-1" />
+              Resumen
             </Button>
           )}
           {hasFullAccess && (
             <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
             </Button>
           )}
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} registros</span>
         </div>
       </div>
 
