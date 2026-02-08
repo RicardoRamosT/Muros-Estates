@@ -36,7 +36,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-recamaras' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'recamaras-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -75,7 +75,7 @@ const columnGroups: ColumnGroup[] = [
 ];
 
 const columns: ColumnDef[] = [
-  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
+  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '75px', cellType: 'index' },
   { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
   { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '120px', cellType: 'dropdown' },
@@ -94,7 +94,7 @@ const columns: ColumnDef[] = [
   { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '70px', cellType: 'checkbox' },
-  { key: 'recamaras', label: 'Recámaras', group: 'rec', type: 'multiselect-recamaras', width: '110px', cellType: 'dropdown' },
+  { key: 'recamaras', label: 'Recámaras', group: 'rec', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
   { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader3', width: '90px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo', group: 'noheader3', width: '75px', cellType: 'input' },
@@ -137,7 +137,7 @@ export function DevelopmentsSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions('desarrollos');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
-  const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
+  const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
@@ -434,8 +434,8 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.key === 'id') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "index" })}>
-                        <span className="text-muted-foreground">{rowIndex + 1}</span>
+                      <td key={col.key} className={getCellStyle({ type: "index" })} title={dev.id}>
+                        <span className="text-muted-foreground font-mono">{dev.id.substring(0, 8)}</span>
                       </td>
                     );
                   }
@@ -867,33 +867,27 @@ export function DevelopmentsSpreadsheet() {
                     );
                   }
 
-                  if (col.type === 'multiselect-recamaras') {
-                    const arrValue: string[] = Array.isArray(value) ? value : [];
+                  if (col.type === 'recamaras-select') {
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
                         {fieldCanEdit ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
-                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48 p-2">
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-recamaras-${dev.id}`}>
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__">Seleccionar</SelectItem>
                               {RECAMARAS_OPTIONS.map(opt => (
-                                <div key={opt} className="flex items-center gap-2 py-1">
-                                  <Checkbox
-                                    checked={arrValue.includes(opt)}
-                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, opt)}
-                                  />
-                                  <span className="text-xs">{opt}</span>
-                                </div>
+                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                               ))}
-                            </PopoverContent>
-                          </Popover>
+                            </SelectContent>
+                          </Select>
                         ) : (
                           <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                            <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
                             <Lock className="w-3 h-3 opacity-50 shrink-0" />
                           </div>
                         )}
@@ -903,7 +897,7 @@ export function DevelopmentsSpreadsheet() {
 
                   if (col.type === 'calculated-percent') {
                     const calcFrom = col.calcFrom;
-                    let percentValue = '';
+                    let percentValue = '—';
                     if (calcFrom) {
                       const unidades = Number((dev as any)[calcFrom.unidades]) || 0;
                       const vendidas = Number((dev as any)[calcFrom.vendidas]) || 0;
@@ -912,7 +906,7 @@ export function DevelopmentsSpreadsheet() {
                       }
                     }
                     return (
-                      <td key={col.key} className="border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 px-2 text-xs text-center" style={{ width: col.width, minWidth: col.width }}>
+                      <td key={col.key} className={cn(getCellStyle({ type: "readonly" }), "text-center")} style={{ width: col.width, minWidth: col.width }}>
                         <span className="text-muted-foreground">{percentValue}</span>
                       </td>
                     );
@@ -1232,12 +1226,42 @@ export function DevelopmentsSpreadsheet() {
 
                   const rawDisplayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
                   const displayValue = rawDisplayValue && col.suffix ? `${rawDisplayValue} ${col.suffix}` : rawDisplayValue;
+                  const isLongText = ['name', 'ventasNombre', 'ventasCorreo', 'ventasTelefono', 'pagosNombre', 'pagosCorreo', 'pagosTelefono', 'location'].includes(col.key);
+
+                  if (isLongText && col.type !== 'number') {
+                    return (
+                      <td
+                        key={col.key}
+                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit })}
+                        data-testid={`cell-${col.key}-${dev.id}`}
+                      >
+                        <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => {
+                            if (fieldCanEdit) {
+                              setTextDetail({
+                                title: col.label,
+                                value: String(value || ''),
+                                editable: true,
+                                onSave: (newVal) => updateMutation.mutate({ id: dev.id, data: { [col.key]: newVal || null } }),
+                              });
+                            } else {
+                              setTextDetail({ title: col.label, value: String(displayValue || ''), editable: false });
+                            }
+                          }}
+                        >
+                          <span className="truncate">{displayValue || ''}</span>
+                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                        </div>
+                      </td>
+                    );
+                  }
 
                   return (
                     <td 
                       key={col.key} 
                       className={getCellStyle({ 
-                        type: col.type === 'number' ? "input" : "input", 
+                        type: "input", 
                         disabled: !fieldCanEdit,
                         isEditing 
                       })}
@@ -1259,7 +1283,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div
                           className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue) })}
+                          onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue), editable: false })}
                         >
                           <span className="truncate">{displayValue || ''}</span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
@@ -1286,6 +1310,8 @@ export function DevelopmentsSpreadsheet() {
         onOpenChange={(open) => !open && setTextDetail(null)}
         title={textDetail?.title || ""}
         value={textDetail?.value || ""}
+        editable={textDetail?.editable}
+        onSave={textDetail?.onSave}
       />
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>

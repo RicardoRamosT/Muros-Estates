@@ -86,7 +86,7 @@ export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
-  const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
+  const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -95,7 +95,7 @@ export function DevelopersSpreadsheet() {
   });
 
   const allColumns: ColumnDef[] = [
-    { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
+    { key: "id", label: "ID", width: "75px", type: "index", autoField: true, cellType: "index" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
     { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
@@ -344,8 +344,9 @@ export function DevelopersSpreadsheet() {
                       <td 
                         key={field} 
                         className={getCellStyle({ type: "index", disabled: false })}
+                        title={dev.id}
                       >
-                        {index + 1}
+                        <span className="font-mono">{dev.id.substring(0, 8)}</span>
                       </td>
                     );
                   }
@@ -429,8 +430,7 @@ export function DevelopersSpreadsheet() {
                     return (
                       <td
                         key={field}
-                        className={getCellStyle({ type: "readonly", disabled: true })}
-                        style={{ backgroundColor: '#f3f4f6' }}
+                        className={getCellStyle({ type: "readonly" })}
                         data-testid={`cell-${field}-${dev.id}`}
                       >
                         <span className="text-xs text-muted-foreground px-2">{calculated}</span>
@@ -609,7 +609,7 @@ export function DevelopersSpreadsheet() {
                         ) : (
                           <div
                           className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value) })}
+                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value), editable: false })}
                         >
                             <span className="truncate uppercase">
                               {value || ''}
@@ -622,7 +622,37 @@ export function DevelopersSpreadsheet() {
                   }
                   
                   const value = dev[field as keyof Developer] as string;
-                  
+                  const isLongText = ['razonSocial', 'domicilio', 'contratos', 'representante', 'contactName', 'contactEmail'].includes(field);
+
+                  if (isLongText) {
+                    return (
+                      <td
+                        key={field}
+                        className={getCellStyle({ type: cellType, disabled: !fieldCanEdit })}
+                        data-testid={`cell-${field}-${dev.id}`}
+                      >
+                        <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => {
+                            if (fieldCanEdit) {
+                              setTextDetail({
+                                title: col.label,
+                                value: String(value || ''),
+                                editable: true,
+                                onSave: (newVal) => updateMutation.mutate({ id: dev.id, data: { [field]: newVal || null } }),
+                              });
+                            } else {
+                              setTextDetail({ title: col.label, value: String(value || ''), editable: false });
+                            }
+                          }}
+                        >
+                          <span className="truncate">{value || ''}</span>
+                          {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                        </div>
+                      </td>
+                    );
+                  }
+
                   return (
                     <td
                       key={field}
@@ -647,7 +677,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div
                           className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value) })}
+                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value), editable: false })}
                         >
                           <span className="truncate">
                             {value || ''}
@@ -677,6 +707,8 @@ export function DevelopersSpreadsheet() {
         onOpenChange={(open) => !open && setTextDetail(null)}
         title={textDetail?.title || ""}
         value={textDetail?.value || ""}
+        editable={textDetail?.editable}
+        onSave={textDetail?.onSave}
       />
     </div>
   );

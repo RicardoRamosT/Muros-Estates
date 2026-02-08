@@ -222,7 +222,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   // Columns for Prospectos (22 fields)
   const prospectColumns = [
-    { key: "index", label: "ID", width: "45px", type: "index" },
+    { key: "index", label: "ID", width: "75px", type: "index" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -249,7 +249,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   ];
 
   const clientColumns = [
-    { key: "index", label: "ID", width: "45px", type: "index" },
+    { key: "index", label: "ID", width: "75px", type: "index" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -569,8 +569,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.type === 'index') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "index" })}>
-                        <span className="text-xs">{index + 1}</span>
+                      <td key={col.key} className={getCellStyle({ type: "index" })} title={prospect.id}>
+                        <span className="text-xs font-mono">{prospect.id.substring(0, 8)}</span>
                       </td>
                     );
                   }

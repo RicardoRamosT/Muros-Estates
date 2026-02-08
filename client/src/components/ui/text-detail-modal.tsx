@@ -1,22 +1,59 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TextDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   value: string;
+  editable?: boolean;
+  onSave?: (newValue: string) => void;
 }
 
-export function TextDetailModal({ open, onOpenChange, title, value }: TextDetailModalProps) {
+export function TextDetailModal({ open, onOpenChange, title, value, editable = false, onSave }: TextDetailModalProps) {
+  const [editValue, setEditValue] = useState(value);
+
+  useEffect(() => {
+    setEditValue(value);
+  }, [value, open]);
+
+  const handleSave = () => {
+    if (onSave && editValue !== value) {
+      onSave(editValue);
+    }
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" data-testid="text-detail-modal">
         <DialogHeader>
           <DialogTitle className="text-sm">{title}</DialogTitle>
         </DialogHeader>
-        <div className="text-sm whitespace-pre-wrap break-words py-2" data-testid="text-detail-content">
-          {value || <span className="text-muted-foreground italic">Sin contenido</span>}
-        </div>
+        {editable ? (
+          <Textarea
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            className="min-h-[120px] text-sm"
+            data-testid="text-detail-input"
+          />
+        ) : (
+          <div className="text-sm whitespace-pre-wrap break-words py-2" data-testid="text-detail-content">
+            {value || <span className="text-muted-foreground italic">Sin contenido</span>}
+          </div>
+        )}
+        {editable && (
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={handleSave} data-testid="button-save-text">
+              Guardar
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

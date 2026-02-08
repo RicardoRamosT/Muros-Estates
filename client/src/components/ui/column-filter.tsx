@@ -112,31 +112,30 @@ export function ColumnFilter({
 
   const SortIcon = () => {
     if (sortDirection === "asc") {
-      return isNumeric ? <ArrowUp01 className="w-2.5 h-2.5 text-primary" /> : <ArrowUpAZ className="w-2.5 h-2.5 text-primary" />;
+      return isNumeric ? <ArrowUp01 className="w-3 h-3 text-primary" /> : <ArrowUpAZ className="w-3 h-3 text-primary" />;
     }
     if (sortDirection === "desc") {
-      return isNumeric ? <ArrowDown10 className="w-2.5 h-2.5 text-primary" /> : <ArrowDownAZ className="w-2.5 h-2.5 text-primary" />;
+      return isNumeric ? <ArrowDown10 className="w-3 h-3 text-primary" /> : <ArrowDownAZ className="w-3 h-3 text-primary" />;
     }
-    return <ArrowUpDown className="w-2.5 h-2.5 text-muted-foreground" />;
+    return <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-60" />;
   };
 
   return (
-    <div className="flex items-center w-full">
+    <div className="flex items-center gap-0.5 w-full">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
             className={cn(
-              "flex items-center gap-1 flex-1 min-w-0 text-xs font-medium text-left cursor-pointer",
-              "hover-elevate",
+              "flex items-center gap-0.5 flex-1 min-w-0 text-xs font-medium text-left cursor-pointer",
               hasActiveFilter && "text-primary"
             )}
             data-testid={`filter-${columnKey}`}
           >
-            <span className="truncate">{columnLabel}</span>
             <ChevronDown className={cn(
               "w-3 h-3 flex-shrink-0",
-              hasActiveFilter && "text-primary"
+              hasActiveFilter ? "text-primary" : "text-muted-foreground opacity-60"
             )} />
+            <span className="truncate">{columnLabel}</span>
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-0" align="start">
