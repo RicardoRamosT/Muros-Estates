@@ -973,7 +973,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const selectedValues: string[] = Array.isArray(rawValue) ? rawValue : (rawValue ? [rawValue] : []);
                     const options = optionsMap[col.key] || [];
                     const count = selectedValues.length;
-                    const displayText = count === 0 ? null : `${count} seleccionado${count > 1 ? 's' : ''}`;
+                    const displayText = count === 0 ? null : `${count} seleccionados`;
                     
                     const handleMultiChange = (optValue: string, checked: boolean) => {
                       const newValues = checked 

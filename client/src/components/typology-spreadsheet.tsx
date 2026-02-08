@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
   Loader2, RefreshCw, AlertCircle, ArrowUpAZ, ArrowDownAZ,
-  ArrowUp01, ArrowDown10, ArrowUpDown, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical
+  ArrowUp01, ArrowDown10, ArrowUpDown, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
 } from "lucide-react";
 import {
   DndContext,
@@ -1046,7 +1046,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       <div 
         className={cn(
           "spreadsheet-cell px-2 text-xs truncate",
-          column.calculated && (sectionCellColor || "bg-blue-50 dark:bg-blue-950/30"),
+          column.calculated && "bg-gray-100 dark:bg-gray-800/50",
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed"
@@ -1140,9 +1140,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     };
     
     const displayValue = currentValues.length > 0 
-      ? currentValues.length === 1 
-        ? currentValues[0] 
-        : `${currentValues.length} sel.`
+      ? `${currentValues.length} seleccionados`
       : "";
     
     return (
@@ -1150,34 +1148,41 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className="flex items-center justify-between w-full h-6 text-xs px-1 cursor-pointer bg-transparent border-0 focus:ring-0 focus:outline-none text-left"
-              data-testid={`multiselect-${column.key}-${rowId}`}
-            >
-              <span className="truncate">{displayValue}</span>
-              <ChevronDown className="ml-auto h-3 w-3 shrink-0 opacity-50" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" align="start">
-            <div className="space-y-1 max-h-60 overflow-y-auto">
-              {allOptions.map((opt) => (
-                <label
-                  key={opt}
-                  className="flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-accent cursor-pointer"
-                >
-                  <Checkbox
-                    checked={currentValues.includes(opt)}
-                    onCheckedChange={() => handleToggle(opt)}
-                  />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        {disabled ? (
+          <div className="flex items-center gap-1 px-1">
+            <span className="text-xs text-muted-foreground truncate">{displayValue}</span>
+            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+          </div>
+        ) : (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center justify-between w-full h-6 text-xs px-1 cursor-pointer bg-transparent border-0 focus:ring-0 focus:outline-none text-left"
+                data-testid={`multiselect-${column.key}-${rowId}`}
+              >
+                <span className="truncate">{displayValue}</span>
+                <ChevronDown className="ml-auto h-3 w-3 shrink-0 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="start">
+              <div className="space-y-1 max-h-60 overflow-y-auto">
+                {allOptions.map((opt) => (
+                  <label
+                    key={opt}
+                    className="flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-accent cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={currentValues.includes(opt)}
+                      onCheckedChange={() => handleToggle(opt)}
+                    />
+                    <span>{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
     );
   }
@@ -1292,7 +1297,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     };
     
     const displayText = currentTypes.length > 0 
-      ? currentTypes.join(", ") 
+      ? `${currentTypes.length} seleccionados`
       : "";
     
     return (
@@ -1300,39 +1305,48 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              className={`h-6 w-full justify-between px-1 text-xs font-normal ${currentTypes.length === 0 ? 'text-red-500 font-medium' : ''}`}
-              data-testid={`multiselect-${column.key}-${rowId}`}
-            >
-              <span className="truncate text-left">
-                {currentTypes.length === 0 ? "SIN ASIGNAR" : displayText}
-              </span>
-              <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" align="start">
-            <div className="space-y-1">
-              {availableTypes.map((tipo) => (
-                <div key={tipo} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`tipo-${rowId}-${tipo}`}
-                    checked={currentTypes.includes(tipo)}
-                    onCheckedChange={() => handleTypeToggle(tipo)}
-                  />
-                  <label
-                    htmlFor={`tipo-${rowId}-${tipo}`}
-                    className="text-xs cursor-pointer flex-1"
-                  >
-                    {tipo}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        {disabled ? (
+          <div className="flex items-center gap-1 px-1">
+            <span className={`text-xs truncate ${currentTypes.length === 0 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+              {currentTypes.length === 0 ? "SIN ASIGNAR" : displayText}
+            </span>
+            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+          </div>
+        ) : (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`h-6 w-full justify-between px-1 text-xs font-normal ${currentTypes.length === 0 ? 'text-red-500 font-medium' : ''}`}
+                data-testid={`multiselect-${column.key}-${rowId}`}
+              >
+                <span className="truncate text-left">
+                  {currentTypes.length === 0 ? "SIN ASIGNAR" : displayText}
+                </span>
+                <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="start">
+              <div className="space-y-1">
+                {availableTypes.map((tipo) => (
+                  <div key={tipo} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`tipo-${rowId}-${tipo}`}
+                      checked={currentTypes.includes(tipo)}
+                      onCheckedChange={() => handleTypeToggle(tipo)}
+                    />
+                    <label
+                      htmlFor={`tipo-${rowId}-${tipo}`}
+                      className="text-xs cursor-pointer flex-1"
+                    >
+                      {tipo}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
     );
   }

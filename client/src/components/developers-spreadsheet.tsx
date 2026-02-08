@@ -460,7 +460,7 @@ export function DevelopersSpreadsheet() {
                   if (col.type === 'multiselect') {
                     const tiposValue = (dev.tipos as string[] | null) || [];
                     const displayValue = tiposValue.length > 0 
-                      ? tiposValue.map(t => DEVELOPER_TIPOS.find(dt => dt.value === t)?.label || t).join(', ')
+                      ? `${tiposValue.length} seleccionados`
                       : '';
                     
                     return (

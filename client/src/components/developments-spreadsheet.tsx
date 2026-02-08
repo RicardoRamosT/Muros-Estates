@@ -578,7 +578,7 @@ export function DevelopmentsSpreadsheet() {
                     }
                     
                     const displayValue = selectedTipos.length > 0 
-                      ? `${selectedTipos.length} tipo${selectedTipos.length > 1 ? 's' : ''}`
+                      ? `${selectedTipos.length} seleccionados`
                       : developerTipos.length > 0 ? 'Seleccionar' : 'Sin tipos';
                     
                     return (
@@ -716,26 +716,32 @@ export function DevelopmentsSpreadsheet() {
                     const arrValue: string[] = Array.isArray(value) ? value : [];
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
-                              <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                            {amenities.map(item => (
-                              <div key={item.id} className="flex items-center gap-2 py-1">
-                                <Checkbox
-                                  checked={arrValue.includes(item.name)}
-                                  disabled={!fieldCanEdit}
-                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                />
-                                <span className="text-xs">{item.name}</span>
-                              </div>
-                            ))}
-                          </PopoverContent>
-                        </Popover>
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                              {amenities.map(item => (
+                                <div key={item.id} className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    checked={arrValue.includes(item.name)}
+                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                  />
+                                  <span className="text-xs">{item.name}</span>
+                                </div>
+                              ))}
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          </div>
+                        )}
                       </td>
                     );
                   }
@@ -744,26 +750,32 @@ export function DevelopmentsSpreadsheet() {
                     const arrValue: string[] = Array.isArray(value) ? value : [];
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
-                              <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                            {efficiencyFeatures.map(item => (
-                              <div key={item.id} className="flex items-center gap-2 py-1">
-                                <Checkbox
-                                  checked={arrValue.includes(item.name)}
-                                  disabled={!fieldCanEdit}
-                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                />
-                                <span className="text-xs">{item.name}</span>
-                              </div>
-                            ))}
-                          </PopoverContent>
-                        </Popover>
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                              {efficiencyFeatures.map(item => (
+                                <div key={item.id} className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    checked={arrValue.includes(item.name)}
+                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                  />
+                                  <span className="text-xs">{item.name}</span>
+                                </div>
+                              ))}
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          </div>
+                        )}
                       </td>
                     );
                   }
@@ -772,26 +784,32 @@ export function DevelopmentsSpreadsheet() {
                     const arrValue: string[] = Array.isArray(value) ? value : [];
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
-                              <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                            {otherFeatures.map(item => (
-                              <div key={item.id} className="flex items-center gap-2 py-1">
-                                <Checkbox
-                                  checked={arrValue.includes(item.name)}
-                                  disabled={!fieldCanEdit}
-                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                />
-                                <span className="text-xs">{item.name}</span>
-                              </div>
-                            ))}
-                          </PopoverContent>
-                        </Popover>
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                              {otherFeatures.map(item => (
+                                <div key={item.id} className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    checked={arrValue.includes(item.name)}
+                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                  />
+                                  <span className="text-xs">{item.name}</span>
+                                </div>
+                              ))}
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          </div>
+                        )}
                       </td>
                     );
                   }
@@ -800,26 +818,32 @@ export function DevelopmentsSpreadsheet() {
                     const arrValue: string[] = Array.isArray(value) ? value : [];
                     return (
                       <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} selec.` : "Seleccionar"}</span>
-                              <ChevronDown className="w-3 h-3 ml-1 shrink-0" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                            {acabados.map(item => (
-                              <div key={item.id} className="flex items-center gap-2 py-1">
-                                <Checkbox
-                                  checked={arrValue.includes(item.name)}
-                                  disabled={!fieldCanEdit}
-                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                />
-                                <span className="text-xs">{item.name}</span>
-                              </div>
-                            ))}
-                          </PopoverContent>
-                        </Popover>
+                        {fieldCanEdit ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                              {acabados.map(item => (
+                                <div key={item.id} className="flex items-center gap-2 py-1">
+                                  <Checkbox
+                                    checked={arrValue.includes(item.name)}
+                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                  />
+                                  <span className="text-xs">{item.name}</span>
+                                </div>
+                              ))}
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          </div>
+                        )}
                       </td>
                     );
                   }
