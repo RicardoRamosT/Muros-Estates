@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +33,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const pageName = isClientView ? 'clientes' : 'prospectos';
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions(pageName as any);
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -221,51 +223,50 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   // Columns for Prospectos (22 fields)
   const prospectColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
-    { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
-    { key: "asesorId", label: "Asesor", width: "140px", type: "select" },
-    { key: "ciudad", label: "Ciudad", width: "120px", type: "catalog-select" },
-    { key: "zona", label: "Zona", width: "120px", type: "catalog-select" },
-    { key: "desarrollador", label: "Desarrollador", width: "150px", type: "catalog-select" },
-    { key: "desarrollo", label: "Desarrollo", width: "150px", type: "catalog-select" },
-    { key: "tipologia", label: "Tipología", width: "150px", type: "typology-select" },
-    { key: "nombre", label: "Nombre", width: "140px" },
-    { key: "apellido", label: "Apellido", width: "140px" },
-    { key: "telefono", label: "Teléfono", width: "130px" },
-    { key: "correo", label: "Correo", width: "180px" },
-    { key: "tipofil", label: "Tipo", width: "120px", type: "options-select" },
-    { key: "perfil", label: "Perfil", width: "140px", type: "options-select" },
-    { key: "comoLlega", label: "Fuente", width: "160px", type: "options-select" },
-    { key: "brokerExterno", label: "Broker Externo", width: "120px", type: "boolean-select" },
-    { key: "estatus", label: "Estatus", width: "120px", type: "options-select" },
-    { key: "embudo", label: "Etapa de Embudo", width: "160px", type: "options-select" },
-    { key: "comoPaga", label: "Cómo Paga", width: "140px", type: "options-select" },
-    { key: "positivos", label: "Positivos", width: "180px", type: "multi-select" },
-    { key: "negativos", label: "Negativos", width: "180px", type: "multi-select" },
-    { key: "comentarios", label: "Comentarios", width: "200px", noFilter: true },
-    { key: "actions", label: "", width: "60px", type: "actions" },
+    { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
+    { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
+    { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select" },
+    { key: "zona", label: "Zona", width: "100px", type: "catalog-select" },
+    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select" },
+    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select" },
+    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select" },
+    { key: "nombre", label: "Nombre", width: "120px" },
+    { key: "apellido", label: "Apellido", width: "120px" },
+    { key: "telefono", label: "Teléfono", width: "110px" },
+    { key: "correo", label: "Correo", width: "160px" },
+    { key: "tipofil", label: "Tipo", width: "100px", type: "options-select" },
+    { key: "perfil", label: "Perfil", width: "110px", type: "options-select" },
+    { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select" },
+    { key: "brokerExterno", label: "Broker Ext.", width: "90px", type: "boolean-select" },
+    { key: "estatus", label: "Estatus", width: "100px", type: "options-select" },
+    { key: "embudo", label: "Embudo", width: "130px", type: "options-select" },
+    { key: "comoPaga", label: "Cómo Paga", width: "110px", type: "options-select" },
+    { key: "positivos", label: "Positivos", width: "140px", type: "multi-select" },
+    { key: "negativos", label: "Negativos", width: "140px", type: "multi-select" },
+    { key: "comentarios", label: "Comentarios", width: "160px", noFilter: true },
+    { key: "actions", label: "", width: "50px", type: "actions" },
   ];
 
-  // Columns for Clientes (17 fields - focused on purchase/financial data with embudo)
   const clientColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
-    { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
-    { key: "asesorId", label: "Asesor", width: "140px", type: "select" },
-    { key: "nombre", label: "Nombre", width: "140px" },
-    { key: "apellido", label: "Apellido", width: "140px" },
-    { key: "telefono", label: "Teléfono", width: "130px" },
-    { key: "correo", label: "Correo", width: "180px" },
-    { key: "embudo", label: "Etapa de Embudo", width: "160px", type: "options-select" },
-    { key: "desarrollador", label: "Desarrollador", width: "150px", type: "catalog-select" },
-    { key: "desarrollo", label: "Desarrollo", width: "150px", type: "catalog-select" },
-    { key: "tipologia", label: "Tipología", width: "150px", type: "typology-select" },
-    { key: "precioFinal", label: "Precio Final", width: "130px", type: "currency" },
-    { key: "separacion", label: "Separación", width: "120px", type: "currency" },
-    { key: "fechaSeparacion", label: "Fecha Separación", width: "140px", type: "date" },
-    { key: "enganche", label: "Enganche", width: "120px", type: "currency" },
-    { key: "fechaEnganche", label: "Fecha Enganche", width: "140px", type: "date" },
-    { key: "actions", label: "", width: "60px", type: "actions" },
+    { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
+    { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
+    { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
+    { key: "nombre", label: "Nombre", width: "120px" },
+    { key: "apellido", label: "Apellido", width: "120px" },
+    { key: "telefono", label: "Teléfono", width: "110px" },
+    { key: "correo", label: "Correo", width: "160px" },
+    { key: "embudo", label: "Embudo", width: "130px", type: "options-select" },
+    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select" },
+    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select" },
+    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select" },
+    { key: "precioFinal", label: "Precio Final", width: "120px", type: "currency" },
+    { key: "separacion", label: "Separación", width: "110px", type: "currency" },
+    { key: "fechaSeparacion", label: "F. Separación", width: "110px", type: "date" },
+    { key: "enganche", label: "Enganche", width: "110px", type: "currency" },
+    { key: "fechaEnganche", label: "F. Enganche", width: "110px", type: "date" },
+    { key: "actions", label: "", width: "50px", type: "actions" },
   ];
 
   const allColumns = isClientView ? clientColumns : prospectColumns;
@@ -1158,8 +1159,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           data-testid={`input-${col.key}-${prospect.id}`}
                         />
                       ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="truncate max-w-[180px]">
+                        <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value) })}
+                        >
+                          <span className="truncate">
                             {value || ""}
                           </span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
@@ -1182,7 +1186,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           </tbody>
         </table>
       </div>
-
+      <TextDetailModal
+        open={!!textDetail}
+        onOpenChange={(open) => !open && setTextDetail(null)}
+        title={textDetail?.title || ""}
+        value={textDetail?.value || ""}
+      />
     </div>
   );
 }

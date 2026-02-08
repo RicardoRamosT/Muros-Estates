@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -65,6 +66,7 @@ export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -76,22 +78,19 @@ export function DevelopersSpreadsheet() {
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
     { key: "tipo", label: "Tipo", width: "100px", autoField: true, cellType: "readonly" },
     { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
-    { key: "name", label: "Desarrollador", width: "180px", cellType: "input" },
+    { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
-    { key: "rfc", label: "RFC", width: "140px", type: "rfc", cellType: "input" },
-    { key: "domicilio", label: "Domicilio", width: "200px", cellType: "input" },
-    // Antigüedad group - 2 columns under same header
-    { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", group: "antiguedad", cellType: "date" },
-    { key: "antiguedadDeclarada", label: "Antigüedad Declarada", width: "150px", group: "antiguedad", cellType: "input" },
-    // Tipos - multiselect dropdown
-    { key: "tipos", label: "Tipos", width: "180px", type: "multiselect", cellType: "dropdown" },
-    { key: "contratos", label: "Contratos", width: "150px", cellType: "input" },
-    { key: "representante", label: "Representante", width: "160px", cellType: "input" },
-    // Contacto group - renamed "Nombre" to "Gerente Comercial"
-    { key: "contactName", label: "Gerente Comercial", width: "150px", group: "contacto", cellType: "input" },
-    { key: "contactPhone", label: "Teléfono", width: "140px", group: "contacto", cellType: "input" },
-    { key: "contactEmail", label: "Correo", width: "180px", group: "contacto", cellType: "input" },
-    { key: "legales", label: "Legales", width: "100px", type: "folder-link", cellType: "actions" },
+    { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
+    { key: "domicilio", label: "Domicilio", width: "180px", cellType: "input" },
+    { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", group: "antiguedad", cellType: "date" },
+    { key: "antiguedadDeclarada", label: "Ant. Declarada", width: "120px", group: "antiguedad", cellType: "input" },
+    { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown" },
+    { key: "contratos", label: "Contratos", width: "120px", cellType: "input" },
+    { key: "representante", label: "Representante", width: "130px", cellType: "input" },
+    { key: "contactName", label: "Gte. Comercial", width: "130px", group: "contacto", cellType: "input" },
+    { key: "contactPhone", label: "Teléfono", width: "110px", group: "contacto", cellType: "input" },
+    { key: "contactEmail", label: "Correo", width: "160px", group: "contacto", cellType: "input" },
+    { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions" },
   ];
 
@@ -540,8 +539,11 @@ export function DevelopersSpreadsheet() {
                             data-testid={`input-${field}-${dev.id}`}
                           />
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <span className="truncate block max-w-[180px] uppercase">
+                          <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value) })}
+                        >
+                            <span className="truncate uppercase">
                               {value || ''}
                             </span>
                             {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
@@ -551,7 +553,6 @@ export function DevelopersSpreadsheet() {
                     );
                   }
                   
-                  // Default text field
                   const value = dev[field as keyof Developer] as string;
                   
                   return (
@@ -576,8 +577,11 @@ export function DevelopersSpreadsheet() {
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="truncate block max-w-[180px]">
+                        <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value) })}
+                        >
+                          <span className="truncate">
                             {value || ''}
                           </span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
@@ -600,6 +604,12 @@ export function DevelopersSpreadsheet() {
           </tbody>
         </table>
       </div>
+      <TextDetailModal
+        open={!!textDetail}
+        onOpenChange={(open) => !open && setTextDetail(null)}
+        title={textDetail?.title || ""}
+        value={textDetail?.value || ""}
+      />
     </div>
   );
 }

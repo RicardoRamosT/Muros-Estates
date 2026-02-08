@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -73,8 +74,8 @@ const columnGroups: ColumnGroup[] = [
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
   { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
-  { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '130px', cellType: 'dropdown' },
-  { key: 'name', label: 'Desarrollo', group: 'basic', width: '140px', cellType: 'input' },
+  { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '120px', cellType: 'dropdown' },
+  { key: 'name', label: 'Desarrollo', group: 'basic', width: '130px', cellType: 'input' },
   { key: 'city', label: 'Ciudad', group: 'location', type: 'city-select', width: '95px', cellType: 'dropdown' },
   { key: 'zone', label: 'Zona 1', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
   { key: 'zone2', label: 'Zona 2', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
@@ -125,6 +126,7 @@ export function DevelopmentsSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions('desarrollos');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
@@ -1125,7 +1127,10 @@ export function DevelopmentsSpreadsheet() {
                           data-testid={`input-${col.key}-${dev.id}`}
                         />
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue) })}
+                        >
                           <span className="truncate">{displayValue || ''}</span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                         </div>
@@ -1146,6 +1151,12 @@ export function DevelopmentsSpreadsheet() {
         </table>
       </div>
 
+      <TextDetailModal
+        open={!!textDetail}
+        onOpenChange={(open) => !open && setTextDetail(null)}
+        title={textDetail?.title || ""}
+        value={textDetail?.value || ""}
+      />
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>

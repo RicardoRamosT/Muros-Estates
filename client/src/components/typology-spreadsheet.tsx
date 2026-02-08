@@ -1052,7 +1052,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
-        title={disabled && !column.calculated ? "Campo deshabilitado - active la opción correspondiente" : undefined}
+        title={undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
         {formatValue(value, column.format) || ""}
