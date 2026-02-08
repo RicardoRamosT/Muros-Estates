@@ -71,7 +71,7 @@ const columnGroups: ColumnGroup[] = [
 ];
 
 const columns: ColumnDef[] = [
-  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '40px', cellType: 'index' },
+  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
   { key: 'active', label: 'Activo', group: 'basic', type: 'boolean', width: '60px', cellType: 'checkbox' },
   { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '130px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'basic', width: '140px', cellType: 'input' },
@@ -354,8 +354,8 @@ export function DevelopmentsSpreadsheet() {
         )}
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-sm" style={{ minWidth: '4500px' }}>
+      <div className="flex-1 overflow-auto spreadsheet-scroll">
+        <table className="w-full border-collapse text-xs" style={{ minWidth: '4500px' }}>
           <thead className="sticky top-0 z-10">
             <tr>
               {visibleColumnGroups.map((group, idx) => (
@@ -379,10 +379,10 @@ export function DevelopmentsSpreadsheet() {
                 return (
                   <th
                     key={col.key}
-                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 text-left font-semibold text-xs tracking-wide whitespace-nowrap ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 font-semibold text-xs tracking-wide whitespace-nowrap ${col.type === 'index' ? 'text-center' : 'text-left'} ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                     style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
                   >
-                    <div className="flex items-center">
+                    <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
                       <span className="truncate">{col.label}</span>
                       {col.type !== 'actions' && col.type !== 'folder-link' && col.key !== 'id' && (
                         <ColumnFilter
@@ -605,7 +605,7 @@ export function DevelopmentsSpreadsheet() {
                                         updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
                                       }}
                                     />
-                                    <span className="text-sm">{tipo}</span>
+                                    <span className="text-xs">{tipo}</span>
                                   </label>
                                 ))}
                               </div>
@@ -726,7 +726,7 @@ export function DevelopmentsSpreadsheet() {
                                   disabled={!fieldCanEdit}
                                   onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
                                 />
-                                <span className="text-sm">{item.name}</span>
+                                <span className="text-xs">{item.name}</span>
                               </div>
                             ))}
                           </PopoverContent>
@@ -754,7 +754,7 @@ export function DevelopmentsSpreadsheet() {
                                   disabled={!fieldCanEdit}
                                   onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
                                 />
-                                <span className="text-sm">{item.name}</span>
+                                <span className="text-xs">{item.name}</span>
                               </div>
                             ))}
                           </PopoverContent>
@@ -782,7 +782,7 @@ export function DevelopmentsSpreadsheet() {
                                   disabled={!fieldCanEdit}
                                   onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
                                 />
-                                <span className="text-sm">{item.name}</span>
+                                <span className="text-xs">{item.name}</span>
                               </div>
                             ))}
                           </PopoverContent>
@@ -810,7 +810,7 @@ export function DevelopmentsSpreadsheet() {
                                   disabled={!fieldCanEdit}
                                   onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
                                 />
-                                <span className="text-sm">{item.name}</span>
+                                <span className="text-xs">{item.name}</span>
                               </div>
                             ))}
                           </PopoverContent>
@@ -1118,7 +1118,7 @@ export function DevelopmentsSpreadsheet() {
                           onBlur={() => handleCellBlur(dev.id, col.key, col)}
                           onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(dev.id, col.key, col)}
                           onFocus={(e) => e.target.select()}
-                          className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                           autoFocus
                           type={col.type === 'number' ? 'number' : 'text'}
                           data-testid={`input-${col.key}-${dev.id}`}

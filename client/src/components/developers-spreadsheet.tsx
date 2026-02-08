@@ -73,7 +73,7 @@ export function DevelopersSpreadsheet() {
   });
 
   const allColumns: ColumnDef[] = [
-    { key: "id", label: "#", width: "50px", type: "index", autoField: true, cellType: "index" },
+    { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
     { key: "tipo", label: "Tipo", width: "100px", autoField: true, cellType: "readonly" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "180px", cellType: "input" },
@@ -248,8 +248,8 @@ export function DevelopersSpreadsheet() {
         )}
       </div>
       
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="flex-1 overflow-auto spreadsheet-scroll">
+        <table className="w-full border-collapse text-xs">
           <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
             {/* Group header row */}
             <tr>
@@ -289,10 +289,10 @@ export function DevelopersSpreadsheet() {
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 text-left font-semibold text-xs uppercase tracking-wide"
+                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 font-semibold text-xs uppercase tracking-wide ${col.type === 'index' ? 'text-center' : 'text-left'}`}
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  <div className="flex items-center">
+                  <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
                     <span className="truncate">{col.label}</span>
                     {col.type !== 'index' && col.type !== 'actions' && col.type !== 'folder-link' && (
                       <ColumnFilter
@@ -350,7 +350,7 @@ export function DevelopersSpreadsheet() {
                             onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
                           >
                             <SelectTrigger 
-                              className={`h-6 text-sm border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                              className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
                               data-testid={`toggle-active-${dev.id}`}
                             >
                               <SelectValue />
@@ -441,7 +441,7 @@ export function DevelopersSpreadsheet() {
                             type="date"
                             value={formattedDate}
                             onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
-                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-${field}-${dev.id}`}
                           />
                         ) : (
@@ -496,7 +496,7 @@ export function DevelopersSpreadsheet() {
                                       }}
                                       data-testid={`checkbox-tipo-${tipo.value}-${dev.id}`}
                                     />
-                                    <span className="text-sm">{tipo.label}</span>
+                                    <span className="text-xs">{tipo.label}</span>
                                   </label>
                                 ))}
                               </div>
@@ -535,7 +535,7 @@ export function DevelopersSpreadsheet() {
                             autoFocus
                             maxLength={13}
                             placeholder="12-13 dígitos"
-                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
                             data-testid={`input-${field}-${dev.id}`}
                           />
                         ) : (
@@ -571,7 +571,7 @@ export function DevelopersSpreadsheet() {
                           onBlur={() => handleCellBlur(dev.id, field)}
                           onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
                           autoFocus
-                          className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (

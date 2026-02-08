@@ -742,11 +742,11 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       <PopoverContent className="w-56 p-0" align="start">
         <div className="flex flex-col">
           <div className="px-3 py-2 border-b bg-muted/50">
-            <span className="text-sm font-semibold">{column.label}</span>
+            <span className="text-xs font-semibold">{column.label}</span>
             {column.calculated && <span className="text-xs text-muted-foreground ml-1">(calculado)</span>}
           </div>
           <button
-            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left"
+            className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
             onClick={() => { onSortChange("asc"); setOpen(false); }}
             data-testid={`sort-asc-${column.key}`}
           >
@@ -755,7 +755,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             {sortDirection === "asc" && <Check className="w-4 h-4 ml-auto text-primary" />}
           </button>
           <button
-            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left"
+            className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
             onClick={() => { onSortChange("desc"); setOpen(false); }}
             data-testid={`sort-desc-${column.key}`}
           >
@@ -769,7 +769,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           {(hasActiveFilter || isSorted) && (
             <>
               <button
-                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left text-muted-foreground"
                 onClick={handleClearFilter}
                 data-testid={`clear-filter-${column.key}`}
               >
@@ -856,7 +856,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                         onCheckedChange={handleSelectAll}
                         data-testid={`select-all-${column.key}`}
                       />
-                      <span className="text-sm font-medium">(Seleccionar todo)</span>
+                      <span className="text-xs font-medium">(Seleccionar todo)</span>
                     </label>
                     {groupedOptions.map(group => {
                       if (!group.group) return null;
@@ -891,7 +891,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                                   data-testid={`filter-value-${column.key}-${value}`}
                                 />
                                 <span className={cn(
-                                  "text-sm truncate",
+                                  "text-xs truncate",
                                   !isAvailable && "text-muted-foreground line-through"
                                 )}>
                                   {displayValue}
@@ -911,7 +911,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                         onCheckedChange={handleSelectAll}
                         data-testid={`select-all-${column.key}`}
                       />
-                      <span className="text-sm font-medium">(Seleccionar todo)</span>
+                      <span className="text-xs font-medium">(Seleccionar todo)</span>
                     </label>
                     
                     {filteredValues.map((value) => {
@@ -936,7 +936,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                             data-testid={`filter-value-${column.key}-${value}`}
                           />
                           <span className={cn(
-                            "text-sm truncate",
+                            "text-xs truncate",
                             !isAvailable && "text-muted-foreground line-through"
                           )}>
                             {displayValue}
@@ -946,7 +946,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                     })}
                     
                     {filteredValues.length === 0 && (
-                      <p className="text-sm text-muted-foreground py-2 text-center">
+                      <p className="text-xs text-muted-foreground py-2 text-center">
                         Sin resultados
                       </p>
                     )}
@@ -1045,7 +1045,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     const content = (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-sm truncate",
+          "spreadsheet-cell px-2 text-xs truncate",
           column.calculated && (sectionCellColor || "bg-blue-50 dark:bg-blue-950/30"),
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
@@ -1166,7 +1166,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
               {allOptions.map((opt) => (
                 <label
                   key={opt}
-                  className="flex items-center gap-2 px-2 py-1 text-sm rounded hover:bg-accent cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-accent cursor-pointer"
                 >
                   <Checkbox
                     checked={currentValues.includes(opt)}
@@ -1324,7 +1324,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
                   />
                   <label
                     htmlFor={`tipo-${rowId}-${tipo}`}
-                    className="text-sm cursor-pointer flex-1"
+                    className="text-xs cursor-pointer flex-1"
                   >
                     {tipo}
                   </label>
@@ -1360,7 +1360,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   
   return (
     <div
-      className="spreadsheet-cell px-2 text-sm truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+      className="spreadsheet-cell px-2 text-xs truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30"
       style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       onClick={() => setIsEditing(true)}
       title={formatValue(value, column.format)}
@@ -2193,14 +2193,14 @@ export function TypologySpreadsheet() {
       <div 
         ref={contentScrollRef}
         onScroll={syncScrollFromContent}
-        className="flex-1 overflow-auto"
+        className="flex-1 overflow-auto spreadsheet-scroll"
       >
         <div className="min-w-max">
           {/* Header: Two-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-12 flex-shrink-0 border-r bg-muted/50" />
+              <div className="w-[45px] flex-shrink-0 border-r bg-muted/50" />
               {SECTIONS.map((section) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
@@ -2243,8 +2243,8 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-12 h-full flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
-                <span className="text-xs font-medium text-muted-foreground">#</span>
+              <div className="w-[45px] h-full flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
+                <span className="text-xs font-medium text-muted-foreground">ID</span>
               </div>
               {SECTIONS.flatMap((section) => {
                 const collapsedWidth = 40;
@@ -2317,7 +2317,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-12 flex-shrink-0 justify-center text-sm text-muted-foreground bg-muted/30"
+                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-muted-foreground bg-muted/30"
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}

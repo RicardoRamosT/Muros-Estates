@@ -220,7 +220,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   // Columns for Prospectos (22 fields)
   const prospectColumns = [
-    { key: "index", label: "#", width: "50px", type: "index" },
+    { key: "index", label: "ID", width: "45px", type: "index" },
     { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "140px", type: "select" },
@@ -248,7 +248,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   // Columns for Clientes (17 fields - focused on purchase/financial data with embudo)
   const clientColumns = [
-    { key: "index", label: "#", width: "50px", type: "index" },
+    { key: "index", label: "ID", width: "45px", type: "index" },
     { key: "fecha", label: "Fecha", width: "100px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "80px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "140px", type: "select" },
@@ -516,18 +516,18 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="flex-1 overflow-auto spreadsheet-scroll">
+        <table className="w-full border-collapse text-xs">
           <thead className="sticky top-0 z-10" data-testid="prospects-table-header">
             <tr className="bg-gray-100 dark:bg-gray-800">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 text-left font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
+                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 font-semibold text-xs uppercase tracking-wide whitespace-nowrap ${col.type === 'index' ? 'text-center' : 'text-left'}`}
                   style={{ minWidth: col.width }}
                   data-testid={`column-header-${col.key}`}
                 >
-                  <div className="flex items-center">
+                  <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
                     <span className="truncate">{col.label}</span>
                     {col.type !== 'actions' && col.type !== 'index' && !(col as any).noFilter && (
                       <ColumnFilter
@@ -597,7 +597,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               setEditingCell(null);
                             }}
                             autoFocus
-                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-fecha-${prospect.id}`}
                           />
                         ) : (
@@ -635,7 +635,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               setEditingCell(null);
                             }}
                             autoFocus
-                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-hora-${prospect.id}`}
                           />
                         ) : (
@@ -659,7 +659,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'asesorId', v)}
                           >
-                            <SelectTrigger className={`h-6 text-sm border-0 bg-transparent ${!value ? 'text-red-500 font-medium' : ''}`}>
+                            <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${!value ? 'text-red-500 font-medium' : ''}`}>
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
@@ -692,7 +692,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             value={value}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'estatus', v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -740,7 +740,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               value={value || "__unassigned__"}
                               onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                             >
-                              <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                              <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                                 <SelectValue placeholder="Seleccionar" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
@@ -772,7 +772,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
@@ -816,7 +816,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleTypologySelect(prospect.id, v)}
                           >
-                            <SelectTrigger className="h-6 text-sm border-0 bg-transparent">
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
@@ -882,7 +882,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
                             <SelectTrigger 
-                              className={`h-6 text-sm border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                              className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
                             >
                               <SelectValue placeholder="Sin asignar" />
                             </SelectTrigger>
@@ -920,7 +920,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
                             <SelectTrigger 
-                              className={`h-6 text-sm border-0 bg-transparent ${isComoPaga && !value ? 'text-red-500 font-medium' : ''}`}
+                              className={`h-6 text-xs border-0 bg-transparent ${isComoPaga && !value ? 'text-red-500 font-medium' : ''}`}
                               style={embudoColor ? { backgroundColor: embudoColor, color: '#000', fontWeight: 500 } : {}}
                             >
                               <SelectValue placeholder="Seleccionar" />
@@ -997,7 +997,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                       checked={selectedValues.includes(opt.value)}
                                       onCheckedChange={(checked) => handleMultiChange(opt.value, !!checked)}
                                     />
-                                    <span className="text-sm">{opt.label}</span>
+                                    <span className="text-xs">{opt.label}</span>
                                   </label>
                                 ))}
                               </div>
@@ -1045,7 +1045,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             }}
                             onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(prospect.id, col.key)}
                             autoFocus
-                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-${col.key}-${prospect.id}`}
                           />
                         ) : (
@@ -1082,7 +1082,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               setEditingCell(null);
                             }}
                             autoFocus
-                            className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-${col.key}-${prospect.id}`}
                           />
                         ) : (
@@ -1153,7 +1153,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           onBlur={() => handleCellBlur(prospect.id, col.key)}
                           onKeyDown={(e) => e.key === "Enter" && handleCellBlur(prospect.id, col.key)}
                           autoFocus
-                          className="h-6 text-sm border-0 p-0 focus-visible:ring-0 bg-transparent"
+                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                           data-testid={`input-${col.key}-${prospect.id}`}
                         />
                       ) : (
