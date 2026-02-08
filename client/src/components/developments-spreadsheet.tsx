@@ -72,7 +72,7 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
-  { key: 'active', label: 'Activo', group: 'basic', type: 'boolean', width: '60px', cellType: 'checkbox' },
+  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
   { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '130px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'basic', width: '140px', cellType: 'input' },
   { key: 'city', label: 'Ciudad', group: 'location', type: 'city-select', width: '95px', cellType: 'dropdown' },
@@ -362,7 +362,7 @@ export function DevelopmentsSpreadsheet() {
                 <th
                   key={`group-${idx}`}
                   colSpan={group.colspan}
-                  className="border-b border-r px-2 py-1.5 text-center font-semibold text-xs uppercase tracking-wide"
+                  className="border-b border-r px-2 text-center font-bold text-xs uppercase tracking-wide h-9"
                   style={{
                     backgroundColor: group.color || 'transparent',
                     color: group.label ? 'white' : undefined
@@ -379,30 +379,31 @@ export function DevelopmentsSpreadsheet() {
                 return (
                   <th
                     key={col.key}
-                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 font-semibold text-xs tracking-wide whitespace-nowrap ${col.type === 'index' ? 'text-center' : 'text-left'} ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'} ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                     style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
                   >
-                    <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
-                      <span className="truncate">{col.label}</span>
-                      {col.type !== 'actions' && col.type !== 'folder-link' && col.key !== 'id' && (
-                        <ColumnFilter
-                          columnKey={col.key}
-                          columnLabel={col.label}
-                          columnType={
-                            col.type === 'boolean' ? 'boolean' : 
-                            col.type === 'number' ? 'number' : 
-                            (col.type?.includes('select') ? 'select' : 'text')
-                          }
-                          uniqueValues={uniqueValuesMap[col.key] || []}
-                          availableValues={availableValuesMap[col.key]}
-                          sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                          filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                          onSort={(dir) => handleSort(col.key, dir)}
-                          onFilter={(state) => handleFilter(col.key, state)}
-                          onClear={() => handleClearFilter(col.key)}
-                        />
-                      )}
-                    </div>
+                    {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' ? (
+                      <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
+                        <span className="truncate">{col.label}</span>
+                      </div>
+                    ) : (
+                      <ColumnFilter
+                        columnKey={col.key}
+                        columnLabel={col.label}
+                        columnType={
+                          col.type === 'boolean' ? 'boolean' : 
+                          col.type === 'number' ? 'number' : 
+                          (col.type?.includes('select') ? 'select' : 'text')
+                        }
+                        uniqueValues={uniqueValuesMap[col.key] || []}
+                        availableValues={availableValuesMap[col.key]}
+                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                        onSort={(dir) => handleSort(col.key, dir)}
+                        onFilter={(state) => handleFilter(col.key, state)}
+                        onClear={() => handleClearFilter(col.key)}
+                      />
+                    )}
                   </th>
                 );
               })}

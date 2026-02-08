@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowDown10, 
-  Filter, Check, X, Search
+  ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowDown10, ArrowUpDown,
+  ChevronDown, Check, X, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -99,226 +99,263 @@ export function ColumnFilter({
     setIsOpen(false);
   };
 
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-6 w-6 p-0 ml-1",
-            (hasActiveFilter || hasActiveSort) && "text-primary"
-          )}
-          data-testid={`filter-${columnKey}`}
-        >
-          <Filter className="h-3 w-3" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-2" align="start">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground uppercase">
-              Ordenar
-            </span>
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant={sortDirection === "asc" ? "default" : "outline"}
-              size="sm"
-              className="flex-1 h-7 text-xs"
-              onClick={() => handleSort(sortDirection === "asc" ? null : "asc")}
-            >
-              {isNumeric ? (
-                <ArrowUp01 className="h-3 w-3 mr-1" />
-              ) : (
-                <ArrowUpAZ className="h-3 w-3 mr-1" />
-              )}
-              {isNumeric ? "0-9" : "A-Z"}
-            </Button>
-            <Button
-              variant={sortDirection === "desc" ? "default" : "outline"}
-              size="sm"
-              className="flex-1 h-7 text-xs"
-              onClick={() => handleSort(sortDirection === "desc" ? null : "desc")}
-            >
-              {isNumeric ? (
-                <ArrowDown10 className="h-3 w-3 mr-1" />
-              ) : (
-                <ArrowDownAZ className="h-3 w-3 mr-1" />
-              )}
-              {isNumeric ? "9-0" : "Z-A"}
-            </Button>
-          </div>
+  const handleSortClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (sortDirection === null) {
+      onSort("asc");
+    } else if (sortDirection === "asc") {
+      onSort("desc");
+    } else {
+      onSort(null);
+    }
+  };
 
-          <div className="border-t pt-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase">
-                Filtrar
-              </span>
-              <div className="flex gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-5 px-1 text-xs"
-                  onClick={handleSelectAll}
+  const SortIcon = () => {
+    if (sortDirection === "asc") {
+      return isNumeric ? <ArrowUp01 className="w-2.5 h-2.5 text-primary" /> : <ArrowUpAZ className="w-2.5 h-2.5 text-primary" />;
+    }
+    if (sortDirection === "desc") {
+      return isNumeric ? <ArrowDown10 className="w-2.5 h-2.5 text-primary" /> : <ArrowDownAZ className="w-2.5 h-2.5 text-primary" />;
+    }
+    return <ArrowUpDown className="w-2.5 h-2.5 text-muted-foreground" />;
+  };
+
+  return (
+    <div className="flex items-center w-full">
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center gap-1 flex-1 min-w-0 text-xs font-medium text-left cursor-pointer",
+              "hover-elevate",
+              hasActiveFilter && "text-primary"
+            )}
+            data-testid={`filter-${columnKey}`}
+          >
+            <span className="truncate">{columnLabel}</span>
+            <ChevronDown className={cn(
+              "w-3 h-3 flex-shrink-0",
+              hasActiveFilter && "text-primary"
+            )} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-0" align="start">
+          <div className="flex flex-col">
+            <div className="px-3 py-2 border-b bg-muted/50">
+              <span className="text-xs font-semibold">{columnLabel}</span>
+            </div>
+            <button
+              className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
+              onClick={() => { onSort("asc"); setIsOpen(false); }}
+              data-testid={`sort-asc-${columnKey}`}
+            >
+              {isNumeric ? <ArrowUp01 className="w-4 h-4" /> : <ArrowUpAZ className="w-4 h-4" />}
+              {isNumeric ? "Ordenar de menor a mayor" : "Ordenar de A a Z"}
+              {sortDirection === "asc" && <Check className="w-4 h-4 ml-auto text-primary" />}
+            </button>
+            <button
+              className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
+              onClick={() => { onSort("desc"); setIsOpen(false); }}
+              data-testid={`sort-desc-${columnKey}`}
+            >
+              {isNumeric ? <ArrowDown10 className="w-4 h-4" /> : <ArrowDownAZ className="w-4 h-4" />}
+              {isNumeric ? "Ordenar de mayor a menor" : "Ordenar de Z a A"}
+              {sortDirection === "desc" && <Check className="w-4 h-4 ml-auto text-primary" />}
+            </button>
+
+            <div className="border-t" />
+
+            {(hasActiveFilter || hasActiveSort) && (
+              <>
+                <button
+                  className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left text-muted-foreground"
+                  onClick={handleClear}
+                  data-testid={`clear-filter-${columnKey}`}
                 >
-                  Todos
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-5 px-1 text-xs"
-                  onClick={handleDeselectAll}
-                >
-                  Ninguno
-                </Button>
+                  <X className="w-4 h-4" />
+                  Borrar filtro de "{columnLabel}"
+                </button>
+                <div className="border-t" />
+              </>
+            )}
+
+            <div className="px-3 py-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">
+                  Filtrar
+                </span>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-5 px-1 text-xs"
+                    onClick={handleSelectAll}
+                  >
+                    Todos
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-5 px-1 text-xs"
+                    onClick={handleDeselectAll}
+                  >
+                    Ninguno
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="relative mb-2">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar..."
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  className="h-7 pl-7 text-xs"
+                />
+              </div>
+
+              <div className="max-h-40 overflow-y-auto space-y-1 border rounded p-1">
+                {filteredValues.length === 0 ? (
+                  <div className="text-xs text-muted-foreground text-center py-2">
+                    Sin resultados
+                  </div>
+                ) : groupMap ? (
+                  (() => {
+                    const filteredSet = new Set(filteredValues);
+                    const groupedEntries = Object.entries(groupMap)
+                      .map(([group, values]) => [group, values.filter(v => filteredSet.has(v))] as const)
+                      .filter(([, values]) => values.length > 0);
+                    const groupedValues = new Set(groupedEntries.flatMap(([, values]) => values));
+                    const ungrouped = filteredValues.filter(v => !groupedValues.has(v));
+
+                    return (
+                      <>
+                        {groupedEntries.map(([group, values]) => (
+                          <div key={group}>
+                            <div className="text-[10px] font-semibold text-muted-foreground uppercase px-1 pt-1 pb-0.5">
+                              {group}
+                            </div>
+                            {values.map((value) => {
+                              const isAvailable = !availableValues || availableValues.has(value);
+                              return (
+                                <label
+                                  key={value}
+                                  className={cn(
+                                    "flex items-center gap-2 px-1 pl-3 py-0.5 rounded",
+                                    isAvailable 
+                                      ? "hover:bg-muted cursor-pointer" 
+                                      : "opacity-40 cursor-not-allowed"
+                                  )}
+                                >
+                                  <Checkbox
+                                    checked={localSelected.has(value)}
+                                    onCheckedChange={() => handleToggleValue(value)}
+                                    disabled={!isAvailable}
+                                    className="h-3 w-3"
+                                  />
+                                  <span className={cn(
+                                    "text-xs truncate flex-1",
+                                    !isAvailable && "text-muted-foreground line-through"
+                                  )}>
+                                    {(labelMap?.[value] ?? value) || "(vacío)"}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        ))}
+                        {ungrouped.map((value) => {
+                          const isAvailable = !availableValues || availableValues.has(value);
+                          return (
+                            <label
+                              key={value}
+                              className={cn(
+                                "flex items-center gap-2 px-1 py-0.5 rounded",
+                                isAvailable 
+                                  ? "hover:bg-muted cursor-pointer" 
+                                  : "opacity-40 cursor-not-allowed"
+                              )}
+                            >
+                              <Checkbox
+                                checked={localSelected.has(value)}
+                                onCheckedChange={() => handleToggleValue(value)}
+                                disabled={!isAvailable}
+                                className="h-3 w-3"
+                              />
+                              <span className={cn(
+                                "text-xs truncate flex-1",
+                                !isAvailable && "text-muted-foreground line-through"
+                              )}>
+                                {(labelMap?.[value] ?? value) || "(vacío)"}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </>
+                    );
+                  })()
+                ) : (
+                  filteredValues.map((value) => {
+                    const isAvailable = !availableValues || availableValues.has(value);
+                    return (
+                      <label
+                        key={value}
+                        className={cn(
+                          "flex items-center gap-2 px-1 py-0.5 rounded",
+                          isAvailable 
+                            ? "hover:bg-muted cursor-pointer" 
+                            : "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        <Checkbox
+                          checked={localSelected.has(value)}
+                          onCheckedChange={() => handleToggleValue(value)}
+                          disabled={!isAvailable}
+                          className="h-3 w-3"
+                        />
+                        <span className={cn(
+                          "text-xs truncate flex-1",
+                          !isAvailable && "text-muted-foreground line-through"
+                        )}>
+                          {(labelMap?.[value] ?? value) || "(vacío)"}
+                        </span>
+                      </label>
+                    );
+                  })
+                )}
               </div>
             </div>
-            
-            <div className="relative mb-2">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                placeholder="Buscar..."
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                className="h-7 pl-7 text-xs"
-              />
-            </div>
 
-            <div className="max-h-40 overflow-y-auto space-y-1 border rounded p-1">
-              {filteredValues.length === 0 ? (
-                <div className="text-xs text-muted-foreground text-center py-2">
-                  Sin resultados
-                </div>
-              ) : groupMap ? (
-                (() => {
-                  const filteredSet = new Set(filteredValues);
-                  const groupedEntries = Object.entries(groupMap)
-                    .map(([group, values]) => [group, values.filter(v => filteredSet.has(v))] as const)
-                    .filter(([, values]) => values.length > 0);
-                  const groupedValues = new Set(groupedEntries.flatMap(([, values]) => values));
-                  const ungrouped = filteredValues.filter(v => !groupedValues.has(v));
-
-                  return (
-                    <>
-                      {groupedEntries.map(([group, values]) => (
-                        <div key={group}>
-                          <div className="text-[10px] font-semibold text-muted-foreground uppercase px-1 pt-1 pb-0.5">
-                            {group}
-                          </div>
-                          {values.map((value) => {
-                            const isAvailable = !availableValues || availableValues.has(value);
-                            return (
-                              <label
-                                key={value}
-                                className={cn(
-                                  "flex items-center gap-2 px-1 pl-3 py-0.5 rounded",
-                                  isAvailable 
-                                    ? "hover:bg-muted cursor-pointer" 
-                                    : "opacity-40 cursor-not-allowed"
-                                )}
-                              >
-                                <Checkbox
-                                  checked={localSelected.has(value)}
-                                  onCheckedChange={() => handleToggleValue(value)}
-                                  disabled={!isAvailable}
-                                  className="h-3 w-3"
-                                />
-                                <span className={cn(
-                                  "text-xs truncate flex-1",
-                                  !isAvailable && "text-muted-foreground line-through"
-                                )}>
-                                  {(labelMap?.[value] ?? value) || "(vacío)"}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      ))}
-                      {ungrouped.map((value) => {
-                        const isAvailable = !availableValues || availableValues.has(value);
-                        return (
-                          <label
-                            key={value}
-                            className={cn(
-                              "flex items-center gap-2 px-1 py-0.5 rounded",
-                              isAvailable 
-                                ? "hover:bg-muted cursor-pointer" 
-                                : "opacity-40 cursor-not-allowed"
-                            )}
-                          >
-                            <Checkbox
-                              checked={localSelected.has(value)}
-                              onCheckedChange={() => handleToggleValue(value)}
-                              disabled={!isAvailable}
-                              className="h-3 w-3"
-                            />
-                            <span className={cn(
-                              "text-xs truncate flex-1",
-                              !isAvailable && "text-muted-foreground line-through"
-                            )}>
-                              {(labelMap?.[value] ?? value) || "(vacío)"}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </>
-                  );
-                })()
-              ) : (
-                filteredValues.map((value) => {
-                  const isAvailable = !availableValues || availableValues.has(value);
-                  return (
-                    <label
-                      key={value}
-                      className={cn(
-                        "flex items-center gap-2 px-1 py-0.5 rounded",
-                        isAvailable 
-                          ? "hover:bg-muted cursor-pointer" 
-                          : "opacity-40 cursor-not-allowed"
-                      )}
-                    >
-                      <Checkbox
-                        checked={localSelected.has(value)}
-                        onCheckedChange={() => handleToggleValue(value)}
-                        disabled={!isAvailable}
-                        className="h-3 w-3"
-                      />
-                      <span className={cn(
-                        "text-xs truncate flex-1",
-                        !isAvailable && "text-muted-foreground line-through"
-                      )}>
-                        {(labelMap?.[value] ?? value) || "(vacío)"}
-                      </span>
-                    </label>
-                  );
-                })
-              )}
+            <div className="flex gap-2 p-2 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 h-7 text-xs"
+                onClick={handleClear}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Limpiar
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 h-7 text-xs"
+                onClick={handleApply}
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Aplicar
+              </Button>
             </div>
           </div>
-
-          <div className="flex gap-2 pt-2 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-7 text-xs"
-              onClick={handleClear}
-            >
-              <X className="h-3 w-3 mr-1" />
-              Limpiar
-            </Button>
-            <Button
-              size="sm"
-              className="flex-1 h-7 text-xs"
-              onClick={handleApply}
-            >
-              <Check className="h-3 w-3 mr-1" />
-              Aplicar
-            </Button>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      <button
+        onClick={handleSortClick}
+        className="flex-shrink-0 p-0.5 hover-elevate cursor-pointer rounded"
+        data-testid={`sort-${columnKey}`}
+      >
+        <SortIcon />
+      </button>
+    </div>
   );
 }
 

@@ -523,33 +523,34 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 font-semibold text-xs uppercase tracking-wide whitespace-nowrap ${col.type === 'index' ? 'text-center' : 'text-left'}`}
+                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
                   style={{ minWidth: col.width }}
                   data-testid={`column-header-${col.key}`}
                 >
-                  <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
-                    <span className="truncate">{col.label}</span>
-                    {col.type !== 'actions' && col.type !== 'index' && !(col as any).noFilter && (
-                      <ColumnFilter
-                        columnKey={col.key}
-                        columnLabel={col.label}
-                        columnType={
-                          col.type === 'currency' ? 'number' : 
-                          col.type === 'date' || col.type === 'time' ? 'date' :
-                          col.type === 'select' ? 'select' : 'text'
-                        }
-                        uniqueValues={uniqueValuesMap[col.key] || []}
-                        availableValues={availableValuesMap[col.key]}
-                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                        onSort={(dir) => handleSort(col.key, dir)}
-                        onFilter={(state) => handleFilter(col.key, state)}
-                        onClear={() => handleClearFilter(col.key)}
-                        labelMap={labelMaps[col.key]}
-                        groupMap={groupMaps[col.key]}
-                      />
-                    )}
-                  </div>
+                  {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
+                    <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
+                      <span className="truncate">{col.label}</span>
+                    </div>
+                  ) : (
+                    <ColumnFilter
+                      columnKey={col.key}
+                      columnLabel={col.label}
+                      columnType={
+                        col.type === 'currency' ? 'number' : 
+                        col.type === 'date' || col.type === 'time' ? 'date' :
+                        col.type === 'select' ? 'select' : 'text'
+                      }
+                      uniqueValues={uniqueValuesMap[col.key] || []}
+                      availableValues={availableValuesMap[col.key]}
+                      sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                      filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                      onSort={(dir) => handleSort(col.key, dir)}
+                      onFilter={(state) => handleFilter(col.key, state)}
+                      onClear={() => handleClearFilter(col.key)}
+                      labelMap={labelMaps[col.key]}
+                      groupMap={groupMaps[col.key]}
+                    />
+                  )}
                 </th>
               ))}
             </tr>

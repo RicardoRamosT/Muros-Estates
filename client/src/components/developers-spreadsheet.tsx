@@ -75,7 +75,7 @@ export function DevelopersSpreadsheet() {
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
     { key: "tipo", label: "Tipo", width: "100px", autoField: true, cellType: "readonly" },
-    { key: "active", label: "Activo", width: "80px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "180px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "140px", type: "rfc", cellType: "input" },
@@ -277,7 +277,7 @@ export function DevelopersSpreadsheet() {
                   <th
                     key={`group-${gh.key}-${idx}`}
                     colSpan={gh.colSpan}
-                    className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1 text-center font-bold text-xs uppercase tracking-wide", gh.bgClass)}
+                    className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9", gh.bgClass)}
                   >
                     {gh.label}
                   </th>
@@ -289,26 +289,27 @@ export function DevelopersSpreadsheet() {
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 py-1.5 font-semibold text-xs uppercase tracking-wide ${col.type === 'index' ? 'text-center' : 'text-left'}`}
+                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
-                    <span className="truncate">{col.label}</span>
-                    {col.type !== 'index' && col.type !== 'actions' && col.type !== 'folder-link' && (
-                      <ColumnFilter
-                        columnKey={col.key}
-                        columnLabel={col.label || (col.group === 'antiguedad' ? (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada') : col.key)}
-                        columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
-                        uniqueValues={uniqueValuesMap[col.key] || []}
-                        availableValues={availableValuesMap[col.key]}
-                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                        onSort={(dir) => handleSort(col.key, dir)}
-                        onFilter={(state) => handleFilter(col.key, state)}
-                        onClear={() => handleClearFilter(col.key)}
-                      />
-                    )}
-                  </div>
+                  {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' ? (
+                    <div className="flex items-center justify-center">
+                      <span className="truncate">{col.label}</span>
+                    </div>
+                  ) : (
+                    <ColumnFilter
+                      columnKey={col.key}
+                      columnLabel={col.label || (col.group === 'antiguedad' ? (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada') : col.key)}
+                      columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
+                      uniqueValues={uniqueValuesMap[col.key] || []}
+                      availableValues={availableValuesMap[col.key]}
+                      sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                      filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                      onSort={(dir) => handleSort(col.key, dir)}
+                      onFilter={(state) => handleFilter(col.key, state)}
+                      onClear={() => handleClearFilter(col.key)}
+                    />
+                  )}
                 </th>
               ))}
             </tr>
