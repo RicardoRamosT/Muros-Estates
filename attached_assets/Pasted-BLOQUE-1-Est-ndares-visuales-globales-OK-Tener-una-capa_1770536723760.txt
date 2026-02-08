@@ -1,0 +1,155 @@
+BLOQUE 1 — Estándares visuales globales
+✅ OK
+
+Tener una capa centralizada (getCellStyle()) es correcto.
+
+Tipos de celda + estados (disabled / editing) bien.
+
+Formateadores (currency/percent/date) bien.
+
+⚠️ Riesgo / posible desalineación con el pedido
+
+Gris estándar
+El cliente pidió “mismo gris medio que ya existe en Desarrollos” y explícitamente evitar el gris clarito.
+En tu resumen, dropdown/bg-gray-100, readonly/bg-gray-100, etc. Eso es típicamente “gris clarito”.
+Acción: define un token único (p.ej. GRID_GRAY_BG) y úsalo en todas las celdas grises. No mezcles bg-gray-100, bg-gray-300, etc. salvo estados (disabled).
+
+Columna ID
+El pedido original era: header “ID”, centrado, ancho mínimo para 9999, constante entre vistas, y margen izquierdo consistente.
+En tu resumen aparece index como “número de fila”, pero no confirmas:
+
+ancho fijo del ID (no “index”),
+
+header siempre “ID”,
+
+y que el ancho/margen sea consistente cross-view.
+Acción: valida que ID ≠ index. Si “index” es el número de fila y el cliente quería “ID” (PK), entonces hay un riesgo de interpretación.
+
+Scrollbar horizontal visible
+No lo mencionas.
+Acción: confirma que el contenedor del grid muestra scrollbar horizontal visible cuando overflow-x.
+
+BLOQUE 2 — Headers (filtro/sort)
+✅ OK
+
+useColumnFilters() + estado de filtros y botón “Limpiar filtros” son consistentes.
+
+Contador de registros filtrados: bien.
+
+⚠️ Riesgo / posible “a medias”
+
+El cliente pidió un patrón visual muy específico:
+
+Izquierda: flechita hacia abajo (filtro)
+
+Derecha: doble flecha asc/desc (sort)
+
+Sin embudo
+
+Tu ColumnFilter suena a popover potente (búsqueda + multiselect). Eso está bien solo si:
+
+el header sigue mostrando flecha abajo a la izquierda y sort a la derecha, y
+
+no dependes de abrir el popover para ordenar.
+
+Acción: Asegura el sort siempre visible/accionable con íconos (no solo dentro del menú).
+
+BLOQUE 3 — Multi-select
+✅ OK
+
+Popover + checkbox y texto “N seleccionados” correcto.
+
+Consistencia cross-spreadsheets correcto.
+
+⚠️ Revisión rápida necesaria
+
+En tu resumen mencionas multiselect en “recámaras” (Bloque 7.2). Originalmente se pidió un selector (no necesariamente multi). Aquí hay un potencial desvío (lo detallo abajo).
+
+BLOQUE 4 — Tipo de empresa en Desarrolladores
+✅ OK
+
+Campo tipo + dropdown con 4 opciones: correcto.
+
+Posición después de ID: alineado a lo pedido.
+
+Restricción de permisos: razonable.
+
+⚠️ Falta (o no está explícito)
+
+El cliente pidió que esto afecte la creación de Desarrollos (solo Desarrollador/Comercializadora). Eso lo cubres en 7.1 parcialmente, pero falta confirmación en el flujo “crear desarrollo”.
+
+BLOQUE 5 — Antigüedad
+✅ OK
+
+Input fecha + campo calculado “Xa Ym”: correcto.
+
+No editable: correcto.
+
+⚠️ Detalle a vigilar
+
+El cliente pidió el calculado en gris, y tu resumen menciona antiguedadCalc bg-gray-100. Si ese gris es “clarito” y el estándar es “gris medio”, puede quedar inconsistente con Bloque 1.
+
+BLOQUE 6 — Developers spreadsheet completo
+✅ OK
+
+“Ventas” en lugar de “Gerente comercial”: correcto.
+
+Columnas largas (razón social/domicilio) en tabla: correcto.
+
+Link “Legales”: OK.
+
+❗ Falta importante vs pedido original
+
+El cliente pidió explícitamente:
+
+Para campos largos (ej. domicilio): NO tooltip hover, preferir click → pop-up/modal.
+
+En tu resumen no aparece ese comportamiento.
+Además, en Bloque 1 mencionas tooltips para fórmulas de tipologías (eso está bien), pero para texto largo no.
+
+Acción: implementar onCellClick -> modal para columnas largas (domicilio, razón social si aplica, etc.).
+
+BLOQUE 7.1 — “Tipo” en Desarrollos + filtrado de developers
+✅ OK
+
+empresa_tipo + columna “Tipo” después de Act.: correcto.
+
+Filtrado dinámico del dropdown de developer por fila: excelente (eso sí evita errores).
+
+⚠️ Falta a confirmar
+
+“En alta de Desarrollos solo permitir Desarrollador/Comercializadora” — tu tipo lo limita a esas dos opciones, bien.
+
+Pero si existe otro flujo (formularios fuera del spreadsheet), hay que validar que también aplica.
+
+BLOQUE 7.2 — Recámaras
+⚠️ Posible desalineación con lo pedido
+
+Original: “Desde/Hasta” debe ser un selector tipo (loft, 1+flex, 2+flex, 3+flex). Eso suena a single select (o al menos “rango controlado”), no a “N seleccionados”.
+
+Tu implementación:
+
+recamaras: text[] + multiselect.
+
+Esto puede ser “mejor” técnicamente, pero riesga rechazo si el cliente esperaba 1 opción, no varias.
+
+Acción recomendada: si no estás 100% seguro, cambia a single select (recamaraTipo: text) o valida con una regla:
+
+permitir solo 1 seleccionado (UI de checkbox pero con exclusión), o
+
+cambiar a Select.
+
+BLOQUE 7.3 — Vendidas y %
+✅ OK
+
+Orden Unidades → m² → Vendidas → %: correcto.
+
+% calculado realtime: OK.
+
+Sin filtro en %: OK.
+
+⚠️ Revisión
+
+Si “unidades = 0”, define comportamiento (evitar NaN/Infinity). No lo mencionas.
+
+Recomendación: mostrar “0%” o “—”.
