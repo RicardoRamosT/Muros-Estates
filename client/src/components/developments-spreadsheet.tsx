@@ -493,7 +493,7 @@ export function DevelopmentsSpreadsheet() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {developers.map(d => (
+                              {developers.filter(d => d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora').map(d => (
                                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                               ))}
                             </SelectContent>

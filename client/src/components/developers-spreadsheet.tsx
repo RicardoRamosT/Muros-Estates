@@ -35,13 +35,33 @@ import { getCellStyle, getCellTypeFromColumnType, formatDate, type CellType } fr
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
-// Tipos de desarrollos disponibles
-const DEVELOPER_TIPOS = [
-  { value: "residencial", label: "Residencial" },
-  { value: "comercial", label: "Comercial" },
-  { value: "oficina", label: "Oficina" },
-  { value: "salud", label: "Salud" },
+const DESARROLLO_TIPOS = [
+  { value: "Residencial", label: "Residencial" },
+  { value: "Comercial", label: "Comercial" },
+  { value: "Oficinas", label: "Oficinas" },
+  { value: "Salud", label: "Salud" },
 ];
+
+const EMPRESA_TIPOS = [
+  { value: "Desarrollador", label: "Desarrollador" },
+  { value: "Comercializadora", label: "Comercializadora" },
+  { value: "Constructora", label: "Constructora" },
+  { value: "Arquitectos", label: "Arquitectos" },
+];
+
+function calcAntiguedad(fecha: Date | string | null): string {
+  if (!fecha) return "";
+  const start = new Date(fecha);
+  if (isNaN(start.getTime())) return "";
+  const now = new Date();
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  if (months < 0) { years--; months += 12; }
+  if (years > 0 && months > 0) return `${years}a ${months}m`;
+  if (years > 0) return `${years} año${years > 1 ? 's' : ''}`;
+  if (months > 0) return `${months} mes${months > 1 ? 'es' : ''}`;
+  return "< 1 mes";
+}
 
 // RFC validation: 12-13 digits, uppercase
 function validateRFC(value: string): { isValid: boolean; message: string } {
@@ -56,7 +76,7 @@ interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -76,20 +96,20 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
-    { key: "tipo", label: "Tipo", width: "100px", autoField: true, cellType: "readonly" },
+    { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
     { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
     { key: "domicilio", label: "Domicilio", width: "180px", cellType: "input" },
     { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", group: "antiguedad", cellType: "date" },
-    { key: "antiguedadDeclarada", label: "Ant. Declarada", width: "120px", group: "antiguedad", cellType: "input" },
+    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", group: "antiguedad", cellType: "readonly" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown" },
     { key: "contratos", label: "Contratos", width: "120px", cellType: "input" },
     { key: "representante", label: "Representante", width: "130px", cellType: "input" },
-    { key: "contactName", label: "Gte. Comercial", width: "130px", group: "contacto", cellType: "input" },
-    { key: "contactPhone", label: "Teléfono", width: "110px", group: "contacto", cellType: "input" },
-    { key: "contactEmail", label: "Correo", width: "160px", group: "contacto", cellType: "input" },
+    { key: "contactName", label: "Ventas", width: "130px", cellType: "input" },
+    { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input" },
+    { key: "contactEmail", label: "Correo", width: "160px", cellType: "input" },
     { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions" },
   ];
@@ -264,11 +284,6 @@ export function DevelopersSpreadsheet() {
                     while (i + count < columns.length && columns[i + count].group === 'antiguedad') count++;
                     groupHeaders.push({ key: 'antiguedad', label: 'ANTIGÜEDAD', colSpan: count, bgClass: 'bg-purple-600 dark:bg-purple-700 text-white' });
                     i += count;
-                  } else if (col.group === 'contacto') {
-                    let count = 0;
-                    while (i + count < columns.length && columns[i + count].group === 'contacto') count++;
-                    groupHeaders.push({ key: 'contacto', label: 'CONTACTO', colSpan: count, bgClass: 'bg-green-600 dark:bg-green-700 text-white' });
-                    i += count;
                   } else {
                     groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '' });
                     i++;
@@ -293,8 +308,8 @@ export function DevelopersSpreadsheet() {
                   className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' ? (
-                    <div className="flex items-center justify-center">
+                  {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.key === 'antiguedadCalc' ? (
+                    <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : 'justify-start'}`}>
                       <span className="truncate">{col.label}</span>
                     </div>
                   ) : (
@@ -372,6 +387,57 @@ export function DevelopersSpreadsheet() {
                     );
                   }
                   
+                  if (col.type === 'tipo-select') {
+                    const tipoValue = dev.tipo || '';
+                    return (
+                      <td
+                        key={field}
+                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
+                        data-testid={`cell-${field}-${dev.id}`}
+                      >
+                        {fieldCanEdit ? (
+                          <Select
+                            value={tipoValue || "__empty__"}
+                            onValueChange={(v) => {
+                              const val = v === "__empty__" ? "" : v;
+                              updateMutation.mutate({ id: dev.id, data: { tipo: val } });
+                            }}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__empty__">Seleccionar</SelectItem>
+                              {EMPRESA_TIPOS.map(t => (
+                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="truncate text-xs">{tipoValue}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (col.key === 'antiguedadCalc') {
+                    const fechaValue = dev.fechaAntiguedad;
+                    const calculated = calcAntiguedad(fechaValue);
+                    return (
+                      <td
+                        key={field}
+                        className={getCellStyle({ type: "readonly", disabled: true })}
+                        style={{ backgroundColor: '#f3f4f6' }}
+                        data-testid={`cell-${field}-${dev.id}`}
+                      >
+                        <span className="text-xs text-muted-foreground px-2">{calculated}</span>
+                      </td>
+                    );
+                  }
+
                   if (col.type === 'folder-link') {
                     return (
                       <td key={field} className={getCellStyle({ type: "actions" })}>
@@ -483,7 +549,7 @@ export function DevelopersSpreadsheet() {
                             </PopoverTrigger>
                             <PopoverContent className="w-48 p-2" align="start">
                               <div className="space-y-1">
-                                {DEVELOPER_TIPOS.map((tipo) => (
+                                {DESARROLLO_TIPOS.map((tipo) => (
                                   <label
                                     key={tipo.value}
                                     className="flex items-center gap-2 px-2 py-1 hover:bg-muted rounded cursor-pointer"
