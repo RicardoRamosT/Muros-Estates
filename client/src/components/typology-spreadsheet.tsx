@@ -42,7 +42,7 @@ import type { Typology } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPERS, DEVELOPMENTS } from "@shared/constants";
 import { cn } from "@/lib/utils";
 import { FormulaTooltip } from "@/components/ui/formula-tooltip";
-import { TYPOLOGY_FORMULAS } from "@/lib/spreadsheet-utils";
+import { TYPOLOGY_FORMULAS, formatDate, formatTime } from "@/lib/spreadsheet-utils";
 
 type TypologyField = keyof Typology;
 
@@ -79,6 +79,17 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 55 },
+    ],
+  },
+  {
+    id: "fechahora",
+    label: "FECHA/HORA",
+    headerColor: "bg-teal-600 dark:bg-teal-700 text-white",
+    columnHeaderColor: "bg-teal-50 dark:bg-teal-900/30",
+    cellColor: "bg-teal-50/50 dark:bg-teal-900/10",
+    columns: [
+      { key: "createdDate", label: "Fecha", type: "text", width: 85, calculated: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 65, calculated: true },
     ],
   },
   {
@@ -2238,9 +2249,9 @@ export function TypologySpreadsheet() {
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                        <Minus className={cn("w-4 h-4", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
                       ) : (
-                        <Plus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                        <Plus className={cn("w-4 h-4", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
                       )}
                     </button>
                   </div>
@@ -2266,34 +2277,50 @@ export function TypologySpreadsheet() {
                     />
                   )];
                 }
-                return section.columns.map((col, colIndex) => (
-                  <div
-                    key={col.key}
-                    className={cn(
-                      "flex-shrink-0 h-full",
-                      colIndex === section.columns.length - 1 ? "border-r" : "border-r"
-                    )}
-                    style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
-                  >
-                    <ColumnFilter
-                      column={col}
-                      data={typologies}
-                      selectedValues={columnFilters[col.key] || new Set()}
-                      sortDirection={columnSorts[col.key] || null}
-                      onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
-                      onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                      sectionColor={section.headerColor}
-                      availableValues={availableValuesMap[col.key]}
-                      rangeFilter={rangeFilters[col.key]}
-                      onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
-                      groupedOptions={
-                        col.key === "zone" ? zoneGroupedOptions :
-                        col.key === "development" ? developmentGroupedOptions :
-                        undefined
-                      }
-                    />
-                  </div>
-                ));
+                return section.columns.map((col, colIndex) => {
+                  if (col.key === "createdDate" || col.key === "createdTime") {
+                    return (
+                      <div
+                        key={col.key}
+                        className={cn(
+                          "flex-shrink-0 h-full border-r flex items-center px-2",
+                          section.columnHeaderColor
+                        )}
+                        style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
+                      >
+                        <span className="text-xs font-medium truncate">{col.label}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={col.key}
+                      className={cn(
+                        "flex-shrink-0 h-full",
+                        colIndex === section.columns.length - 1 ? "border-r" : "border-r"
+                      )}
+                      style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
+                    >
+                      <ColumnFilter
+                        column={col}
+                        data={typologies}
+                        selectedValues={columnFilters[col.key] || new Set()}
+                        sortDirection={columnSorts[col.key] || null}
+                        onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
+                        onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
+                        sectionColor={section.headerColor}
+                        availableValues={availableValuesMap[col.key]}
+                        rangeFilter={rangeFilters[col.key]}
+                        onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
+                        groupedOptions={
+                          col.key === "zone" ? zoneGroupedOptions :
+                          col.key === "development" ? developmentGroupedOptions :
+                          undefined
+                        }
+                      />
+                    </div>
+                  );
+                });
               })}
             
             <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
@@ -2339,12 +2366,46 @@ export function TypologySpreadsheet() {
                     return [(
                       <div 
                         key={`collapsed-${section.id}`}
-                        className="spreadsheet-cell bg-muted/20 border-r"
+                        className={cn(
+                          "spreadsheet-cell border-r",
+                          section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20"
+                        )}
                         style={{ width: collapsedWidth }}
                       />
                     )];
                   }
                   return section.columns.map((col, colIndex) => {
+                    if (col.key === "createdDate") {
+                      return (
+                        <div
+                          key={col.key}
+                          className={cn(
+                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate",
+                            section.cellColor
+                          )}
+                          style={{ width: (col.width || 85) + SORT_ICON_WIDTH }}
+                          data-testid={`cell-createdDate-${row.id}`}
+                        >
+                          {formatDate(row.createdAt)}
+                        </div>
+                      );
+                    }
+                    if (col.key === "createdTime") {
+                      return (
+                        <div
+                          key={col.key}
+                          className={cn(
+                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate",
+                            section.cellColor
+                          )}
+                          style={{ width: (col.width || 65) + SORT_ICON_WIDTH }}
+                          data-testid={`cell-createdTime-${row.id}`}
+                        >
+                          {formatTime(row.createdAt)}
+                        </div>
+                      );
+                    }
+
                     let dynamicOpts: string[] | undefined;
                     if (col.key === "developer") dynamicOpts = developerOptions;
                     if (col.key === "development") dynamicOpts = developmentOptions;
