@@ -95,6 +95,10 @@ export function DevelopersSpreadsheet() {
     queryKey: ["/api/developers"],
   });
 
+  const { data: catalogContratos = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ["/api/catalog/tipo-contrato"],
+  });
+
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
     { key: "active", label: "Act.", width: "35px", type: "toggle", autoField: true, cellType: "checkbox" },
@@ -107,7 +111,7 @@ export function DevelopersSpreadsheet() {
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
     { key: "domicilio", label: "Domicilio", width: "180px", cellType: "input" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown" },
-    { key: "contratos", label: "Contratos", width: "120px", cellType: "input" },
+    { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown" },
     { key: "representante", label: "Representante", width: "130px", cellType: "input" },
     { key: "contactName", label: "Ventas", width: "130px", cellType: "input" },
     { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input" },
@@ -206,8 +210,8 @@ export function DevelopersSpreadsheet() {
     setEditingCell(null);
   }, [editingCell, editValue, developers, updateMutation, toast]);
 
-  const handleTiposChange = useCallback((id: string, selectedTipos: string[]) => {
-    updateMutation.mutate({ id, data: { tipos: selectedTipos } });
+  const handleMultiselectChange = useCallback((id: string, field: string, selectedValues: string[]) => {
+    updateMutation.mutate({ id, data: { [field]: selectedValues } });
   }, [updateMutation]);
 
   const handleDateChange = useCallback((id: string, field: string, value: string) => {
@@ -618,10 +622,13 @@ export function DevelopersSpreadsheet() {
 
                   // Multiselect dropdown - tipos
                   if (col.type === 'multiselect') {
-                    const tiposValue = (dev.tipos as string[] | null) || [];
-                    const displayValue = tiposValue.length > 0 
-                      ? `${tiposValue.length} seleccionados`
+                    const currentValues = (dev[field as keyof Developer] as string[] | null) || [];
+                    const displayValue = currentValues.length > 0 
+                      ? `${currentValues.length} seleccionados`
                       : '';
+                    const options = col.key === 'contratos'
+                      ? catalogContratos.map(c => ({ value: c.name, label: c.name }))
+                      : DESARROLLO_TIPOS;
                     
                     return (
                       <td
@@ -635,30 +642,30 @@ export function DevelopersSpreadsheet() {
                               <Button
                                 variant="ghost"
                                 className="h-6 w-full justify-between px-1 text-left font-normal text-xs"
-                                data-testid={`select-tipos-${dev.id}`}
+                                data-testid={`select-${col.key}-${dev.id}`}
                               >
                                 <span className="truncate">{displayValue || 'Seleccionar...'}</span>
                                 <ChevronDown className="h-3 w-3 opacity-50" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-48 p-2" align="start">
+                            <PopoverContent className="w-56 p-2" align="start">
                               <div className="space-y-1">
-                                {DESARROLLO_TIPOS.map((tipo) => (
+                                {options.map((opt) => (
                                   <label
-                                    key={tipo.value}
+                                    key={opt.value}
                                     className="flex items-center gap-2 px-2 py-1 hover:bg-muted rounded cursor-pointer"
                                   >
                                     <Checkbox
-                                      checked={tiposValue.includes(tipo.value)}
+                                      checked={currentValues.includes(opt.value)}
                                       onCheckedChange={(checked) => {
-                                        const newTipos = checked
-                                          ? [...tiposValue, tipo.value]
-                                          : tiposValue.filter(t => t !== tipo.value);
-                                        handleTiposChange(dev.id, newTipos);
+                                        const newValues = checked
+                                          ? [...currentValues, opt.value]
+                                          : currentValues.filter(v => v !== opt.value);
+                                        handleMultiselectChange(dev.id, field, newValues);
                                       }}
-                                      data-testid={`checkbox-tipo-${tipo.value}-${dev.id}`}
+                                      data-testid={`checkbox-${col.key}-${opt.value}-${dev.id}`}
                                     />
-                                    <span className="text-xs">{tipo.label}</span>
+                                    <span className="text-xs">{opt.label}</span>
                                   </label>
                                 ))}
                               </div>
@@ -716,7 +723,7 @@ export function DevelopersSpreadsheet() {
                   }
                   
                   const value = dev[field as keyof Developer] as string;
-                  const isLongText = ['razonSocial', 'domicilio', 'contratos', 'representante', 'contactName', 'contactEmail'].includes(field);
+                  const isLongText = ['razonSocial', 'domicilio', 'representante', 'contactName', 'contactEmail'].includes(field);
 
                   if (isLongText) {
                     return (

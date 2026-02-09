@@ -629,7 +629,7 @@ export const developers = pgTable("developers", {
   antiguedad: text("antiguedad"), // Campo legacy - Antigüedad en el mercado
   // Tipos de desarrollos - array de opciones: Residencial, Comercial, Oficina, Salud
   tipos: text("tipos").array(), // Array de tipos de desarrollos que hace
-  contratos: text("contratos"), // Contratos del desarrollador
+  contratos: text("contratos").array(), // Array de tipos de contratos
   representante: text("representante"), // Representante legal
   // Contacto - Gerente Comercial
   contactName: text("contact_name"), // Gerente Comercial (antes "Nombre")
