@@ -1054,7 +1054,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         {fieldCanEdit ? (
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" className={`h-6 w-full justify-start text-sm font-normal px-2 ${!displayText ? 'text-red-500 font-medium' : ''}`}>
+                              <Button variant="ghost" className={`h-6 w-full justify-start text-xs font-normal px-2 ${!displayText ? 'text-red-500 font-medium' : ''}`}>
                                 <span className="truncate">{displayText || 'SIN ASIGNAR'}</span>
                               </Button>
                             </PopoverTrigger>

@@ -641,7 +641,7 @@ export function DevelopersSpreadsheet() {
                             <PopoverTrigger asChild>
                               <Button
                                 variant="ghost"
-                                className="h-6 w-full justify-between px-1 text-left font-normal text-sm"
+                                className="h-6 w-full justify-between px-1 text-left font-normal text-xs"
                                 data-testid={`select-tipos-${dev.id}`}
                               >
                                 <span className="truncate">{displayValue || 'Seleccionar...'}</span>
