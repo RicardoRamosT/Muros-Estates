@@ -723,7 +723,7 @@ export function DevelopersSpreadsheet() {
                   }
                   
                   const value = dev[field as keyof Developer] as string;
-                  const isLongText = ['razonSocial', 'domicilio', 'representante', 'contactName', 'contactEmail'].includes(field);
+                  const isLongText = ['razonSocial', 'domicilio', 'contactName', 'contactEmail'].includes(field);
 
                   if (isLongText) {
                     return (
