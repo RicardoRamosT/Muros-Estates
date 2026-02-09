@@ -75,7 +75,7 @@ const columnGroups: ColumnGroup[] = [
 ];
 
 const columns: ColumnDef[] = [
-  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '75px', cellType: 'index' },
+  { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
   { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
   { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '120px', cellType: 'dropdown' },
@@ -473,7 +473,7 @@ export function DevelopmentsSpreadsheet() {
           </thead>
           <tbody>
             {filteredAndSortedData.map((dev, rowIndex) => (
-              <tr key={dev.id} className="group" data-testid={`row-development-${dev.id}`}>
+              <tr key={dev.id} className="group" style={{ height: '32px', maxHeight: '32px' }} data-testid={`row-development-${dev.id}`}>
                 {visibleColumns.map((col) => {
                   const fieldCanEdit = canEdit(col.key);
                   const value = (dev as any)[col.key];

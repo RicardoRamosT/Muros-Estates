@@ -95,7 +95,7 @@ export function DevelopersSpreadsheet() {
   });
 
   const allColumns: ColumnDef[] = [
-    { key: "id", label: "ID", width: "75px", type: "index", autoField: true, cellType: "index" },
+    { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
     { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
@@ -367,7 +367,7 @@ export function DevelopersSpreadsheet() {
           </thead>
           <tbody>
             {filteredAndSortedData.map((dev, index) => (
-              <tr key={dev.id} className="group" data-testid={`row-developer-${dev.id}`}>
+              <tr key={dev.id} className="group" style={{ height: '32px', maxHeight: '32px' }} data-testid={`row-developer-${dev.id}`}>
                 {columns.map((col) => {
                   const field = col.key;
                   const fieldCanEdit = canEdit(field);

@@ -222,7 +222,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   // Columns for Prospectos (22 fields)
   const prospectColumns = [
-    { key: "index", label: "ID", width: "75px", type: "index" },
+    { key: "index", label: "ID", width: "45px", type: "index" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -249,7 +249,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   ];
 
   const clientColumns = [
-    { key: "index", label: "ID", width: "75px", type: "index" },
+    { key: "index", label: "ID", width: "45px", type: "index" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
     { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -560,7 +560,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           </thead>
           <tbody>
             {filteredAndSortedData.map((prospect, index) => (
-              <tr key={prospect.id} className="group" data-testid={`row-prospect-${prospect.id}`}>
+              <tr key={prospect.id} className="group" style={{ height: '32px', maxHeight: '32px' }} data-testid={`row-prospect-${prospect.id}`}>
                 {columns.map((col) => {
                   const field = col.field || col.key;
                   const hasAsesor = !!(prospect as any).asesorId;
