@@ -524,8 +524,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
-                  style={{ minWidth: col.width }}
+                  rowSpan={2}
+                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap ${col.type === 'index' ? 'text-center' : 'text-left'} align-middle`}
+                  style={{ minWidth: col.width, height: '68px' }}
                   data-testid={`column-header-${col.key}`}
                 >
                   {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
@@ -555,6 +556,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                 </th>
               ))}
             </tr>
+            <tr>{/* Empty row for rowSpan=2 alignment */}</tr>
           </thead>
           <tbody>
             {filteredAndSortedData.map((prospect, index) => (

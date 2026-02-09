@@ -373,32 +373,79 @@ export function DevelopmentsSpreadsheet() {
         <table className="w-full border-collapse text-xs" style={{ minWidth: '4500px' }}>
           <thead className="sticky top-0 z-10">
             <tr>
-              {visibleColumnGroups.map((group, idx) => (
-                <th
-                  key={`group-${idx}`}
-                  colSpan={group.colspan}
-                  className="border-b border-r px-2 text-center font-bold text-xs uppercase tracking-wide h-9"
-                  style={{
-                    backgroundColor: group.color || 'transparent',
-                    color: group.label ? 'white' : undefined
-                  }}
-                >
-                  {group.label}
-                </th>
-              ))}
+              {(() => {
+                const cells: JSX.Element[] = [];
+                let colIdx = 0;
+                for (const group of visibleColumnGroups) {
+                  const groupCols = visibleColumns.slice(colIdx, colIdx + group.colspan);
+                  const hasLabel = !!group.label;
+                  
+                  if (hasLabel) {
+                    cells.push(
+                      <th
+                        key={`group-${group.key}`}
+                        colSpan={group.colspan}
+                        className="border-b border-r px-2 text-center font-bold text-xs uppercase tracking-wide h-9"
+                        style={{ backgroundColor: group.color || 'transparent', color: 'white' }}
+                      >
+                        {group.label}
+                      </th>
+                    );
+                  } else {
+                    groupCols.forEach((col) => {
+                      cells.push(
+                        <th
+                          key={`unified-${col.key}`}
+                          rowSpan={2}
+                          className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-100 dark:bg-gray-800 align-middle ${col.type === 'index' || col.key === 'id' ? 'text-center' : 'text-left'}`}
+                          style={{ minWidth: col.width, width: col.width, height: '68px' }}
+                        >
+                          {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
+                            <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
+                              <span className="truncate">{col.label}</span>
+                            </div>
+                          ) : (
+                            <ColumnFilter
+                              columnKey={col.key}
+                              columnLabel={col.label}
+                              columnType={
+                                col.type === 'boolean' ? 'boolean' : 
+                                col.type === 'number' ? 'number' : 
+                                (col.type?.includes('select') ? 'select' : 'text')
+                              }
+                              uniqueValues={uniqueValuesMap[col.key] || []}
+                              availableValues={availableValuesMap[col.key]}
+                              sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                              filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                              onSort={(dir) => handleSort(col.key, dir)}
+                              onFilter={(state) => handleFilter(col.key, state)}
+                              onClear={() => handleClearFilter(col.key)}
+                            />
+                          )}
+                        </th>
+                      );
+                    });
+                  }
+                  colIdx += group.colspan;
+                }
+                return cells;
+              })()}
             </tr>
             <tr>
-              {visibleColumns.map((col) => {
+              {visibleColumns.filter(col => {
+                const group = columnGroups.find(g => g.key === col.group);
+                return group && !!group.label;
+              }).map((col) => {
                 const group = columnGroups.find(g => g.key === col.group);
                 const bgColor = group?.color ? `${group.color}80` : undefined;
                 return (
                   <th
                     key={col.key}
-                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'} ${!bgColor ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
                     style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
                   >
-                    {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
-                      <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
+                    {col.type === 'calculated-percent' ? (
+                      <div className="flex items-center">
                         <span className="truncate">{col.label}</span>
                       </div>
                     ) : (

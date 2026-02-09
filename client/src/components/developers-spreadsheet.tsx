@@ -275,48 +275,83 @@ export function DevelopersSpreadsheet() {
             {/* Group header row */}
             <tr>
               {(() => {
-                const groupHeaders: { key: string; label: string; colSpan: number; bgClass: string }[] = [];
+                const groupHeaders: { key: string; label: string; colSpan: number; bgClass: string; isGroup: boolean }[] = [];
                 let i = 0;
                 while (i < columns.length) {
                   const col = columns[i];
                   if (col.group === 'antiguedad') {
                     let count = 0;
                     while (i + count < columns.length && columns[i + count].group === 'antiguedad') count++;
-                    groupHeaders.push({ key: 'antiguedad', label: 'ANTIGÜEDAD', colSpan: count, bgClass: 'bg-purple-600 dark:bg-purple-700 text-white' });
+                    groupHeaders.push({ key: 'antiguedad', label: 'ANTIGÜEDAD', colSpan: count, bgClass: 'bg-purple-600 dark:bg-purple-700 text-white', isGroup: true });
                     i += count;
                   } else {
-                    groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '' });
+                    groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '', isGroup: false });
                     i++;
                   }
                 }
-                return groupHeaders.map((gh, idx) => (
-                  <th
-                    key={`group-${gh.key}-${idx}`}
-                    colSpan={gh.colSpan}
-                    className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9", gh.bgClass)}
-                  >
-                    {gh.label}
-                  </th>
-                ));
+                return groupHeaders.map((gh, idx) => {
+                  if (!gh.isGroup) {
+                    const col = columns.find(c => c.key === gh.key)!;
+                    return (
+                      <th
+                        key={`group-${gh.key}-${idx}`}
+                        rowSpan={2}
+                        className={cn(
+                          "border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide align-middle",
+                          col.type === 'index' ? 'text-center' : 'text-left'
+                        )}
+                        style={{ width: col.width, minWidth: col.width, height: '68px' }}
+                      >
+                        {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' ? (
+                          <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : 'justify-start'}`}>
+                            <span className="truncate">{col.label}</span>
+                          </div>
+                        ) : (
+                          <ColumnFilter
+                            columnKey={col.key}
+                            columnLabel={col.label}
+                            columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
+                            uniqueValues={uniqueValuesMap[col.key] || []}
+                            availableValues={availableValuesMap[col.key]}
+                            sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                            filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                            onSort={(dir) => handleSort(col.key, dir)}
+                            onFilter={(state) => handleFilter(col.key, state)}
+                            onClear={() => handleClearFilter(col.key)}
+                          />
+                        )}
+                      </th>
+                    );
+                  }
+                  return (
+                    <th
+                      key={`group-${gh.key}-${idx}`}
+                      colSpan={gh.colSpan}
+                      className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9", gh.bgClass)}
+                    >
+                      {gh.label}
+                    </th>
+                  );
+                });
               })()}
             </tr>
-            {/* Individual column headers */}
+            {/* Sub-column headers (only for grouped columns) */}
             <tr>
-              {columns.map((col) => (
+              {columns.filter(col => col.group === 'antiguedad').map((col) => (
                 <th
                   key={col.key}
-                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
+                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 text-left`}
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.key === 'antiguedadCalc' ? (
-                    <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : 'justify-start'}`}>
+                  {col.key === 'antiguedadCalc' ? (
+                    <div className="flex items-center justify-start">
                       <span className="truncate">{col.label}</span>
                     </div>
                   ) : (
                     <ColumnFilter
                       columnKey={col.key}
-                      columnLabel={col.label || (col.group === 'antiguedad' ? (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada') : col.key)}
-                      columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
+                      columnLabel={col.label || (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada')}
+                      columnType={col.type === 'date' ? 'text' : 'text'}
                       uniqueValues={uniqueValuesMap[col.key] || []}
                       availableValues={availableValuesMap[col.key]}
                       sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
