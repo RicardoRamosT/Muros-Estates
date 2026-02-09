@@ -100,13 +100,12 @@ export function DevelopersSpreadsheet() {
     { key: "active", label: "Act.", width: "35px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
+    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
     { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
     { key: "domicilio", label: "Domicilio", width: "180px", cellType: "input" },
-    { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", group: "antiguedad", cellType: "date" },
-    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", group: "antiguedad", cellType: "readonly" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown" },
     { key: "contratos", label: "Contratos", width: "120px", cellType: "input" },
     { key: "representante", label: "Representante", width: "130px", cellType: "input" },
@@ -296,11 +295,6 @@ export function DevelopersSpreadsheet() {
                     while (i + count < columns.length && columns[i + count].group === 'fechahora') count++;
                     groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', colSpan: count, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true });
                     i += count;
-                  } else if (col.group === 'antiguedad') {
-                    let count = 0;
-                    while (i + count < columns.length && columns[i + count].group === 'antiguedad') count++;
-                    groupHeaders.push({ key: 'antiguedad', label: 'ANTIGÜEDAD', colSpan: count, bgClass: 'bg-purple-600 dark:bg-purple-700 text-white', isGroup: true });
-                    i += count;
                   } else {
                     groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '', isGroup: false });
                     i++;
@@ -381,20 +375,20 @@ export function DevelopersSpreadsheet() {
             </tr>
             {/* Sub-column headers (only for grouped columns) */}
             <tr>
-              {columns.filter(col => col.group === 'antiguedad' || col.group === 'fechahora').map((col) => (
+              {columns.filter(col => col.group === 'fechahora').map((col) => (
                 <th
                   key={col.key}
                   className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 text-left`}
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  {col.group === 'fechahora' || col.key === 'antiguedadCalc' ? (
+                  {col.group === 'fechahora' ? (
                     <div className="flex items-center justify-start">
                       <span className="truncate">{col.label}</span>
                     </div>
                   ) : (
                     <ColumnFilter
                       columnKey={col.key}
-                      columnLabel={col.label || (col.key === 'fechaAntiguedad' ? 'Fecha' : 'Antigüedad Declarada')}
+                      columnLabel={col.label}
                       columnType={col.type === 'date' ? 'text' : 'text'}
                       uniqueValues={uniqueValuesMap[col.key] || []}
                       availableValues={availableValuesMap[col.key]}
@@ -526,8 +520,7 @@ export function DevelopersSpreadsheet() {
                   }
 
                   if (col.key === 'antiguedadCalc') {
-                    const fechaValue = dev.fechaAntiguedad;
-                    const calculated = calcAntiguedad(fechaValue);
+                    const calculated = calcAntiguedad(dev.createdAt);
                     return (
                       <td
                         key={field}
