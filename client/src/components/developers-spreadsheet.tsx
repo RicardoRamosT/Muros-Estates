@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo } from "react";
-import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -86,7 +85,7 @@ export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
-  const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void} | null>(null);
+  const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'contactName', 'contactEmail'];
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
@@ -708,10 +707,7 @@ export function DevelopersSpreadsheet() {
                             data-testid={`input-${field}-${dev.id}`}
                           />
                         ) : (
-                          <div
-                          className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value), editable: false })}
-                        >
+                          <div className="flex items-center gap-1">
                             <span className="truncate uppercase">
                               {value || ''}
                             </span>
@@ -723,36 +719,6 @@ export function DevelopersSpreadsheet() {
                   }
                   
                   const value = dev[field as keyof Developer] as string;
-                  const isLongText = ['razonSocial', 'domicilio', 'contactName', 'contactEmail'].includes(field);
-
-                  if (isLongText) {
-                    return (
-                      <td
-                        key={field}
-                        className={getCellStyle({ type: cellType, disabled: !fieldCanEdit })}
-                        data-testid={`cell-${field}-${dev.id}`}
-                      >
-                        <div
-                          className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => {
-                            if (fieldCanEdit) {
-                              setTextDetail({
-                                title: col.label,
-                                value: String(value || ''),
-                                editable: true,
-                                onSave: (newVal) => updateMutation.mutate({ id: dev.id, data: { [field]: newVal || null } }),
-                              });
-                            } else {
-                              setTextDetail({ title: col.label, value: String(value || ''), editable: false });
-                            }
-                          }}
-                        >
-                          <span className="truncate">{value || ''}</span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
-                        </div>
-                      </td>
-                    );
-                  }
 
                   return (
                     <td
@@ -776,11 +742,23 @@ export function DevelopersSpreadsheet() {
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (
-                        <div
-                          className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => !fieldCanEdit && value && setTextDetail({ title: col.label, value: String(value), editable: false })}
-                        >
-                          <span className="truncate">
+                        <div className="flex items-center gap-1">
+                          <span
+                            className="truncate"
+                            onMouseEnter={(e) => {
+                              if (LONG_TEXT_FIELDS.includes(field)) {
+                                const el = e.currentTarget;
+                                if (el.scrollWidth > el.clientWidth && value) {
+                                  el.setAttribute('title', String(value));
+                                } else {
+                                  el.removeAttribute('title');
+                                }
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.removeAttribute('title');
+                            }}
+                          >
                             {value || ''}
                           </span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
@@ -803,14 +781,6 @@ export function DevelopersSpreadsheet() {
           </tbody>
         </table>
       </div>
-      <TextDetailModal
-        open={!!textDetail}
-        onOpenChange={(open) => !open && setTextDetail(null)}
-        title={textDetail?.title || ""}
-        value={textDetail?.value || ""}
-        editable={textDetail?.editable}
-        onSave={textDetail?.onSave}
-      />
     </div>
   );
 }
