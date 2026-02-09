@@ -19,11 +19,11 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
+import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
-import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
 
 const NIVEL_OPTIONS = ['AAA', 'A', 'B', 'C'] as const;
@@ -36,7 +36,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'recamaras-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'recamaras-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -53,6 +53,8 @@ interface ColumnGroup {
 
 const columnGroups: ColumnGroup[] = [
   { key: 'basic', label: '' },
+  { key: 'fechahora', label: 'FECHA/HORA', color: '#0d9488' },
+  { key: 'fechahora_collapsed', label: '' },
   { key: 'location', label: '' },
   { key: 'structure', label: '' },
   { key: 'features', label: '' },
@@ -76,7 +78,9 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
+  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '35px', cellType: 'checkbox' },
+  { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
+  { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'basic', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'basic', width: '130px', cellType: 'input' },
@@ -141,6 +145,7 @@ export function DevelopmentsSpreadsheet() {
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
+  const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
 
   const { data: developments = [], isLoading: developmentsLoading } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
@@ -284,13 +289,22 @@ export function DevelopmentsSpreadsheet() {
   };
 
   const visibleColumns = useMemo(() => {
-    return columns.filter(col => {
+    let cols = columns.filter(col => {
+      if (col.group === 'fechahora' && !fechaHoraExpanded) return false;
       if (col.type === 'actions') return hasFullAccess;
       if (col.key === 'id') return true;
       const perm = canView(col.key);
       return perm;
     });
-  }, [canView, hasFullAccess]);
+
+    if (!fechaHoraExpanded) {
+      const actIdx = cols.findIndex(c => c.key === 'active');
+      const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', group: 'fechahora_collapsed', type: 'fechahora-collapsed' as any, width: '30px', cellType: 'readonly' };
+      cols.splice(actIdx + 1, 0, collapsedCol);
+    }
+
+    return cols;
+  }, [canView, hasFullAccess, fechaHoraExpanded]);
 
   const {
     sortConfig,
@@ -388,11 +402,35 @@ export function DevelopmentsSpreadsheet() {
                         className="border-b border-r px-2 text-center font-bold text-xs uppercase tracking-wide h-9"
                         style={{ backgroundColor: group.color || 'transparent', color: 'white' }}
                       >
-                        {group.label}
+                        <div className="flex items-center justify-center gap-1">
+                          <span>{group.label}</span>
+                          {group.key === 'fechahora' && (
+                            <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
+                              <Minus className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </th>
                     );
                   } else {
                     groupCols.forEach((col) => {
+                      if (col.key === 'fechahora_collapsed') {
+                        cells.push(
+                          <th
+                            key="fechahora_collapsed"
+                            rowSpan={2}
+                            className="border-b border-r text-white cursor-pointer px-1 align-middle"
+                            style={{ minWidth: '30px', width: '30px', height: '68px', backgroundColor: '#0d9488' }}
+                            onClick={() => setFechaHoraExpanded(true)}
+                            data-testid="toggle-fechahora-expand"
+                          >
+                            <div className="flex items-center justify-center">
+                              <Plus className="w-3 h-3" />
+                            </div>
+                          </th>
+                        );
+                        return;
+                      }
                       cells.push(
                         <th
                           key={`unified-${col.key}`}
@@ -484,6 +522,28 @@ export function DevelopmentsSpreadsheet() {
                       <td key={col.key} className={getCellStyle({ type: "index" })} title={dev.id}>
                         <span className="text-muted-foreground font-mono">{rowIndex + 1}</span>
                       </td>
+                    );
+                  }
+
+                  if (col.type === 'date-display') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${col.key}-${dev.id}`}>
+                        <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'time-display') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${col.key}-${dev.id}`}>
+                        <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'fechahora-collapsed') {
+                    return (
+                      <td key="fechahora_collapsed" className="border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px' }} />
                     );
                   }
 

@@ -18,7 +18,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download } from "lucide-react";
+import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
@@ -36,6 +36,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -192,6 +193,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
   }, [typologies, updateMutation]);
 
+  const handleActiveToggle = useCallback((id: string, newValue: boolean) => {
+    updateMutation.mutate({ id, data: { active: newValue } });
+  }, [updateMutation]);
+
   const handleCreateNew = () => {
     createMutation.mutate({
       nombre: "Nuevo Prospecto",
@@ -211,7 +216,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const formatTime = (date: Date | string | null) => {
     if (!date) return "";
     const d = new Date(date);
-    return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
   const getAsesorName = (asesorId: string | null) => {
@@ -220,11 +225,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     return user ? user.name : "";
   };
 
-  // Columns for Prospectos (22 fields)
   const prospectColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
-    { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
+    { key: "active", label: "Act.", width: "35px", type: "toggle" },
+    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
+    { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select" },
     { key: "zona", label: "Zona", width: "100px", type: "catalog-select" },
@@ -250,8 +255,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const clientColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "fecha", label: "Fecha", width: "85px", type: "date", field: "createdAt" },
-    { key: "hora", label: "Hora", width: "65px", type: "time", field: "createdAt" },
+    { key: "active", label: "Act.", width: "35px", type: "toggle" },
+    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
+    { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
     { key: "nombre", label: "Nombre", width: "120px" },
     { key: "apellido", label: "Apellido", width: "120px" },
@@ -371,12 +377,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   };
 
   const columns = useMemo(() => {
-    return allColumns.filter(col => {
+    let cols = allColumns.filter(col => {
+      if ((col as any).group === 'fechahora') return fechaHoraExpanded;
       if (col.type === 'index' || col.type === 'actions') return true;
-      // Use col.key for permission check (fecha, hora are defined in permissions, not createdAt)
       return canView(col.key);
     });
-  }, [allColumns, canView]);
+
+    if (!fechaHoraExpanded) {
+      const actIdx = cols.findIndex(c => c.key === 'active');
+      const collapsedCol = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed' };
+      cols.splice(actIdx + 1, 0, collapsedCol);
+    }
+
+    return cols;
+  }, [allColumns, canView, fechaHoraExpanded]);
 
   // Create order maps for options-select columns (for proper sorting by position)
   const orderMaps = useMemo(() => {
@@ -519,44 +533,113 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
       <div className="flex-1 overflow-auto spreadsheet-scroll">
         <table className="w-full border-collapse text-xs">
-          <thead className="sticky top-0 z-10" data-testid="prospects-table-header">
-            <tr className="bg-gray-100 dark:bg-gray-800">
-              {columns.map((col) => (
+          <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600" data-testid="prospects-table-header">
+            <tr>
+              {(() => {
+                const groupHeaders: { key: string; label: string; colSpan: number; bgClass: string; isGroup: boolean }[] = [];
+                let i = 0;
+                while (i < columns.length) {
+                  const col = columns[i];
+                  if ((col as any).group === 'fechahora') {
+                    let count = 0;
+                    while (i + count < columns.length && (columns[i + count] as any).group === 'fechahora') count++;
+                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', colSpan: count, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true });
+                    i += count;
+                  } else {
+                    groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '', isGroup: false });
+                    i++;
+                  }
+                }
+                return groupHeaders.map((gh, idx) => {
+                  if (!gh.isGroup) {
+                    const col = columns.find(c => c.key === gh.key)!;
+                    if (col.key === 'fechahora_collapsed') {
+                      return (
+                        <th
+                          key={`group-${gh.key}-${idx}`}
+                          rowSpan={2}
+                          className="border-b border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer px-1 align-middle"
+                          style={{ width: '30px', minWidth: '30px', height: '68px' }}
+                          onClick={() => setFechaHoraExpanded(true)}
+                          data-testid="toggle-fechahora-expand"
+                        >
+                          <div className="flex items-center justify-center">
+                            <Plus className="w-3 h-3" />
+                          </div>
+                        </th>
+                      );
+                    }
+                    return (
+                      <th
+                        key={`group-${gh.key}-${idx}`}
+                        rowSpan={2}
+                        className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide align-middle ${col.type === 'index' ? 'text-center' : 'text-left'}`}
+                        style={{ width: col.width, minWidth: col.width, height: '68px' }}
+                        data-testid={`column-header-${col.key}`}
+                      >
+                        {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
+                          <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
+                            <span className="truncate">{col.label}</span>
+                          </div>
+                        ) : (
+                          <ColumnFilter
+                            columnKey={col.key}
+                            columnLabel={col.label}
+                            columnType={
+                              col.type === 'toggle' ? 'boolean' :
+                              col.type === 'currency' ? 'number' : 
+                              col.type === 'select' ? 'select' : 'text'
+                            }
+                            uniqueValues={uniqueValuesMap[col.key] || []}
+                            availableValues={availableValuesMap[col.key]}
+                            sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                            filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                            onSort={(dir) => handleSort(col.key, dir)}
+                            onFilter={(state) => handleFilter(col.key, state)}
+                            onClear={() => handleClearFilter(col.key)}
+                            labelMap={labelMaps[col.key]}
+                            groupMap={groupMaps[col.key]}
+                          />
+                        )}
+                      </th>
+                    );
+                  }
+                  return (
+                    <th
+                      key={`group-${gh.key}-${idx}`}
+                      colSpan={gh.colSpan}
+                      className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9 ${gh.bgClass}`}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span>{gh.label}</span>
+                        {gh.key === 'fechahora' && (
+                          <button
+                            onClick={() => setFechaHoraExpanded(false)}
+                            className="ml-1 hover:opacity-80"
+                            data-testid="toggle-fechahora-collapse"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </th>
+                  );
+                });
+              })()}
+            </tr>
+            <tr>
+              {columns.filter(col => (col as any).group === 'fechahora').map((col) => (
                 <th
                   key={col.key}
-                  rowSpan={2}
-                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap ${col.type === 'index' ? 'text-center' : 'text-left'} align-middle`}
-                  style={{ minWidth: col.width, height: '68px' }}
-                  data-testid={`column-header-${col.key}`}
+                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 text-left"
+                  style={{ width: col.width, minWidth: col.width }}
                 >
-                  {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
-                    <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
-                      <span className="truncate">{col.label}</span>
-                    </div>
-                  ) : (
-                    <ColumnFilter
-                      columnKey={col.key}
-                      columnLabel={col.label}
-                      columnType={
-                        col.type === 'currency' ? 'number' : 
-                        col.type === 'date' || col.type === 'time' ? 'date' :
-                        col.type === 'select' ? 'select' : 'text'
-                      }
-                      uniqueValues={uniqueValuesMap[col.key] || []}
-                      availableValues={availableValuesMap[col.key]}
-                      sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                      filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                      onSort={(dir) => handleSort(col.key, dir)}
-                      onFilter={(state) => handleFilter(col.key, state)}
-                      onClear={() => handleClearFilter(col.key)}
-                      labelMap={labelMaps[col.key]}
-                      groupMap={groupMaps[col.key]}
-                    />
-                  )}
+                  <div className="flex items-center justify-start">
+                    <span className="truncate">{col.label}</span>
+                  </div>
                 </th>
               ))}
             </tr>
-            <tr>{/* Empty row for rowSpan=2 alignment */}</tr>
           </thead>
           <tbody>
             {filteredAndSortedData.map((prospect, index) => (
@@ -564,7 +647,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                 {columns.map((col) => {
                   const field = col.field || col.key;
                   const hasAsesor = !!(prospect as any).asesorId;
-                  const editableWithoutAsesor = ['asesorId', 'nombre', 'apellido', 'telefono', 'correo', 'estatus', 'embudo', 'comoPaga', 'positivos', 'negativos', 'comentarios'];
+                  const editableWithoutAsesor = ['active', 'asesorId', 'nombre', 'apellido', 'telefono', 'correo', 'estatus', 'embudo', 'comoPaga', 'positivos', 'negativos', 'comentarios'];
                   const isBlockedByAsesor = !hasAsesor && !editableWithoutAsesor.includes(col.key);
                   const fieldCanEdit = canEdit(col.key) && !isBlockedByAsesor;
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
@@ -577,79 +660,61 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  if (col.key === 'fecha') {
-                    const dateValue = prospect.createdAt ? new Date(prospect.createdAt).toISOString().split('T')[0] : '';
+                  if (col.type === 'toggle') {
+                    const isActive = (prospect as any).active ?? true;
+                    const cellBgColor = isActive ? '#dcfce7' : '#fee2e2';
+                    const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
                     return (
                       <td 
                         key={col.key} 
-                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
-                        onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: 'fecha' })}
+                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
+                        style={{ backgroundColor: cellBgColor }}
                       >
-                        {isEditing && fieldCanEdit ? (
-                          <Input
-                            type="date"
-                            value={editValue || dateValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onFocus={() => setEditValue(dateValue)}
-                            onBlur={() => {
-                              if (editValue && editValue !== dateValue) {
-                                const currentDate = prospect.createdAt ? new Date(prospect.createdAt) : new Date();
-                                const [year, month, day] = editValue.split('-').map(Number);
-                                currentDate.setFullYear(year, month - 1, day);
-                                updateMutation.mutate({ id: prospect.id, data: { createdAt: currentDate.toISOString() } as any });
-                              }
-                              setEditingCell(null);
-                            }}
-                            autoFocus
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                            data-testid={`input-fecha-${prospect.id}`}
-                          />
+                        {fieldCanEdit ? (
+                          <Select
+                            value={isActive ? "si" : "no"}
+                            onValueChange={(v) => handleActiveToggle(prospect.id, v === "si")}
+                          >
+                            <SelectTrigger 
+                              className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                              data-testid={`toggle-active-${prospect.id}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="si" className="text-green-700 font-medium">Si</SelectItem>
+                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                            </SelectContent>
+                          </Select>
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                            <span>{formatDate(prospect.createdAt)}</span>
-                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                          <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
+                            <span>{isActive ? 'Si' : 'No'}</span>
+                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
                       </td>
                     );
                   }
 
-                  if (col.key === 'hora') {
-                    const timeValue = prospect.createdAt ? new Date(prospect.createdAt).toTimeString().slice(0, 5) : '';
+                  if (col.type === 'date-display') {
                     return (
-                      <td 
-                        key={col.key} 
-                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
-                        onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: 'hora' })}
-                      >
-                        {isEditing && fieldCanEdit ? (
-                          <Input
-                            type="time"
-                            value={editValue || timeValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onFocus={() => setEditValue(timeValue)}
-                            onBlur={() => {
-                              if (editValue && editValue !== timeValue) {
-                                const currentDate = prospect.createdAt ? new Date(prospect.createdAt) : new Date();
-                                const [hours, minutes] = editValue.split(':').map(Number);
-                                currentDate.setHours(hours, minutes);
-                                updateMutation.mutate({ id: prospect.id, data: { createdAt: currentDate.toISOString() } as any });
-                              }
-                              setEditingCell(null);
-                            }}
-                            autoFocus
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                            data-testid={`input-hora-${prospect.id}`}
-                          />
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                            <span>{formatTime(prospect.createdAt)}</span>
-                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
-                          </div>
-                        )}
+                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-fecha-${prospect.id}`}>
+                        <span className="text-xs text-muted-foreground px-1">{formatDate(prospect.createdAt)}</span>
                       </td>
+                    );
+                  }
+
+                  if (col.type === 'time-display') {
+                    return (
+                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-hora-${prospect.id}`}>
+                        <span className="text-xs text-muted-foreground px-1">{formatTime(prospect.createdAt)}</span>
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'fechahora-collapsed') {
+                    return (
+                      <td key="fechahora_collapsed" className="border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px' }} />
                     );
                   }
 

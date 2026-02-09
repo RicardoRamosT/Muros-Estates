@@ -142,7 +142,7 @@ export function formatDate(date: Date | string | null): string {
 export function formatTime(date: Date | string | null): string {
   if (!date) return "";
   const d = new Date(date);
-  return d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 // Empty value display - use this for text cells instead of "-"

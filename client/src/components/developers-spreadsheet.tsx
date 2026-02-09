@@ -30,8 +30,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
-import { Plus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Check } from "lucide-react";
-import { getCellStyle, getCellTypeFromColumnType, formatDate, type CellType } from "@/lib/spreadsheet-utils";
+import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Check, Clock } from "lucide-react";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +76,7 @@ interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'fechahora-collapsed';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -89,6 +89,7 @@ export function DevelopersSpreadsheet() {
   const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
 
   const { data: developers = [], isLoading } = useQuery<Developer[]>({
     queryKey: ["/api/developers"],
@@ -96,8 +97,10 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
+    { key: "active", label: "Act.", width: "35px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
+    { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
-    { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
@@ -115,11 +118,20 @@ export function DevelopersSpreadsheet() {
   ];
 
   const columns = useMemo(() => {
-    return allColumns.filter(col => {
+    let cols = allColumns.filter(col => {
+      if (col.group === 'fechahora') return fechaHoraExpanded;
       if (col.type === 'index' || col.type === 'actions' || col.type === 'folder-link') return true;
       return canView(col.key);
     });
-  }, [canView]);
+
+    if (!fechaHoraExpanded) {
+      const actIdx = cols.findIndex(c => c.key === 'active');
+      const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed', cellType: 'readonly' };
+      cols.splice(actIdx + 1, 0, collapsedCol);
+    }
+
+    return cols;
+  }, [canView, fechaHoraExpanded]);
 
   const {
     sortConfig,
@@ -279,7 +291,12 @@ export function DevelopersSpreadsheet() {
                 let i = 0;
                 while (i < columns.length) {
                   const col = columns[i];
-                  if (col.group === 'antiguedad') {
+                  if (col.group === 'fechahora') {
+                    let count = 0;
+                    while (i + count < columns.length && columns[i + count].group === 'fechahora') count++;
+                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', colSpan: count, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true });
+                    i += count;
+                  } else if (col.group === 'antiguedad') {
                     let count = 0;
                     while (i + count < columns.length && columns[i + count].group === 'antiguedad') count++;
                     groupHeaders.push({ key: 'antiguedad', label: 'ANTIGÜEDAD', colSpan: count, bgClass: 'bg-purple-600 dark:bg-purple-700 text-white', isGroup: true });
@@ -292,6 +309,22 @@ export function DevelopersSpreadsheet() {
                 return groupHeaders.map((gh, idx) => {
                   if (!gh.isGroup) {
                     const col = columns.find(c => c.key === gh.key)!;
+                    if (col.key === 'fechahora_collapsed') {
+                      return (
+                        <th
+                          key={`group-${gh.key}-${idx}`}
+                          rowSpan={2}
+                          className="border-b border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer px-1 align-middle"
+                          style={{ width: '30px', minWidth: '30px', height: '68px' }}
+                          onClick={() => setFechaHoraExpanded(true)}
+                          data-testid="toggle-fechahora-expand"
+                        >
+                          <div className="flex items-center justify-center">
+                            <Plus className="w-3 h-3" />
+                          </div>
+                        </th>
+                      );
+                    }
                     return (
                       <th
                         key={`group-${gh.key}-${idx}`}
@@ -329,7 +362,18 @@ export function DevelopersSpreadsheet() {
                       colSpan={gh.colSpan}
                       className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9", gh.bgClass)}
                     >
-                      {gh.label}
+                      <div className="flex items-center justify-center gap-1">
+                        <span>{gh.label}</span>
+                        {gh.key === 'fechahora' && (
+                          <button
+                            onClick={() => setFechaHoraExpanded(false)}
+                            className="ml-1 hover:opacity-80"
+                            data-testid="toggle-fechahora-collapse"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </th>
                   );
                 });
@@ -337,13 +381,13 @@ export function DevelopersSpreadsheet() {
             </tr>
             {/* Sub-column headers (only for grouped columns) */}
             <tr>
-              {columns.filter(col => col.group === 'antiguedad').map((col) => (
+              {columns.filter(col => col.group === 'antiguedad' || col.group === 'fechahora').map((col) => (
                 <th
                   key={col.key}
                   className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 text-left`}
                   style={{ width: col.width, minWidth: col.width }}
                 >
-                  {col.key === 'antiguedadCalc' ? (
+                  {col.group === 'fechahora' || col.key === 'antiguedadCalc' ? (
                     <div className="flex items-center justify-start">
                       <span className="truncate">{col.label}</span>
                     </div>
@@ -386,6 +430,28 @@ export function DevelopersSpreadsheet() {
                     );
                   }
                   
+                  if (col.type === 'date-display') {
+                    return (
+                      <td key={field} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${field}-${dev.id}`}>
+                        <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'time-display') {
+                    return (
+                      <td key={field} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${field}-${dev.id}`}>
+                        <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
+                      </td>
+                    );
+                  }
+
+                  if (col.type === 'fechahora-collapsed') {
+                    return (
+                      <td key="fechahora_collapsed" className="border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px' }} />
+                    );
+                  }
+
                   if (col.type === 'toggle') {
                     // Boolean dropdown: Sí/No with colored cell background
                     const isActive = dev.active ?? false;

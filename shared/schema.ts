@@ -105,6 +105,8 @@ export const PAGE_PERMISSIONS = {
     allowedRoles: ['admin', 'perfilador', 'asesor'],
     fields: {
       // Permisos según matriz: Admin=2 todo, Profiler=11211111+resto 2, Asesor=1111111122222221222222
+      // 0. active - Admin: 2, Profiler: 1, Asesor: 1
+      active: { admin: 'edit', perfilador: 'view', asesor: 'view' },
       // 1. fecha - Profiler: 1, Asesor: 1
       fecha: { admin: 'edit', perfilador: 'view', asesor: 'view' },
       // 2. hora - Profiler: 1, Asesor: 1
@@ -156,6 +158,8 @@ export const PAGE_PERMISSIONS = {
   clientes: {
     allowedRoles: ['admin', 'finanzas', 'asesor', 'desarrollador'],
     fields: {
+      // 0. active - Admin: 2, Finanzas: 1, Asesor: 1, Desarrollador: 1
+      active: { admin: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 1. fecha - Finanzas: 1, Asesor: 1, Desarrollador: 1
       fecha: { admin: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 2. hora - Finanzas: 1, Asesor: 1, Desarrollador: 1
@@ -818,6 +822,9 @@ export const clients = pgTable("clients", {
   fechaSeparacion: timestamp("fecha_separacion"),
   enganche: decimal("enganche", { precision: 12, scale: 2 }),
   fechaEnganche: timestamp("fecha_enganche"),
+  
+  // Active status
+  active: boolean("active").default(true),
   
   // Legacy/system fields
   isClient: boolean("is_client").notNull().default(false),
