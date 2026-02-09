@@ -507,13 +507,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               Resumen
             </Button>
           )}
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} {pageName}</span>
           {hasFullAccess && (
             <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
               <Plus className="w-4 h-4 mr-1" />
               Nuevo
             </Button>
           )}
-          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} registros</span>
         </div>
       </div>
 

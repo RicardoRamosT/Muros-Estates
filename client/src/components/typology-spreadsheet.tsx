@@ -2170,6 +2170,13 @@ export function TypologySpreadsheet() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {pendingChanges.size > 0 && (
+            <Badge variant="secondary" className="animate-pulse">
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              Guardando...
+            </Badge>
+          )}
+          <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
           <Button 
             onClick={handleAddRow} 
             size="sm"
@@ -2179,13 +2186,6 @@ export function TypologySpreadsheet() {
             <Plus className="w-4 h-4 mr-1" />
             Nuevo
           </Button>
-          {pendingChanges.size > 0 && (
-            <Badge variant="secondary" className="animate-pulse">
-              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-              Guardando...
-            </Badge>
-          )}
-          <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} registros</span>
         </div>
       </div>
       

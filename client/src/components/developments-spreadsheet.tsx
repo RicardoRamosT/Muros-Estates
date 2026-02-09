@@ -359,13 +359,13 @@ export function DevelopmentsSpreadsheet() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrollos</span>
           {hasFullAccess && (
             <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">
               <Plus className="w-4 h-4 mr-1" />
               Nuevo
             </Button>
           )}
-          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} registros</span>
         </div>
       </div>
 
