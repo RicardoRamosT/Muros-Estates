@@ -2349,6 +2349,7 @@ export function TypologySpreadsheet() {
                   "flex border-b hover:bg-muted/30",
                   rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
+                style={{ height: '32px', maxHeight: '32px' }}
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
