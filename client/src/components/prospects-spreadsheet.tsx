@@ -478,7 +478,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     count: filteredAndSortedData.length,
     getScrollElement: () => contentScrollRef.current,
     estimateSize: () => 32,
-    overscan: 10,
+    overscan: 5,
   });
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
@@ -662,7 +662,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             </div>
           </div>
 
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative', willChange: 'transform' }}>
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const index = virtualRow.index;
             const prospect = filteredAndSortedData[index];
@@ -670,10 +670,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             <div
               key={prospect.id}
               className={cn(
-                "flex border-b hover:bg-muted/30 group",
+                "flex border-b group",
                 index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+              style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)`, willChange: 'transform', contain: 'layout style size' }}
               data-testid={`row-prospect-${prospect.id}`}
             >
                 {columns.map((col) => {

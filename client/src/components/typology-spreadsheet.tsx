@@ -2025,7 +2025,7 @@ export function TypologySpreadsheet() {
     count: filteredAndSortedTypologies.length,
     getScrollElement: () => contentScrollRef.current,
     estimateSize: () => 32,
-    overscan: 10,
+    overscan: 5,
   });
 
   const availableValuesMap = useMemo(() => {
@@ -2280,7 +2280,7 @@ export function TypologySpreadsheet() {
           </div>
           </div>
           
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative', willChange: 'transform' }}>
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const rowIndex = virtualRow.index;
             const row = filteredAndSortedTypologies[rowIndex];
@@ -2290,10 +2290,10 @@ export function TypologySpreadsheet() {
               <div
                 key={row.id}
                 className={cn(
-                  "flex border-b hover:bg-muted/30",
+                  "flex border-b",
                   rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
-                style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)`, willChange: 'transform', contain: 'layout style size' }}
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
