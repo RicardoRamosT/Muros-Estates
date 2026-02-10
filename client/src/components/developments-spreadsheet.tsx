@@ -336,16 +336,21 @@ export function DevelopmentsSpreadsheet() {
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
   const visibleColumnGroups = useMemo(() => {
-    const groupColspans: Record<string, number> = {};
+    const runs: { key: string; label: string; color?: string; colspan: number }[] = [];
+    let currentGroup: string | null = null;
+    const groupLookup = Object.fromEntries(columnGroups.map(g => [g.key, g]));
+
     visibleColumns.forEach(col => {
-      if (col.group) {
-        groupColspans[col.group] = (groupColspans[col.group] || 0) + 1;
+      const g = col.group || '';
+      if (g !== currentGroup) {
+        const groupDef = groupLookup[g] || { key: g, label: '' };
+        runs.push({ key: groupDef.key, label: groupDef.label, color: (groupDef as any).color, colspan: 1 });
+        currentGroup = g;
+      } else {
+        runs[runs.length - 1].colspan++;
       }
     });
-    return columnGroups.filter(g => groupColspans[g.key] > 0).map(g => ({
-      ...g,
-      colspan: groupColspans[g.key]
-    }));
+    return runs;
   }, [visibleColumns]);
 
   useEffect(() => {
