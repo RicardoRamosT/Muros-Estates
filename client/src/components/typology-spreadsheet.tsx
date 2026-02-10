@@ -728,26 +728,17 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className="flex items-center h-full w-full">
+    <div className={cn("w-full h-full relative", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            className={cn(
-              "flex items-center gap-0.5 flex-1 h-full min-w-0 px-1 py-1 text-xs font-medium text-left",
-              sectionColor,
-              "hover-elevate cursor-pointer",
-              hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40"
-            )}
+            className="flex items-center w-full h-full text-xs font-medium cursor-pointer hover-elevate pl-0.5"
             data-testid={`filter-trigger-${column.key}`}
           >
             <ChevronDown className={cn(
               "w-3 h-3 flex-shrink-0",
               hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground opacity-60"
             )} />
-            <span className="truncate">
-              {column.label}
-              {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
-            </span>
           </button>
         </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
@@ -978,12 +969,14 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium truncate pointer-events-none">
+        {column.label}
+        {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
+      </span>
       <button
         onClick={handleSortClick}
         className={cn(
-          "flex items-center justify-center h-full px-1",
-          sectionColor,
-          "hover-elevate cursor-pointer",
+          "absolute right-0 top-0 bottom-0 flex items-center p-0.5 hover-elevate cursor-pointer rounded",
           isSorted && "bg-primary/10"
         )}
         title={sortDirection === null ? "Ordenar" : sortDirection === "asc" ? "Ordenar descendente" : "Quitar orden"}
