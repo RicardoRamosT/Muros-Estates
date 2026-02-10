@@ -229,7 +229,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const prospectColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "active", label: "Act.", width: "40px", type: "toggle" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -257,7 +257,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const clientColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "active", label: "Act.", width: "40px", type: "toggle" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
