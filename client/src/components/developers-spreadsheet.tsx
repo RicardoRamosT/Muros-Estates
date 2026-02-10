@@ -100,7 +100,7 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
-    { key: "active", label: "Act.", width: "35px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "active", label: "Act.", width: "55px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", cellType: "readonly" },
@@ -288,7 +288,7 @@ export function DevelopersSpreadsheet() {
           {/* Header: Two-row structure */}
           <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800">
             {/* Row 1: Group headers */}
-            <div className="flex border-b spreadsheet-header-row1">
+            <div className="flex border-b">
               {(() => {
                 const groupHeaders: { key: string; label: string; width: number; bgClass: string; isGroup: boolean; colSpan: number }[] = [];
                 let i = 0;

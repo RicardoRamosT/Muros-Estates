@@ -78,7 +78,7 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '35px', cellType: 'checkbox' },
+  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '55px', cellType: 'checkbox' },
   { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
@@ -386,7 +386,7 @@ export function DevelopmentsSpreadsheet() {
       <div className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
           <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800">
-            <div className="flex border-b spreadsheet-header-row1">
+            <div className="flex border-b">
               {(() => {
                 const headerElements: JSX.Element[] = [];
                 let colIdx = 0;
