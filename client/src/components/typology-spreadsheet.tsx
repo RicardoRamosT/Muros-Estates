@@ -2219,7 +2219,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[45px] flex-shrink-0 border-r bg-muted/50" />
+              <div className="w-[45px] flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600" />
               {SECTIONS.map((section) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
@@ -2262,7 +2262,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[45px] h-full flex-shrink-0 border-r bg-muted/50 flex items-center justify-center">
+              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
                 <span className="text-xs font-medium text-muted-foreground">ID</span>
               </div>
               {SECTIONS.flatMap((section) => {
@@ -2296,7 +2296,7 @@ export function TypologySpreadsheet() {
                     <div
                       key={col.key}
                       className={cn(
-                        "flex-shrink-0 h-full",
+                        "flex-shrink-0 h-full overflow-hidden",
                         colIndex === section.columns.length - 1 ? "border-r" : "border-r"
                       )}
                       style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
@@ -2353,7 +2353,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-muted-foreground bg-muted/30"
+                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-muted-foreground bg-gray-300 dark:bg-gray-600"
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
