@@ -547,7 +547,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.key === 'id') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={dev.id}>
-                      <span className="text-muted-foreground font-mono">{rowIndex + 1}</span>
+                      <span className="text-xs text-muted-foreground">{rowIndex + 1}</span>
                     </div>
                   );
                 }
@@ -1219,7 +1219,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'index') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }}>
-                      <span className="text-muted-foreground">{rowIndex + 1}</span>
+                      <span className="text-xs text-muted-foreground">{rowIndex + 1}</span>
                     </div>
                   );
                 }

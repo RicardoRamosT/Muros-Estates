@@ -420,7 +420,7 @@ export function DevelopersSpreadsheet() {
                       style={{ width: col.width, minWidth: col.width }}
                       title={dev.id}
                     >
-                      <span className="font-mono">{index + 1}</span>
+                      <span className="text-xs text-muted-foreground">{index + 1}</span>
                     </div>
                   );
                 }

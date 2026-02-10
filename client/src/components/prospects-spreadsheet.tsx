@@ -674,8 +674,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.type === 'index') {
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={prospect.id}>
-                        <span className="text-xs font-mono">{index + 1}</span>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={prospect.id}>
+                        <span className="text-xs text-muted-foreground">{index + 1}</span>
                       </div>
                     );
                   }
