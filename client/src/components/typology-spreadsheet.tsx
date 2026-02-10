@@ -1661,28 +1661,6 @@ export function TypologySpreadsheet() {
     }
   };
   
-  useEffect(() => {
-    const updateWidth = () => {
-      if (contentScrollRef.current) {
-        const width = contentScrollRef.current.scrollWidth;
-        if (width > 0) {
-          setContentWidth(width);
-        }
-      }
-    };
-    
-    const timer = setTimeout(updateWidth, 100);
-    updateWidth();
-    
-    const observer = new ResizeObserver(updateWidth);
-    if (contentScrollRef.current) {
-      observer.observe(contentScrollRef.current);
-    }
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, [expandedSections, typologies]);
   
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
