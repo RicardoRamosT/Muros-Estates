@@ -324,7 +324,7 @@ export function DevelopersSpreadsheet() {
       <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
           {/* Header: Two-row structure */}
-          <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800">
+          <div className="sticky top-0 z-10 bg-gray-300 dark:bg-gray-600">
             {/* Row 1: Group headers */}
             <div className="flex border-b">
               {(() => {
@@ -366,7 +366,7 @@ export function DevelopersSpreadsheet() {
                       <div
                         key={`group-${gh.key}-${idx}`}
                         className={cn(
-                          "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-200 dark:bg-gray-700",
+                          "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
                           col.type === 'index' ? 'justify-center' : 'justify-start'
                         )}
                         style={{ width: col.width, minWidth: col.width, maxWidth: col.width, height: '68px' }}

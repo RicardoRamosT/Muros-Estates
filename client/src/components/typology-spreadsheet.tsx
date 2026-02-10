@@ -74,8 +74,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "basico",
     label: "",
-    headerColor: "bg-gray-200 dark:bg-gray-700",
-    columnHeaderColor: "bg-gray-100 dark:bg-gray-800",
+    headerColor: "bg-gray-300 dark:bg-gray-600",
+    columnHeaderColor: "bg-gray-300 dark:bg-gray-600",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 22 },
@@ -96,7 +96,7 @@ const SECTIONS: SectionDef[] = [
     id: "ubicacion",
     label: "",
     headerColor: "bg-gray-300 dark:bg-gray-600",
-    columnHeaderColor: "bg-gray-200 dark:bg-gray-700",
+    columnHeaderColor: "bg-gray-300 dark:bg-gray-600",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 90 },

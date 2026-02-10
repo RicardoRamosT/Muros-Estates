@@ -428,7 +428,7 @@ export function DevelopmentsSpreadsheet() {
 
       <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
-          <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800">
+          <div className="sticky top-0 z-10 bg-gray-300 dark:bg-gray-600">
             <div className="flex border-b">
               {(() => {
                 const headerElements: JSX.Element[] = [];
@@ -510,7 +510,7 @@ export function DevelopmentsSpreadsheet() {
                         <div
                           key={`unified-${col.key}`}
                           className={cn(
-                            "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-100 dark:bg-gray-800 flex items-center flex-shrink-0",
+                            "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-300 dark:bg-gray-600 flex items-center flex-shrink-0",
                             col.type === 'index' || col.key === 'id' ? 'justify-center' : 'justify-start'
                           )}
                           style={{ minWidth: col.width, width: col.width, height: '68px' }}
