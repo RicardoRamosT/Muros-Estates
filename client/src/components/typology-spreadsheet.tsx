@@ -2304,7 +2304,7 @@ export function TypologySpreadsheet() {
                         className={cn(
                           "spreadsheet-cell border-r",
                           section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20",
-                          isFirstSection && "sticky z-10"
+                          isFirstSection && "sticky z-10 bg-gray-50 dark:bg-gray-800"
                         )}
                         style={{ width: collapsedWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                       />
@@ -2381,7 +2381,7 @@ export function TypologySpreadsheet() {
                     );
                     if (isFirstSection) {
                       return (
-                        <div key={`sticky-${col.key}`} className="sticky z-10" style={{ left: 45 }}>
+                        <div key={`sticky-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 45 }}>
                           {cell}
                         </div>
                       );

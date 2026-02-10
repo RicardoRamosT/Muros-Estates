@@ -5,14 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function AdminTypologies() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
       
-      <main className="flex-1 container mx-auto px-4 py-2 flex flex-col">
+      <main className="flex-1 container mx-auto px-4 py-2 flex flex-col overflow-hidden">
         <DevelopmentMediaUploader />
         
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <CardContent className="p-0 flex-1 overflow-hidden">
+        <Card className="flex-1 flex flex-col overflow-hidden min-h-0">
+          <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
             <TypologySpreadsheet />
           </CardContent>
         </Card>
