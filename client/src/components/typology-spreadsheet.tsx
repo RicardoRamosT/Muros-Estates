@@ -78,7 +78,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-gray-100 dark:bg-gray-800",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
-      { key: "active", label: "Act.", type: "boolean", width: 55 },
+      { key: "active", label: "Act.", type: "boolean", width: 30 },
     ],
   },
   {
@@ -1104,7 +1104,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           value={value === true ? "si" : value === false ? "no" : ""}
           onValueChange={(val) => onChange(val === "si")}
         >
-          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
+          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${column.key === 'active' ? '[&>svg]:hidden' : ''} ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
             <SelectValue>
               {value === true ? (
                 <span>Sí</span>

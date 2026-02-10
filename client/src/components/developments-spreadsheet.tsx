@@ -78,7 +78,7 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '73px', cellType: 'checkbox' },
+  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '48px', cellType: 'checkbox' },
   { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
@@ -611,7 +611,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                         >
-                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
+                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${col.key === 'active' ? '[&>svg]:hidden' : ''} ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
                             <SelectValue>
                               {value === true ? (
                                 <span>Sí</span>

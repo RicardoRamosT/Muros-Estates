@@ -243,7 +243,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const prospectColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "active", label: "Act.", width: "73px", type: "toggle" },
+    { key: "active", label: "Act.", width: "48px", type: "toggle" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -271,7 +271,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const clientColumns = [
     { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "active", label: "Act.", width: "73px", type: "toggle" },
+    { key: "active", label: "Act.", width: "48px", type: "toggle" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
     { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
@@ -724,7 +724,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => handleActiveToggle(prospect.id, v === "si")}
                           >
                             <SelectTrigger 
-                              className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                              className={`h-6 text-xs border-0 bg-transparent px-1 font-medium [&>svg]:hidden ${textColorClass}`}
                               data-testid={`toggle-active-${prospect.id}`}
                             >
                               <SelectValue />

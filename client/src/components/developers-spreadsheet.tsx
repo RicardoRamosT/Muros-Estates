@@ -115,7 +115,7 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
-    { key: "active", label: "Act.", width: "73px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "active", label: "Act.", width: "48px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", cellType: "readonly" },
@@ -494,7 +494,7 @@ export function DevelopersSpreadsheet() {
                           onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
                         >
                           <SelectTrigger 
-                            className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                            className={`h-6 text-xs border-0 bg-transparent px-1 font-medium [&>svg]:hidden ${textColorClass}`}
                             data-testid={`toggle-active-${dev.id}`}
                           >
                             <SelectValue />
