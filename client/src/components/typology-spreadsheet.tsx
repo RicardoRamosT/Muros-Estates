@@ -1386,21 +1386,7 @@ export function TypologySpreadsheet() {
   const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const topScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState(0);
-  
-  const syncScrollFromTop = useCallback(() => {
-    if (topScrollRef.current && contentScrollRef.current) {
-      contentScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
-    }
-  }, []);
-  
-  const syncScrollFromContent = useCallback(() => {
-    if (topScrollRef.current && contentScrollRef.current) {
-      topScrollRef.current.scrollLeft = contentScrollRef.current.scrollLeft;
-    }
-  }, []);
   
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
@@ -2174,17 +2160,7 @@ export function TypologySpreadsheet() {
       </div>
       
       <div 
-        ref={topScrollRef}
-        onScroll={syncScrollFromTop}
-        className="overflow-x-scroll overflow-y-hidden border-b bg-muted/20 scrollbar-thin"
-        style={{ height: "16px", minHeight: "16px" }}
-      >
-        <div style={{ width: contentWidth || 2000, height: "1px" }} />
-      </div>
-      
-      <div 
         ref={contentScrollRef}
-        onScroll={syncScrollFromContent}
         className="flex-1 overflow-auto spreadsheet-scroll"
       >
         <div className="min-w-max">
@@ -2192,19 +2168,23 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[45px] flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600" />
-              {SECTIONS.map((section) => {
+              <div className="w-[45px] flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600 sticky left-0 z-30" />
+              {SECTIONS.map((section, sectionIndex) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
                   return sum + w + SORT_ICON_WIDTH;
                 }, 0);
                 const isExpanded = expandedSections.has(section.id);
                 const collapsedWidth = 40;
+                const isFirstSection = sectionIndex === 0;
                 return (
                   <div 
                     key={section.id} 
-                    className={cn("border-r flex-shrink-0 flex items-center justify-between h-full", section.headerColor)}
-                    style={{ width: isExpanded ? sectionWidth : collapsedWidth }}
+                    className={cn("border-r flex-shrink-0 flex items-center justify-between h-full", section.headerColor, isFirstSection && "sticky z-30")}
+                    style={{ 
+                      width: isExpanded ? sectionWidth : collapsedWidth,
+                      ...(isFirstSection ? { left: 45 } : {})
+                    }}
                   >
                     {/* Centered label */}
                     {isExpanded && (
@@ -2235,18 +2215,19 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
                 <span className="text-xs font-medium text-muted-foreground">ID</span>
               </div>
-              {SECTIONS.flatMap((section) => {
+              {SECTIONS.flatMap((section, sectionIndex) => {
                 const collapsedWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
+                const isFirstSection = sectionIndex === 0;
                 if (!isExpanded) {
                   return [(
                     <div 
                       key={`collapsed-${section.id}`}
-                      className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.headerColor)}
-                      style={{ width: collapsedWidth }}
+                      className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.headerColor, isFirstSection && "sticky z-30")}
+                      style={{ width: collapsedWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
@@ -2270,9 +2251,10 @@ export function TypologySpreadsheet() {
                       key={col.key}
                       className={cn(
                         "flex-shrink-0 h-full overflow-hidden",
-                        colIndex === section.columns.length - 1 ? "border-r" : "border-r"
+                        colIndex === section.columns.length - 1 ? "border-r" : "border-r",
+                        isFirstSection && "sticky z-30"
                       )}
-                      style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
+                      style={{ width: (col.width || 100) + SORT_ICON_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
                     >
                       <ColumnFilter
                         column={col}
@@ -2326,25 +2308,27 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-muted-foreground bg-gray-300 dark:bg-gray-600"
+                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-muted-foreground bg-gray-300 dark:bg-gray-600 sticky left-0 z-10"
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
                 </div>
                 
                 {/* Flat cell structure for perfect row alignment */}
-                {SECTIONS.flatMap((section) => {
+                {SECTIONS.flatMap((section, sectionIndex) => {
                   const collapsedWidth = 40;
                   const isExpanded = expandedSections.has(section.id);
+                  const isFirstSection = sectionIndex === 0;
                   if (!isExpanded) {
                     return [(
                       <div 
                         key={`collapsed-${section.id}`}
                         className={cn(
                           "spreadsheet-cell border-r",
-                          section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20"
+                          section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20",
+                          isFirstSection && "sticky z-10"
                         )}
-                        style={{ width: collapsedWidth }}
+                        style={{ width: collapsedWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                       />
                     )];
                   }
@@ -2393,7 +2377,7 @@ export function TypologySpreadsheet() {
                       isConditionallyDisabled = deps.some(dep => !mergedRow[dep]);
                     }
                     
-                    return (
+                    const cell = (
                       <EditableCell
                         key={col.key}
                         value={mergedRow[col.key]}
@@ -2417,6 +2401,14 @@ export function TypologySpreadsheet() {
                         sectionCellColor={section.cellColor}
                       />
                     );
+                    if (isFirstSection) {
+                      return (
+                        <div key={`sticky-${col.key}`} className="sticky z-10" style={{ left: 45 }}>
+                          {cell}
+                        </div>
+                      );
+                    }
+                    return cell;
                   });
                 })}
                 
