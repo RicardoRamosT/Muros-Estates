@@ -307,7 +307,7 @@ export function DevelopmentsSpreadsheet() {
     let cols = columns.filter(col => {
       if (col.group === 'fechahora' && !fechaHoraExpanded) return false;
       if (col.type === 'actions') return hasFullAccess;
-      if (col.key === 'id') return true;
+      if (col.key === 'id' || col.type === 'date-display' || col.type === 'time-display') return true;
       const perm = canView(col.key);
       return perm;
     });
