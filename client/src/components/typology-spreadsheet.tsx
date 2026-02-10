@@ -78,7 +78,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-gray-100 dark:bg-gray-800",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
-      { key: "active", label: "Act.", type: "boolean", width: 30 },
+      { key: "active", label: "Act.", type: "boolean", width: 24 },
     ],
   },
   {

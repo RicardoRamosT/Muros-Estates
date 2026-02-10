@@ -115,7 +115,7 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
-    { key: "active", label: "Act.", width: "48px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "active", label: "Act.", width: "42px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", cellType: "readonly" },

@@ -78,7 +78,7 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'basic', type: 'index', width: '45px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '48px', cellType: 'checkbox' },
+  { key: 'active', label: 'Act.', group: 'basic', type: 'boolean', width: '42px', cellType: 'checkbox' },
   { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'basic', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
