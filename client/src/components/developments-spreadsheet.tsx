@@ -429,9 +429,10 @@ export function DevelopmentsSpreadsheet() {
       <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
           <div className="sticky top-0 z-10 bg-gray-300 dark:bg-gray-600">
+            {/* Row 1: Section headers */}
             <div className="flex border-b">
               {(() => {
-                const headerElements: JSX.Element[] = [];
+                const row1Items: JSX.Element[] = [];
                 let colIdx = 0;
                 for (const group of visibleColumnGroups) {
                   const groupCols = visibleColumns.slice(colIdx, colIdx + group.colspan);
@@ -439,63 +440,26 @@ export function DevelopmentsSpreadsheet() {
 
                   if (hasLabel) {
                     const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
-                    headerElements.push(
+                    row1Items.push(
                       <div
-                        key={`group-${group.key}`}
-                        className="border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0"
+                        key={`r1-group-${group.key}`}
+                        className="border-r border-gray-200 dark:border-gray-700 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0"
                         style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || 'transparent', color: 'white' }}
                       >
-                        <div className="flex items-center justify-center gap-1 h-9 px-2 font-bold text-xs uppercase tracking-wide">
-                          <span>{group.label}</span>
-                          {group.key === 'fechahora' && (
-                            <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
-                              <Minus className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex border-t border-gray-200/30">
-                          {groupCols.map((col) => {
-                            const bgColor = group.color ? `${group.color}80` : undefined;
-                            return (
-                              <div
-                                key={col.key}
-                                className="border-r last:border-r-0 border-gray-200/30 px-2 font-medium text-xs tracking-wide flex items-center h-8"
-                                style={{ width: col.width, minWidth: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
-                              >
-                                {col.type === 'calculated-percent' ? (
-                                  <div className="flex items-center">
-                                    <span className="truncate">{col.label}</span>
-                                  </div>
-                                ) : (
-                                  <ColumnFilter
-                                    columnKey={col.key}
-                                    columnLabel={col.label}
-                                    columnType={
-                                      col.type === 'boolean' ? 'boolean' : 
-                                      col.type === 'number' ? 'number' : 
-                                      (col.type?.includes('select') ? 'select' : 'text')
-                                    }
-                                    uniqueValues={uniqueValuesMap[col.key] || []}
-                                    availableValues={availableValuesMap[col.key]}
-                                    sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                                    filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                                    onSort={(dir) => handleSort(col.key, dir)}
-                                    onFilter={(state) => handleFilter(col.key, state)}
-                                    onClear={() => handleClearFilter(col.key)}
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                        <span>{group.label}</span>
+                        {group.key === 'fechahora' && (
+                          <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
+                            <Minus className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     );
                   } else {
                     groupCols.forEach((col) => {
                       if (col.key === 'fechahora_collapsed') {
-                        headerElements.push(
+                        row1Items.push(
                           <div
-                            key="fechahora_collapsed"
+                            key="r1-fechahora_collapsed"
                             className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
                             style={{ minWidth: '30px', width: '30px', height: '68px', backgroundColor: '#0d9488' }}
                             onClick={() => setFechaHoraExpanded(true)}
@@ -504,47 +468,94 @@ export function DevelopmentsSpreadsheet() {
                             <Plus className="w-3 h-3" />
                           </div>
                         );
-                        return;
+                      } else {
+                        row1Items.push(
+                          <div
+                            key={`r1-${col.key}`}
+                            className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
+                            style={{ minWidth: col.width, width: col.width }}
+                          />
+                        );
                       }
-                      headerElements.push(
-                        <div
-                          key={`unified-${col.key}`}
-                          className={cn(
-                            "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-300 dark:bg-gray-600 flex items-center flex-shrink-0",
-                            col.type === 'index' || col.key === 'id' ? 'justify-center' : 'justify-start'
-                          )}
-                          style={{ minWidth: col.width, width: col.width, height: '68px' }}
-                        >
-                          {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
-                            <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
-                              <span className="truncate">{col.label}</span>
-                            </div>
-                          ) : (
-                            <ColumnFilter
-                              columnKey={col.key}
-                              columnLabel={col.label}
-                              columnType={
-                                col.type === 'boolean' ? 'boolean' : 
-                                col.type === 'number' ? 'number' : 
-                                (col.type?.includes('select') ? 'select' : 'text')
-                              }
-                              uniqueValues={uniqueValuesMap[col.key] || []}
-                              availableValues={availableValuesMap[col.key]}
-                              sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                              filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                              onSort={(dir) => handleSort(col.key, dir)}
-                              onFilter={(state) => handleFilter(col.key, state)}
-                              onClear={() => handleClearFilter(col.key)}
-                            />
-                          )}
-                        </div>
-                      );
                     });
                   }
                   colIdx += group.colspan;
                 }
-                return headerElements;
+                return row1Items;
               })()}
+            </div>
+            {/* Row 2: Column headers */}
+            <div className="flex border-b">
+              {visibleColumns.map((col) => {
+                if (col.key === 'fechahora_collapsed') return null;
+                if (col.group === 'fechahora') {
+                  const fechaHoraGroup = visibleColumnGroups.find(g => g.key === 'fechahora');
+                  const groupColor = fechaHoraGroup?.color || '#0d9488';
+                  return (
+                    <div
+                      key={`r2-${col.key}`}
+                      className="border-r last:border-r-0 border-gray-200/30 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: groupColor, color: 'white' }}
+                    >
+                      {col.type === 'calculated-percent' ? (
+                        <div className="flex items-center">
+                          <span className="truncate">{col.label}</span>
+                        </div>
+                      ) : (
+                        <ColumnFilter
+                          columnKey={col.key}
+                          columnLabel={col.label}
+                          columnType={
+                            col.type === 'boolean' ? 'boolean' : 
+                            col.type === 'number' ? 'number' : 
+                            (col.type?.includes('select') ? 'select' : 'text')
+                          }
+                          uniqueValues={uniqueValuesMap[col.key] || []}
+                          availableValues={availableValuesMap[col.key]}
+                          sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                          filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                          onSort={(dir) => handleSort(col.key, dir)}
+                          onFilter={(state) => handleFilter(col.key, state)}
+                          onClear={() => handleClearFilter(col.key)}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    key={`r2-${col.key}`}
+                    className={cn(
+                      "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-300 dark:bg-gray-600 flex items-center flex-shrink-0",
+                      col.type === 'index' || col.key === 'id' ? 'justify-center' : 'justify-start'
+                    )}
+                    style={{ minWidth: col.width, width: col.width }}
+                  >
+                    {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
+                      <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
+                        <span className="truncate">{col.label}</span>
+                      </div>
+                    ) : (
+                      <ColumnFilter
+                        columnKey={col.key}
+                        columnLabel={col.label}
+                        columnType={
+                          col.type === 'boolean' ? 'boolean' : 
+                          col.type === 'number' ? 'number' : 
+                          (col.type?.includes('select') ? 'select' : 'text')
+                        }
+                        uniqueValues={uniqueValuesMap[col.key] || []}
+                        availableValues={availableValuesMap[col.key]}
+                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                        onSort={(dir) => handleSort(col.key, dir)}
+                        onFilter={(state) => handleFilter(col.key, state)}
+                        onClear={() => handleClearFilter(col.key)}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

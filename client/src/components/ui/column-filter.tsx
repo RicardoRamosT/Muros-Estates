@@ -351,7 +351,7 @@ export function ColumnFilter({
       </span>
       <button
         onClick={handleSortClick}
-        className="absolute right-0 top-0 bottom-0 flex items-center p-0.5 hover-elevate cursor-pointer rounded"
+        className="absolute right-0 top-0 bottom-0 z-10 flex items-center p-0.5 hover-elevate cursor-pointer rounded"
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />

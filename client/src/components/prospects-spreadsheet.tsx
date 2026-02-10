@@ -573,112 +573,114 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
           <div className="sticky top-0 z-10 bg-gray-300 dark:bg-gray-600" data-testid="prospects-table-header">
+            {/* Row 1: Section headers */}
             <div className="flex border-b">
               {(() => {
-                const groupHeaders: { key: string; label: string; width: number; bgClass: string; isGroup: boolean; colSpan: number }[] = [];
+                const row1Items: JSX.Element[] = [];
                 let i = 0;
                 while (i < columns.length) {
                   const col = columns[i];
-                  if ((col as any).group === 'fechahora') {
-                    let count = 0;
+                  if (col.key === 'fechahora_collapsed') {
+                    row1Items.push(
+                      <div
+                        key={`r1-${col.key}`}
+                        className="border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer flex items-center justify-center flex-shrink-0"
+                        style={{ width: '30px', minWidth: '30px', height: '68px' }}
+                        onClick={() => setFechaHoraExpanded(true)}
+                        data-testid="toggle-fechahora-expand"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </div>
+                    );
+                    i++;
+                  } else if ((col as any).group === 'fechahora') {
                     let totalWidth = 0;
-                    while (i + count < columns.length && (columns[i + count] as any).group === 'fechahora') {
-                      totalWidth += parseInt(columns[i + count].width);
-                      count++;
+                    while (i < columns.length && (columns[i] as any).group === 'fechahora') {
+                      totalWidth += parseInt(columns[i].width);
+                      i++;
                     }
-                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', width: totalWidth, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true, colSpan: count });
-                    i += count;
+                    row1Items.push(
+                      <div
+                        key="r1-fechahora"
+                        className="border-r border-gray-200 dark:border-gray-700 bg-teal-600 dark:bg-teal-700 text-white flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0"
+                        style={{ width: totalWidth, minWidth: totalWidth }}
+                      >
+                        <span>FECHA/HORA</span>
+                        <button
+                          onClick={() => setFechaHoraExpanded(false)}
+                          className="ml-1 hover:opacity-80"
+                          data-testid="toggle-fechahora-collapse"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
                   } else {
-                    groupHeaders.push({ key: col.key, label: '', width: parseInt(col.width), bgClass: '', isGroup: false, colSpan: 1 });
+                    row1Items.push(
+                      <div
+                        key={`r1-${col.key}`}
+                        className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
+                        style={{ width: col.width, minWidth: col.width }}
+                      />
+                    );
                     i++;
                   }
                 }
-                return groupHeaders.map((gh, idx) => {
-                  if (!gh.isGroup) {
-                    const col = columns.find(c => c.key === gh.key)!;
-                    if (col.key === 'fechahora_collapsed') {
-                      return (
-                        <div
-                          key={`group-${gh.key}-${idx}`}
-                          className="border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                          style={{ width: '30px', minWidth: '30px', height: '68px' }}
-                          onClick={() => setFechaHoraExpanded(true)}
-                          data-testid="toggle-fechahora-expand"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </div>
-                      );
-                    }
-                    return (
-                      <div
-                        key={`group-${gh.key}-${idx}`}
-                        className={cn(
-                          "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
-                          col.type === 'index' ? 'justify-center' : 'justify-start'
-                        )}
-                        style={{ width: col.width, minWidth: col.width, height: '68px' }}
-                        data-testid={`column-header-${col.key}`}
-                      >
-                        {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
-                          <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
-                            <span className="truncate">{col.label}</span>
-                          </div>
-                        ) : (
-                          <ColumnFilter
-                            columnKey={col.key}
-                            columnLabel={col.label}
-                            columnType={
-                              col.type === 'toggle' ? 'boolean' :
-                              col.type === 'currency' ? 'number' : 
-                              col.type === 'select' ? 'select' : 'text'
-                            }
-                            uniqueValues={uniqueValuesMap[col.key] || []}
-                            availableValues={availableValuesMap[col.key]}
-                            sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                            filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                            onSort={(dir) => handleSort(col.key, dir)}
-                            onFilter={(state) => handleFilter(col.key, state)}
-                            onClear={() => handleClearFilter(col.key)}
-                            labelMap={labelMaps[col.key]}
-                            groupMap={groupMaps[col.key]}
-                          />
-                        )}
-                      </div>
-                    );
-                  }
+                return row1Items;
+              })()}
+            </div>
+            {/* Row 2: Column headers */}
+            <div className="flex border-b">
+              {columns.map((col) => {
+                if (col.key === 'fechahora_collapsed') return null;
+                if ((col as any).group === 'fechahora') {
                   return (
                     <div
-                      key={`group-${gh.key}-${idx}`}
-                      className={cn("border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0", gh.bgClass)}
-                      style={{ width: gh.width, minWidth: gh.width }}
+                      key={`r2-${col.key}`}
+                      className="border-r last:border-r-0 border-gray-200/30 bg-teal-600 dark:bg-teal-700 text-white px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
+                      style={{ width: col.width, minWidth: col.width }}
                     >
-                      <div className="flex items-center justify-center gap-1 h-9 px-2 font-bold text-xs uppercase tracking-wide">
-                        <span>{gh.label}</span>
-                        {gh.key === 'fechahora' && (
-                          <button
-                            onClick={() => setFechaHoraExpanded(false)}
-                            className="ml-1 hover:opacity-80"
-                            data-testid="toggle-fechahora-collapse"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex border-t border-gray-200/30">
-                        {columns.filter(c => (c as any).group === 'fechahora').map((subCol) => (
-                          <div
-                            key={subCol.key}
-                            className="border-r last:border-r-0 border-gray-200/30 px-2 font-medium text-xs tracking-wide flex items-center h-8"
-                            style={{ width: subCol.width, minWidth: subCol.width }}
-                          >
-                            <span className="truncate">{subCol.label}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <span className="truncate">{col.label}</span>
                     </div>
                   );
-                });
-              })()}
+                }
+                return (
+                  <div
+                    key={`r2-${col.key}`}
+                    className={cn(
+                      "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
+                      col.type === 'index' ? 'justify-center' : 'justify-start'
+                    )}
+                    style={{ width: col.width, minWidth: col.width }}
+                    data-testid={`column-header-${col.key}`}
+                  >
+                    {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
+                      <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
+                        <span className="truncate">{col.label}</span>
+                      </div>
+                    ) : (
+                      <ColumnFilter
+                        columnKey={col.key}
+                        columnLabel={col.label}
+                        columnType={
+                          col.type === 'toggle' ? 'boolean' :
+                          col.type === 'currency' ? 'number' : 
+                          col.type === 'select' ? 'select' : 'text'
+                        }
+                        uniqueValues={uniqueValuesMap[col.key] || []}
+                        availableValues={availableValuesMap[col.key]}
+                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                        onSort={(dir) => handleSort(col.key, dir)}
+                        onFilter={(state) => handleFilter(col.key, state)}
+                        onClear={() => handleClearFilter(col.key)}
+                        labelMap={labelMaps[col.key]}
+                        groupMap={groupMaps[col.key]}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
