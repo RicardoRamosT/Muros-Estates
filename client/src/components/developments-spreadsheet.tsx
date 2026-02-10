@@ -97,7 +97,7 @@ const columns: ColumnDef[] = [
   { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
   { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
-  { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '70px', cellType: 'checkbox' },
+  { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '40px', cellType: 'checkbox' },
   { key: 'recamaras', label: 'Recámaras', group: 'rec', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
   { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader3', width: '90px', cellType: 'input' },
