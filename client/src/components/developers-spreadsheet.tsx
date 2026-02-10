@@ -495,10 +495,12 @@ export function DevelopersSpreadsheet() {
                           onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
                         >
                           <SelectTrigger 
-                            className={`h-6 text-xs border-0 bg-transparent px-1 font-medium [&>svg]:hidden ${textColorClass}`}
+                            className={`h-6 text-xs border-0 bg-transparent px-1 font-medium ${textColorClass}`}
                             data-testid={`toggle-active-${dev.id}`}
                           >
-                            <SelectValue />
+                            <SelectValue>
+                              {isActive ? <span>Sí</span> : <span>No</span>}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>

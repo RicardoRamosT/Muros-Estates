@@ -726,19 +726,21 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => handleActiveToggle(prospect.id, v === "si")}
                           >
                             <SelectTrigger 
-                              className={`h-6 text-xs border-0 bg-transparent px-1 font-medium [&>svg]:hidden ${textColorClass}`}
+                              className={`h-6 text-xs border-0 bg-transparent px-1 font-medium ${textColorClass}`}
                               data-testid={`toggle-active-${prospect.id}`}
                             >
-                              <SelectValue />
+                              <SelectValue>
+                                {isActive ? <span>Sí</span> : <span>No</span>}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="si" className="text-green-700 font-medium">Si</SelectItem>
+                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                               <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
                           <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
-                            <span>{isActive ? 'Si' : 'No'}</span>
+                            <span>{isActive ? 'Sí' : 'No'}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
