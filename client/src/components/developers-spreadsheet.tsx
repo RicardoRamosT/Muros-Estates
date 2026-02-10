@@ -763,22 +763,10 @@ export function DevelopersSpreadsheet() {
                         data-testid={`input-${field}-${dev.id}`}
                       />
                     ) : (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 overflow-hidden">
                         <span
                           className="truncate"
-                          onMouseEnter={(e) => {
-                            if (LONG_TEXT_FIELDS.includes(field)) {
-                              const el = e.currentTarget;
-                              if (el.scrollWidth > el.clientWidth && value) {
-                                el.setAttribute('title', String(value));
-                              } else {
-                                el.removeAttribute('title');
-                              }
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.removeAttribute('title');
-                          }}
+                          title={LONG_TEXT_FIELDS.includes(field) && value ? String(value) : undefined}
                         >
                           {value || ''}
                         </span>
