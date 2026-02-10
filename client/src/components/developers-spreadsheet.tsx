@@ -118,7 +118,7 @@ export function DevelopersSpreadsheet() {
     { key: "active", label: "Act.", width: "40px", type: "toggle", autoField: true, cellType: "checkbox" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
-    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", cellType: "readonly" },
+    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
     { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
@@ -137,7 +137,7 @@ export function DevelopersSpreadsheet() {
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
       if (col.group === 'fechahora') return fechaHoraExpanded;
-      if (col.type === 'index' || col.type === 'actions' || col.type === 'folder-link') return true;
+      if (col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField) return true;
       return canView(col.key);
     });
 
