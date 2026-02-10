@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -38,6 +38,21 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  const syncScrollFromTop = useCallback(() => {
+    if (topScrollRef.current && contentScrollRef.current) {
+      contentScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  }, []);
+
+  const syncScrollFromContent = useCallback(() => {
+    if (topScrollRef.current && contentScrollRef.current) {
+      topScrollRef.current.scrollLeft = contentScrollRef.current.scrollLeft;
+    }
+  }, []);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -474,6 +489,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
+  useEffect(() => {
+    const updateWidth = () => {
+      if (contentScrollRef.current) {
+        const width = contentScrollRef.current.scrollWidth;
+        if (width > 0) setContentWidth(width);
+      }
+    };
+    const timer = setTimeout(updateWidth, 100);
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    if (contentScrollRef.current) observer.observe(contentScrollRef.current);
+    return () => { clearTimeout(timer); observer.disconnect(); };
+  }, [columns]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -532,7 +561,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto spreadsheet-scroll">
+      <div 
+        ref={topScrollRef}
+        onScroll={syncScrollFromTop}
+        className="overflow-x-scroll overflow-y-hidden border-b bg-muted/20 scrollbar-thin"
+        style={{ height: "16px", minHeight: "16px" }}
+      >
+        <div style={{ width: contentWidth || 2000, height: "1px" }} />
+      </div>
+
+      <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
           <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800" data-testid="prospects-table-header">
             <div className="flex border-b">
