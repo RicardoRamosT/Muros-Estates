@@ -22,6 +22,7 @@ import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, Fil
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
+import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
 
 interface ProspectsSpreadsheetProps {
@@ -532,21 +533,25 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       </div>
 
       <div className="flex-1 overflow-auto spreadsheet-scroll">
-        <table className="w-full border-collapse text-xs">
-          <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600" data-testid="prospects-table-header">
-            <tr>
+        <div className="min-w-max text-xs">
+          <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800" data-testid="prospects-table-header">
+            <div className="flex border-b spreadsheet-header-row1">
               {(() => {
-                const groupHeaders: { key: string; label: string; colSpan: number; bgClass: string; isGroup: boolean }[] = [];
+                const groupHeaders: { key: string; label: string; width: number; bgClass: string; isGroup: boolean; colSpan: number }[] = [];
                 let i = 0;
                 while (i < columns.length) {
                   const col = columns[i];
                   if ((col as any).group === 'fechahora') {
                     let count = 0;
-                    while (i + count < columns.length && (columns[i + count] as any).group === 'fechahora') count++;
-                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', colSpan: count, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true });
+                    let totalWidth = 0;
+                    while (i + count < columns.length && (columns[i + count] as any).group === 'fechahora') {
+                      totalWidth += parseInt(columns[i + count].width);
+                      count++;
+                    }
+                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', width: totalWidth, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true, colSpan: count });
                     i += count;
                   } else {
-                    groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '', isGroup: false });
+                    groupHeaders.push({ key: col.key, label: '', width: parseInt(col.width), bgClass: '', isGroup: false, colSpan: 1 });
                     i++;
                   }
                 }
@@ -555,25 +560,24 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const col = columns.find(c => c.key === gh.key)!;
                     if (col.key === 'fechahora_collapsed') {
                       return (
-                        <th
+                        <div
                           key={`group-${gh.key}-${idx}`}
-                          rowSpan={2}
-                          className="border-b border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer px-1 align-middle"
+                          className="border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer flex items-center justify-center flex-shrink-0"
                           style={{ width: '30px', minWidth: '30px', height: '68px' }}
                           onClick={() => setFechaHoraExpanded(true)}
                           data-testid="toggle-fechahora-expand"
                         >
-                          <div className="flex items-center justify-center">
-                            <Plus className="w-3 h-3" />
-                          </div>
-                        </th>
+                          <Plus className="w-3 h-3" />
+                        </div>
                       );
                     }
                     return (
-                      <th
+                      <div
                         key={`group-${gh.key}-${idx}`}
-                        rowSpan={2}
-                        className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide align-middle ${col.type === 'index' ? 'text-center' : 'text-left'}`}
+                        className={cn(
+                          "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0",
+                          col.type === 'index' ? 'justify-center' : 'justify-start'
+                        )}
                         style={{ width: col.width, minWidth: col.width, height: '68px' }}
                         data-testid={`column-header-${col.key}`}
                       >
@@ -601,16 +605,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             groupMap={groupMaps[col.key]}
                           />
                         )}
-                      </th>
+                      </div>
                     );
                   }
                   return (
-                    <th
+                    <div
                       key={`group-${gh.key}-${idx}`}
-                      colSpan={gh.colSpan}
-                      className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9 ${gh.bgClass}`}
+                      className={cn("border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0", gh.bgClass)}
+                      style={{ width: gh.width, minWidth: gh.width }}
                     >
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-1 h-9 px-2 font-bold text-xs uppercase tracking-wide">
                         <span>{gh.label}</span>
                         {gh.key === 'fechahora' && (
                           <button
@@ -622,28 +626,34 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           </button>
                         )}
                       </div>
-                    </th>
+                      <div className="flex border-t border-gray-200/30">
+                        {columns.filter(c => (c as any).group === 'fechahora').map((subCol) => (
+                          <div
+                            key={subCol.key}
+                            className="border-r last:border-r-0 border-gray-200/30 px-2 font-medium text-xs tracking-wide flex items-center h-8"
+                            style={{ width: subCol.width, minWidth: subCol.width }}
+                          >
+                            <span className="truncate">{subCol.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   );
                 });
               })()}
-            </tr>
-            <tr>
-              {columns.filter(col => (col as any).group === 'fechahora').map((col) => (
-                <th
-                  key={col.key}
-                  className="border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 text-left"
-                  style={{ width: col.width, minWidth: col.width }}
-                >
-                  <div className="flex items-center justify-start">
-                    <span className="truncate">{col.label}</span>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAndSortedData.map((prospect, index) => (
-              <tr key={prospect.id} className="group" style={{ height: '32px', maxHeight: '32px' }} data-testid={`row-prospect-${prospect.id}`}>
+            </div>
+          </div>
+
+          {filteredAndSortedData.map((prospect, index) => (
+            <div
+              key={prospect.id}
+              className={cn(
+                "flex border-b hover:bg-muted/30 group",
+                index % 2 === 0 ? "bg-background" : "bg-muted/10"
+              )}
+              style={{ height: '32px', maxHeight: '32px' }}
+              data-testid={`row-prospect-${prospect.id}`}
+            >
                 {columns.map((col) => {
                   const field = col.field || col.key;
                   const hasAsesor = !!(prospect as any).asesorId;
@@ -654,9 +664,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.type === 'index') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "index" })} title={prospect.id}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={prospect.id}>
                         <span className="text-xs font-mono">{index + 1}</span>
-                      </td>
+                      </div>
                     );
                   }
 
@@ -665,10 +675,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const cellBgColor = isActive ? '#dcfce7' : '#fee2e2';
                     const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
                     return (
-                      <td 
+                      <div 
                         key={col.key} 
-                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
-                        style={{ backgroundColor: cellBgColor }}
+                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                        style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
                       >
                         {fieldCanEdit ? (
                           <Select
@@ -692,29 +702,29 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
                   if (col.type === 'date-display') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-fecha-${prospect.id}`}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-fecha-${prospect.id}`}>
                         <span className="text-xs text-muted-foreground px-1">{formatDate(prospect.createdAt)}</span>
-                      </td>
+                      </div>
                     );
                   }
 
                   if (col.type === 'time-display') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-hora-${prospect.id}`}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-hora-${prospect.id}`}>
                         <span className="text-xs text-muted-foreground px-1">{formatTime(prospect.createdAt)}</span>
-                      </td>
+                      </div>
                     );
                   }
 
                   if (col.type === 'fechahora-collapsed') {
                     return (
-                      <td key="fechahora_collapsed" className="border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px' }} />
+                      <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
                     );
                   }
 
@@ -722,7 +732,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const value = (prospect as any).asesorId;
                     const asesorName = getAsesorName(value);
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
@@ -748,14 +758,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
                   if (col.key === 'estatus') {
                     const value = (prospect as any).estatus || (prospect as any).status || 'nuevo';
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value}
@@ -778,7 +788,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -803,7 +813,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       });
                       
                       return (
-                        <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                        <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                           {fieldCanEdit ? (
                             <Select
                               value={value || "__unassigned__"}
@@ -830,12 +840,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                             </div>
                           )}
-                        </td>
+                        </div>
                       );
                     }
                     
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
@@ -857,7 +867,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -879,7 +889,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       ? `${selectedTypology.development} - ${selectedTypology.type || 'Sin tipo'}`
                       : value || '';
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
@@ -924,7 +934,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -944,7 +954,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const cellBgColor = getCellBgColor(value);
                     const textColorClass = getTextColor(value);
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} style={{ backgroundColor: cellBgColor }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
@@ -967,7 +977,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -982,7 +992,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const embudoColor = isEmbudo && selectedOption ? (selectedOption as any).color : null;
                     
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
@@ -1030,7 +1040,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -1050,7 +1060,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     };
 
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <Popover>
                             <PopoverTrigger asChild>
@@ -1082,7 +1092,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -1094,9 +1104,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(numValue) : 
                       '-';
                     return (
-                      <td 
+                      <div 
                         key={col.key} 
-                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
+                        style={{ width: col.width, minWidth: col.width }}
                         onClick={() => fieldCanEdit && !isEditing && handleCellClick(prospect.id, col.key, value)}
                         data-testid={`cell-${col.key}-${prospect.id}`}
                       >
@@ -1123,7 +1134,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
@@ -1132,9 +1143,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const rawValue = (prospect as any)[col.key];
                     const dateValue = rawValue ? new Date(rawValue).toISOString().split('T')[0] : '';
                     return (
-                      <td 
+                      <div 
                         key={col.key} 
-                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
+                        style={{ width: col.width, minWidth: col.width }}
                         onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
                       >
                         {isEditing && fieldCanEdit ? (
@@ -1161,13 +1173,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
                   if (col.type === 'actions') {
                     return (
-                      <td key={col.key} className={getCellStyle({ type: "actions" })}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
                         {hasFullAccess && (
                           <Dialog open={deleteId === prospect.id} onOpenChange={(open) => !open && setDeleteId(null)}>
                             <DialogTrigger asChild>
@@ -1202,16 +1214,17 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </DialogContent>
                           </Dialog>
                         )}
-                      </td>
+                      </div>
                     );
                   }
 
                   const value = (prospect as any)[col.key] || (prospect as any)[field];
 
                   return (
-                    <td
+                    <div
                       key={col.key}
-                      className={getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing })}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
+                      style={{ width: col.width, minWidth: col.width }}
                       onClick={() => fieldCanEdit && !isEditing && handleCellClick(prospect.id, col.key, value)}
                       data-testid={`cell-${col.key}-${prospect.id}`}
                     >
@@ -1236,22 +1249,19 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                         </div>
                       )}
-                    </td>
+                    </div>
                   );
                 })}
-              </tr>
-            ))}
-            {filteredAndSortedData.length === 0 && (
-              <tr>
-                <td colSpan={columns.length} className="text-center py-8 text-muted-foreground">
-                  {hasActiveFilters 
-                    ? "No hay resultados con los filtros aplicados." 
-                    : `No hay ${isClientView ? "clientes" : "prospectos"}. Haz clic en "Agregar" para crear uno.`}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </div>
+          ))}
+          {filteredAndSortedData.length === 0 && (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              {hasActiveFilters 
+                ? "No hay resultados con los filtros aplicados." 
+                : `No hay ${isClientView ? "clientes" : "prospectos"}. Haz clic en "Agregar" para crear uno.`}
+            </div>
+          )}
+        </div>
       </div>
       <TextDetailModal
         open={!!textDetail}

@@ -384,25 +384,25 @@ export function DevelopmentsSpreadsheet() {
       </div>
 
       <div className="flex-1 overflow-auto spreadsheet-scroll">
-        <table className="w-full border-collapse text-xs" style={{ minWidth: '4500px' }}>
-          <thead className="sticky top-0 z-10">
-            <tr>
+        <div className="min-w-max text-xs">
+          <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800">
+            <div className="flex border-b spreadsheet-header-row1">
               {(() => {
-                const cells: JSX.Element[] = [];
+                const headerElements: JSX.Element[] = [];
                 let colIdx = 0;
                 for (const group of visibleColumnGroups) {
                   const groupCols = visibleColumns.slice(colIdx, colIdx + group.colspan);
                   const hasLabel = !!group.label;
-                  
+
                   if (hasLabel) {
-                    cells.push(
-                      <th
+                    const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
+                    headerElements.push(
+                      <div
                         key={`group-${group.key}`}
-                        colSpan={group.colspan}
-                        className="border-b border-r px-2 text-center font-bold text-xs uppercase tracking-wide h-9"
-                        style={{ backgroundColor: group.color || 'transparent', color: 'white' }}
+                        className="border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0"
+                        style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || 'transparent', color: 'white' }}
                       >
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center justify-center gap-1 h-9 px-2 font-bold text-xs uppercase tracking-wide">
                           <span>{group.label}</span>
                           {group.key === 'fechahora' && (
                             <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
@@ -410,32 +410,66 @@ export function DevelopmentsSpreadsheet() {
                             </button>
                           )}
                         </div>
-                      </th>
+                        <div className="flex border-t border-gray-200/30">
+                          {groupCols.map((col) => {
+                            const bgColor = group.color ? `${group.color}80` : undefined;
+                            return (
+                              <div
+                                key={col.key}
+                                className="border-r last:border-r-0 border-gray-200/30 px-2 font-medium text-xs tracking-wide flex items-center h-8"
+                                style={{ width: col.width, minWidth: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
+                              >
+                                {col.type === 'calculated-percent' ? (
+                                  <div className="flex items-center">
+                                    <span className="truncate">{col.label}</span>
+                                  </div>
+                                ) : (
+                                  <ColumnFilter
+                                    columnKey={col.key}
+                                    columnLabel={col.label}
+                                    columnType={
+                                      col.type === 'boolean' ? 'boolean' : 
+                                      col.type === 'number' ? 'number' : 
+                                      (col.type?.includes('select') ? 'select' : 'text')
+                                    }
+                                    uniqueValues={uniqueValuesMap[col.key] || []}
+                                    availableValues={availableValuesMap[col.key]}
+                                    sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                                    filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                                    onSort={(dir) => handleSort(col.key, dir)}
+                                    onFilter={(state) => handleFilter(col.key, state)}
+                                    onClear={() => handleClearFilter(col.key)}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   } else {
                     groupCols.forEach((col) => {
                       if (col.key === 'fechahora_collapsed') {
-                        cells.push(
-                          <th
+                        headerElements.push(
+                          <div
                             key="fechahora_collapsed"
-                            rowSpan={2}
-                            className="border-b border-r text-white cursor-pointer px-1 align-middle"
+                            className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
                             style={{ minWidth: '30px', width: '30px', height: '68px', backgroundColor: '#0d9488' }}
                             onClick={() => setFechaHoraExpanded(true)}
                             data-testid="toggle-fechahora-expand"
                           >
-                            <div className="flex items-center justify-center">
-                              <Plus className="w-3 h-3" />
-                            </div>
-                          </th>
+                            <Plus className="w-3 h-3" />
+                          </div>
                         );
                         return;
                       }
-                      cells.push(
-                        <th
+                      headerElements.push(
+                        <div
                           key={`unified-${col.key}`}
-                          rowSpan={2}
-                          className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-100 dark:bg-gray-800 align-middle ${col.type === 'index' || col.key === 'id' ? 'text-center' : 'text-left'}`}
+                          className={cn(
+                            "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-100 dark:bg-gray-800 flex items-center flex-shrink-0",
+                            col.type === 'index' || col.key === 'id' ? 'justify-center' : 'justify-start'
+                          )}
                           style={{ minWidth: col.width, width: col.width, height: '68px' }}
                         >
                           {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
@@ -460,820 +494,800 @@ export function DevelopmentsSpreadsheet() {
                               onClear={() => handleClearFilter(col.key)}
                             />
                           )}
-                        </th>
+                        </div>
                       );
                     });
                   }
                   colIdx += group.colspan;
                 }
-                return cells;
+                return headerElements;
               })()}
-            </tr>
-            <tr>
-              {visibleColumns.filter(col => {
-                const group = columnGroups.find(g => g.key === col.group);
-                return group && !!group.label;
-              }).map((col) => {
-                const group = columnGroups.find(g => g.key === col.group);
-                const bgColor = group?.color ? `${group.color}80` : undefined;
-                return (
-                  <th
-                    key={col.key}
-                    className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap h-8 ${col.type === 'index' ? 'text-center' : 'text-left'}`}
-                    style={{ minWidth: col.width, width: col.width, ...(bgColor && { backgroundColor: bgColor }) }}
-                  >
-                    {col.type === 'calculated-percent' ? (
-                      <div className="flex items-center">
-                        <span className="truncate">{col.label}</span>
-                      </div>
-                    ) : (
-                      <ColumnFilter
-                        columnKey={col.key}
-                        columnLabel={col.label}
-                        columnType={
-                          col.type === 'boolean' ? 'boolean' : 
-                          col.type === 'number' ? 'number' : 
-                          (col.type?.includes('select') ? 'select' : 'text')
-                        }
-                        uniqueValues={uniqueValuesMap[col.key] || []}
-                        availableValues={availableValuesMap[col.key]}
-                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                        onSort={(dir) => handleSort(col.key, dir)}
-                        onFilter={(state) => handleFilter(col.key, state)}
-                        onClear={() => handleClearFilter(col.key)}
-                      />
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAndSortedData.map((dev, rowIndex) => (
-              <tr key={dev.id} className="group" style={{ height: '32px', maxHeight: '32px' }} data-testid={`row-development-${dev.id}`}>
-                {visibleColumns.map((col) => {
-                  const fieldCanEdit = canEdit(col.key);
-                  const value = (dev as any)[col.key];
-                  const isEditing = editingCell?.id === dev.id && editingCell?.field === col.key;
+            </div>
+          </div>
 
-                  if (col.key === 'id') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "index" })} title={dev.id}>
-                        <span className="text-muted-foreground font-mono">{rowIndex + 1}</span>
-                      </td>
-                    );
-                  }
+          {filteredAndSortedData.map((dev, rowIndex) => (
+            <div
+              key={dev.id}
+              className={cn(
+                "flex border-b hover:bg-muted/30 group",
+                rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+              )}
+              style={{ height: '32px', maxHeight: '32px' }}
+              data-testid={`row-development-${dev.id}`}
+            >
+              {visibleColumns.map((col) => {
+                const fieldCanEdit = canEdit(col.key);
+                const value = (dev as any)[col.key];
+                const isEditing = editingCell?.id === dev.id && editingCell?.field === col.key;
 
-                  if (col.type === 'date-display') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${col.key}-${dev.id}`}>
-                        <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
-                      </td>
-                    );
-                  }
+                if (col.key === 'id') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={dev.id}>
+                      <span className="text-muted-foreground font-mono">{rowIndex + 1}</span>
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'time-display') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${col.key}-${dev.id}`}>
-                        <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
-                      </td>
-                    );
-                  }
+                if (col.type === 'date-display') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                      <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'fechahora-collapsed') {
-                    return (
-                      <td key="fechahora_collapsed" className="border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px' }} />
-                    );
-                  }
+                if (col.type === 'time-display') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                      <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'boolean') {
-                    // Cell background: light green for Sí, light red for No
-                    const cellBgColor = value === true 
-                      ? '#dcfce7'  // green-100 
-                      : value === false 
-                        ? '#fee2e2'  // red-100
-                        : undefined;
-                    // Text color: dark green for Sí, dark red for No
-                    const textColorClass = value === true 
-                      ? 'text-green-700 font-medium' 
-                      : value === false 
-                        ? 'text-red-600 font-medium' 
-                        : 'text-muted-foreground';
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} style={{ backgroundColor: cellBgColor }}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value === true ? "si" : value === false ? "no" : ""}
-                            onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
-                          >
-                            <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
-                              <SelectValue>
-                                {value === true ? (
-                                  <span>Sí</span>
-                                ) : value === false ? (
-                                  <span>No</span>
-                                ) : (
-                                  <span>-</span>
-                                )}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
-                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className={`flex items-center justify-center ${textColorClass}`}>
-                            {value === true ? (
-                              <span>Sí</span>
-                            ) : value === false ? (
-                              <span>No</span>
-                            ) : (
-                              <span>-</span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'fechahora-collapsed') {
+                  return (
+                    <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
+                  );
+                }
 
-                  if (col.type === 'empresa-tipo-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => {
-                              handleSelectChange(dev.id, col.key, v);
-                              if (dev.developerId) {
-                                const selectedDev = developers.find(d => d.id === dev.developerId);
-                                if (selectedDev && selectedDev.tipo !== (v === '__unassigned__' ? null : v)) {
-                                  updateMutation.mutate({ id: dev.id, data: { developerId: null } });
-                                }
+                if (col.type === 'boolean') {
+                  const cellBgColor = value === true 
+                    ? '#dcfce7'
+                    : value === false 
+                      ? '#fee2e2'
+                      : undefined;
+                  const textColorClass = value === true 
+                    ? 'text-green-700 font-medium' 
+                    : value === false 
+                      ? 'text-red-600 font-medium' 
+                      : 'text-muted-foreground';
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value === true ? "si" : value === false ? "no" : ""}
+                          onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
+                        >
+                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
+                            <SelectValue>
+                              {value === true ? (
+                                <span>Sí</span>
+                              ) : value === false ? (
+                                <span>No</span>
+                              ) : (
+                                <span>-</span>
+                              )}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+                            <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className={`flex items-center justify-center ${textColorClass}`}>
+                          {value === true ? (
+                            <span>Sí</span>
+                          ) : value === false ? (
+                            <span>No</span>
+                          ) : (
+                            <span>-</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'empresa-tipo-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => {
+                            handleSelectChange(dev.id, col.key, v);
+                            if (dev.developerId) {
+                              const selectedDev = developers.find(d => d.id === dev.developerId);
+                              if (selectedDev && selectedDev.tipo !== (v === '__unassigned__' ? null : v)) {
+                                updateMutation.mutate({ id: dev.id, data: { developerId: null } });
                               }
-                            }}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Seleccionar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {EMPRESA_TIPO_OPTIONS.map(t => (
-                                <SelectItem key={t} value={t}>{t}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {EMPRESA_TIPO_OPTIONS.map(t => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'developer-select') {
-                    const filteredDevs = developers.filter(d => {
-                      if (dev.empresaTipo) {
-                        return d.tipo === dev.empresaTipo;
-                      }
-                      return d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora';
-                    });
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Seleccionar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {filteredDevs.map(d => (
-                                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{getDeveloperName(value)}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'city-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Ciudad" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {CITIES.map(c => (
-                                <SelectItem key={c} value={c}>{c}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'zone-select') {
-                    const zones = getZonesForCity(dev.city);
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Zona" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {zones.map(z => (
-                                <SelectItem key={z} value={z}>{z}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'multiselect-tipos') {
-                    const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
-                    const selectedTipos = (dev.tipos as string[] | null) || [];
-                    
-                    // If developer has only one type, auto-select it
-                    if (developerTipos.length === 1 && selectedTipos.length === 0) {
-                      // Auto-assign the single type
-                      setTimeout(() => {
-                        updateMutation.mutate({ id: dev.id, data: { tipos: developerTipos } });
-                      }, 0);
+                if (col.type === 'developer-select') {
+                  const filteredDevs = developers.filter(d => {
+                    if (dev.empresaTipo) {
+                      return d.tipo === dev.empresaTipo;
                     }
-                    
-                    const displayValue = selectedTipos.length > 0 
-                      ? `${selectedTipos.length} seleccionados`
-                      : developerTipos.length > 0 ? 'Seleccionar' : 'Sin tipos';
-                    
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 })}>
-                        {fieldCanEdit && developerTipos.length > 0 ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full justify-between text-xs font-normal"
-                              >
-                                <span className={selectedTipos.length === 0 ? 'text-red-500 font-medium' : ''}>
-                                  {selectedTipos.length === 0 ? 'SIN ASIGNAR' : displayValue}
-                                </span>
-                                <ChevronDown className="w-3 h-3 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48 p-2" align="start">
-                              <div className="space-y-1">
-                                {developerTipos.map((tipo: string) => (
-                                  <label key={tipo} className="flex items-center gap-2 cursor-pointer hover:bg-muted p-1 rounded">
-                                    <Checkbox
-                                      checked={selectedTipos.includes(tipo)}
-                                      onCheckedChange={(checked) => {
-                                        const newTipos = checked
-                                          ? [...selectedTipos, tipo]
-                                          : selectedTipos.filter((t: string) => t !== tipo);
-                                        updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
-                                      }}
-                                    />
-                                    <span className="text-xs">{tipo}</span>
-                                  </label>
-                                ))}
+                    return d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora';
+                  });
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {filteredDevs.map(d => (
+                              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{getDeveloperName(value)}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'city-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Ciudad" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {CITIES.map(c => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'zone-select') {
+                  const zones = getZonesForCity(dev.city);
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Zona" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {zones.map(z => (
+                              <SelectItem key={z} value={z}>{z}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'multiselect-tipos') {
+                  const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
+                  const selectedTipos = (dev.tipos as string[] | null) || [];
+                  
+                  if (developerTipos.length === 1 && selectedTipos.length === 0) {
+                    setTimeout(() => {
+                      updateMutation.mutate({ id: dev.id, data: { tipos: developerTipos } });
+                    }, 0);
+                  }
+                  
+                  const displayValue = selectedTipos.length > 0 
+                    ? `${selectedTipos.length} seleccionados`
+                    : developerTipos.length > 0 ? 'Seleccionar' : 'Sin tipos';
+                  
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit && developerTipos.length > 0 ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-between text-xs font-normal"
+                            >
+                              <span className={selectedTipos.length === 0 ? 'text-red-500 font-medium' : ''}>
+                                {selectedTipos.length === 0 ? 'SIN ASIGNAR' : displayValue}
+                              </span>
+                              <ChevronDown className="w-3 h-3 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48 p-2" align="start">
+                            <div className="space-y-1">
+                              {developerTipos.map((tipo: string) => (
+                                <label key={tipo} className="flex items-center gap-2 cursor-pointer hover:bg-muted p-1 rounded">
+                                  <Checkbox
+                                    checked={selectedTipos.includes(tipo)}
+                                    onCheckedChange={(checked) => {
+                                      const newTipos = checked
+                                        ? [...selectedTipos, tipo]
+                                        : selectedTipos.filter((t: string) => t !== tipo);
+                                      updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
+                                    }}
+                                  />
+                                  <span className="text-xs">{tipo}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className={selectedTipos.length === 0 && developerTipos.length > 0 ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
+                            {selectedTipos.length === 0 && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipos.join(', ') || 'Sin tipos')}
+                          </span>
+                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50" />}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'nivel-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Nivel" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {NIVEL_OPTIONS.map(n => (
+                              <SelectItem key={n} value={n}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'torres-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value?.toString() || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="#" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">-</SelectItem>
+                            {TORRES_OPTIONS.map(n => (
+                              <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'niveles-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value?.toString() || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="#" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60">
+                            <SelectItem value="__unassigned__">-</SelectItem>
+                            {NIVELES_OPTIONS.map(n => (
+                              <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'multiselect-amenities') {
+                  const arrValue: string[] = Array.isArray(value) ? value : [];
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                            {amenities.map(item => (
+                              <div key={item.id} className="flex items-center gap-2 py-1">
+                                <Checkbox
+                                  checked={arrValue.includes(item.name)}
+                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                />
+                                <span className="text-xs">{item.name}</span>
                               </div>
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span className={selectedTipos.length === 0 && developerTipos.length > 0 ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
-                              {selectedTipos.length === 0 && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipos.join(', ') || 'Sin tipos')}
-                            </span>
-                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50" />}
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'nivel-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Nivel" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {NIVEL_OPTIONS.map(n => (
-                                <SelectItem key={n} value={n}>{n}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'multiselect-efficiency') {
+                  const arrValue: string[] = Array.isArray(value) ? value : [];
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                            {efficiencyFeatures.map(item => (
+                              <div key={item.id} className="flex items-center gap-2 py-1">
+                                <Checkbox
+                                  checked={arrValue.includes(item.name)}
+                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                />
+                                <span className="text-xs">{item.name}</span>
+                              </div>
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'torres-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value?.toString() || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="#" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">-</SelectItem>
-                              {TORRES_OPTIONS.map(n => (
-                                <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'multiselect-other') {
+                  const arrValue: string[] = Array.isArray(value) ? value : [];
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                            {otherFeatures.map(item => (
+                              <div key={item.id} className="flex items-center gap-2 py-1">
+                                <Checkbox
+                                  checked={arrValue.includes(item.name)}
+                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                />
+                                <span className="text-xs">{item.name}</span>
+                              </div>
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'niveles-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value?.toString() || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="#" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__">-</SelectItem>
-                              {NIVELES_OPTIONS.map(n => (
-                                <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'recamaras-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-recamaras-${dev.id}`}>
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Seleccionar</SelectItem>
+                            {RECAMARAS_OPTIONS.map(opt => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'multiselect-amenities') {
-                    const arrValue: string[] = Array.isArray(value) ? value : [];
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
-                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                              {amenities.map(item => (
-                                <div key={item.id} className="flex items-center gap-2 py-1">
-                                  <Checkbox
-                                    checked={arrValue.includes(item.name)}
-                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                  />
-                                  <span className="text-xs">{item.name}</span>
-                                </div>
-                              ))}
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
+                if (col.type === 'calculated-percent') {
+                  const calcFrom = col.calcFrom;
+                  let percentValue = '—';
+                  if (calcFrom) {
+                    const unidades = Number((dev as any)[calcFrom.unidades]) || 0;
+                    const vendidas = Number((dev as any)[calcFrom.vendidas]) || 0;
+                    if (unidades > 0) {
+                      percentValue = `${((vendidas / unidades) * 100).toFixed(1)}%`;
+                    }
                   }
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }), "text-center justify-center")} style={{ width: col.width, minWidth: col.width }}>
+                      <span className="text-muted-foreground">{percentValue}</span>
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'multiselect-efficiency') {
-                    const arrValue: string[] = Array.isArray(value) ? value : [];
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
-                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                              {efficiencyFeatures.map(item => (
-                                <div key={item.id} className="flex items-center gap-2 py-1">
-                                  <Checkbox
-                                    checked={arrValue.includes(item.name)}
-                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                  />
-                                  <span className="text-xs">{item.name}</span>
-                                </div>
-                              ))}
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'multiselect-acabados') {
+                  const arrValue: string[] = Array.isArray(value) ? value : [];
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                            {acabados.map(item => (
+                              <div key={item.id} className="flex items-center gap-2 py-1">
+                                <Checkbox
+                                  checked={arrValue.includes(item.name)}
+                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                />
+                                <span className="text-xs">{item.name}</span>
+                              </div>
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'multiselect-other') {
-                    const arrValue: string[] = Array.isArray(value) ? value : [];
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
-                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                              {otherFeatures.map(item => (
-                                <div key={item.id} className="flex items-center gap-2 py-1">
-                                  <Checkbox
-                                    checked={arrValue.includes(item.name)}
-                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                  />
-                                  <span className="text-xs">{item.name}</span>
-                                </div>
-                              ))}
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'comercializadora-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Comercializadora" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {comercializadoras.map(c => (
+                              <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'recamaras-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-recamaras-${dev.id}`}>
-                              <SelectValue placeholder="Seleccionar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Seleccionar</SelectItem>
-                              {RECAMARAS_OPTIONS.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
+                if (col.type === 'arquitectura-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Arquitectura" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {arquitecturas.map(a => (
+                              <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
-                  if (col.type === 'calculated-percent') {
-                    const calcFrom = col.calcFrom;
-                    let percentValue = '—';
-                    if (calcFrom) {
-                      const unidades = Number((dev as any)[calcFrom.unidades]) || 0;
-                      const vendidas = Number((dev as any)[calcFrom.vendidas]) || 0;
-                      if (unidades > 0) {
-                        percentValue = `${((vendidas / unidades) * 100).toFixed(1)}%`;
+                if (col.type === 'tipo-contrato-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Contrato" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {tiposContrato.filter(t => t.active !== false).map(t => (
+                              <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'cesion-derechos-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Cesión" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {cesionDerechosList.filter(c => c.active !== false).map(c => (
+                              <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'presentacion-select') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                            <SelectValue placeholder="Presentación" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                            {presentaciones.filter(p => p.active !== false).map(p => (
+                              <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span>{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'index') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }}>
+                      <span className="text-muted-foreground">{rowIndex + 1}</span>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'folder-link') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                      <Link
+                        href={`/admin/documentos?developmentId=${dev.id}&sectionType=${col.folderSection}`}
+                        className="text-primary hover:underline flex items-center gap-1"
+                        data-testid={`link-${col.folderSection}-${dev.id}`}
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'actions') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive hover:text-destructive"
+                        onClick={() => setDeleteId(dev.id)}
+                        data-testid={`button-delete-${dev.id}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  );
+                }
+
+                if (col.hasInmediato) {
+                  const dateValue = (value && value !== null && value !== undefined) ? String(value) : '';
+                  let formattedDate = '';
+                  if (dateValue && dateValue !== 'null' && dateValue !== 'undefined') {
+                    const parts = dateValue.split('-');
+                    if (parts.length === 3) {
+                      const [year, month, day] = parts.map(Number);
+                      const parsed = new Date(year, month - 1, day);
+                      if (!isNaN(parsed.getTime())) {
+                        formattedDate = parsed.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
                       }
                     }
-                    return (
-                      <td key={col.key} className={cn(getCellStyle({ type: "readonly" }), "text-center")} style={{ width: col.width, minWidth: col.width }}>
-                        <span className="text-muted-foreground">{percentValue}</span>
-                      </td>
-                    );
                   }
-
-                  if (col.type === 'multiselect-acabados') {
-                    const arrValue: string[] = Array.isArray(value) ? value : [];
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                                <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
-                                <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                              {acabados.map(item => (
-                                <div key={item.id} className="flex items-center gap-2 py-1">
-                                  <Checkbox
-                                    checked={arrValue.includes(item.name)}
-                                    onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
-                                  />
-                                  <span className="text-xs">{item.name}</span>
-                                </div>
-                              ))}
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                            <Lock className="w-3 h-3 opacity-50 shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'comercializadora-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Comercializadora" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {comercializadoras.map(c => (
-                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'arquitectura-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Arquitectura" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {arquitecturas.map(a => (
-                                <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'tipo-contrato-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} data-testid={`cell-${col.key}-${dev.id}`}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Contrato" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {tiposContrato.filter(t => t.active !== false).map(t => (
-                                <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'cesion-derechos-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} data-testid={`cell-${col.key}-${dev.id}`}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Cesión" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {cesionDerechosList.filter(c => c.active !== false).map(c => (
-                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'presentacion-select') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })} data-testid={`cell-${col.key}-${dev.id}`}>
-                        {fieldCanEdit ? (
-                          <Select
-                            value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Presentación" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                              {presentaciones.filter(p => p.active !== false).map(p => (
-                                <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{value || ""}</span>
-                            <Lock className="w-3 h-3 opacity-50" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'index') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "index" })}>
-                        <span className="text-muted-foreground">{rowIndex + 1}</span>
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'folder-link') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "actions" })}>
-                        <Link
-                          href={`/admin/documentos?developmentId=${dev.id}&sectionType=${col.folderSection}`}
-                          className="text-primary hover:underline flex items-center gap-1"
-                          data-testid={`link-${col.folderSection}-${dev.id}`}
-                        >
-                          <FolderOpen className="w-4 h-4" />
-                        </Link>
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'actions') {
-                    return (
-                      <td key={col.key} className={getCellStyle({ type: "actions" })}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteId(dev.id)}
-                          data-testid={`button-delete-${dev.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    );
-                  }
-
-                  if (col.hasInmediato) {
-                    const dateValue = (value && value !== null && value !== undefined) ? String(value) : '';
-                    let formattedDate = '';
-                    if (dateValue && dateValue !== 'null' && dateValue !== 'undefined') {
-                      const parts = dateValue.split('-');
-                      if (parts.length === 3) {
-                        const [year, month, day] = parts.map(Number);
-                        const parsed = new Date(year, month - 1, day);
-                        if (!isNaN(parsed.getTime())) {
-                          formattedDate = parsed.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
-                        }
-                      }
-                    }
-                    
-                    return (
-                      <td 
-                        key={col.key} 
-                        className={getCellStyle({ 
+                  
+                  return (
+                    <div 
+                      key={col.key} 
+                      className={cn(
+                        "spreadsheet-cell flex-shrink-0",
+                        getCellStyle({ 
                           type: "input", 
                           disabled: !fieldCanEdit
-                        })}
-                        data-testid={`cell-${col.key}-${dev.id}`}
-                      >
-                        {fieldCanEdit ? (
-                          <Popover 
-                            open={openDatePopover === `${dev.id}-${col.key}`}
-                            onOpenChange={(open) => setOpenDatePopover(open ? `${dev.id}-${col.key}` : null)}
-                          >
-                            <PopoverTrigger asChild>
-                              <div 
-                                className="flex items-center gap-1 cursor-pointer min-h-[20px] w-full"
-                                data-testid={`trigger-${col.key}-${dev.id}`}
-                              >
-                                <span className="truncate text-xs">{formattedDate || '-'}</span>
-                              </div>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48 p-2" align="start">
-                              <div className="flex flex-col gap-2">
-                                <Input
-                                  type="date"
-                                  defaultValue={dateValue}
-                                  onBlur={(e) => {
-                                    const newValue = e.target.value;
+                        })
+                      )}
+                      style={{ width: col.width, minWidth: col.width }}
+                      data-testid={`cell-${col.key}-${dev.id}`}
+                    >
+                      {fieldCanEdit ? (
+                        <Popover 
+                          open={openDatePopover === `${dev.id}-${col.key}`}
+                          onOpenChange={(open) => setOpenDatePopover(open ? `${dev.id}-${col.key}` : null)}
+                        >
+                          <PopoverTrigger asChild>
+                            <div 
+                              className="flex items-center gap-1 cursor-pointer min-h-[20px] w-full"
+                              data-testid={`trigger-${col.key}-${dev.id}`}
+                            >
+                              <span className="truncate text-xs">{formattedDate || '-'}</span>
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48 p-2" align="start">
+                            <div className="flex flex-col gap-2">
+                              <Input
+                                type="date"
+                                defaultValue={dateValue}
+                                onBlur={(e) => {
+                                  const newValue = e.target.value;
+                                  if (newValue !== dateValue) {
+                                    updateMutation.mutate({ 
+                                      id: dev.id, 
+                                      data: { [col.key]: newValue || null } 
+                                    });
+                                  }
+                                  setOpenDatePopover(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const newValue = (e.target as HTMLInputElement).value;
                                     if (newValue !== dateValue) {
                                       updateMutation.mutate({ 
                                         id: dev.id, 
@@ -1281,135 +1295,126 @@ export function DevelopmentsSpreadsheet() {
                                       });
                                     }
                                     setOpenDatePopover(null);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const newValue = (e.target as HTMLInputElement).value;
-                                      if (newValue !== dateValue) {
-                                        updateMutation.mutate({ 
-                                          id: dev.id, 
-                                          data: { [col.key]: newValue || null } 
-                                        });
-                                      }
-                                      setOpenDatePopover(null);
-                                    }
-                                  }}
-                                  className="text-xs"
-                                  data-testid={`input-${col.key}-${dev.id}`}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    const now = new Date();
-                                    const year = now.getFullYear();
-                                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                                    const day = String(now.getDate()).padStart(2, '0');
-                                    const today = `${year}-${month}-${day}`;
-                                    updateMutation.mutate({ 
-                                      id: dev.id, 
-                                      data: { [col.key]: today } 
-                                    });
-                                    setOpenDatePopover(null);
-                                  }}
-                                  className="text-xs"
-                                  data-testid={`button-inmediato-${col.key}-${dev.id}`}
-                                >
-                                  Inmediato
-                                </Button>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1 min-h-[20px]">
-                            <span className="truncate text-xs">{formattedDate || '-'}</span>
-                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  const rawDisplayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
-                  const displayValue = rawDisplayValue && col.suffix ? `${rawDisplayValue} ${col.suffix}` : rawDisplayValue;
-                  const isLongText = ['name', 'ventasNombre', 'ventasCorreo', 'ventasTelefono', 'pagosNombre', 'pagosCorreo', 'pagosTelefono', 'location'].includes(col.key);
-
-                  if (isLongText && col.type !== 'number') {
-                    return (
-                      <td
-                        key={col.key}
-                        className={getCellStyle({ type: "input", disabled: !fieldCanEdit })}
-                        data-testid={`cell-${col.key}-${dev.id}`}
-                      >
-                        <div
-                          className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => {
-                            if (fieldCanEdit) {
-                              setTextDetail({
-                                title: col.label,
-                                value: String(value || ''),
-                                editable: true,
-                                onSave: (newVal) => updateMutation.mutate({ id: dev.id, data: { [col.key]: newVal || null } }),
-                              });
-                            } else {
-                              setTextDetail({ title: col.label, value: String(displayValue || ''), editable: false });
-                            }
-                          }}
-                        >
-                          <span className="truncate">{displayValue || ''}</span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                                  }
+                                }}
+                                className="text-xs"
+                                data-testid={`input-${col.key}-${dev.id}`}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const now = new Date();
+                                  const year = now.getFullYear();
+                                  const month = String(now.getMonth() + 1).padStart(2, '0');
+                                  const day = String(now.getDate()).padStart(2, '0');
+                                  const today = `${year}-${month}-${day}`;
+                                  updateMutation.mutate({ 
+                                    id: dev.id, 
+                                    data: { [col.key]: today } 
+                                  });
+                                  setOpenDatePopover(null);
+                                }}
+                                className="text-xs"
+                                data-testid={`button-inmediato-${col.key}-${dev.id}`}
+                              >
+                                Inmediato
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 min-h-[20px]">
+                          <span className="truncate text-xs">{formattedDate || '-'}</span>
+                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                         </div>
-                      </td>
-                    );
-                  }
+                      )}
+                    </div>
+                  );
+                }
 
+                const rawDisplayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+                const displayValue = rawDisplayValue && col.suffix ? `${rawDisplayValue} ${col.suffix}` : rawDisplayValue;
+                const isLongText = ['name', 'ventasNombre', 'ventasCorreo', 'ventasTelefono', 'pagosNombre', 'pagosCorreo', 'pagosTelefono', 'location'].includes(col.key);
+
+                if (isLongText && col.type !== 'number') {
                   return (
-                    <td 
-                      key={col.key} 
-                      className={getCellStyle({ 
+                    <div
+                      key={col.key}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      data-testid={`cell-${col.key}-${dev.id}`}
+                    >
+                      <div
+                        className="flex items-center gap-1 cursor-pointer"
+                        onClick={() => {
+                          if (fieldCanEdit) {
+                            setTextDetail({
+                              title: col.label,
+                              value: String(value || ''),
+                              editable: true,
+                              onSave: (newVal) => updateMutation.mutate({ id: dev.id, data: { [col.key]: newVal || null } }),
+                            });
+                          } else {
+                            setTextDetail({ title: col.label, value: String(displayValue || ''), editable: false });
+                          }
+                        }}
+                      >
+                        <span className="truncate">{displayValue || ''}</span>
+                        {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div 
+                    key={col.key} 
+                    className={cn(
+                      "spreadsheet-cell flex-shrink-0",
+                      getCellStyle({ 
                         type: "input", 
                         disabled: !fieldCanEdit,
                         isEditing 
-                      })}
-                      onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, value)}
-                      data-testid={`cell-${col.key}-${dev.id}`}
-                    >
-                      {isEditing && fieldCanEdit ? (
-                        <Input
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onBlur={() => handleCellBlur(dev.id, col.key, col)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(dev.id, col.key, col)}
-                          onFocus={(e) => e.target.select()}
-                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                          autoFocus
-                          type={col.type === 'number' ? 'number' : 'text'}
-                          data-testid={`input-${col.key}-${dev.id}`}
-                        />
-                      ) : (
-                        <div
-                          className="flex items-center gap-1 cursor-pointer"
-                          onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue), editable: false })}
-                        >
-                          <span className="truncate">{displayValue || ''}</span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-            {developments.length === 0 && (
-              <tr>
-                <td colSpan={visibleColumns.length} className="text-center py-8 text-muted-foreground">
-                  No hay desarrollos. Haz clic en "Nuevo" para crear uno.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                      })
+                    )}
+                    style={{ width: col.width, minWidth: col.width }}
+                    onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, value)}
+                    data-testid={`cell-${col.key}-${dev.id}`}
+                  >
+                    {isEditing && fieldCanEdit ? (
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => handleCellBlur(dev.id, col.key, col)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(dev.id, col.key, col)}
+                        onFocus={(e) => e.target.select()}
+                        className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                        autoFocus
+                        type={col.type === 'number' ? 'number' : 'text'}
+                        data-testid={`input-${col.key}-${dev.id}`}
+                      />
+                    ) : (
+                      <div
+                        className="flex items-center gap-1 cursor-pointer"
+                        onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue), editable: false })}
+                      >
+                        <span className="truncate">{displayValue || ''}</span>
+                        {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {developments.length === 0 && (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              No hay desarrollos. Haz clic en "Nuevo" para crear uno.
+            </div>
+          )}
+        </div>
       </div>
 
       <TextDetailModal

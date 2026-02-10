@@ -284,22 +284,27 @@ export function DevelopersSpreadsheet() {
       </div>
       
       <div className="flex-1 overflow-auto spreadsheet-scroll">
-        <table className="w-full border-collapse text-xs">
-          <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
-            {/* Group header row */}
-            <tr>
+        <div className="min-w-max text-xs">
+          {/* Header: Two-row structure */}
+          <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800">
+            {/* Row 1: Group headers */}
+            <div className="flex border-b spreadsheet-header-row1">
               {(() => {
-                const groupHeaders: { key: string; label: string; colSpan: number; bgClass: string; isGroup: boolean }[] = [];
+                const groupHeaders: { key: string; label: string; width: number; bgClass: string; isGroup: boolean; colSpan: number }[] = [];
                 let i = 0;
                 while (i < columns.length) {
                   const col = columns[i];
                   if (col.group === 'fechahora') {
                     let count = 0;
-                    while (i + count < columns.length && columns[i + count].group === 'fechahora') count++;
-                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', colSpan: count, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true });
+                    let totalWidth = 0;
+                    while (i + count < columns.length && columns[i + count].group === 'fechahora') {
+                      totalWidth += parseInt(columns[i + count].width);
+                      count++;
+                    }
+                    groupHeaders.push({ key: 'fechahora', label: 'FECHA/HORA', width: totalWidth, bgClass: 'bg-teal-600 dark:bg-teal-700 text-white', isGroup: true, colSpan: count });
                     i += count;
                   } else {
-                    groupHeaders.push({ key: col.key, label: '', colSpan: 1, bgClass: '', isGroup: false });
+                    groupHeaders.push({ key: col.key, label: '', width: parseInt(col.width), bgClass: '', isGroup: false, colSpan: 1 });
                     i++;
                   }
                 }
@@ -308,34 +313,28 @@ export function DevelopersSpreadsheet() {
                     const col = columns.find(c => c.key === gh.key)!;
                     if (col.key === 'fechahora_collapsed') {
                       return (
-                        <th
+                        <div
                           key={`group-${gh.key}-${idx}`}
-                          rowSpan={2}
-                          className="border-b border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer px-1 align-middle"
+                          className="border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer flex items-center justify-center flex-shrink-0"
                           style={{ width: '30px', minWidth: '30px', height: '68px' }}
                           onClick={() => setFechaHoraExpanded(true)}
                           data-testid="toggle-fechahora-expand"
                         >
-                          <div className="flex items-center justify-center">
-                            <Plus className="w-3 h-3" />
-                          </div>
-                        </th>
+                          <Plus className="w-3 h-3" />
+                        </div>
                       );
                     }
                     return (
-                      <th
+                      <div
                         key={`group-${gh.key}-${idx}`}
-                        rowSpan={2}
                         className={cn(
-                          "border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide align-middle",
-                          col.type === 'index' ? 'text-center' : 'text-left'
+                          "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0",
+                          col.type === 'index' ? 'justify-center' : 'justify-start'
                         )}
                         style={{ width: col.width, minWidth: col.width, height: '68px' }}
                       >
                         {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' ? (
-                          <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : 'justify-start'}`}>
-                            <span className="truncate">{col.label}</span>
-                          </div>
+                          <span className="truncate">{col.label}</span>
                         ) : (
                           <ColumnFilter
                             columnKey={col.key}
@@ -350,16 +349,16 @@ export function DevelopersSpreadsheet() {
                             onClear={() => handleClearFilter(col.key)}
                           />
                         )}
-                      </th>
+                      </div>
                     );
                   }
                   return (
-                    <th
+                    <div
                       key={`group-${gh.key}-${idx}`}
-                      colSpan={gh.colSpan}
-                      className={cn("border-b border-r border-gray-200 dark:border-gray-700 px-2 text-center font-bold text-xs uppercase tracking-wide h-9", gh.bgClass)}
+                      className={cn("border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0", gh.bgClass)}
+                      style={{ width: gh.width, minWidth: gh.width }}
                     >
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-1 h-9 px-2 font-bold text-xs uppercase tracking-wide">
                         <span>{gh.label}</span>
                         {gh.key === 'fechahora' && (
                           <button
@@ -371,415 +370,396 @@ export function DevelopersSpreadsheet() {
                           </button>
                         )}
                       </div>
-                    </th>
+                      <div className="flex border-t border-gray-200/30">
+                        {columns.filter(c => c.group === 'fechahora').map((subCol) => (
+                          <div
+                            key={subCol.key}
+                            className="border-r last:border-r-0 border-gray-200/30 px-2 font-medium text-xs tracking-wide flex items-center h-8"
+                            style={{ width: subCol.width, minWidth: subCol.width }}
+                          >
+                            <span className="truncate">{subCol.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   );
                 });
               })()}
-            </tr>
-            {/* Sub-column headers (only for grouped columns) */}
-            <tr>
-              {columns.filter(col => col.group === 'fechahora').map((col) => (
-                <th
-                  key={col.key}
-                  className={`border-b border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide h-8 text-left`}
-                  style={{ width: col.width, minWidth: col.width }}
-                >
-                  {col.group === 'fechahora' ? (
-                    <div className="flex items-center justify-start">
-                      <span className="truncate">{col.label}</span>
-                    </div>
-                  ) : (
-                    <ColumnFilter
-                      columnKey={col.key}
-                      columnLabel={col.label}
-                      columnType={col.type === 'date' ? 'text' : 'text'}
-                      uniqueValues={uniqueValuesMap[col.key] || []}
-                      availableValues={availableValuesMap[col.key]}
-                      sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                      filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                      onSort={(dir) => handleSort(col.key, dir)}
-                      onFilter={(state) => handleFilter(col.key, state)}
-                      onClear={() => handleClearFilter(col.key)}
-                    />
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAndSortedData.map((dev, index) => (
-              <tr key={dev.id} className="group" style={{ height: '32px', maxHeight: '32px' }} data-testid={`row-developer-${dev.id}`}>
-                {columns.map((col) => {
-                  const field = col.key;
-                  const fieldCanEdit = canEdit(field);
-                  const isEditing = editingCell?.id === dev.id && editingCell?.field === field;
-                  const cellType = col.cellType || getCellTypeFromColumnType(col.type);
-                  
-                  if (col.type === 'index') {
-                    return (
-                      <td 
-                        key={field} 
-                        className={getCellStyle({ type: "index", disabled: false })}
-                        title={dev.id}
-                      >
-                        <span className="font-mono">{index + 1}</span>
-                      </td>
-                    );
-                  }
-                  
-                  if (col.type === 'date-display') {
-                    return (
-                      <td key={field} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${field}-${dev.id}`}>
-                        <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
-                      </td>
-                    );
-                  }
+            </div>
+          </div>
 
-                  if (col.type === 'time-display') {
-                    return (
-                      <td key={field} className={getCellStyle({ type: "readonly" })} data-testid={`cell-${field}-${dev.id}`}>
-                        <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'fechahora-collapsed') {
-                    return (
-                      <td key="fechahora_collapsed" className="border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px' }} />
-                    );
-                  }
-
-                  if (col.type === 'toggle') {
-                    // Boolean dropdown: Sí/No with colored cell background
-                    const isActive = dev.active ?? false;
-                    const cellBgColor = isActive ? '#dcfce7' : '#fee2e2'; // green-100 or red-100
-                    const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
-                    return (
-                      <td 
-                        key={field} 
-                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
-                        style={{ backgroundColor: cellBgColor }}
-                      >
-                        {fieldCanEdit ? (
-                          <Select
-                            value={isActive ? "si" : "no"}
-                            onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
-                          >
-                            <SelectTrigger 
-                              className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
-                              data-testid={`toggle-active-${dev.id}`}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
-                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
-                            <span>{isActive ? 'Sí' : 'No'}</span>
-                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-                  
-                  if (col.type === 'tipo-select') {
-                    const tipoValue = dev.tipo || '';
-                    return (
-                      <td
-                        key={field}
-                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
-                        data-testid={`cell-${field}-${dev.id}`}
-                      >
-                        {fieldCanEdit ? (
-                          <Select
-                            value={tipoValue || "__empty__"}
-                            onValueChange={(v) => {
-                              const val = v === "__empty__" ? "" : v;
-                              updateMutation.mutate({ id: dev.id, data: { tipo: val } });
-                            }}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
-                              <SelectValue placeholder="Seleccionar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__empty__">Seleccionar</SelectItem>
-                              {EMPRESA_TIPOS.map(t => (
-                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex items-center gap-1 px-2">
-                            <span className="truncate text-xs">{tipoValue}</span>
-                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  if (col.key === 'antiguedadCalc') {
-                    const calculated = calcAntiguedad(dev.createdAt);
-                    return (
-                      <td
-                        key={field}
-                        className={getCellStyle({ type: "readonly" })}
-                        data-testid={`cell-${field}-${dev.id}`}
-                      >
-                        <span className="text-xs text-muted-foreground px-2">{calculated}</span>
-                      </td>
-                    );
-                  }
-
-                  if (col.type === 'folder-link') {
-                    return (
-                      <td key={field} className={getCellStyle({ type: "actions" })}>
-                        <a
-                          href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
-                          className="inline-flex items-center gap-1.5 text-primary hover:underline text-xs"
-                          data-testid={`link-legales-${dev.id}`}
-                        >
-                          <FolderOpen className="w-4 h-4" />
-                          <span>Ver</span>
-                        </a>
-                      </td>
-                    );
-                  }
-                  
-                  if (col.type === 'actions') {
-                    return (
-                      <td key={field} className={getCellStyle({ type: "actions" })}>
-                        {hasFullAccess && (
-                          <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-7 w-7 text-destructive hover:text-destructive"
-                                onClick={() => setDeleteId(dev.id)}
-                                data-testid={`button-delete-${dev.id}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Eliminar Desarrollador</DialogTitle>
-                              </DialogHeader>
-                              <p>¿Estás seguro de eliminar "{dev.name}"? Esta acción no se puede deshacer.</p>
-                              <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button variant="outline">Cancelar</Button>
-                                </DialogClose>
-                                <Button
-                                  variant="destructive"
-                                  onClick={() => deleteMutation.mutate(dev.id)}
-                                  disabled={deleteMutation.isPending}
-                                  data-testid="button-confirm-delete"
-                                >
-                                  Eliminar
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  // Date field - fechaAntiguedad
-                  if (col.type === 'date') {
-                    const dateValue = dev[field as keyof Developer] as Date | string | null;
-                    const formattedDate = dateValue ? new Date(dateValue).toISOString().split('T')[0] : '';
-                    return (
-                      <td
-                        key={field}
-                        className={getCellStyle({ type: "date", disabled: !fieldCanEdit })}
-                        data-testid={`cell-${field}-${dev.id}`}
-                      >
-                        {fieldCanEdit ? (
-                          <Input
-                            type="date"
-                            value={formattedDate}
-                            onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                            data-testid={`input-${field}-${dev.id}`}
-                          />
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span className="truncate">{formatDate(dateValue)}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  // Multiselect dropdown - tipos
-                  if (col.type === 'multiselect') {
-                    const currentValues = (dev[field as keyof Developer] as string[] | null) || [];
-                    const displayValue = currentValues.length > 0 
-                      ? `${currentValues.length} seleccionados`
-                      : '';
-                    const options = col.key === 'contratos'
-                      ? catalogContratos.map(c => ({ value: c.name, label: c.name }))
-                      : DESARROLLO_TIPOS;
-                    
-                    return (
-                      <td
-                        key={field}
-                        className={getCellStyle({ type: "dropdown", disabled: !fieldCanEdit })}
-                        data-testid={`cell-${field}-${dev.id}`}
-                      >
-                        {fieldCanEdit ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="h-6 w-full justify-between px-1 text-left font-normal text-xs"
-                                data-testid={`select-${col.key}-${dev.id}`}
-                              >
-                                <span className="truncate">{displayValue || 'Seleccionar...'}</span>
-                                <ChevronDown className="h-3 w-3 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-56 p-2" align="start">
-                              <div className="space-y-1">
-                                {options.map((opt) => (
-                                  <label
-                                    key={opt.value}
-                                    className="flex items-center gap-2 px-2 py-1 hover:bg-muted rounded cursor-pointer"
-                                  >
-                                    <Checkbox
-                                      checked={currentValues.includes(opt.value)}
-                                      onCheckedChange={(checked) => {
-                                        const newValues = checked
-                                          ? [...currentValues, opt.value]
-                                          : currentValues.filter(v => v !== opt.value);
-                                        handleMultiselectChange(dev.id, field, newValues);
-                                      }}
-                                      data-testid={`checkbox-${col.key}-${opt.value}-${dev.id}`}
-                                    />
-                                    <span className="text-xs">{opt.label}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span className="truncate">{displayValue}</span>
-                            <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-
-                  // RFC field - with uppercase enforcement
-                  if (col.type === 'rfc') {
-                    const value = dev[field as keyof Developer] as string;
-                    return (
-                      <td
-                        key={field}
-                        className={getCellStyle({ 
-                          type: cellType, 
-                          disabled: !fieldCanEdit,
-                          isEditing 
-                        })}
-                        onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
-                        data-testid={`cell-${field}-${dev.id}`}
-                      >
-                        {isEditing && fieldCanEdit ? (
-                          <Input
-                            value={editValue.toUpperCase()}
-                            onChange={(e) => setEditValue(e.target.value.toUpperCase())}
-                            onBlur={() => handleCellBlur(dev.id, field)}
-                            onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
-                            autoFocus
-                            maxLength={13}
-                            placeholder="12-13 dígitos"
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
-                            data-testid={`input-${field}-${dev.id}`}
-                          />
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <span className="truncate uppercase">
-                              {value || ''}
-                            </span>
-                            {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
-                          </div>
-                        )}
-                      </td>
-                    );
-                  }
-                  
-                  const value = dev[field as keyof Developer] as string;
-
+          {/* Data rows */}
+          {filteredAndSortedData.map((dev, index) => (
+            <div
+              key={dev.id}
+              className={cn(
+                "flex border-b hover:bg-muted/30 group",
+                index % 2 === 0 ? "bg-background" : "bg-muted/10"
+              )}
+              style={{ height: '32px', maxHeight: '32px' }}
+              data-testid={`row-developer-${dev.id}`}
+            >
+              {columns.map((col) => {
+                const field = col.key;
+                const fieldCanEdit = canEdit(field);
+                const isEditing = editingCell?.id === dev.id && editingCell?.field === field;
+                const cellType = col.cellType || getCellTypeFromColumnType(col.type);
+                
+                if (col.type === 'index') {
                   return (
-                    <td
+                    <div 
+                      key={field} 
+                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index", disabled: false }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      title={dev.id}
+                    >
+                      <span className="font-mono">{index + 1}</span>
+                    </div>
+                  );
+                }
+                
+                if (col.type === 'date-display') {
+                  return (
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${field}-${dev.id}`}>
+                      <span className="text-xs text-muted-foreground">{formatDate(dev.createdAt)}</span>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'time-display') {
+                  return (
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${field}-${dev.id}`}>
+                      <span className="text-xs text-muted-foreground">{formatTime(dev.createdAt)}</span>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'fechahora-collapsed') {
+                  return (
+                    <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
+                  );
+                }
+
+                if (col.type === 'toggle') {
+                  const isActive = dev.active ?? false;
+                  const cellBgColor = isActive ? '#dcfce7' : '#fee2e2';
+                  const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
+                  return (
+                    <div 
+                      key={field} 
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
+                    >
+                      {fieldCanEdit ? (
+                        <Select
+                          value={isActive ? "si" : "no"}
+                          onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
+                        >
+                          <SelectTrigger 
+                            className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                            data-testid={`toggle-active-${dev.id}`}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+                            <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
+                          <span>{isActive ? 'Sí' : 'No'}</span>
+                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                
+                if (col.type === 'tipo-select') {
+                  const tipoValue = dev.tipo || '';
+                  return (
+                    <div
                       key={field}
-                      className={getCellStyle({ 
-                        type: cellType, 
-                        disabled: !fieldCanEdit,
-                        isEditing 
-                      })}
-                      onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
-                      {isEditing && fieldCanEdit ? (
+                      {fieldCanEdit ? (
+                        <Select
+                          value={tipoValue || "__empty__"}
+                          onValueChange={(v) => {
+                            const val = v === "__empty__" ? "" : v;
+                            updateMutation.mutate({ id: dev.id, data: { tipo: val } });
+                          }}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__empty__">Seleccionar</SelectItem>
+                            {EMPRESA_TIPOS.map(t => (
+                              <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="truncate text-xs">{tipoValue}</span>
+                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.key === 'antiguedadCalc') {
+                  const calculated = calcAntiguedad(dev.createdAt);
+                  return (
+                    <div
+                      key={field}
+                      className={cn("spreadsheet-cell flex-shrink-0 px-2", getCellStyle({ type: "readonly" }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      <span className="text-xs text-muted-foreground">{calculated}</span>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'folder-link') {
+                  return (
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                      <a
+                        href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
+                        className="inline-flex items-center gap-1.5 text-primary hover:underline text-xs"
+                        data-testid={`link-legales-${dev.id}`}
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                        <span>Ver</span>
+                      </a>
+                    </div>
+                  );
+                }
+                
+                if (col.type === 'actions') {
+                  return (
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                      {hasFullAccess && (
+                        <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              onClick={() => setDeleteId(dev.id)}
+                              data-testid={`button-delete-${dev.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Eliminar Desarrollador</DialogTitle>
+                            </DialogHeader>
+                            <p>¿Estás seguro de eliminar "{dev.name}"? Esta acción no se puede deshacer.</p>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">Cancelar</Button>
+                              </DialogClose>
+                              <Button
+                                variant="destructive"
+                                onClick={() => deleteMutation.mutate(dev.id)}
+                                disabled={deleteMutation.isPending}
+                                data-testid="button-confirm-delete"
+                              >
+                                Eliminar
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'date') {
+                  const dateValue = dev[field as keyof Developer] as Date | string | null;
+                  const formattedDate = dateValue ? new Date(dateValue).toISOString().split('T')[0] : '';
+                  return (
+                    <div
+                      key={field}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "date", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      {fieldCanEdit ? (
                         <Input
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onBlur={() => handleCellBlur(dev.id, field)}
-                          onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
-                          autoFocus
+                          type="date"
+                          value={formattedDate}
+                          onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
                           className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span
-                            className="truncate"
-                            onMouseEnter={(e) => {
-                              if (LONG_TEXT_FIELDS.includes(field)) {
-                                const el = e.currentTarget;
-                                if (el.scrollWidth > el.clientWidth && value) {
-                                  el.setAttribute('title', String(value));
-                                } else {
-                                  el.removeAttribute('title');
-                                }
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.removeAttribute('title');
-                            }}
-                          >
-                            {value || ''}
-                          </span>
+                          <span className="truncate">{formatDate(dateValue)}</span>
+                          <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'multiselect') {
+                  const currentValues = (dev[field as keyof Developer] as string[] | null) || [];
+                  const displayValue = currentValues.length > 0 
+                    ? `${currentValues.length} seleccionados`
+                    : '';
+                  const options = col.key === 'contratos'
+                    ? catalogContratos.map(c => ({ value: c.name, label: c.name }))
+                    : DESARROLLO_TIPOS;
+                  
+                  return (
+                    <div
+                      key={field}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      {fieldCanEdit ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-6 w-full justify-between px-1 text-left font-normal text-xs"
+                              data-testid={`select-${col.key}-${dev.id}`}
+                            >
+                              <span className="truncate">{displayValue || 'Seleccionar...'}</span>
+                              <ChevronDown className="h-3 w-3 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2" align="start">
+                            <div className="space-y-1">
+                              {options.map((opt) => (
+                                <label
+                                  key={opt.value}
+                                  className="flex items-center gap-2 px-2 py-1 hover:bg-muted rounded cursor-pointer"
+                                >
+                                  <Checkbox
+                                    checked={currentValues.includes(opt.value)}
+                                    onCheckedChange={(checked) => {
+                                      const newValues = checked
+                                        ? [...currentValues, opt.value]
+                                        : currentValues.filter(v => v !== opt.value);
+                                      handleMultiselectChange(dev.id, field, newValues);
+                                    }}
+                                    data-testid={`checkbox-${col.key}-${opt.value}-${dev.id}`}
+                                  />
+                                  <span className="text-xs">{opt.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="truncate">{displayValue}</span>
+                          <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'rfc') {
+                  const value = dev[field as keyof Developer] as string;
+                  return (
+                    <div
+                      key={field}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: cellType, disabled: !fieldCanEdit, isEditing }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      {isEditing && fieldCanEdit ? (
+                        <Input
+                          value={editValue.toUpperCase()}
+                          onChange={(e) => setEditValue(e.target.value.toUpperCase())}
+                          onBlur={() => handleCellBlur(dev.id, field)}
+                          onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
+                          autoFocus
+                          maxLength={13}
+                          placeholder="12-13 dígitos"
+                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
+                          data-testid={`input-${field}-${dev.id}`}
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="truncate uppercase">{value || ''}</span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
                         </div>
                       )}
-                    </td>
+                    </div>
                   );
-                })}
-              </tr>
-            ))}
-            {filteredAndSortedData.length === 0 && (
-              <tr>
-                <td colSpan={columns.length} className="text-center py-8 text-muted-foreground">
-                  {developers.length === 0 
-                    ? 'No hay desarrolladores. Haz clic en "Agregar" para crear uno.'
-                    : 'No se encontraron resultados con los filtros aplicados.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                }
+                
+                const value = dev[field as keyof Developer] as string;
+
+                return (
+                  <div
+                    key={field}
+                    className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: cellType, disabled: !fieldCanEdit, isEditing }))}
+                    style={{ width: col.width, minWidth: col.width }}
+                    onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
+                    data-testid={`cell-${field}-${dev.id}`}
+                  >
+                    {isEditing && fieldCanEdit ? (
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => handleCellBlur(dev.id, field)}
+                        onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
+                        autoFocus
+                        className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                        data-testid={`input-${field}-${dev.id}`}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span
+                          className="truncate"
+                          onMouseEnter={(e) => {
+                            if (LONG_TEXT_FIELDS.includes(field)) {
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.clientWidth && value) {
+                                el.setAttribute('title', String(value));
+                              } else {
+                                el.removeAttribute('title');
+                              }
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.removeAttribute('title');
+                          }}
+                        >
+                          {value || ''}
+                        </span>
+                        {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {filteredAndSortedData.length === 0 && (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              {developers.length === 0 
+                ? 'No hay desarrolladores. Haz clic en "Agregar" para crear uno.'
+                : 'No se encontraron resultados con los filtros aplicados.'}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
