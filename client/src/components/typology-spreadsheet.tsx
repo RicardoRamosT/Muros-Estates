@@ -1815,10 +1815,10 @@ export function TypologySpreadsheet() {
     
     // Clear development, zone, and developer when city changes
     if (field === "city") {
-      autoPopulatedFields.development = null;
+      autoPopulatedFields.development = "";
       autoPopulatedFields.zone = "";
       autoPopulatedFields.developer = "";
-      (updatedRow as any).development = null;
+      (updatedRow as any).development = "";
       (updatedRow as any).zone = "";
       (updatedRow as any).developer = "";
     }
