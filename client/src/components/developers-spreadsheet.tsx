@@ -85,7 +85,7 @@ export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
-  const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'representante', 'contactName', 'contactEmail'];
+  const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'representante', 'contactName', 'contactPhone', 'contactEmail'];
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
@@ -734,7 +734,7 @@ export function DevelopersSpreadsheet() {
                         />
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span className="truncate uppercase">{value || ''}</span>
+                          <span className="truncate uppercase" title={value ? String(value) : undefined}>{value || ''}</span>
                           {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
                         </div>
                       )}
