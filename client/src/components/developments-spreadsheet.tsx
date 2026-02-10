@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -144,21 +144,7 @@ export function DevelopmentsSpreadsheet() {
   const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const topScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState(0);
-
-  const syncScrollFromTop = useCallback(() => {
-    if (topScrollRef.current && contentScrollRef.current) {
-      contentScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
-    }
-  }, []);
-
-  const syncScrollFromContent = useCallback(() => {
-    if (topScrollRef.current && contentScrollRef.current) {
-      topScrollRef.current.scrollLeft = contentScrollRef.current.scrollLeft;
-    }
-  }, []);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
 
@@ -353,19 +339,6 @@ export function DevelopmentsSpreadsheet() {
     return runs;
   }, [visibleColumns]);
 
-  useEffect(() => {
-    const updateWidth = () => {
-      if (contentScrollRef.current) {
-        const width = contentScrollRef.current.scrollWidth;
-        if (width > 0) setContentWidth(width);
-      }
-    };
-    const timer = setTimeout(updateWidth, 100);
-    updateWidth();
-    const observer = new ResizeObserver(updateWidth);
-    if (contentScrollRef.current) observer.observe(contentScrollRef.current);
-    return () => { clearTimeout(timer); observer.disconnect(); };
-  }, [visibleColumns]);
 
   if (isLoading) {
     return (
@@ -417,18 +390,9 @@ export function DevelopmentsSpreadsheet() {
         </div>
       </div>
 
-      <div 
-        ref={topScrollRef}
-        onScroll={syncScrollFromTop}
-        className="overflow-x-scroll overflow-y-hidden border-b bg-muted/20 scrollbar-thin"
-        style={{ height: "16px", minHeight: "16px" }}
-      >
-        <div style={{ width: contentWidth || 2000, height: "1px" }} />
-      </div>
-
-      <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
+      <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
-          <div className="sticky top-0 z-10 bg-gray-300 dark:bg-gray-600">
+          <div className="sticky top-0 z-20 bg-gray-300 dark:bg-gray-600">
             {/* Row 1: Section headers */}
             <div className="flex border-b">
               {(() => {
@@ -472,8 +436,12 @@ export function DevelopmentsSpreadsheet() {
                         row1Items.push(
                           <div
                             key={`r1-${col.key}`}
-                            className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
-                            style={{ minWidth: col.width, width: col.width }}
+                            className={cn(
+                              "border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0",
+                              col.key === 'id' && "sticky left-0 z-30",
+                              col.key === 'active' && "sticky z-30"
+                            )}
+                            style={{ minWidth: col.width, width: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
                           />
                         );
                       }
@@ -527,9 +495,11 @@ export function DevelopmentsSpreadsheet() {
                     key={`r2-${col.key}`}
                     className={cn(
                       "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide whitespace-nowrap bg-gray-300 dark:bg-gray-600 flex items-center flex-shrink-0",
-                      col.type === 'index' || col.key === 'id' ? 'justify-center' : 'justify-start'
+                      col.type === 'index' || col.key === 'id' ? 'justify-center' : 'justify-start',
+                      (col.key === 'id' || col.type === 'index') && "sticky left-0 z-30",
+                      col.key === 'active' && "sticky z-30"
                     )}
-                    style={{ minWidth: col.width, width: col.width }}
+                    style={{ minWidth: col.width, width: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
                   >
                     {col.type === 'actions' || col.type === 'folder-link' || col.key === 'id' || col.type === 'calculated-percent' ? (
                       <div className={`flex items-center ${col.type === 'index' || col.key === 'id' ? 'justify-center' : ''}`}>
@@ -576,7 +546,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.key === 'id') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={dev.id}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={dev.id}>
                       <span className="text-muted-foreground font-mono">{rowIndex + 1}</span>
                     </div>
                   );
@@ -616,7 +586,7 @@ export function DevelopmentsSpreadsheet() {
                       ? 'text-red-600 font-medium' 
                       : 'text-muted-foreground';
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }), col.key === 'active' && "sticky z-10")} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, ...(col.key === 'active' ? { left: 45 } : {}) }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value === true ? "si" : value === false ? "no" : ""}

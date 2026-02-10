@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -38,21 +38,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
-  const topScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState(0);
-
-  const syncScrollFromTop = useCallback(() => {
-    if (topScrollRef.current && contentScrollRef.current) {
-      contentScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
-    }
-  }, []);
-
-  const syncScrollFromContent = useCallback(() => {
-    if (topScrollRef.current && contentScrollRef.current) {
-      topScrollRef.current.scrollLeft = contentScrollRef.current.scrollLeft;
-    }
-  }, []);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -489,19 +475,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
-  useEffect(() => {
-    const updateWidth = () => {
-      if (contentScrollRef.current) {
-        const width = contentScrollRef.current.scrollWidth;
-        if (width > 0) setContentWidth(width);
-      }
-    };
-    const timer = setTimeout(updateWidth, 100);
-    updateWidth();
-    const observer = new ResizeObserver(updateWidth);
-    if (contentScrollRef.current) observer.observe(contentScrollRef.current);
-    return () => { clearTimeout(timer); observer.disconnect(); };
-  }, [columns]);
 
   if (isLoading) {
     return (
@@ -561,18 +534,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         </div>
       </div>
 
-      <div 
-        ref={topScrollRef}
-        onScroll={syncScrollFromTop}
-        className="overflow-x-scroll overflow-y-hidden border-b bg-muted/20 scrollbar-thin"
-        style={{ height: "16px", minHeight: "16px" }}
-      >
-        <div style={{ width: contentWidth || 2000, height: "1px" }} />
-      </div>
-
-      <div ref={contentScrollRef} onScroll={syncScrollFromContent} className="flex-1 overflow-auto spreadsheet-scroll">
+      <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
-          <div className="sticky top-0 z-10 bg-gray-300 dark:bg-gray-600" data-testid="prospects-table-header">
+          <div className="sticky top-0 z-20 bg-gray-300 dark:bg-gray-600" data-testid="prospects-table-header">
             {/* Row 1: Section headers */}
             <div className="flex border-b">
               {(() => {
@@ -619,8 +583,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     row1Items.push(
                       <div
                         key={`r1-${col.key}`}
-                        className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
-                        style={{ width: col.width, minWidth: col.width }}
+                        className={cn(
+                          "border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0",
+                          col.key === 'index' && "sticky left-0 z-30",
+                          col.key === 'active' && "sticky z-30"
+                        )}
+                        style={{ width: col.width, minWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
                       />
                     );
                     i++;
@@ -649,9 +617,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     key={`r2-${col.key}`}
                     className={cn(
                       "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
-                      col.type === 'index' ? 'justify-center' : 'justify-start'
+                      col.type === 'index' ? 'justify-center' : 'justify-start',
+                      (col.key === 'index' || col.type === 'index') && "sticky left-0 z-30",
+                      col.key === 'active' && "sticky z-30"
                     )}
-                    style={{ width: col.width, minWidth: col.width }}
+                    style={{ width: col.width, minWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
                     data-testid={`column-header-${col.key}`}
                   >
                     {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
@@ -704,7 +674,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.type === 'index') {
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={prospect.id}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={prospect.id}>
                         <span className="text-xs font-mono">{index + 1}</span>
                       </div>
                     );
@@ -717,8 +687,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div 
                         key={col.key} 
-                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                        style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
+                        className={cn("spreadsheet-cell flex-shrink-0 sticky z-10", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                        style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, left: 45 }}
                       >
                         {fieldCanEdit ? (
                           <Select
