@@ -733,21 +733,21 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         <PopoverTrigger asChild>
           <button
             className={cn(
-              "flex items-center gap-1 flex-1 h-full px-2 py-1 text-xs font-medium text-left",
+              "flex items-center gap-0.5 flex-1 h-full min-w-0 px-1 py-1 text-xs font-medium text-left",
               sectionColor,
               "hover-elevate cursor-pointer",
               hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40"
             )}
             data-testid={`filter-trigger-${column.key}`}
           >
+            <ChevronDown className={cn(
+              "w-3 h-3 flex-shrink-0",
+              hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground opacity-60"
+            )} />
             <span className="truncate">
               {column.label}
               {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
             </span>
-            <ChevronDown className={cn(
-              "w-3 h-3 flex-shrink-0",
-              hasActiveFilter && "text-amber-700 dark:text-amber-300"
-            )} />
           </button>
         </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
