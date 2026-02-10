@@ -85,7 +85,7 @@ export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
-  const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'contactName', 'contactEmail'];
+  const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'representante', 'contactName', 'contactEmail'];
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
@@ -120,16 +120,16 @@ export function DevelopersSpreadsheet() {
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
-    { key: "name", label: "Desarrollador", width: "150px", cellType: "input" },
-    { key: "razonSocial", label: "Razón Social", width: "180px", cellType: "input" },
+    { key: "name", label: "Desarrollador", width: "170px", cellType: "input" },
+    { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
-    { key: "domicilio", label: "Domicilio", width: "180px", cellType: "input" },
+    { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown" },
     { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown" },
-    { key: "representante", label: "Representante", width: "130px", cellType: "input" },
-    { key: "contactName", label: "Ventas", width: "130px", cellType: "input" },
+    { key: "representante", label: "Representante", width: "170px", cellType: "input" },
+    { key: "contactName", label: "Ventas", width: "170px", cellType: "input" },
     { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input" },
-    { key: "contactEmail", label: "Correo", width: "160px", cellType: "input" },
+    { key: "contactEmail", label: "Correo", width: "170px", cellType: "input" },
     { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions" },
   ];
@@ -369,7 +369,7 @@ export function DevelopersSpreadsheet() {
                           "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0",
                           col.type === 'index' ? 'justify-center' : 'justify-start'
                         )}
-                        style={{ width: col.width, minWidth: col.width, height: '68px' }}
+                        style={{ width: col.width, minWidth: col.width, maxWidth: col.width, height: '68px' }}
                       >
                         {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' ? (
                           <span className="truncate">{col.label}</span>
@@ -747,8 +747,8 @@ export function DevelopersSpreadsheet() {
                 return (
                   <div
                     key={field}
-                    className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: cellType, disabled: !fieldCanEdit, isEditing }))}
-                    style={{ width: col.width, minWidth: col.width }}
+                    className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: cellType, disabled: !fieldCanEdit, isEditing }))}
+                    style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
                     onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
                     data-testid={`cell-${field}-${dev.id}`}
                   >
