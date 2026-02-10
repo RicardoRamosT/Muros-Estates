@@ -747,28 +747,8 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             <span className="text-xs font-semibold">{column.label}</span>
             {column.calculated && <span className="text-xs text-muted-foreground ml-1">(calculado)</span>}
           </div>
-          <button
-            className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
-            onClick={() => { onSortChange("asc"); setOpen(false); }}
-            data-testid={`sort-asc-${column.key}`}
-          >
-            {isNumeric ? <ArrowUp01 className="w-4 h-4" /> : <ArrowUpAZ className="w-4 h-4" />}
-            {isNumeric ? "Ordenar de menor a mayor" : "Ordenar de A a Z"}
-            {sortDirection === "asc" && <Check className="w-4 h-4 ml-auto text-primary" />}
-          </button>
-          <button
-            className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
-            onClick={() => { onSortChange("desc"); setOpen(false); }}
-            data-testid={`sort-desc-${column.key}`}
-          >
-            {isNumeric ? <ArrowDown10 className="w-4 h-4" /> : <ArrowDownAZ className="w-4 h-4" />}
-            {isNumeric ? "Ordenar de mayor a menor" : "Ordenar de Z a A"}
-            {sortDirection === "desc" && <Check className="w-4 h-4 ml-auto text-primary" />}
-          </button>
           
-          <div className="border-t" />
-          
-          {(hasActiveFilter || isSorted) && (
+          {hasActiveFilter && (
             <>
               <button
                 className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left text-muted-foreground"

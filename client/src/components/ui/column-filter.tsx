@@ -142,28 +142,8 @@ export function ColumnFilter({
             <div className="px-3 py-2 border-b bg-muted/50">
               <span className="text-xs font-semibold">{columnLabel}</span>
             </div>
-            <button
-              className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
-              onClick={() => { onSort("asc"); setIsOpen(false); }}
-              data-testid={`sort-asc-${columnKey}`}
-            >
-              {isNumeric ? <ArrowUp01 className="w-4 h-4" /> : <ArrowUpAZ className="w-4 h-4" />}
-              {isNumeric ? "Ordenar de menor a mayor" : "Ordenar de A a Z"}
-              {sortDirection === "asc" && <Check className="w-4 h-4 ml-auto text-primary" />}
-            </button>
-            <button
-              className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left"
-              onClick={() => { onSort("desc"); setIsOpen(false); }}
-              data-testid={`sort-desc-${columnKey}`}
-            >
-              {isNumeric ? <ArrowDown10 className="w-4 h-4" /> : <ArrowDownAZ className="w-4 h-4" />}
-              {isNumeric ? "Ordenar de mayor a menor" : "Ordenar de Z a A"}
-              {sortDirection === "desc" && <Check className="w-4 h-4 ml-auto text-primary" />}
-            </button>
 
-            <div className="border-t" />
-
-            {(hasActiveFilter || hasActiveSort) && (
+            {hasActiveFilter && (
               <>
                 <button
                   className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left text-muted-foreground"
