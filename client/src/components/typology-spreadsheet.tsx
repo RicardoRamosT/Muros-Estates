@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -2020,6 +2021,13 @@ export function TypologySpreadsheet() {
     return result;
   }, [typologies, columnFilters, columnSorts, rangeFilters]);
 
+  const rowVirtualizer = useVirtualizer({
+    count: filteredAndSortedTypologies.length,
+    getScrollElement: () => contentScrollRef.current,
+    estimateSize: () => 32,
+    overscan: 10,
+  });
+
   const availableValuesMap = useMemo(() => {
     const map: Record<string, Set<string>> = {};
     const allColumns = SECTIONS.flatMap(s => s.columns);
@@ -2272,7 +2280,10 @@ export function TypologySpreadsheet() {
           </div>
           </div>
           
-          {filteredAndSortedTypologies.map((row, rowIndex) => {
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const rowIndex = virtualRow.index;
+            const row = filteredAndSortedTypologies[rowIndex];
             const mergedRow = getMergedRow(row);
             
             return (
@@ -2282,7 +2293,7 @@ export function TypologySpreadsheet() {
                   "flex border-b hover:bg-muted/30",
                   rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
-                style={{ height: '32px', maxHeight: '32px' }}
+                style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
@@ -2448,6 +2459,7 @@ export function TypologySpreadsheet() {
               </div>
             );
           })}
+          </div>
           
           {filteredAndSortedTypologies.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">

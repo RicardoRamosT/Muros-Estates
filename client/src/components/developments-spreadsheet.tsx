@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -319,6 +320,13 @@ export function DevelopmentsSpreadsheet() {
     clearAllFilters,
   } = useColumnFilters(developments, visibleColumns);
 
+  const rowVirtualizer = useVirtualizer({
+    count: filteredAndSortedData.length,
+    getScrollElement: () => contentScrollRef.current,
+    estimateSize: () => 32,
+    overscan: 10,
+  });
+
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
   const visibleColumnGroups = useMemo(() => {
@@ -529,14 +537,18 @@ export function DevelopmentsSpreadsheet() {
             </div>
           </div>
 
-          {filteredAndSortedData.map((dev, rowIndex) => (
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const rowIndex = virtualRow.index;
+            const dev = filteredAndSortedData[rowIndex];
+            return (
             <div
               key={dev.id}
               className={cn(
                 "flex border-b hover:bg-muted/30 group",
                 rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px' }}
+              style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
               data-testid={`row-development-${dev.id}`}
             >
               {visibleColumns.map((col) => {
@@ -1432,7 +1444,9 @@ export function DevelopmentsSpreadsheet() {
                 );
               })}
             </div>
-          ))}
+          );
+          })}
+          </div>
           {developments.length === 0 && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               No hay desarrollos. Haz clic en "Nuevo" para crear uno.

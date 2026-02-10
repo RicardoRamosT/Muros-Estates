@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -473,6 +474,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     availableValuesMap,
   } = useColumnFilters(prospects, columns, orderMaps);
 
+  const rowVirtualizer = useVirtualizer({
+    count: filteredAndSortedData.length,
+    getScrollElement: () => contentScrollRef.current,
+    estimateSize: () => 32,
+    overscan: 10,
+  });
+
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
 
@@ -654,14 +662,18 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             </div>
           </div>
 
-          {filteredAndSortedData.map((prospect, index) => (
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const index = virtualRow.index;
+            const prospect = filteredAndSortedData[index];
+            return (
             <div
               key={prospect.id}
               className={cn(
                 "flex border-b hover:bg-muted/30 group",
                 index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px' }}
+              style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
               data-testid={`row-prospect-${prospect.id}`}
             >
                 {columns.map((col) => {
@@ -1265,7 +1277,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   );
                 })}
             </div>
-          ))}
+          );})}
+          </div>
           {filteredAndSortedData.length === 0 && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               {hasActiveFilters 
