@@ -245,7 +245,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "tipofil", label: "Tipo", width: "100px", type: "options-select" },
     { key: "perfil", label: "Perfil", width: "110px", type: "options-select" },
     { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select" },
-    { key: "brokerExterno", label: "Broker Ext.", width: "90px", type: "boolean-select" },
+    { key: "brokerExterno", label: "Broker Ext.", width: "58px", type: "boolean-select" },
     { key: "estatus", label: "Estatus", width: "100px", type: "options-select" },
     { key: "embudo", label: "Embudo", width: "130px", type: "options-select" },
     { key: "comoPaga", label: "Cómo Paga", width: "110px", type: "options-select" },
