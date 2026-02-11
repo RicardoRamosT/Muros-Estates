@@ -235,8 +235,8 @@ const SECTIONS: SectionDef[] = [
       { key: "paymentMonths", label: "Meses", type: "number", width: 50 },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent", calculated: true },
-      { key: "remainingAmount" as any, label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent" },
+      { key: "remainingAmount" as any, label: "Monto", type: "decimal", width: 100, format: "currency" },
     ],
   },
   {
@@ -526,6 +526,33 @@ function formatValue(value: any, format?: string): string {
   }
 }
 
+function FormattedCellValue({ value, format }: { value: any; format?: string }) {
+  if (value === null || value === undefined || value === "") return null;
+  const num = parseFloat(value);
+  if (isNaN(num)) return <span>{value}</span>;
+  
+  if (format === "currency") {
+    const formatted = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(num);
+    return (
+      <span className="flex w-full justify-between items-center gap-0.5">
+        <span className="text-muted-foreground/70 shrink-0">$</span>
+        <span className="tabular-nums">{formatted}</span>
+      </span>
+    );
+  }
+  
+  if (format === "area") {
+    return (
+      <span className="flex w-full justify-end items-center gap-0.5">
+        <span className="tabular-nums">{num.toFixed(2)}</span>
+        <span className="text-muted-foreground/70 shrink-0 text-[10px]">m²</span>
+      </span>
+    );
+  }
+  
+  return <span>{formatValue(value, format)}</span>;
+}
+
 interface SortableMediaItemProps {
   doc: any;
   index: number;
@@ -784,36 +811,16 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     <div className={cn("w-full h-full relative flex items-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          {hideLabel ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
-                  style={{ width: 28 }}
-                  data-testid={`filter-trigger-${column.key}`}
-                >
-                  <ChevronDown className={cn(
-                    "w-3 h-3 flex-shrink-0",
-                    hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
-                  )} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                {fullLabel || column.label}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <button
-              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
-              style={{ width: 28 }}
-              data-testid={`filter-trigger-${column.key}`}
-            >
-              <ChevronDown className={cn(
-                "w-3 h-3 flex-shrink-0",
-                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
-              )} />
-            </button>
-          )}
+          <button
+            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+            style={{ width: 28 }}
+            data-testid={`filter-trigger-${column.key}`}
+          >
+            <ChevronDown className={cn(
+              "w-3 h-3 flex-shrink-0",
+              hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+            )} />
+          </button>
         </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <div className="flex flex-col">
@@ -1090,10 +1097,11 @@ interface EditableCellProps {
   cajonOptions?: string[];
   isLastInSection?: boolean;
   row?: Typology;
-  sectionCellColor?: string;  // Color for calculated and disabled cells in this section
+  sectionCellColor?: string;
+  isDynamicCalculated?: boolean;
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, isLastInSection, row, sectionCellColor }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1126,10 +1134,11 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   };
   
   if (column.calculated || disabled) {
-    const content = (
+    return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs truncate",
+          "spreadsheet-cell px-2 text-xs",
+          (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.calculated && "bg-gray-350 dark:bg-gray-800/50",
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
@@ -1137,14 +1146,34 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           column.centerCells && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
-        title={undefined}
+        title={formatValue(value, column.format) || undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
-        {formatValue(value, column.format) || ""}
+        {(column.format === "currency" || column.format === "area") 
+          ? <FormattedCellValue value={value} format={column.format} />
+          : (formatValue(value, column.format) || "")}
       </div>
     );
-    
-    return content;
+  }
+  
+  if (isDynamicCalculated && !isEditing) {
+    return (
+      <div 
+        className={cn(
+          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-350 dark:bg-gray-800/50 text-muted-foreground hover:bg-gray-300 dark:hover:bg-gray-700",
+          (column.format === "currency" || column.format === "area") ? "" : "truncate",
+          column.centerCells && "justify-center text-center"
+        )}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        onClick={() => setIsEditing(true)}
+        title={formatValue(value, column.format)}
+        data-testid={`cell-${column.key}-${rowId}`}
+      >
+        {(column.format === "currency" || column.format === "area")
+          ? <FormattedCellValue value={value} format={column.format} />
+          : (formatValue(value, column.format) || "")}
+      </div>
+    );
   }
   
   if (column.type === "boolean") {
@@ -1334,10 +1363,10 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-between", column.centerCells ? "text-center" : "text-left")}
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1", column.centerCells ? "text-center" : "text-left")}
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <SelectValue placeholder="" className={column.centerCells ? "text-center" : "text-left"} />
+            <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
             {finalOptions.map((opt) => (
@@ -1457,7 +1486,8 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   return (
     <div
       className={cn(
-        "spreadsheet-cell px-2 text-xs truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30",
+        "spreadsheet-cell px-2 text-xs cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30",
+        (column.format === "currency" || column.format === "area") ? "" : "truncate",
         column.centerCells && "justify-center text-center"
       )}
       style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
@@ -1465,7 +1495,9 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       title={formatValue(value, column.format)}
       data-testid={`cell-${column.key}-${rowId}`}
     >
-      {formatValue(value, column.format) || ""}
+      {(column.format === "currency" || column.format === "area")
+        ? <FormattedCellValue value={value} format={column.format} />
+        : (formatValue(value, column.format) || "")}
     </div>
   );
 }
@@ -1473,6 +1505,15 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
 type ColumnFilters = Record<string, Set<string>>;
 type ColumnSorts = Record<string, "asc" | "desc" | null>;
 type RangeFilters = Record<string, RangeFilter>;
+
+const BIDIRECTIONAL_PAIRS: [string, string][] = [
+  ["discountPercent", "discountAmount"],
+  ["initialPercent", "initialAmount"],
+  ["duringConstructionPercent", "duringConstructionAmount"],
+  ["remainingPercent", "remainingAmount"],
+];
+
+type DynamicGrayState = Record<string, Record<string, string>>;
 
 export function TypologySpreadsheet() {
   const { toast } = useToast();
@@ -1483,6 +1524,7 @@ export function TypologySpreadsheet() {
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [rangeFilters, setRangeFilters] = useState<RangeFilters>({});
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
+  const [dynamicGray, setDynamicGray] = useState<DynamicGrayState>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
@@ -1964,7 +2006,40 @@ export function TypologySpreadsheet() {
       (updatedRow as any).duringConstructionPercent = ((amount / finalPrice) * 100).toFixed(2);
     }
     
+    // Bidirectional calculation for remainingPercent/remainingAmount
+    if (field === "remainingPercent" && finalPrice > 0) {
+      const percent = parseFloat(value as string) || 0;
+      (updatedRow as any).remainingAmount = (finalPrice * percent / 100).toFixed(2);
+    } else if (field === "remainingAmount" && finalPrice > 0) {
+      const amount = parseFloat(value as string) || 0;
+      (updatedRow as any).remainingPercent = ((amount / finalPrice) * 100).toFixed(2);
+    }
+    
+    // Update dynamic gray state for bidirectional pairs
+    const fieldStr = field as string;
+    for (const [fieldA, fieldB] of BIDIRECTIONAL_PAIRS) {
+      if (fieldStr === fieldA) {
+        setDynamicGray(prev => ({
+          ...prev,
+          [rowId]: { ...(prev[rowId] || {}), [fieldA]: "edited", [fieldB]: "calculated" }
+        }));
+        break;
+      } else if (fieldStr === fieldB) {
+        setDynamicGray(prev => ({
+          ...prev,
+          [rowId]: { ...(prev[rowId] || {}), [fieldA]: "calculated", [fieldB]: "edited" }
+        }));
+        break;
+      }
+    }
+    
     const calculatedFields = calculateFields(updatedRow);
+    
+    // Don't overwrite remaining fields if user manually edited them
+    if (field === "remainingPercent" || field === "remainingAmount") {
+      delete (calculatedFields as any).remainingPercent;
+      delete (calculatedFields as any).remainingAmount;
+    }
     const fullUpdate = { ...updatedRow, ...calculatedFields };
     
     const clearedFields: Record<string, null> = {};
@@ -1992,6 +2067,11 @@ export function TypologySpreadsheet() {
       bidirectionalFields.duringConstructionAmount = (updatedRow as any).duringConstructionAmount;
     } else if (field === "duringConstructionAmount" && finalPrice > 0) {
       bidirectionalFields.duringConstructionPercent = (updatedRow as any).duringConstructionPercent;
+    }
+    if (field === "remainingPercent" && finalPrice > 0) {
+      bidirectionalFields.remainingAmount = (updatedRow as any).remainingAmount;
+    } else if (field === "remainingAmount" && finalPrice > 0) {
+      bidirectionalFields.remainingPercent = (updatedRow as any).remainingPercent;
     }
     
     setPendingChanges(prev => {
@@ -2492,6 +2572,9 @@ export function TypologySpreadsheet() {
                       isConditionallyDisabled = deps.some(dep => !mergedRow[dep]);
                     }
                     
+                    const rowGrayState = dynamicGray[row.id];
+                    const isDynCalc = rowGrayState?.[col.key] === "calculated";
+                    
                     const cell = (
                       <EditableCell
                         key={col.key}
@@ -2515,6 +2598,7 @@ export function TypologySpreadsheet() {
                         isLastInSection={colIndex === section.columns.length - 1}
                         row={mergedRow as Typology}
                         sectionCellColor={section.cellColor}
+                        isDynamicCalculated={isDynCalc}
                       />
                     );
                     if (isFirstSection) {
