@@ -121,7 +121,7 @@ export function ColumnFilter({
   };
 
   return (
-    <div className="w-full h-full relative flex items-center">
+    <div className="w-full h-full relative flex items-center justify-evenly">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
@@ -129,7 +129,6 @@ export function ColumnFilter({
               "flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0",
               hasActiveFilter && "text-primary"
             )}
-            style={{ paddingLeft: 8, paddingRight: 4 }}
             data-testid={`filter-${columnKey}`}
           >
             <ChevronDown className={cn(
@@ -327,13 +326,12 @@ export function ColumnFilter({
           </div>
         </PopoverContent>
       </Popover>
-      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
+      <span className="text-xs font-medium truncate pointer-events-none text-center min-w-0">
         {columnLabel}
       </span>
       <button
         onClick={handleSortClick}
         className="flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0"
-        style={{ paddingLeft: 4, paddingRight: 8 }}
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />
