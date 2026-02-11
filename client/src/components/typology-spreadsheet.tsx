@@ -982,6 +982,7 @@ interface EditableCellProps {
   vistaOptions?: string[];
   areaOptions?: string[];
   tipologiaOptions?: string[];
+  typesByDevelopment?: Record<string, string[]>;
   recamaraOptions?: string[];
   banoOptions?: string[];
   cajonOptions?: string[];
@@ -990,7 +991,7 @@ interface EditableCellProps {
   sectionCellColor?: string;  // Color for calculated and disabled cells in this section
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, recamaraOptions, banoOptions, cajonOptions, isLastInSection, row, sectionCellColor }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, isLastInSection, row, sectionCellColor }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1192,8 +1193,13 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       options = vistaOptions;
     }
     
-    if (column.key === "type" && tipologiaOptions && tipologiaOptions.length > 0) {
-      options = tipologiaOptions;
+    if (column.key === "type") {
+      const rowDev = row?.development;
+      if (rowDev && typesByDevelopment && typesByDevelopment[rowDev]?.length > 0) {
+        options = typesByDevelopment[rowDev];
+      } else if (tipologiaOptions && tipologiaOptions.length > 0) {
+        options = tipologiaOptions;
+      }
     }
     
     // Use catalog options for bedrooms (recamaras)
@@ -1447,6 +1453,21 @@ export function TypologySpreadsheet() {
   const tipologiaOptions = useMemo(() => {
     return catalogTipologias.map(t => t.name).filter(Boolean);
   }, [catalogTipologias]);
+
+  const typesByDevelopment = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    typologies.forEach((t) => {
+      const dev = t.development;
+      if (!dev) return;
+      if (!map[dev]) map[dev] = [];
+      const typeVal = t.type?.toString();
+      if (typeVal && !map[dev].includes(typeVal)) {
+        map[dev].push(typeVal);
+      }
+    });
+    Object.keys(map).forEach((key) => map[key].sort());
+    return map;
+  }, [typologies]);
   
   const recamaraOptions = useMemo(() => {
     return catalogRecamaras.map(r => r.name).filter(Boolean);
@@ -2402,6 +2423,7 @@ export function TypologySpreadsheet() {
                         vistaOptions={vistaOptions}
                         areaOptions={areaOptions}
                         tipologiaOptions={tipologiaOptions}
+                        typesByDevelopment={typesByDevelopment}
                         recamaraOptions={recamaraOptions}
                         banoOptions={banoOptions}
                         cajonOptions={cajonOptions}
