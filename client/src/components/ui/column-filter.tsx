@@ -126,9 +126,10 @@ export function ColumnFilter({
         <PopoverTrigger asChild>
           <button
             className={cn(
-              "flex items-center h-full text-xs font-medium cursor-pointer pl-0.5 pr-1 flex-shrink-0",
+              "flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0",
               hasActiveFilter && "text-primary"
             )}
+            style={{ paddingLeft: 8, paddingRight: 4 }}
             data-testid={`filter-${columnKey}`}
           >
             <ChevronDown className={cn(
@@ -331,7 +332,8 @@ export function ColumnFilter({
       </span>
       <button
         onClick={handleSortClick}
-        className="flex items-center p-0.5 hover-elevate cursor-pointer rounded flex-shrink-0"
+        className="flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0"
+        style={{ paddingLeft: 4, paddingRight: 8 }}
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />

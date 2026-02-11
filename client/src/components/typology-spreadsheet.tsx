@@ -719,12 +719,12 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
 
   const SortIcon = () => {
     if (sortDirection === "asc") {
-      return isNumeric ? <ArrowUp01 className="w-2.5 h-2.5 text-primary" /> : <ArrowUpAZ className="w-2.5 h-2.5 text-primary" />;
+      return isNumeric ? <ArrowUp01 className="w-3 h-3 text-primary" /> : <ArrowUpAZ className="w-3 h-3 text-primary" />;
     }
     if (sortDirection === "desc") {
-      return isNumeric ? <ArrowDown10 className="w-2.5 h-2.5 text-primary" /> : <ArrowDownAZ className="w-2.5 h-2.5 text-primary" />;
+      return isNumeric ? <ArrowDown10 className="w-3 h-3 text-primary" /> : <ArrowDownAZ className="w-3 h-3 text-primary" />;
     }
-    return <ArrowUpDown className="w-2.5 h-2.5 text-muted-foreground" />;
+    return <ArrowUpDown className="w-3 h-3 text-muted-foreground" />;
   };
 
   return (
