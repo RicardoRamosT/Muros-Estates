@@ -1,5 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { TextDetailModal } from "@/components/ui/text-detail-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -320,12 +319,36 @@ export function DevelopmentsSpreadsheet() {
     clearAllFilters,
   } = useColumnFilters(developments, visibleColumns);
 
-  const rowVirtualizer = useVirtualizer({
-    count: filteredAndSortedData.length,
-    getScrollElement: () => contentScrollRef.current,
-    estimateSize: () => 32,
-    overscan: 5,
-  });
+  const INITIAL_ROWS = 50;
+  const LOAD_MORE = 30;
+  const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_ROWS);
+  }, [filteredAndSortedData.length]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const scrollContainer = contentScrollRef.current;
+    if (!sentinel || !scrollContainer) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + LOAD_MORE, filteredAndSortedData.length));
+        }
+      },
+      { root: scrollContainer, rootMargin: '200px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredAndSortedData.length]);
+
+  const visibleData = useMemo(
+    () => filteredAndSortedData.slice(0, visibleCount),
+    [filteredAndSortedData, visibleCount]
+  );
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
@@ -537,18 +560,14 @@ export function DevelopmentsSpreadsheet() {
             </div>
           </div>
 
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative', willChange: 'transform' }}>
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const rowIndex = virtualRow.index;
-            const dev = filteredAndSortedData[rowIndex];
-            return (
+          {visibleData.map((dev, rowIndex) => (
             <div
               key={dev.id}
               className={cn(
                 "flex border-b group",
                 rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)`, willChange: 'transform', contain: 'layout style size' }}
+              style={{ height: '32px', maxHeight: '32px' }}
               data-testid={`row-development-${dev.id}`}
             >
               {visibleColumns.map((col) => {
@@ -1444,9 +1463,8 @@ export function DevelopmentsSpreadsheet() {
                 );
               })}
             </div>
-          );
-          })}
-          </div>
+          ))}
+          <div ref={sentinelRef} style={{ height: '1px' }} />
           {developments.length === 0 && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               No hay desarrollos. Haz clic en "Nuevo" para crear uno.

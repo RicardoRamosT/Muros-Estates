@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -2021,12 +2020,36 @@ export function TypologySpreadsheet() {
     return result;
   }, [typologies, columnFilters, columnSorts, rangeFilters]);
 
-  const rowVirtualizer = useVirtualizer({
-    count: filteredAndSortedTypologies.length,
-    getScrollElement: () => contentScrollRef.current,
-    estimateSize: () => 32,
-    overscan: 5,
-  });
+  const INITIAL_ROWS = 50;
+  const LOAD_MORE = 30;
+  const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_ROWS);
+  }, [filteredAndSortedTypologies.length]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const scrollContainer = contentScrollRef.current;
+    if (!sentinel || !scrollContainer) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + LOAD_MORE, filteredAndSortedTypologies.length));
+        }
+      },
+      { root: scrollContainer, rootMargin: '200px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredAndSortedTypologies.length]);
+
+  const visibleData = useMemo(
+    () => filteredAndSortedTypologies.slice(0, visibleCount),
+    [filteredAndSortedTypologies, visibleCount]
+  );
 
   const availableValuesMap = useMemo(() => {
     const map: Record<string, Set<string>> = {};
@@ -2280,10 +2303,7 @@ export function TypologySpreadsheet() {
           </div>
           </div>
           
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative', willChange: 'transform' }}>
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const rowIndex = virtualRow.index;
-            const row = filteredAndSortedTypologies[rowIndex];
+          {visibleData.map((row, rowIndex) => {
             const mergedRow = getMergedRow(row);
             
             return (
@@ -2293,7 +2313,7 @@ export function TypologySpreadsheet() {
                   "flex border-b",
                   rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
-                style={{ height: '32px', maxHeight: '32px', position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)`, willChange: 'transform', contain: 'layout style size' }}
+                style={{ height: '32px', maxHeight: '32px' }}
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
@@ -2459,7 +2479,7 @@ export function TypologySpreadsheet() {
               </div>
             );
           })}
-          </div>
+          <div ref={sentinelRef} style={{ height: '1px' }} />
           
           {filteredAndSortedTypologies.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
