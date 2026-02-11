@@ -732,7 +732,8 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0 px-2"
+            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+            style={{ width: 28 }}
             data-testid={`filter-trigger-${column.key}`}
           >
             <ChevronDown className={cn(
@@ -949,16 +950,17 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
-      <span className="flex-1 text-xs font-medium truncate pointer-events-none min-w-0">
+      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
         {column.label}
         {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
       </span>
       <button
         onClick={handleSortClick}
         className={cn(
-          "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0 px-2",
+          "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
           isSorted && "bg-primary/10"
         )}
+        style={{ width: 28 }}
         title={sortDirection === null ? "Ordenar" : sortDirection === "asc" ? "Ordenar descendente" : "Quitar orden"}
         data-testid={`sort-toggle-${column.key}`}
       >
