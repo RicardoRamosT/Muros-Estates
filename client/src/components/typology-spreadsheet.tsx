@@ -949,7 +949,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
-      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
+      <span className="flex-1 text-xs font-medium truncate pointer-events-none min-w-0">
         {column.label}
         {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
       </span>

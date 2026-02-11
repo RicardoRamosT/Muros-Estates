@@ -326,7 +326,7 @@ export function ColumnFilter({
           </div>
         </PopoverContent>
       </Popover>
-      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
+      <span className="flex-1 text-xs font-medium truncate pointer-events-none min-w-0">
         {columnLabel}
       </span>
       <button
