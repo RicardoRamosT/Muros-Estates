@@ -1,0 +1,51 @@
+Me comento esto chat gpt, mas aparte, hay unos errores que noto en el encabezado de hora, en las celdas de Desarrollo por ejemplo la flecha cambia de tamaño dependiendo de si hay mucho texto o no, como que disminuye de tamaño el item.
+
+Chat gpt:
+
+❌ No coincide (incumplimiento claro)
+“Después de Resto falta una columna de Monto… ambas editables… gris calculado bidireccional”
+
+En tu instrucción: Resto% ↔ Monto debían ser bidireccionales y ambos editables.
+
+En el doc, remainingPercent (Resto%) y remainingAmount (Monto) están definidos como calculados y read-only (no editables), derivados de 100 - inicial - plazo. 
+
+TYPOLOGY_SPREADSHEET_TECHNICAL_…
+
+
+Además, remarca que remainingAmount es “derived” y marcado calculated: true (read-only). 
+
+TYPOLOGY_SPREADSHEET_TECHNICAL_…
+
+➡️ Esto contradice directamente tu requerimiento para esa pareja de columnas.
+
+⚠️ No verificable solo con este documento (podría estar bien o no)
+
+Estos puntos dependen de ver el código/diff o la UI:
+
+“Calculado gris” dinámico en pares bidireccionales (editas uno → el otro se pone gris, y viceversa).
+El doc sí describe cálculo bidireccional de %↔monto para Bono e Inicial/Plazo (esquema), pero no documenta un mecanismo de “estado gris” dinámico por “último editado”; solo define calculated como read-only con bg-gray-350. 
+
+TYPOLOGY_SPREADSHEET_TECHNICAL_…
+
+
+Eso podría significar que el “gris calculado” dinámico no está implementado o no quedó documentado.
+
+Geometría idéntica dropdown vs sub-encabezado (padding/altura/espaciado completo + flecha).
+El doc detalla anchos, filas sticky y tooltips, pero no muestra clases/layout exactos de triggers de dropdown vs header row. 
+
+TYPOLOGY_SPREADSHEET_TECHNICAL_…
+
+Alineación exacta de moneda ($ izquierda, número derecha con espacio simétrico).
+El doc usa Intl.NumberFormat que retorna un string tipo “$1,250,000”. 
+
+TYPOLOGY_SPREADSHEET_TECHNICAL_…
+
+Con solo eso, no puedo confirmar que realmente separaron $ y número en dos “slots” para alinear como pediste.
+
+Unidad/Total m² pegado a la derecha y .00 alineados + máximos (9999.00, 99.00).
+El doc formatea area como string "85.50 m²". 
+
+TYPOLOGY_SPREADSHEET_TECHNICAL_…
+
+
+No evidencia la alineación visual por “slots” ni validación de máximos.
