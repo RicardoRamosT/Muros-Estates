@@ -121,12 +121,12 @@ export function ColumnFilter({
   };
 
   return (
-    <div className="w-full h-full relative flex items-center justify-evenly">
+    <div className="w-full h-full relative flex items-center">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
             className={cn(
-              "flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0",
+              "flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0 px-2",
               hasActiveFilter && "text-primary"
             )}
             data-testid={`filter-${columnKey}`}
@@ -326,12 +326,12 @@ export function ColumnFilter({
           </div>
         </PopoverContent>
       </Popover>
-      <span className="text-xs font-medium truncate pointer-events-none text-center min-w-0">
+      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
         {columnLabel}
       </span>
       <button
         onClick={handleSortClick}
-        className="flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0"
+        className="flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0 px-2"
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />

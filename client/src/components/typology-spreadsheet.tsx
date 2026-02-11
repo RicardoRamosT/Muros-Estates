@@ -728,11 +728,11 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center justify-evenly", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
+    <div className={cn("w-full h-full relative flex items-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0 px-2"
             data-testid={`filter-trigger-${column.key}`}
           >
             <ChevronDown className={cn(
@@ -949,14 +949,14 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
-      <span className="text-xs font-medium truncate pointer-events-none text-center min-w-0">
+      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
         {column.label}
         {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
       </span>
       <button
         onClick={handleSortClick}
         className={cn(
-          "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
+          "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0 px-2",
           isSorted && "bg-primary/10"
         )}
         title={sortDirection === null ? "Ordenar" : sortDirection === "asc" ? "Ordenar descendente" : "Quitar orden"}
