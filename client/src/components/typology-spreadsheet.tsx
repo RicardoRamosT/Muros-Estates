@@ -84,8 +84,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "fechahora",
     label: "FECHA/HORA",
-    headerColor: "bg-teal-600 dark:bg-teal-700 text-white",
-    columnHeaderColor: "bg-teal-50 dark:bg-teal-900/30",
+    headerColor: "bg-teal-200 dark:bg-teal-700",
+    columnHeaderColor: "bg-teal-100 dark:bg-teal-900/30",
     cellColor: "bg-teal-50/50 dark:bg-teal-900/10",
     columns: [
       { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true },
@@ -2222,13 +2222,14 @@ export function TypologySpreadsheet() {
                       ...(isFirstSection ? { left: 45 } : {})
                     }}
                   >
-                    {/* Centered label */}
+                    {isExpanded && (
+                      <div className="pointer-events-none" style={{ width: 32 }} />
+                    )}
                     {isExpanded && (
                       <span className="text-sm font-medium flex-1 text-center pointer-events-none">
                         {section.label}
                       </span>
                     )}
-                    {/* Right: collapse button */}
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
@@ -2268,20 +2269,6 @@ export function TypologySpreadsheet() {
                   )];
                 }
                 return section.columns.map((col, colIndex) => {
-                  if (col.key === "createdDate" || col.key === "createdTime") {
-                    return (
-                      <div
-                        key={col.key}
-                        className={cn(
-                          "flex-shrink-0 h-full border-r flex items-center px-2",
-                          section.columnHeaderColor
-                        )}
-                        style={{ width: (col.width || 100) + SORT_ICON_WIDTH }}
-                      >
-                        <span className="text-xs font-medium truncate">{col.label}</span>
-                      </div>
-                    );
-                  }
                   return (
                     <div
                       key={col.key}
