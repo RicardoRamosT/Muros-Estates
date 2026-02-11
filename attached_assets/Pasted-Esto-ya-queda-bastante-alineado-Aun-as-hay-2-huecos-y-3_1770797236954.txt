@@ -1,0 +1,60 @@
+Esto ya queda bastante alineado. Aun así, hay 2 huecos y 3 cosas que conviene amarrar para que no se “desvíe” en implementación.
+
+Huecos (todavía no cubiertos explícitamente)
+
+“Hover solo si hay texto escondido” aplicado a subencabezados
+
+Replit ahora distingue “texto oculto (sin label) vs ellipsis”, bien.
+
+Pero falta confirmar el criterio exacto de “texto escondido”:
+
+¿tooltip solo si scrollWidth > clientWidth (truncado real)?
+
+¿o siempre que la columna esté marcada como “sin texto visible” (Activo/Hora/Nivel/etc.) aunque en teoría pudiera caber?
+Asegúrate de que sea condicional al truncamiento real para los casos con ellipsis, y siempre activo en los casos “sin label”.
+
+Regla original “en Activo… hover en uno de los botones que diga Activo”
+
+Replit lo generalizó a “tooltip en los botones de filtro/orden”.
+
+Tu instrucción decía “en uno de los botones”. Si para ti era importante que fuera solo en un botón específico (p.ej. el de filtro y no el de orden), hay que especificarlo. Si te da igual, su generalización está OK.
+
+Cosas a amarrar (para evitar implementaciones “casi”)
+
+Si/No: confirmar layout exacto con flecha
+Tu instrucción tiene una geometría concreta:
+
+padding fijo desde borde → flecha
+
+el resto del ancho se usa para centrar texto
+
+la flecha “come” su espacio y el texto no invade ese espacio
+Replit lo resume bien, pero pídele que lo implemente como un layout con slot fijo para icono (ancho reservado) + slot flexible centrado.
+
+“Encabezados” vs “subencabezados”: ya aclarado, pero faltan dos puntos de tu lista
+
+“Que el encabezado tenga el mismo tamaño que los subencabezados… mismo tamaño de texto… celdas, sub encabezado, encabezado…”
+Replit dijo que el header de sección se queda como está (color). OK.
+Pero falta confirmar si altura y font-size del header de sección también se ajustan o no. Tú pediste uniformidad; Replit solo habló de color. Define explícitamente:
+
+¿Header de sección mismo alto/texto que subencabezado y celdas, o solo encabezados de columna?
+
+“Borrar los hovers de los cálculos” vs “calculado gris”
+Asegura que:
+
+No haya tooltip/hover “decorativo” en celdas calculadas,
+
+pero sí exista el estado visual gris (sin depender de hover) para indicar calculado.
+Es común que lo mezclen (gris + tooltip) y tú pediste quitar hovers.
+
+Validación final
+
+Dile que, con esas aclaraciones, el entendimiento ya coincide. Y que te entregue un diff por archivo para validar que:
+
+padding simétrico es consistente,
+
+truncamiento/tooltip depende de medición real,
+
+pares “calculado gris” sean realmente bidireccionales y con precedencia correcta,
+
+y que la columna nueva “Monto” tras Resto exista y esté cableada al cálculo.

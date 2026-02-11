@@ -1,0 +1,33 @@
+Estas son las inconsistencias / riesgos de interpretación que debes señalarle a Replit:
+
+No está implementado, solo listado. Su cierre (“con tu confirmación armo el plan…”) indica que aún no hizo cambios; solo enumeró entendimiento.
+
+“Encabezados” vs “sub-encabezados” (tono por sección). Tu instrucción dice que los encabezados tengan la tonalidad de la sección; Replit lo aplicó explícitamente solo a sub-encabezados. Que confirme si incluye también encabezado de sección y header principal.
+
+Caso específico “Activo” no está bien reflejado.
+
+Tú pediste que en Activo (donde no se ve el texto) el hover en los botones diga “Activo”.
+
+Y que en otros encabezados tipo Sí/No no quede vacío, sino con la lógica definida.
+Replit lo resumió como “Formato Si/No” general y no captura bien la excepción/ajuste específico de “Activo”.
+
+Columna “H..” asumida como “Hora”. Tú dijiste “H..” y “hacer lo de Activo”; Replit lo interpretó como “Hora”. Que confirme el nombre real y la intención (puede ser otra columna distinta).
+
+RFC: posible generalización indebida. Tu instrucción menciona RFC para el espaciado simétrico; Replit lo elevó a “aplica a toda la hoja”. Que confirme si debe ser global o solo esa parte/tabla/columna.
+
+Ellipsis “…”: aclarar alcance.
+
+Tú dijiste que los “…” aplicarían en dropdowns, y que en Sí/No probablemente no aplica.
+
+Replit mezcló “Si/No” con “…” en la misma línea. Que confirme: Sí/No centrado sin truncamiento, y truncamiento con “…” solo donde aplique (dropdowns / headers truncados).
+
+Sincronización “Meses” Desarrollo ↔ Tipologías: falta definición operativa. Replit lo describe a alto nivel, pero no define cómo manejar el override en Tipología y cuándo se “resetea” al editar Desarrollo (regla de precedencia / señal de “re-edición”).
+
+“Calculado gris” bidireccional: validar pares exactos. Replit lo menciona, pero pídele que enumere explícitamente los pares y direcciones:
+
+Bono: % ↔ Monto (editable ambos, el otro se calcula y se pone gris)
+
+Esquema: Incluido ↔ Monto; Plazo ↔ Monto
+
+Resto ↔ Monto (columna nueva)
+para evitar que implemente solo una dirección o solo un caso.
