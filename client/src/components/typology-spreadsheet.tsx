@@ -1265,8 +1265,8 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       }
     }
     
-    // Value is now an array
-    const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value] : []);
+    const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value as string] : []);
+    const selectedType = currentTypes.length > 0 ? currentTypes[0] : "";
     
     if (availableTypes.length === 0) {
       return (
@@ -1279,16 +1279,9 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       );
     }
     
-    const handleTypeToggle = (tipo: string) => {
-      const newTypes = currentTypes.includes(tipo)
-        ? currentTypes.filter(t => t !== tipo)
-        : [...currentTypes, tipo];
-      onChange(newTypes);
+    const handleTypeSelect = (tipo: string) => {
+      onChange([tipo]);
     };
-    
-    const displayText = currentTypes.length > 0 
-      ? `${currentTypes.length} seleccionados`
-      : "";
     
     return (
       <div 
@@ -1297,8 +1290,8 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       >
         {disabled ? (
           <div className="flex items-center gap-1 px-1">
-            <span className={`text-xs truncate ${currentTypes.length === 0 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-              {currentTypes.length === 0 ? "SIN ASIGNAR" : displayText}
+            <span className={`text-xs truncate ${!selectedType ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+              {!selectedType ? "SIN ASIGNAR" : selectedType}
             </span>
             <Lock className="w-3 h-3 opacity-50 shrink-0" />
           </div>
@@ -1307,31 +1300,30 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                className={`h-6 w-full justify-between px-1 text-xs font-normal ${currentTypes.length === 0 ? 'text-red-500 font-medium' : ''}`}
-                data-testid={`multiselect-${column.key}-${rowId}`}
+                className={`h-6 w-full justify-between px-1 text-xs font-normal ${!selectedType ? 'text-red-500 font-medium' : ''}`}
+                data-testid={`select-${column.key}-${rowId}`}
               >
                 <span className="truncate text-left">
-                  {currentTypes.length === 0 ? "SIN ASIGNAR" : displayText}
+                  {!selectedType ? "SIN ASIGNAR" : selectedType}
                 </span>
                 <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="start">
-              <div className="space-y-1">
+            <PopoverContent className="w-48 p-1" align="start">
+              <div className="space-y-0.5">
                 {availableTypes.map((tipo) => (
-                  <div key={tipo} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`tipo-${rowId}-${tipo}`}
-                      checked={currentTypes.includes(tipo)}
-                      onCheckedChange={() => handleTypeToggle(tipo)}
-                    />
-                    <label
-                      htmlFor={`tipo-${rowId}-${tipo}`}
-                      className="text-xs cursor-pointer flex-1"
-                    >
-                      {tipo}
-                    </label>
-                  </div>
+                  <button
+                    key={tipo}
+                    className={`w-full text-left px-2 py-1 text-xs rounded-sm cursor-pointer transition-colors ${
+                      selectedType === tipo 
+                        ? 'bg-primary/10 text-primary font-medium' 
+                        : 'hover:bg-muted'
+                    }`}
+                    onClick={() => handleTypeSelect(tipo)}
+                    data-testid={`option-${column.key}-${rowId}-${tipo}`}
+                  >
+                    {tipo}
+                  </button>
                 ))}
               </div>
             </PopoverContent>
