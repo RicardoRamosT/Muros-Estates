@@ -732,7 +732,8 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            className="flex items-center h-full text-xs font-medium cursor-pointer pl-0.5 pr-1 flex-shrink-0"
+            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+            style={{ paddingLeft: 8, paddingRight: 4 }}
             data-testid={`filter-trigger-${column.key}`}
           >
             <ChevronDown className={cn(
@@ -956,9 +957,10 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       <button
         onClick={handleSortClick}
         className={cn(
-          "flex items-center p-0.5 hover-elevate cursor-pointer rounded flex-shrink-0",
+          "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
           isSorted && "bg-primary/10"
         )}
+        style={{ paddingLeft: 4, paddingRight: 8 }}
         title={sortDirection === null ? "Ordenar" : sortDirection === "asc" ? "Ordenar descendente" : "Quitar orden"}
         data-testid={`sort-toggle-${column.key}`}
       >
