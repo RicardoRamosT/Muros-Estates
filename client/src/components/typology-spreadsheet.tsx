@@ -74,8 +74,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "basico",
     label: "",
-    headerColor: "bg-gray-300 dark:bg-gray-600",
-    columnHeaderColor: "bg-gray-300 dark:bg-gray-600",
+    headerColor: "bg-gray-500 dark:bg-gray-600 text-white",
+    columnHeaderColor: "bg-gray-500 dark:bg-gray-600 text-white",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 40 },
@@ -95,8 +95,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "ubicacion",
     label: "",
-    headerColor: "bg-gray-300 dark:bg-gray-600",
-    columnHeaderColor: "bg-gray-300 dark:bg-gray-600",
+    headerColor: "bg-gray-500 dark:bg-gray-600 text-white",
+    columnHeaderColor: "bg-gray-500 dark:bg-gray-600 text-white",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 90 },
@@ -724,7 +724,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     if (sortDirection === "desc") {
       return isNumeric ? <ArrowDown10 className="w-3 h-3 text-primary" /> : <ArrowDownAZ className="w-3 h-3 text-primary" />;
     }
-    return <ArrowUpDown className="w-3 h-3 text-muted-foreground" />;
+    return <ArrowUpDown className="w-3 h-3 opacity-60" />;
   };
 
   return (
@@ -738,7 +738,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           >
             <ChevronDown className={cn(
               "w-3 h-3 flex-shrink-0",
-              hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground opacity-60"
+              hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
             )} />
           </button>
         </PopoverTrigger>
@@ -2192,7 +2192,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[45px] flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600 sticky left-0 z-30" />
+              <div className="w-[45px] flex-shrink-0 border-r bg-gray-500 dark:bg-gray-600 sticky left-0 z-30" />
               {SECTIONS.map((section, sectionIndex) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
@@ -2239,8 +2239,8 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-300 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
-                <span className="text-xs font-medium text-muted-foreground">ID</span>
+              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-500 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
+                <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
                 const collapsedWidth = 40;
@@ -2332,7 +2332,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-muted-foreground bg-gray-300 dark:bg-gray-600 sticky left-0 z-10"
+                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-white bg-gray-500 dark:bg-gray-600 sticky left-0 z-10"
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
