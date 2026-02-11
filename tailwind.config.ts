@@ -11,6 +11,9 @@ export default {
         sm: ".1875rem", /* 3px */
       },
       colors: {
+        gray: {
+          350: '#B7BCC5',
+        },
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",

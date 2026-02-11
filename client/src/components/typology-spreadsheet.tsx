@@ -41,8 +41,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Typology } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPERS, DEVELOPMENTS } from "@shared/constants";
 import { cn } from "@/lib/utils";
-import { FormulaTooltip } from "@/components/ui/formula-tooltip";
-import { TYPOLOGY_FORMULAS, formatDate, formatTime } from "@/lib/spreadsheet-utils";
+import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
 
 type TypologyField = keyof Typology;
 
@@ -54,6 +53,9 @@ interface ColumnDef {
   width?: number;
   calculated?: boolean;
   format?: "currency" | "percent" | "area";
+  hideLabel?: boolean;
+  fullLabel?: string;
+  centerCells?: boolean;
 }
 
 interface SectionDef {
@@ -78,7 +80,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-gray-500 dark:bg-gray-600 text-white",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
-      { key: "active", label: "Act.", type: "boolean", width: 40 },
+      { key: "active", label: "Act.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Activo" },
     ],
   },
   {
@@ -88,8 +90,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-teal-100 dark:bg-teal-900/30",
     cellColor: "bg-teal-50/50 dark:bg-teal-900/10",
     columns: [
-      { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 55, calculated: true },
+      { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 55, calculated: true, hideLabel: true, fullLabel: "Hora", centerCells: true },
     ],
   },
   {
@@ -114,7 +116,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-blue-50 dark:bg-blue-900/20",
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
-      { key: "level", label: "Nivel", type: "number", width: 50 },
+      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 50, hideLabel: true, fullLabel: "Nivel", centerCells: true },
       { key: "view", label: "Vista", type: "select", options: [], width: 80 },
     ],
   },
@@ -138,11 +140,11 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 105, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 40 },
-      { key: "discountPercent", label: "%", type: "decimal", width: 50, format: "percent" },
-      { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "finalPrice", label: "P. Final", type: "decimal", width: 110, format: "currency", calculated: true },
-      { key: "pricePerM2", label: "$/m²", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "hasSeedCapital", label: "Cap.", type: "boolean", width: 40 },
+      { key: "discountPercent", label: "%", type: "decimal", width: 50, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
+      { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "finalPrice", label: "Final", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "pricePerM2", label: "$ / m²", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "hasSeedCapital", label: "Cap...", type: "boolean", width: 40, fullLabel: "Capital Semilla" },
       { key: "hasPromo", label: "Promo", type: "boolean", width: 40 },
     ],
     conditionalFields: [
@@ -157,21 +159,21 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-purple-100 dark:bg-purple-900/40",
     cellColor: "bg-purple-50 dark:bg-purple-900/20",
     columns: [
-      { key: "lockOff", label: "LO", type: "boolean", width: 40 },
-      { key: "bedrooms", label: "Rec.", type: "select", options: [] as string[], width: 55 },
-      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 50 },
-      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Bal.", type: "boolean", width: 40 },
-      { key: "balconySize", label: "Tam", type: "decimal", width: 70, format: "area" },
-      { key: "hasTerrace", label: "Ter.", type: "boolean", width: 40 },
-      { key: "terraceSize", label: "Tam", type: "decimal", width: 70, format: "area" },
-      { key: "bedrooms2", label: "Rec.", type: "select", options: [] as string[], width: 55 },
-      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 50 },
-      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Bal.", type: "boolean", width: 40 },
-      { key: "balconySize2", label: "Tam", type: "decimal", width: 70, format: "area" },
-      { key: "hasTerrace2", label: "Ter.", type: "boolean", width: 40 },
-      { key: "terraceSize2", label: "Tam", type: "decimal", width: 70, format: "area" },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 55 },
+      { key: "bedrooms", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
+      { key: "bathrooms", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
+      { key: "areas", label: "Area", type: "multiselect", options: [], width: 70 },
+      { key: "hasBalcony", label: "Balcon", type: "boolean", width: 50 },
+      { key: "balconySize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
+      { key: "hasTerrace", label: "Terr...", type: "boolean", width: 40, fullLabel: "Terraza" },
+      { key: "terraceSize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
+      { key: "bedrooms2", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
+      { key: "bathrooms2", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
+      { key: "areas2", label: "Area", type: "multiselect", options: [], width: 70 },
+      { key: "hasBalcony2", label: "Balcon", type: "boolean", width: 50 },
+      { key: "balconySize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
+      { key: "hasTerrace2", label: "Terr...", type: "boolean", width: 40, fullLabel: "Terraza" },
+      { key: "terraceSize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
     ],
     conditionalFields: [
       { field: "balconySize", dependsOn: "hasBalcony" },
@@ -192,7 +194,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-amber-100 dark:bg-amber-800",
     cellColor: "bg-amber-50 dark:bg-amber-900/20",
     columns: [
-      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 70 },
+      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 90 },
       { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
@@ -203,13 +205,13 @@ const SECTIONS: SectionDef[] = [
   {
     id: "bodega",
     label: "BODEGA",
-    headerColor: "bg-amber-200 dark:bg-amber-700",
-    columnHeaderColor: "bg-amber-100 dark:bg-amber-800",
-    cellColor: "bg-amber-50 dark:bg-amber-900/20",
+    headerColor: "bg-rose-200 dark:bg-rose-700",
+    columnHeaderColor: "bg-rose-100 dark:bg-rose-800",
+    cellColor: "bg-rose-50 dark:bg-rose-900/20",
     columns: [
-      { key: "hasStorage", label: "Incl.", type: "boolean", width: 40 },
+      { key: "hasStorage", label: "Incl.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Incluye" },
       { key: "storageSize", label: "Tam.", type: "decimal", width: 75, format: "area" },
-      { key: "hasStorageOptional", label: "Opc.", type: "boolean", width: 40 },
+      { key: "hasStorageOptional", label: "Opc.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Opcional" },
       { key: "storageSize2", label: "Tam.", type: "decimal", width: 75, format: "area" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
@@ -226,7 +228,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-yellow-100 dark:bg-yellow-800",
     cellColor: "bg-yellow-50 dark:bg-yellow-900/20",
     columns: [
-      { key: "initialPercent", label: "Ini. %", type: "decimal", width: 60, format: "percent" },
+      { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent" },
       { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
@@ -234,6 +236,7 @@ const SECTIONS: SectionDef[] = [
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 105, format: "currency", calculated: true },
       { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent", calculated: true },
+      { key: "remainingAmount" as any, label: "Monto", type: "decimal", width: 100, format: "currency", calculated: true },
     ],
   },
   {
@@ -489,6 +492,7 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
     monthlyPayment: monthlyPayment.toFixed(2),
     totalEnganche: totalEnganche.toFixed(2),
     remainingPercent: remainingPercent.toFixed(2),
+    remainingAmount: (finalPrice * remainingPercent / 100).toFixed(2),
     isaAmount: isaAmount.toFixed(2),
     notaryAmount: notaryAmount.toFixed(2),
     totalPostDeliveryCosts: totalPostDeliveryCosts.toFixed(2),
@@ -626,9 +630,57 @@ interface ColumnFilterProps {
   onRangeFilterChange?: (range: RangeFilter) => void;
   groupedOptions?: { group: string; values: string[] }[];
   columnWidth?: number;
+  hideLabel?: boolean;
+  fullLabel?: string;
 }
 
-function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth }: ColumnFilterProps) {
+function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLabel?: string; columnKey: string }) {
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+  
+  useEffect(() => {
+    const checkTruncation = () => {
+      const el = spanRef.current;
+      if (el) {
+        setIsTruncated(el.scrollWidth > el.clientWidth);
+      }
+    };
+    checkTruncation();
+    window.addEventListener("resize", checkTruncation);
+    return () => window.removeEventListener("resize", checkTruncation);
+  }, [label]);
+  
+  if (isTruncated && fullLabel) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span 
+            ref={spanRef}
+            className="flex-1 text-xs font-medium truncate text-center min-w-0 cursor-default" 
+            data-testid={`header-label-${columnKey}`}
+          >
+            {label}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          {fullLabel}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+  
+  return (
+    <span 
+      ref={spanRef}
+      className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0" 
+      data-testid={`header-label-${columnKey}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel }: ColumnFilterProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [localMin, setLocalMin] = useState(rangeFilter?.min || "");
@@ -732,16 +784,36 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     <div className={cn("w-full h-full relative flex items-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button
-            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
-            style={{ width: 28 }}
-            data-testid={`filter-trigger-${column.key}`}
-          >
-            <ChevronDown className={cn(
-              "w-3 h-3 flex-shrink-0",
-              hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
-            )} />
-          </button>
+          {hideLabel ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+                  style={{ width: 28 }}
+                  data-testid={`filter-trigger-${column.key}`}
+                >
+                  <ChevronDown className={cn(
+                    "w-3 h-3 flex-shrink-0",
+                    hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+                  )} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {fullLabel || column.label}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <button
+              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+              style={{ width: 28 }}
+              data-testid={`filter-trigger-${column.key}`}
+            >
+              <ChevronDown className={cn(
+                "w-3 h-3 flex-shrink-0",
+                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+              )} />
+            </button>
+          )}
         </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <div className="flex flex-col">
@@ -951,33 +1023,49 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
-      {columnWidth && columnWidth <= 50 ? (
+      {hideLabel ? (
+        <span className="flex-1 min-w-0" data-testid={`header-label-${column.key}`} />
+      ) : (
+        <TruncatedLabel 
+          label={column.label} 
+          fullLabel={fullLabel}
+          columnKey={column.key}
+        />
+      )}
+      {hideLabel ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="flex-1 min-w-0 cursor-default" data-testid={`header-label-${column.key}`} />
+            <button
+              onClick={handleSortClick}
+              className={cn(
+                "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
+                isSorted && "bg-primary/10"
+              )}
+              style={{ width: 28 }}
+              title={undefined}
+              data-testid={`sort-toggle-${column.key}`}
+            >
+              <SortIcon />
+            </button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="text-xs">
-            {column.label}
+            {fullLabel || column.label}
           </TooltipContent>
         </Tooltip>
       ) : (
-        <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0" data-testid={`header-label-${column.key}`}>
-          {column.label}
-          {column.calculated && <span className="text-muted-foreground ml-0.5">*</span>}
-        </span>
+        <button
+          onClick={handleSortClick}
+          className={cn(
+            "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
+            isSorted && "bg-primary/10"
+          )}
+          style={{ width: 28 }}
+          title={undefined}
+          data-testid={`sort-toggle-${column.key}`}
+        >
+          <SortIcon />
+        </button>
       )}
-      <button
-        onClick={handleSortClick}
-        className={cn(
-          "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
-          isSorted && "bg-primary/10"
-        )}
-        style={{ width: 28 }}
-        title={sortDirection === null ? "Ordenar" : sortDirection === "asc" ? "Ordenar descendente" : "Quitar orden"}
-        data-testid={`sort-toggle-${column.key}`}
-      >
-        <SortIcon />
-      </button>
     </div>
   );
 }
@@ -1037,18 +1125,16 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     }
   };
   
-  // Get formula info if this is a calculated field
-  const formulaInfo = column.calculated ? TYPOLOGY_FORMULAS.find(f => f.field === column.key) : null;
-  
   if (column.calculated || disabled) {
     const content = (
       <div 
         className={cn(
           "spreadsheet-cell px-2 text-xs truncate",
-          column.calculated && "bg-gray-100 dark:bg-gray-800/50",
+          column.calculated && "bg-gray-350 dark:bg-gray-800/50",
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
-          disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+          disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed",
+          column.centerCells && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         title={undefined}
@@ -1057,15 +1143,6 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         {formatValue(value, column.format) || ""}
       </div>
     );
-    
-    // Wrap calculated fields with formula tooltip
-    if (column.calculated && formulaInfo) {
-      return (
-        <FormulaTooltip field={column.key as string}>
-          {content}
-        </FormulaTooltip>
-      );
-    }
     
     return content;
   }
@@ -1231,6 +1308,15 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
       options = cajonOptions;
     }
     
+    // Generate level options from development's niveles
+    if (column.key === "level" && row?.development && allDevelopments) {
+      const dev = allDevelopments.find(d => d.name === row.development);
+      const niveles = dev?.niveles as number | undefined;
+      if (niveles && niveles > 0) {
+        options = Array.from({ length: niveles }, (_, i) => String(i + 1));
+      }
+    }
+    
     // Ensure current value is always in options to prevent disappearing values
     const currentValue = value?.toString() || "";
     let finalOptions = [...options];
@@ -1248,10 +1334,10 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-between text-left"
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent justify-between", column.centerCells ? "text-center" : "text-left")}
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <SelectValue placeholder="" className="text-left" />
+            <SelectValue placeholder="" className={column.centerCells ? "text-center" : "text-left"} />
           </SelectTrigger>
           <SelectContent>
             {finalOptions.map((opt) => (
@@ -1361,7 +1447,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none p-1 bg-transparent"
+          className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none p-1 bg-transparent", column.centerCells && "text-center")}
           data-testid={`input-${column.key}-${rowId}`}
         />
       </div>
@@ -1370,7 +1456,10 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   
   return (
     <div
-      className="spreadsheet-cell px-2 text-xs truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+      className={cn(
+        "spreadsheet-cell px-2 text-xs truncate cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30",
+        column.centerCells && "justify-center text-center"
+      )}
       style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       onClick={() => setIsEditing(true)}
       title={formatValue(value, column.format)}
@@ -2226,7 +2315,7 @@ export function TypologySpreadsheet() {
                       <div className="pointer-events-none" style={{ width: 32 }} />
                     )}
                     {isExpanded && (
-                      <span className="text-sm font-medium flex-1 text-center pointer-events-none">
+                      <span className="text-xs font-medium flex-1 text-center pointer-events-none">
                         {section.label}
                       </span>
                     )}
@@ -2296,6 +2385,8 @@ export function TypologySpreadsheet() {
                           undefined
                         }
                         columnWidth={col.width}
+                        hideLabel={col.hideLabel}
+                        fullLabel={col.fullLabel}
                       />
                     </div>
                   );
@@ -2362,7 +2453,7 @@ export function TypologySpreadsheet() {
                         <div
                           key={col.key}
                           className={cn(
-                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate",
+                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
                             section.cellColor
                           )}
                           style={{ width: (col.width || 85) + SORT_ICON_WIDTH }}
@@ -2377,7 +2468,7 @@ export function TypologySpreadsheet() {
                         <div
                           key={col.key}
                           className={cn(
-                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate",
+                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
                             section.cellColor
                           )}
                           style={{ width: (col.width || 65) + SORT_ICON_WIDTH }}
