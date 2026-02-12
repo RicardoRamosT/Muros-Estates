@@ -91,7 +91,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-teal-50/50 dark:bg-teal-900/10",
     columns: [
       { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 55, calculated: true, hideLabel: true, fullLabel: "Hora", centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 40, calculated: true, hideLabel: true, fullLabel: "Hora", centerCells: true },
     ],
   },
   {
@@ -116,7 +116,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-blue-50 dark:bg-blue-900/20",
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
-      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 50, hideLabel: true, fullLabel: "Nivel", centerCells: true },
+      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 40, hideLabel: true, fullLabel: "Nivel", centerCells: true },
       { key: "view", label: "Vista", type: "select", options: [], width: 80 },
     ],
   },
@@ -140,7 +140,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 105, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 40 },
-      { key: "discountPercent", label: "%", type: "decimal", width: 50, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
+      { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
       { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 110, format: "currency", calculated: true },
       { key: "pricePerM2", label: "$ / m²", type: "decimal", width: 100, format: "currency", calculated: true },
