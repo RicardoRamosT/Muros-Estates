@@ -165,14 +165,14 @@ const SECTIONS: SectionDef[] = [
       { key: "areas", label: "Area", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony", label: "Balcon", type: "boolean", width: 50, fullLabel: "Balcón" },
       { key: "balconySize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
-      { key: "hasTerrace", label: "Terr...", type: "boolean", width: 40, fullLabel: "Terraza" },
+      { key: "hasTerrace", label: "Terr...", type: "boolean", width: 40, hideLabel: true, fullLabel: "Terraza" },
       { key: "terraceSize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
       { key: "bedrooms2", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
       { key: "bathrooms2", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
       { key: "areas2", label: "Area", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony2", label: "Balcon", type: "boolean", width: 50, fullLabel: "Balcón" },
       { key: "balconySize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
-      { key: "hasTerrace2", label: "Terr...", type: "boolean", width: 40, fullLabel: "Terraza" },
+      { key: "hasTerrace2", label: "Terr...", type: "boolean", width: 40, hideLabel: true, fullLabel: "Terraza" },
       { key: "terraceSize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
     ],
     conditionalFields: [
@@ -194,8 +194,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-amber-200 dark:bg-amber-700",
     cellColor: "bg-amber-50 dark:bg-amber-900/20",
     columns: [
-      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75, fullLabel: "Incluidos" },
-      { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40, fullLabel: "Opcional" },
+      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75, fullLabel: "Incluidos", centerCells: true },
+      { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Opcional" },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
     conditionalFields: [
@@ -1377,7 +1377,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells ? "text-center" : "text-left")}
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!currentValue || /^\d+$/.test(currentValue)) ? "text-center" : "text-left")}
             data-testid={`select-${column.key}-${rowId}`}
           >
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
@@ -1443,13 +1443,13 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                className={`h-6 w-full justify-between px-1 text-xs font-normal ${!selectedType ? 'text-red-500 font-medium' : ''}`}
+                className={cn("h-6 w-full justify-between px-1 text-xs font-normal [&_svg]:h-3 [&_svg]:w-3", !selectedType ? 'text-red-500 font-medium' : '')}
                 data-testid={`select-${column.key}-${rowId}`}
               >
-                <span className="truncate text-left">
+                <span className="truncate text-left min-w-0 flex-1">
                   {!selectedType ? "SIN ASIGNAR" : selectedType}
                 </span>
-                <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                <ChevronDown className="shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-1" align="start">
