@@ -813,10 +813,13 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         {hideLabel ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="flex-shrink-0" style={{ width: 28 }}>
+              <span className="flex-shrink-0" style={{ width: 28, height: '100%' }}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex items-center justify-center h-full w-full text-xs font-medium cursor-pointer"
+                    className={cn(
+                      "flex items-center justify-center h-full w-full hover-elevate cursor-pointer rounded flex-shrink-0",
+                      hasActiveFilter && "bg-primary/10"
+                    )}
                     data-testid={`filter-trigger-${column.key}`}
                   >
                     <ChevronDown className={cn(
