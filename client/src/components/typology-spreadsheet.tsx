@@ -544,7 +544,7 @@ function FormattedCellValue({ value, format }: { value: any; format?: string }) 
   if (format === "area") {
     return (
       <span className="flex w-full justify-between items-center gap-0.5">
-        <span className="tabular-nums">{num.toFixed(2)}</span>
+        <span className="tabular-nums text-right flex-1">{num.toFixed(2)}</span>
         <span className="shrink-0 text-[10px]">m²</span>
       </span>
     );
