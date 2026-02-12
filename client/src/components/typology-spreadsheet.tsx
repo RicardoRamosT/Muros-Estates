@@ -87,7 +87,7 @@ const SECTIONS: SectionDef[] = [
     id: "fechahora",
     label: "FECHA/HORA",
     headerColor: "bg-teal-200 dark:bg-teal-700",
-    columnHeaderColor: "bg-teal-100 dark:bg-teal-900/30",
+    columnHeaderColor: "bg-teal-200 dark:bg-teal-700",
     cellColor: "bg-teal-50/50 dark:bg-teal-900/10",
     columns: [
       { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
@@ -112,7 +112,7 @@ const SECTIONS: SectionDef[] = [
     id: "generales",
     label: "GENERALES",
     headerColor: "bg-blue-200 dark:bg-blue-800",
-    columnHeaderColor: "bg-blue-100 dark:bg-blue-900/40",
+    columnHeaderColor: "bg-blue-200 dark:bg-blue-800",
     cellColor: "bg-blue-50 dark:bg-blue-900/20",
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
@@ -124,7 +124,7 @@ const SECTIONS: SectionDef[] = [
     id: "precio_tamano",
     label: "TAMAÑO",
     headerColor: "bg-yellow-300 dark:bg-yellow-700",
-    columnHeaderColor: "bg-yellow-200 dark:bg-yellow-800",
+    columnHeaderColor: "bg-yellow-300 dark:bg-yellow-700",
     cellColor: "bg-yellow-100 dark:bg-yellow-900/30",
     columns: [
       { key: "size", label: "Unidad", type: "decimal", width: 85, format: "area" },
@@ -135,7 +135,7 @@ const SECTIONS: SectionDef[] = [
     id: "precio_valores",
     label: "PRECIO",
     headerColor: "bg-green-200 dark:bg-green-800",
-    columnHeaderColor: "bg-green-100 dark:bg-green-900/40",
+    columnHeaderColor: "bg-green-200 dark:bg-green-800",
     cellColor: "bg-green-50 dark:bg-green-900/20",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 105, format: "currency" },
@@ -156,7 +156,7 @@ const SECTIONS: SectionDef[] = [
     id: "distribucion",
     label: "DISTRIBUCIÓN",
     headerColor: "bg-purple-200 dark:bg-purple-800",
-    columnHeaderColor: "bg-purple-100 dark:bg-purple-900/40",
+    columnHeaderColor: "bg-purple-200 dark:bg-purple-800",
     cellColor: "bg-purple-50 dark:bg-purple-900/20",
     columns: [
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 55, fullLabel: "Lock-Off" },
@@ -191,7 +191,7 @@ const SECTIONS: SectionDef[] = [
     id: "cajones",
     label: "CAJONES",
     headerColor: "bg-amber-200 dark:bg-amber-700",
-    columnHeaderColor: "bg-amber-100 dark:bg-amber-800",
+    columnHeaderColor: "bg-amber-200 dark:bg-amber-700",
     cellColor: "bg-amber-50 dark:bg-amber-900/20",
     columns: [
       { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75, fullLabel: "Incluidos" },
@@ -206,7 +206,7 @@ const SECTIONS: SectionDef[] = [
     id: "bodega",
     label: "BODEGA",
     headerColor: "bg-rose-200 dark:bg-rose-700",
-    columnHeaderColor: "bg-rose-100 dark:bg-rose-800",
+    columnHeaderColor: "bg-rose-200 dark:bg-rose-700",
     cellColor: "bg-rose-50 dark:bg-rose-900/20",
     columns: [
       { key: "hasStorage", label: "Incl.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Incluye" },
@@ -225,7 +225,7 @@ const SECTIONS: SectionDef[] = [
     id: "pago",
     label: "ESQUEMA DE PAGO",
     headerColor: "bg-yellow-200 dark:bg-yellow-700",
-    columnHeaderColor: "bg-yellow-100 dark:bg-yellow-800",
+    columnHeaderColor: "bg-yellow-200 dark:bg-yellow-700",
     cellColor: "bg-yellow-50 dark:bg-yellow-900/20",
     columns: [
       { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent", centerCells: true },
@@ -243,7 +243,7 @@ const SECTIONS: SectionDef[] = [
     id: "entrega",
     label: "",
     headerColor: "bg-yellow-200 dark:bg-yellow-700",
-    columnHeaderColor: "bg-yellow-100 dark:bg-yellow-800",
+    columnHeaderColor: "bg-yellow-200 dark:bg-yellow-700",
     cellColor: "bg-yellow-50 dark:bg-yellow-900/20",
     columns: [
       { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
@@ -253,7 +253,7 @@ const SECTIONS: SectionDef[] = [
     id: "gastos",
     label: "GASTOS POST-ENTREGA",
     headerColor: "bg-red-200 dark:bg-red-800",
-    columnHeaderColor: "bg-red-100 dark:bg-red-900/40",
+    columnHeaderColor: "bg-red-200 dark:bg-red-800",
     cellColor: "bg-red-50 dark:bg-red-900/20",
     columns: [
       { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
@@ -270,7 +270,7 @@ const SECTIONS: SectionDef[] = [
     label: "",
     subheader: "10.5% | 15",
     headerColor: "bg-orange-200 dark:bg-orange-700",
-    columnHeaderColor: "bg-orange-100 dark:bg-orange-800",
+    columnHeaderColor: "bg-orange-200 dark:bg-orange-700",
     cellColor: "bg-orange-50 dark:bg-orange-900/20",
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
@@ -283,7 +283,7 @@ const SECTIONS: SectionDef[] = [
     id: "credito",
     label: "CRÉDITO HIPOTECARIO",
     headerColor: "bg-orange-200 dark:bg-orange-700",
-    columnHeaderColor: "bg-orange-100 dark:bg-orange-800",
+    columnHeaderColor: "bg-orange-200 dark:bg-orange-700",
     cellColor: "bg-orange-50 dark:bg-orange-900/20",
     columns: [
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Mensualidad" },
@@ -295,7 +295,7 @@ const SECTIONS: SectionDef[] = [
     id: "mantenimiento",
     label: "MANTENIMIENTO",
     headerColor: "bg-teal-200 dark:bg-teal-700",
-    columnHeaderColor: "bg-teal-100 dark:bg-teal-800",
+    columnHeaderColor: "bg-teal-200 dark:bg-teal-700",
     cellColor: "bg-teal-50 dark:bg-teal-900/20",
     columns: [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "area" },
@@ -310,7 +310,7 @@ const SECTIONS: SectionDef[] = [
     id: "renta1",
     label: "RENTA",
     headerColor: "bg-indigo-200 dark:bg-indigo-700",
-    columnHeaderColor: "bg-indigo-100 dark:bg-indigo-800",
+    columnHeaderColor: "bg-indigo-200 dark:bg-indigo-700",
     cellColor: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
       { key: "rentInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
@@ -322,7 +322,7 @@ const SECTIONS: SectionDef[] = [
     label: "",
     subheader: "7.0%",
     headerColor: "bg-indigo-200 dark:bg-indigo-700",
-    columnHeaderColor: "bg-indigo-100 dark:bg-indigo-800",
+    columnHeaderColor: "bg-indigo-200 dark:bg-indigo-700",
     cellColor: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
       { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
@@ -332,7 +332,7 @@ const SECTIONS: SectionDef[] = [
     id: "renta2",
     label: "RENTA",
     headerColor: "bg-indigo-200 dark:bg-indigo-700",
-    columnHeaderColor: "bg-indigo-100 dark:bg-indigo-800",
+    columnHeaderColor: "bg-indigo-200 dark:bg-indigo-700",
     cellColor: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
       { key: "rentFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
@@ -344,7 +344,7 @@ const SECTIONS: SectionDef[] = [
     label: "",
     subheader: "11.0",
     headerColor: "bg-indigo-200 dark:bg-indigo-700",
-    columnHeaderColor: "bg-indigo-100 dark:bg-indigo-800",
+    columnHeaderColor: "bg-indigo-200 dark:bg-indigo-700",
     cellColor: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
       { key: "rentMonths", label: "Meses", type: "number", width: 50 },
@@ -354,7 +354,7 @@ const SECTIONS: SectionDef[] = [
     id: "total_renta",
     label: "TOTAL",
     headerColor: "bg-indigo-200 dark:bg-indigo-700",
-    columnHeaderColor: "bg-indigo-100 dark:bg-indigo-800",
+    columnHeaderColor: "bg-indigo-200 dark:bg-indigo-700",
     cellColor: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
       { key: "rentTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
@@ -364,7 +364,7 @@ const SECTIONS: SectionDef[] = [
     id: "inversion",
     label: "INVERSIÓN",
     headerColor: "bg-pink-200 dark:bg-pink-700",
-    columnHeaderColor: "bg-pink-100 dark:bg-pink-800",
+    columnHeaderColor: "bg-pink-200 dark:bg-pink-700",
     cellColor: "bg-pink-50 dark:bg-pink-900/20",
     columns: [
       { key: "investmentTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
@@ -378,7 +378,7 @@ const SECTIONS: SectionDef[] = [
     label: "",
     subheader: "7.0%",
     headerColor: "bg-cyan-200 dark:bg-cyan-700",
-    columnHeaderColor: "bg-cyan-100 dark:bg-cyan-800",
+    columnHeaderColor: "bg-cyan-200 dark:bg-cyan-700",
     cellColor: "bg-cyan-50 dark:bg-cyan-900/20",
     columns: [
       { key: "appreciationRate", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
@@ -388,7 +388,7 @@ const SECTIONS: SectionDef[] = [
     id: "plusvalia",
     label: "PLUSVALÍA",
     headerColor: "bg-cyan-200 dark:bg-cyan-700",
-    columnHeaderColor: "bg-cyan-100 dark:bg-cyan-800",
+    columnHeaderColor: "bg-cyan-200 dark:bg-cyan-700",
     cellColor: "bg-cyan-50 dark:bg-cyan-900/20",
     columns: [
       { key: "appreciationDays", label: "Días", type: "number", width: 45 },
@@ -543,9 +543,9 @@ function FormattedCellValue({ value, format }: { value: any; format?: string }) 
   
   if (format === "area") {
     return (
-      <span className="flex w-full justify-between items-center">
+      <span className="flex w-full justify-end items-center">
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{num.toFixed(2)}</span>
-        <span className="text-[10px]">m²</span>
+        <span className="text-[10px] ml-0.5">m²</span>
       </span>
     );
   }
