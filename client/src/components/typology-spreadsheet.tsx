@@ -194,7 +194,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-amber-100 dark:bg-amber-800",
     cellColor: "bg-amber-50 dark:bg-amber-900/20",
     columns: [
-      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 110 },
+      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75 },
       { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
