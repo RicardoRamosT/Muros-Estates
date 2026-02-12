@@ -232,7 +232,7 @@ const SECTIONS: SectionDef[] = [
       { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
-      { key: "paymentMonths", label: "M", type: "number", width: 40, hideLabel: true, fullLabel: "Meses" },
+      { key: "paymentMonths", label: "M", type: "number", width: 40, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 105, format: "currency", calculated: true },
       { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent", centerCells: true },
