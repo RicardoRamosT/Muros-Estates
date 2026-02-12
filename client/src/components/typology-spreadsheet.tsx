@@ -144,8 +144,8 @@ const SECTIONS: SectionDef[] = [
       { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 110, format: "currency", calculated: true },
       { key: "pricePerM2", label: "$ / m²", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "hasSeedCapital", label: "Cap...", type: "boolean", width: 40, fullLabel: "Capital Semilla" },
-      { key: "hasPromo", label: "Promo", type: "boolean", width: 40 },
+      { key: "hasSeedCapital", label: "Cap.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Capital Semilla" },
+      { key: "hasPromo", label: "Promo", type: "boolean", width: 40, hideLabel: true, fullLabel: "Promo" },
     ],
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
@@ -808,7 +808,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
+    <div className={cn("w-full h-full relative flex items-center", hideLabel && "justify-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <Tooltip>
@@ -837,7 +837,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         ) : (
           <PopoverTrigger asChild>
             <button
-              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+              className="flex items-center justify-center h-full text-xs font-medium hover-elevate cursor-pointer rounded flex-shrink-0"
               style={{ width: 28 }}
               data-testid={`filter-trigger-${column.key}`}
             >
