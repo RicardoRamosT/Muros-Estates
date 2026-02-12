@@ -230,12 +230,12 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
-      { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent" },
+      { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "paymentMonths", label: "Meses", type: "number", width: 50 },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent" },
+      { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "remainingAmount" as any, label: "Monto", type: "decimal", width: 100, format: "currency" },
     ],
   },
@@ -256,9 +256,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-red-100 dark:bg-red-900/40",
     cellColor: "bg-red-50 dark:bg-red-900/20",
     columns: [
-      { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent" },
+      { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent", centerCells: true },
       { key: "isaAmount", label: "ISAI$", type: "decimal", width: 95, format: "currency", calculated: true },
-      { key: "notaryPercent", label: "Not.%", type: "decimal", width: 55, format: "percent" },
+      { key: "notaryPercent", label: "Not.%", type: "decimal", width: 55, format: "percent", centerCells: true },
       { key: "notaryAmount", label: "Not.$", type: "decimal", width: 95, format: "currency", calculated: true },
       { key: "equipmentCost", label: "Equipo", type: "decimal", width: 95, format: "currency" },
       { key: "furnitureCost", label: "Muebles", type: "decimal", width: 95, format: "currency" },
@@ -275,7 +275,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
-      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent" },
+      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 45 },
     ],
   },
@@ -325,7 +325,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-indigo-100 dark:bg-indigo-800",
     cellColor: "bg-indigo-50 dark:bg-indigo-900/20",
     columns: [
-      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 55, format: "percent" },
+      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
     ],
   },
   {
@@ -370,7 +370,7 @@ const SECTIONS: SectionDef[] = [
       { key: "investmentTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
       { key: "investmentNet", label: "Neta", type: "decimal", width: 95, format: "currency", calculated: true },
       { key: "investmentMonthly", label: "Mens.", type: "decimal", width: 95, format: "currency", calculated: true },
-      { key: "investmentRate", label: "Tasa", type: "decimal", width: 55, format: "percent", calculated: true },
+      { key: "investmentRate", label: "Tasa", type: "decimal", width: 55, format: "percent", calculated: true, centerCells: true },
     ],
   },
   {
@@ -381,7 +381,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-cyan-100 dark:bg-cyan-800",
     cellColor: "bg-cyan-50 dark:bg-cyan-900/20",
     columns: [
-      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 55, format: "percent" },
+      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
     ],
   },
   {
@@ -810,18 +810,41 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   return (
     <div className={cn("w-full h-full relative flex items-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
-            style={{ width: 28 }}
-            data-testid={`filter-trigger-${column.key}`}
-          >
-            <ChevronDown className={cn(
-              "w-3 h-3 flex-shrink-0",
-              hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
-            )} />
-          </button>
-        </PopoverTrigger>
+        {hideLabel ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex-shrink-0" style={{ width: 28 }}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="flex items-center justify-center h-full w-full text-xs font-medium cursor-pointer"
+                    data-testid={`filter-trigger-${column.key}`}
+                  >
+                    <ChevronDown className={cn(
+                      "w-3 h-3 flex-shrink-0",
+                      hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+                    )} />
+                  </button>
+                </PopoverTrigger>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {fullLabel || column.label}
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <PopoverTrigger asChild>
+            <button
+              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+              style={{ width: 28 }}
+              data-testid={`filter-trigger-${column.key}`}
+            >
+              <ChevronDown className={cn(
+                "w-3 h-3 flex-shrink-0",
+                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+              )} />
+            </button>
+          </PopoverTrigger>
+        )}
       <PopoverContent className="w-56 p-0" align="start">
         <div className="flex flex-col">
           <div className="px-3 py-2 border-b bg-muted/50">
@@ -1030,9 +1053,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
-      {hideLabel ? (
-        <span className="flex-1 min-w-0" data-testid={`header-label-${column.key}`} />
-      ) : (
+      {!hideLabel && (
         <TruncatedLabel 
           label={column.label} 
           fullLabel={fullLabel}
@@ -1146,7 +1167,6 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           column.centerCells && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
-        title={formatValue(value, column.format) || undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
         {(column.format === "currency" || column.format === "area") 
@@ -1160,13 +1180,12 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-350 dark:bg-gray-800/50 text-muted-foreground hover:bg-gray-300 dark:hover:bg-gray-700",
+          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-350 dark:bg-gray-800/50 text-muted-foreground",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         onClick={() => setIsEditing(true)}
-        title={formatValue(value, column.format)}
         data-testid={`cell-${column.key}-${rowId}`}
       >
         {(column.format === "currency" || column.format === "area")
@@ -1191,23 +1210,15 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         : 'text-muted-foreground';
     return (
       <div 
-        className="spreadsheet-cell justify-center px-2"
+        className="spreadsheet-cell px-1"
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <Select
           value={value === true ? "si" : value === false ? "no" : ""}
           onValueChange={(val) => onChange(val === "si")}
         >
-          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <SelectValue>
-              {value === true ? (
-                <span>Sí</span>
-              ) : value === false ? (
-                <span>No</span>
-              ) : (
-                <span>-</span>
-              )}
-            </SelectValue>
+          <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
+            <span className="flex-1 text-center truncate">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
@@ -1363,7 +1374,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={onChange}
         >
           <SelectTrigger 
-            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1", column.centerCells ? "text-center" : "text-left")}
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells ? "text-center" : "text-left")}
             data-testid={`select-${column.key}-${rowId}`}
           >
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>

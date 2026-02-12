@@ -1,0 +1,99 @@
+Cambiar gris a bg-grey-350
+
+Que los encabezados tengan la misma tonalidad que el tono de la Seccion
+
+Que el hover, que muestre el hover solamente si hay texto que si es escondido, o que no cabe, esto aplica en los sub encabezados que no se ven completos.
+
+En RFC hacer un tamaño de celda, que el espacio del principio hacie el texto, sea el mismo que del final
+
+En todos los dropdown que tengan el mismo espaciado como el sub encabezado, que la flechita de dropdown de las celdas sea igual que la del subencabezado, mismo tamaño, con su separacion
+
+Que el encabezado tenga el mismo tamaño que los subencabezados, al igual que el mismo tamaño de texto, que las celdas, sub encabezado, y encabezado que tengan el mismo tamaño de texto
+
+La flecha de ordenar que no muestre Ordenar al hacer hover
+
+En el encabezado en Activo como no se ve lo que dice al hacer hover en uno de los botones que diga activo. En los demas encabezados de Si y no, en vez de que no aparezca nada, que se maneje e la siguiente manera
+
+La seccion de Bodega que tenga otro color diferente a cajones
+
+En CAJONES, en la columna de Incl. que sea mas largo para que salga "2 en T..."
+
+En los Si y No, aplicando lo mismo que encabezados, desde la orilla hasta la flecha ahi deberia estar el espacio igual definido, y desde la otra orilla hasta ese espacio definido de la flecha se use ese espacio para centrar el texto, y si no cabe el texto añadir los ... como siempre terminando en el item de la flecha, los ... aplicaria en los dropdowns, ya que no veo posible en los Si y No que no quepa el texto.
+
+Borrar los hovers de los calculos.
+
+Cambios de encabezados o especificos por columna:
+
+Quitar todos los asteriscos de los encabezados
+
+En Fec... que diga Fecha y que la a termine en el item de las felchas de orden. Y centrar el texto de las Celdas
+
+En H.. hacer lo de Activo, que no tenga nombre pero al hacer hover en los botones que diga que es. Y centrar el texto de las celdas
+
+En Ciud... que diga Ciudad y que la a termine en el item de las felchas de orden.
+
+En Desarroll... que diga Desarrollador y que la a termine en el item de las felchas de orden.
+
+En Nivel de la seccion GENERALES hacer lo de Activo, que no tenga nombre pero al hacer hover en los botones que diga que es. Y centrar el texto de las celdas. Y centrar los numeros. y poner un dropdown con scroll de los numeros pero que solo te ponga el nivel maximo que tiene ese desarrollo.
+
+En Unidad que los m^2 esten pegados a la derecha, y que los .00 esten alineados, no importa si en caso de 1 digito tenga mucho espacio en la izquierda. Con una tamaño maximo de 9999.00
+
+En total aplica lo mismo que en Unidad.
+
+En Precio agustar el espacio hasta $999,999,999, el numero pegado a la derecha y el signo de pesos a la izquierda (Esto sera general para todos los montos de pesos). El espacio de la orilla al signo de peso igual con el numero de la derecha.
+
+Delante de precio, la columna Bono, que diga Bono en vez de no tener texto
+
+Comportamiento "calculado gris": Que al ponerse un dato, el dato contrario se ponga gris para saber que ese dato fue calculado y no de input, aplique aqui: (
+
+Despues en Porcentaje, en el encabezado juntar los items para aprovechar el espacio, con hover en los botones que diga Porcentaje. En las celdas, que los porcentajes esten centrados.
+
+En Monto lo mismo que en Precio pero para $99,999,999. Tambien deberia poderse editar y que el porcentaje se calcule automaticamente.
+
+)
+
+En Precio Final lo mismo que en Precio. Y cambiar el nombre a Final nadamas.
+
+En $/m^2 lo mismo que en precio pero tamaño para $999,999. Y poner un espacio en el titulo como "$ / m^2"
+
+En Capital Semilla, que diga Cap... pero con el hover ver el nombre completo
+
+En Promo, que diga Promo sin mouse hover porque ya se ve todo.
+
+En Lock Off, que diga Lock-Off sin hover. Aplica en todas las columnas Lock Off.
+
+En Recamaras que diga Rec... con hover que diga todo.
+
+En Baños que diga B... con hover que diga todo.
+
+En Areas que diga Area sin hover.
+
+En Balcon que diga Balcon sin hover.
+
+En Tamaño que diga Tam... con hover que diga todo. Aplica para todas.
+
+En Terraza que diga Terr... con hover que diga todo.
+
+En CAJONES, en Precio que tenga el tamaño de celda para $9,999,999.
+
+En BODEGA, en Incluye, que al hacer hover a los botones diga Incluye.
+
+En BODEGA, en Opciona, que al hacer hover a los botones diga Opcional.
+
+En BODEGA, en Tamaño, en la celda que tenga el m^2 alineado a la derecha, maximos caracteres de 99.00, aplica en las 2 columnas de Tamaño de BODEGA.
+
+En BODEGA, en Precio, maximos caracteres de $9,999,999.
+
+En ESQUEMA DE PAGO, en In... que diga Inicial, y en las celdas los porcentajes centrados. Aplica la misma estructura de celda que en el Porcentaje del Bono.
+
+En ESQUEMA DE PAGO, en Monto maximo espacio para $99,999,999.
+
+En ESQUEMA DE PAGO que aplique que se pueda input de Incluido y Monto y que incluya el comportamiento "calculado gris", aplica igual para Plazo y Monto.
+
+En Meses, quiero el siguiente comportamiento, los meses seran escritos en Desarrollos, y que la tipologia los agarre, y en caso necesario que se edite en Tipologias. Pero en caso de que se vuelva a editar el valor en Desarrollo, que se cambie denuevo al valor del Desarrollo en la Tipologia.
+
+En ESQUEMA DE PAGO, en Mensualidades, maximo tamaño de $9,999,999.
+
+En ESQUEMA DE PAGO, en Total de Enganche, maximo tamaño de $99,999,999.
+
+En ESQUEMA DE PAGO, Despues de Resto falta una columna de Monto, con estas 2 columnas aplica el comportamiento "gris calculado", que ambas se puedan editar y el contrario se calculo.
