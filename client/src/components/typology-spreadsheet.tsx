@@ -76,8 +76,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "basico",
     label: "",
-    headerColor: "bg-gray-500 dark:bg-gray-600 text-white",
-    columnHeaderColor: "bg-gray-500 dark:bg-gray-600 text-white",
+    headerColor: "bg-gray-350 dark:bg-gray-600 text-white",
+    columnHeaderColor: "bg-gray-350 dark:bg-gray-600 text-white",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Activo" },
@@ -97,8 +97,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "ubicacion",
     label: "",
-    headerColor: "bg-gray-500 dark:bg-gray-600 text-white",
-    columnHeaderColor: "bg-gray-500 dark:bg-gray-600 text-white",
+    headerColor: "bg-gray-350 dark:bg-gray-600 text-white",
+    columnHeaderColor: "bg-gray-350 dark:bg-gray-600 text-white",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
@@ -1163,7 +1163,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         className={cn(
           "spreadsheet-cell px-2 text-xs",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          column.calculated && "bg-gray-350 dark:bg-gray-800/50",
+          column.calculated && "bg-gray-200 dark:bg-gray-800/50",
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed",
@@ -1183,7 +1183,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-350 dark:bg-gray-800/50 text-muted-foreground",
+          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-200 dark:bg-gray-800/50 text-muted-foreground",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
         )}
@@ -2387,7 +2387,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[45px] flex-shrink-0 border-r bg-gray-500 dark:bg-gray-600 sticky left-0 z-30" />
+              <div className="w-[45px] flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 sticky left-0 z-30" />
               {SECTIONS.map((section, sectionIndex) => {
                 const sectionWidth = section.columns.reduce((sum, col) => {
                   const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
@@ -2435,7 +2435,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column headers - flat structure for perfect alignment */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-500 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
+              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
@@ -2517,7 +2517,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-white bg-gray-500 dark:bg-gray-600 sticky left-0 z-10"
+                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-white bg-gray-350 dark:bg-gray-600 sticky left-0 z-10"
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
