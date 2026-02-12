@@ -1213,14 +1213,14 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         : 'text-muted-foreground';
     return (
       <div 
-        className="spreadsheet-cell px-1"
+        className="spreadsheet-cell px-0"
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <Select
           value={value === true ? "si" : value === false ? "no" : ""}
           onValueChange={(val) => onChange(val === "si")}
         >
-          <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
+          <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-1.5 [&_svg]:h-3 [&_svg]:w-3 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
             <span className="flex-1 text-center truncate">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
           </SelectTrigger>
           <SelectContent>
