@@ -543,9 +543,9 @@ function FormattedCellValue({ value, format }: { value: any; format?: string }) 
   
   if (format === "area") {
     return (
-      <span className="flex w-full justify-between items-center gap-0.5">
-        <span className="text-right shrink-0" style={{ fontVariantNumeric: 'tabular-nums', width: '7ch' }}>{num.toFixed(2)}</span>
-        <span className="shrink-0 text-[10px]">m²</span>
+      <span className="flex w-full justify-between items-center">
+        <span style={{ fontVariantNumeric: 'tabular-nums' }}>{num.toFixed(2)}</span>
+        <span className="text-[10px]">m²</span>
       </span>
     );
   }
