@@ -1221,7 +1221,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
           onValueChange={(val) => onChange(val === "si")}
         >
           <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <span className="shrink-0 text-right" style={{ width: '2ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
