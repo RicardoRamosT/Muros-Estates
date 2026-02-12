@@ -139,7 +139,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-green-50 dark:bg-green-900/20",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 105, format: "currency" },
-      { key: "hasDiscount", label: "Bono", type: "boolean", width: 40 },
+      { key: "hasDiscount", label: "Bono", type: "boolean", width: 40, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
       { key: "discountAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 110, format: "currency", calculated: true },
@@ -159,18 +159,18 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-purple-100 dark:bg-purple-900/40",
     cellColor: "bg-purple-50 dark:bg-purple-900/20",
     columns: [
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 55 },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 55, fullLabel: "Lock-Off" },
       { key: "bedrooms", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
       { key: "bathrooms", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
       { key: "areas", label: "Area", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Balcon", type: "boolean", width: 50 },
+      { key: "hasBalcony", label: "Balcon", type: "boolean", width: 50, fullLabel: "Balcón" },
       { key: "balconySize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
       { key: "hasTerrace", label: "Terr...", type: "boolean", width: 40, fullLabel: "Terraza" },
       { key: "terraceSize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
       { key: "bedrooms2", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
       { key: "bathrooms2", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
       { key: "areas2", label: "Area", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Balcon", type: "boolean", width: 50 },
+      { key: "hasBalcony2", label: "Balcon", type: "boolean", width: 50, fullLabel: "Balcón" },
       { key: "balconySize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
       { key: "hasTerrace2", label: "Terr...", type: "boolean", width: 40, fullLabel: "Terraza" },
       { key: "terraceSize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
@@ -194,8 +194,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-amber-100 dark:bg-amber-800",
     cellColor: "bg-amber-50 dark:bg-amber-900/20",
     columns: [
-      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75 },
-      { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40 },
+      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75, fullLabel: "Incluidos" },
+      { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40, fullLabel: "Opcional" },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
     conditionalFields: [
@@ -210,9 +210,9 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-rose-50 dark:bg-rose-900/20",
     columns: [
       { key: "hasStorage", label: "Incl.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Incluye" },
-      { key: "storageSize", label: "Tam.", type: "decimal", width: 75, format: "area" },
+      { key: "storageSize", label: "Tam.", type: "decimal", width: 75, format: "area", fullLabel: "Tamaño" },
       { key: "hasStorageOptional", label: "Opc.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Opcional" },
-      { key: "storageSize2", label: "Tam.", type: "decimal", width: 75, format: "area" },
+      { key: "storageSize2", label: "Tam.", type: "decimal", width: 75, format: "area", fullLabel: "Tamaño" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
     conditionalFields: [
@@ -230,12 +230,12 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "initialAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
-      { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent", centerCells: true },
+      { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
       { key: "duringConstructionAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
       { key: "paymentMonths", label: "M", type: "number", width: 40, hideLabel: true, fullLabel: "Meses", centerCells: true },
-      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent", centerCells: true },
+      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Mensualidad" },
+      { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 105, format: "currency", calculated: true, fullLabel: "Total Enganche" },
+      { key: "remainingPercent", label: "Resto%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Resto Porcentaje" },
       { key: "remainingAmount" as any, label: "Monto", type: "decimal", width: 100, format: "currency" },
     ],
   },
@@ -256,10 +256,10 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-red-100 dark:bg-red-900/40",
     cellColor: "bg-red-50 dark:bg-red-900/20",
     columns: [
-      { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent", centerCells: true },
-      { key: "isaAmount", label: "ISAI$", type: "decimal", width: 95, format: "currency", calculated: true },
-      { key: "notaryPercent", label: "Not.%", type: "decimal", width: 55, format: "percent", centerCells: true },
-      { key: "notaryAmount", label: "Not.$", type: "decimal", width: 95, format: "currency", calculated: true },
+      { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
+      { key: "isaAmount", label: "ISAI$", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "ISAI Monto" },
+      { key: "notaryPercent", label: "Not.%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
+      { key: "notaryAmount", label: "Not.$", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Notaría Monto" },
       { key: "equipmentCost", label: "Equipo", type: "decimal", width: 95, format: "currency" },
       { key: "furnitureCost", label: "Muebles", type: "decimal", width: 95, format: "currency" },
       { key: "totalPostDeliveryCosts", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
@@ -286,7 +286,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "bg-orange-100 dark:bg-orange-800",
     cellColor: "bg-orange-50 dark:bg-orange-900/20",
     columns: [
-      { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
     ],
@@ -368,8 +368,8 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-pink-50 dark:bg-pink-900/20",
     columns: [
       { key: "investmentTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "investmentNet", label: "Neta", type: "decimal", width: 95, format: "currency", calculated: true },
-      { key: "investmentMonthly", label: "Mens.", type: "decimal", width: 95, format: "currency", calculated: true },
+      { key: "investmentNet", label: "Neta", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Inversión Neta" },
+      { key: "investmentMonthly", label: "Mens.", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "investmentRate", label: "Tasa", type: "decimal", width: 55, format: "percent", calculated: true, centerCells: true },
     ],
   },
@@ -395,7 +395,7 @@ const SECTIONS: SectionDef[] = [
       { key: "appreciationMonths", label: "Meses", type: "number", width: 50 },
       { key: "appreciationYears", label: "Años", type: "number", width: 45 },
       { key: "appreciationTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "finalValue", label: "M. Final", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "finalValue", label: "M. Final", type: "decimal", width: 110, format: "currency", calculated: true, fullLabel: "Monto Final" },
     ],
   },
   ];
@@ -677,7 +677,7 @@ function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLa
     return () => window.removeEventListener("resize", checkTruncation);
   }, [label]);
   
-  if (isTruncated && fullLabel) {
+  if (isTruncated || fullLabel) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -690,7 +690,7 @@ function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLa
           </span>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {fullLabel}
+          {fullLabel || label}
         </TooltipContent>
       </Tooltip>
     );
