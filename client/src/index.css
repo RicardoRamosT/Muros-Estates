@@ -348,6 +348,10 @@
     height: 32px;
     min-height: 32px;
   }
+  .spreadsheet-header-row3 {
+    height: 32px;
+    min-height: 32px;
+  }
 
   /* Visible scrollbar for spreadsheet containers */
   .spreadsheet-scroll::-webkit-scrollbar {

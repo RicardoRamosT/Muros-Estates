@@ -1573,6 +1573,7 @@ export function TypologySpreadsheet() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(SECTIONS.map(s => s.id))
   );
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [rangeFilters, setRangeFilters] = useState<RangeFilters>({});
@@ -2233,6 +2234,25 @@ export function TypologySpreadsheet() {
       return next;
     });
   };
+
+  const COLLAPSED_COL_WIDTH = 20;
+
+  const toggleColumn = (columnKey: string) => {
+    setCollapsedColumns(prev => {
+      const next = new Set(prev);
+      if (next.has(columnKey)) {
+        next.delete(columnKey);
+      } else {
+        next.add(columnKey);
+      }
+      return next;
+    });
+  };
+
+  const getColWidth = (col: ColumnDef) => {
+    if (collapsedColumns.has(col.key)) return COLLAPSED_COL_WIDTH;
+    return (col.width || 100) + SORT_ICON_WIDTH;
+  };
   
   const handleColumnFilterChange = (columnKey: string, values: Set<string>) => {
     setColumnFilters(prev => ({
@@ -2484,16 +2504,13 @@ export function TypologySpreadsheet() {
         className="flex-1 overflow-auto spreadsheet-scroll"
       >
         <div className="min-w-max">
-          {/* Header: Two-row structure for consistent alignment */}
+          {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
               <div className="w-[45px] flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 sticky left-0 z-30" />
               {SECTIONS.map((section, sectionIndex) => {
-                const sectionWidth = section.columns.reduce((sum, col) => {
-                  const w = typeof col.width === 'number' ? col.width : parseInt(String(col.width || 100));
-                  return sum + w + SORT_ICON_WIDTH;
-                }, 0);
+                const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                 const isExpanded = expandedSections.has(section.id);
                 const collapsedWidth = 40;
                 const isFirstSection = sectionIndex === 0;
@@ -2534,13 +2551,13 @@ export function TypologySpreadsheet() {
               <div className="w-24 flex-shrink-0 bg-muted/50" />
             </div>
             
-            {/* Row 2: Column headers - flat structure for perfect alignment */}
+            {/* Row 2: Column names with individual collapse */}
             <div className="flex border-b spreadsheet-header-row2">
               <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
-                const collapsedWidth = 40;
+                const collapsedSectionWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
                 const isFirstSection = sectionIndex === 0;
                 if (!isExpanded) {
@@ -2548,60 +2565,125 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-${section.id}`}
                       className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.headerColor, isFirstSection && "sticky z-30")}
-                      style={{ width: collapsedWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
-                return section.columns.map((col, colIndex) => {
+                return section.columns.map((col) => {
+                  const isColCollapsed = collapsedColumns.has(col.key);
+                  const colW = getColWidth(col);
                   return (
                     <div
-                      key={col.key}
+                      key={`name-${col.key}`}
                       className={cn(
-                        "flex-shrink-0 h-full overflow-hidden",
-                        colIndex === section.columns.length - 1 ? "border-r" : "border-r",
+                        "flex-shrink-0 h-full border-r flex items-center",
+                        isColCollapsed ? "justify-center" : "justify-between",
+                        section.columnHeaderColor,
                         isFirstSection && "sticky z-30"
                       )}
-                      style={{ width: (col.width || 100) + SORT_ICON_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ width: colW, ...(isFirstSection ? { left: 45 } : {}) }}
                     >
-                      <ColumnFilter
-                        column={col}
-                        data={typologies}
-                        selectedValues={columnFilters[col.key] || new Set()}
-                        sortDirection={columnSorts[col.key] || null}
-                        onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
-                        onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                        sectionColor={section.columnHeaderColor}
-                        availableValues={availableValuesMap[col.key]}
-                        rangeFilter={rangeFilters[col.key]}
-                        onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
-                        groupedOptions={
-                          col.key === "zone" ? zoneGroupedOptions :
-                          col.key === "development" ? developmentGroupedOptions :
-                          undefined
-                        }
-                        columnWidth={col.width}
-                        hideLabel={col.hideLabel}
-                        fullLabel={col.fullLabel}
-                      />
+                      {isColCollapsed ? (
+                        <button
+                          onClick={() => toggleColumn(col.key)}
+                          className="flex items-center justify-center w-full h-full hover-elevate cursor-pointer"
+                          data-testid={`col-expand-${col.key}`}
+                        >
+                          <Plus className="w-3 h-3 opacity-60" />
+                        </button>
+                      ) : (
+                        <>
+                          <TruncatedLabel 
+                            label={col.label} 
+                            fullLabel={col.fullLabel}
+                            columnKey={col.key}
+                          />
+                          <button
+                            onClick={() => toggleColumn(col.key)}
+                            className="flex items-center justify-center h-full flex-shrink-0 hover-elevate cursor-pointer"
+                            style={{ width: 20 }}
+                            data-testid={`col-collapse-${col.key}`}
+                          >
+                            <Minus className="w-3 h-3 opacity-60" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   );
                 });
               })}
-            
-            <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                    <Images className="w-3 h-3" />
-                    Medios
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Subir fotos/videos a Documentos &gt; Desarrolladores &gt; Productos</p>
-                </TooltipContent>
-              </Tooltip>
+              <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                      <Images className="w-3 h-3" />
+                      Medios
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Subir fotos/videos a Documentos &gt; Desarrolladores &gt; Productos</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-          </div>
+
+            {/* Row 3: Filter and sort controls */}
+            <div className="flex border-b spreadsheet-header-row3">
+              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 sticky left-0 z-30" />
+              {SECTIONS.flatMap((section, sectionIndex) => {
+                const collapsedSectionWidth = 40;
+                const isExpanded = expandedSections.has(section.id);
+                const isFirstSection = sectionIndex === 0;
+                if (!isExpanded) {
+                  return [(
+                    <div 
+                      key={`collapsed-filter-${section.id}`}
+                      className={cn("border-r flex-shrink-0 h-full", section.columnHeaderColor, isFirstSection && "sticky z-30")}
+                      style={{ width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                    />
+                  )];
+                }
+                return section.columns.map((col) => {
+                  const isColCollapsed = collapsedColumns.has(col.key);
+                  const colW = getColWidth(col);
+                  return (
+                    <div
+                      key={`filter-${col.key}`}
+                      className={cn(
+                        "flex-shrink-0 h-full border-r",
+                        isColCollapsed ? section.columnHeaderColor : "overflow-hidden",
+                        isFirstSection && "sticky z-30"
+                      )}
+                      style={{ width: colW, ...(isFirstSection ? { left: 45 } : {}) }}
+                    >
+                      {!isColCollapsed && (
+                        <ColumnFilter
+                          column={col}
+                          data={typologies}
+                          selectedValues={columnFilters[col.key] || new Set()}
+                          sortDirection={columnSorts[col.key] || null}
+                          onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
+                          onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
+                          sectionColor={section.columnHeaderColor}
+                          availableValues={availableValuesMap[col.key]}
+                          rangeFilter={rangeFilters[col.key]}
+                          onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
+                          groupedOptions={
+                            col.key === "zone" ? zoneGroupedOptions :
+                            col.key === "development" ? developmentGroupedOptions :
+                            undefined
+                          }
+                          columnWidth={col.width}
+                          hideLabel={true}
+                          fullLabel={col.fullLabel || col.label}
+                        />
+                      )}
+                    </div>
+                  );
+                });
+              })}
+              <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 border-r" />
+            </div>
           </div>
           
           {visibleData.map((row, rowIndex) => {
@@ -2643,6 +2725,24 @@ export function TypologySpreadsheet() {
                     )];
                   }
                   return section.columns.map((col, colIndex) => {
+                    const isColCollapsed = collapsedColumns.has(col.key);
+                    if (isColCollapsed) {
+                      const collapsedCell = (
+                        <div
+                          key={col.key}
+                          className={cn("spreadsheet-cell border-r", section.cellColor || "bg-muted/20")}
+                          style={{ width: COLLAPSED_COL_WIDTH }}
+                        />
+                      );
+                      if (isFirstSection) {
+                        return (
+                          <div key={`sticky-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 45 }}>
+                            {collapsedCell}
+                          </div>
+                        );
+                      }
+                      return collapsedCell;
+                    }
                     if (col.key === "createdDate") {
                       return (
                         <div
