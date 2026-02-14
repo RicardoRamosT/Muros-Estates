@@ -1639,6 +1639,28 @@ export function TypologySpreadsheet() {
     });
     return map;
   }, [globalSettingsData]);
+
+  const cityDefaultsMap = useMemo(() => {
+    const map: Record<string, { isaPercent: number; notariaPercent: number }> = {};
+    catalogCities.forEach((city: any) => {
+      if (city.name) {
+        map[city.name] = {
+          isaPercent: parseFloat(city.isaiPercent) || 3.0,
+          notariaPercent: parseFloat(city.notariaPercent) || 2.5,
+        };
+      }
+    });
+    return map;
+  }, [catalogCities]);
+
+  const getDefaultsForRow = (row: Partial<Typology>) => {
+    const cityName = row.city as string;
+    const cityDefaults = cityName ? cityDefaultsMap[cityName] : undefined;
+    return {
+      ...globalDefaultsMap,
+      ...(cityDefaults ? { isaPercent: cityDefaults.isaPercent, notaryPercent: cityDefaults.notariaPercent } : {}),
+    };
+  };
   
   const vistaOptions = useMemo(() => {
     return catalogVistas.map(v => v.name).filter(Boolean);
@@ -2121,7 +2143,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculatedFields = calculateFields(updatedRow, globalDefaultsMap);
+    const calculatedFields = calculateFields(updatedRow, getDefaultsForRow(updatedRow));
     
     // Don't overwrite remaining fields if user manually edited them
     if (field === "remainingPercent" || field === "remainingAmount") {
@@ -2387,7 +2409,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculated = calculateFields(merged, globalDefaultsMap);
+    const calculated = calculateFields(merged, getDefaultsForRow(merged));
     return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper, deliveryDate: autoDeliveryDate } as Typology;
   };
   
