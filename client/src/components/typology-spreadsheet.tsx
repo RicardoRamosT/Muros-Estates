@@ -102,8 +102,8 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
-      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
-      { key: "developer", label: "Desarrollador", type: "text", width: 105, calculated: true },
+      { key: "zone", label: "Zona", type: "select", options: [], width: 100 },
+      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 105 },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
     ],
@@ -1119,13 +1119,15 @@ interface EditableCellProps {
   recamaraOptions?: string[];
   banoOptions?: string[];
   cajonOptions?: string[];
+  developerSelectOptions?: string[];
+  zoneOptionsByCity?: Record<string, string[]>;
   isLastInSection?: boolean;
   row?: Typology;
   sectionCellColor?: string;
   isDynamicCalculated?: boolean;
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
+function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1309,9 +1311,19 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   if (column.type === "select") {
     let options: readonly string[] = dynamicOptions || column.options || [];
     if (column.key === "zone" && city) {
-      options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
+      if (zoneOptionsByCity && zoneOptionsByCity[city]?.length > 0) {
+        options = zoneOptionsByCity[city];
+      } else {
+        options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
+      }
     }
     
+    if (column.key === "developer") {
+      if (developerSelectOptions && developerSelectOptions.length > 0) {
+        options = developerSelectOptions;
+      }
+    }
+
     if (column.key === "development" && city && allDevelopments) {
       const filteredDevs = allDevelopments
         .filter(d => d.city === city)
@@ -1646,6 +1658,22 @@ export function TypologySpreadsheet() {
     return allNames.sort();
   }, [dbDevelopments]);
   
+  const zoneOptionsByCity = useMemo(() => {
+    const cityMap: Record<string, string[]> = {};
+    catalogZones.forEach((zone: any) => {
+      if (!zone.name) return;
+      const cityId = zone.cityId;
+      const city = catalogCities.find((c: any) => c.id === cityId);
+      const cityName = city?.name || "Sin Ciudad";
+      if (!cityMap[cityName]) cityMap[cityName] = [];
+      if (!cityMap[cityName].includes(zone.name)) {
+        cityMap[cityName].push(zone.name);
+      }
+    });
+    Object.keys(cityMap).forEach(k => cityMap[k].sort());
+    return cityMap;
+  }, [catalogZones, catalogCities]);
+
   const zoneGroupedOptions = useMemo(() => {
     const groups: { group: string; values: string[] }[] = [];
     const cityMap: Record<string, string[]> = {};
@@ -2609,6 +2637,8 @@ export function TypologySpreadsheet() {
                         recamaraOptions={recamaraOptions}
                         banoOptions={banoOptions}
                         cajonOptions={cajonOptions}
+                        developerSelectOptions={developerOptions}
+                        zoneOptionsByCity={zoneOptionsByCity}
                         isLastInSection={colIndex === section.columns.length - 1}
                         row={mergedRow as Typology}
                         sectionCellColor={section.cellColor}
