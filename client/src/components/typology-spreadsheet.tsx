@@ -2607,6 +2607,7 @@ export function TypologySpreadsheet() {
                         </button>
                       ) : (
                         <>
+                          <div className="flex-shrink-0" style={{ width: 20 }} />
                           <TruncatedLabel 
                             label={col.label} 
                             fullLabel={col.fullLabel}
