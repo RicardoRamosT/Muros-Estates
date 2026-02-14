@@ -1531,8 +1531,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   return (
     <div
       className={cn(
-        "spreadsheet-cell px-2 text-xs cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30",
-        (column.format === "currency" || column.format === "area") ? "" : "truncate",
+        "spreadsheet-cell px-2 text-xs cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 overflow-hidden",
         column.centerCells && "justify-center text-center"
       )}
       style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
@@ -1542,7 +1541,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     >
       {(column.format === "currency" || column.format === "area")
         ? <FormattedCellValue value={value} format={column.format} />
-        : (formatValue(value, column.format) || "")}
+        : <span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span>}
     </div>
   );
 }
