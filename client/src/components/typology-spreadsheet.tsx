@@ -2526,7 +2526,7 @@ export function TypologySpreadsheet() {
                     }}
                   >
                     {isExpanded && (
-                      <div className="pointer-events-none" style={{ width: 32 }} />
+                      <div className="pointer-events-none" style={{ width: 20 }} />
                     )}
                     {isExpanded && (
                       <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
@@ -2535,16 +2535,14 @@ export function TypologySpreadsheet() {
                     )}
                     <button
                       onClick={() => toggleSection(section.id)}
-                      className={cn(
-                        "flex items-center justify-center px-2 h-full",
-                        "hover-elevate cursor-pointer"
-                      )}
+                      className="flex items-center justify-center h-full flex-shrink-0 hover-elevate cursor-pointer"
+                      style={{ width: 20 }}
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className={cn("w-3 h-3", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
+                        <Minus className="w-3 h-3 opacity-60" />
                       ) : (
-                        <Plus className={cn("w-3 h-3", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
+                        <Plus className="w-3 h-3 opacity-60" />
                       )}
                     </button>
                   </div>
