@@ -1797,8 +1797,25 @@ export async function registerRoutes(
   });
 
   // Global Settings
+  const DEFAULT_GLOBAL_SETTINGS = [
+    { key: "mortgageInterestPercent", value: "10.5", label: "Tasa C.H." },
+    { key: "mortgageYears", value: "15", label: "Años" },
+    { key: "rentRatePercent", value: "7.0", label: "Tasa Renta" },
+    { key: "rentMonths", value: "11", label: "Meses" },
+    { key: "appreciationRate", value: "7.0", label: "Tasa Plusvalía" },
+  ];
+
   app.get("/api/global-settings", requireAuth, async (req, res) => {
-    const settings = await storage.getGlobalSettings();
+    let settings = await storage.getGlobalSettings();
+    const existingKeys = new Set(settings.map(s => s.key));
+    for (const def of DEFAULT_GLOBAL_SETTINGS) {
+      if (!existingKeys.has(def.key)) {
+        await storage.upsertGlobalSetting(def.key, def.value, def.label);
+      }
+    }
+    if (settings.length < DEFAULT_GLOBAL_SETTINGS.length) {
+      settings = await storage.getGlobalSettings();
+    }
     res.json(settings);
   });
 

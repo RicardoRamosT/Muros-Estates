@@ -201,7 +201,7 @@ function ProspectosCatalogs() {
 
 function GlobalRatesTable() {
   const { toast } = useToast();
-  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingCell, setEditingCell] = useState<{ key: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState("");
 
   const { data: settings = [], isLoading } = useQuery<{ id: string; key: string; value: string; label: string | null }[]>({ queryKey: ["/api/global-settings"] });
@@ -216,11 +216,11 @@ function GlobalRatesTable() {
   });
 
   const RATE_CONFIGS = [
-    { key: "mortgageInterestPercent", label: "TASA C.H.", defaultValue: "10.5", suffix: "%", color: "bg-[rgb(253,204,124)]" },
-    { key: "mortgageYears", label: "AÑOS", defaultValue: "15", suffix: "", color: "bg-[rgb(253,204,124)]" },
-    { key: "rentRatePercent", label: "TASA RENTA", defaultValue: "7.0", suffix: "%", color: "bg-green-400" },
-    { key: "rentMonths", label: "MESES", defaultValue: "11", suffix: "", color: "bg-green-400" },
-    { key: "appreciationRate", label: "TASA PLUSV.", defaultValue: "7.0", suffix: "%", color: "bg-green-500" },
+    { key: "mortgageInterestPercent", label: "Tasa C.H.", defaultValue: "10.5", suffix: "%", step: "0.1" },
+    { key: "mortgageYears", label: "Años", defaultValue: "15", suffix: "", step: "1" },
+    { key: "rentRatePercent", label: "Tasa Renta", defaultValue: "7.0", suffix: "%", step: "0.1" },
+    { key: "rentMonths", label: "Meses", defaultValue: "11", suffix: "", step: "1" },
+    { key: "appreciationRate", label: "Tasa Plusvalía", defaultValue: "7.0", suffix: "%", step: "0.1" },
   ];
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
@@ -230,64 +230,73 @@ function GlobalRatesTable() {
     return setting?.value ?? defaultValue;
   };
 
+  const getLabel = (key: string, defaultLabel: string) => {
+    const setting = settings.find(s => s.key === key);
+    return setting?.label ?? defaultLabel;
+  };
+
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden max-w-md" data-testid="global-rates-table">
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden" data-testid="global-rates-table">
       <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
         <div className="flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">Tasas y Parámetros Globales</span>
+          <span className="font-medium text-sm">{RATE_CONFIGS.length} Tasas y Parámetros Globales</span>
         </div>
       </div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className={HEADER_STYLE} style={{ width: "180px" }}>Parámetro</th>
-            <th className={HEADER_STYLE} style={{ width: "120px" }}>Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {RATE_CONFIGS.map(config => {
-            const currentValue = getValue(config.key, config.defaultValue);
-            const isEditing = editingKey === config.key;
-            return (
-              <tr key={config.key} data-testid={`row-rate-${config.key}`}>
-                <td className={`${getCellStyle({ type: "readonly" })} font-semibold text-xs`}>
-                  <span className={`inline-block px-2 py-0.5 rounded text-black ${config.color}`}>{config.label}</span>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing })}>
-                  {isEditing ? (
-                    <Input
-                      type="number"
-                      step={config.suffix === "%" ? "0.1" : "1"}
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => {
-                        updateMutation.mutate({ key: config.key, value: editValue, label: config.label });
-                        setEditingKey(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          updateMutation.mutate({ key: config.key, value: editValue, label: config.label });
-                          setEditingKey(null);
-                        }
-                      }}
-                      autoFocus
-                      className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center"
-                    />
-                  ) : (
-                    <span
-                      className="block w-full cursor-text text-center font-medium"
-                      onClick={() => { setEditingKey(config.key); setEditValue(currentValue); }}
-                    >
-                      {currentValue}{config.suffix}
-                    </span>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="overflow-auto max-h-[600px]">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
+              <th className={HEADER_STYLE} style={{ minWidth: "200px" }}>Parámetro</th>
+              <th className={HEADER_STYLE} style={{ width: "120px" }}>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {RATE_CONFIGS.map((config, idx) => {
+              const currentValue = getValue(config.key, config.defaultValue);
+              const currentLabel = getLabel(config.key, config.label);
+              const isEditingLabel = editingCell?.key === config.key && editingCell?.field === "label";
+              const isEditingValue = editingCell?.key === config.key && editingCell?.field === "value";
+              return (
+                <tr key={config.key} data-testid={`row-rate-${config.key}`}>
+                  <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
+                  <td className={getCellStyle({ type: "input", isEditing: isEditingLabel })}>
+                    {isEditingLabel ? (
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ key: config.key, value: currentValue, label: editValue }); setEditingCell(null); }}
+                        onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ key: config.key, value: currentValue, label: editValue }), setEditingCell(null))}
+                        autoFocus
+                        className="h-6 text-sm border-0 p-0 focus-visible:ring-0"
+                      />
+                    ) : (
+                      <span className="block w-full cursor-text" onClick={() => { setEditingCell({ key: config.key, field: "label" }); setEditValue(currentLabel); }}>{currentLabel}</span>
+                    )}
+                  </td>
+                  <td className={getCellStyle({ type: "input", isEditing: isEditingValue })}>
+                    {isEditingValue ? (
+                      <Input
+                        type="number"
+                        step={config.step}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ key: config.key, value: editValue, label: currentLabel }); setEditingCell(null); }}
+                        onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ key: config.key, value: editValue, label: currentLabel }), setEditingCell(null))}
+                        autoFocus
+                        className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center"
+                      />
+                    ) : (
+                      <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ key: config.key, field: "value" }); setEditValue(currentValue); }}>{currentValue}{config.suffix}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
