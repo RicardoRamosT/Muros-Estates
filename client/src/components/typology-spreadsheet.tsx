@@ -836,18 +836,19 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center", hideLabel && "justify-center", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
+    <div className={cn("w-full h-full relative flex items-center", hideLabel ? "justify-between px-1" : "", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="flex-shrink-0" style={{ width: 28, height: '100%' }}>
+              <span className="flex-shrink-0" style={{ height: '100%' }}>
                 <PopoverTrigger asChild>
                   <button
                     className={cn(
-                      "flex items-center justify-center h-full w-full hover-elevate cursor-pointer rounded flex-shrink-0",
+                      "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
                       hasActiveFilter && "bg-primary/10"
                     )}
+                    style={{ width: 20 }}
                     data-testid={`filter-trigger-${column.key}`}
                   >
                     <ChevronDown className={cn(
@@ -1100,7 +1101,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                 "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
                 isSorted && "bg-primary/10"
               )}
-              style={{ width: 28 }}
+              style={{ width: 20 }}
               title={undefined}
               data-testid={`sort-toggle-${column.key}`}
             >
@@ -2527,7 +2528,7 @@ export function TypologySpreadsheet() {
                       <div className="pointer-events-none" style={{ width: 32 }} />
                     )}
                     {isExpanded && (
-                      <span className="text-xs font-medium flex-1 text-center pointer-events-none">
+                      <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
                         {section.label}
                       </span>
                     )}
@@ -2552,7 +2553,7 @@ export function TypologySpreadsheet() {
             </div>
             
             {/* Row 2: Column names with individual collapse */}
-            <div className="flex border-b spreadsheet-header-row2">
+            <div className="flex spreadsheet-header-row2">
               <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
