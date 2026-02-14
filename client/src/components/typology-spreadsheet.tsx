@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
-  Loader2, RefreshCw, AlertCircle,
+  Loader2, RefreshCw, AlertCircle, ArrowDown,
   ArrowUpDown, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
 } from "lucide-react";
 import {
@@ -798,21 +798,26 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   const SortIcon = () => {
+    const signs = (top: string, bottom: string) => (
+      <span className="flex flex-col items-center leading-none" style={{ fontSize: 8, gap: 0 }}>
+        <span className="font-bold">{top}</span>
+        <span className="font-bold">{bottom}</span>
+      </span>
+    );
+    const arrow = <ArrowDown className="w-3 h-3 flex-shrink-0" />;
     if (sortDirection === "asc") {
       return (
-        <span className="flex items-center gap-0 text-primary" style={{ fontSize: 9, lineHeight: 1 }}>
-          <span className="font-bold">−</span>
-          <ChevronDown className="w-2.5 h-2.5" />
-          <span className="font-bold">+</span>
+        <span className="flex items-center gap-0 text-primary">
+          {signs("−", "+")}
+          {arrow}
         </span>
       );
     }
     if (sortDirection === "desc") {
       return (
-        <span className="flex items-center gap-0 text-primary" style={{ fontSize: 9, lineHeight: 1 }}>
-          <span className="font-bold">+</span>
-          <ChevronDown className="w-2.5 h-2.5" />
-          <span className="font-bold">−</span>
+        <span className="flex items-center gap-0 text-primary">
+          {arrow}
+          {signs("+", "−")}
         </span>
       );
     }

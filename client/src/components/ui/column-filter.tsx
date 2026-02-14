@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ArrowUpDown,
+  ArrowUpDown, ArrowDown,
   ChevronDown, Check, X, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -111,21 +111,26 @@ export function ColumnFilter({
   };
 
   const SortIcon = () => {
+    const signs = (top: string, bottom: string) => (
+      <span className="flex flex-col items-center leading-none" style={{ fontSize: 8, gap: 0 }}>
+        <span className="font-bold">{top}</span>
+        <span className="font-bold">{bottom}</span>
+      </span>
+    );
+    const arrow = <ArrowDown className="w-3 h-3 flex-shrink-0" />;
     if (sortDirection === "asc") {
       return (
-        <span className="flex items-center gap-0 text-primary" style={{ fontSize: 9, lineHeight: 1 }}>
-          <span className="font-bold">−</span>
-          <ChevronDown className="w-2.5 h-2.5" />
-          <span className="font-bold">+</span>
+        <span className="flex items-center gap-0 text-primary">
+          {signs("−", "+")}
+          {arrow}
         </span>
       );
     }
     if (sortDirection === "desc") {
       return (
-        <span className="flex items-center gap-0 text-primary" style={{ fontSize: 9, lineHeight: 1 }}>
-          <span className="font-bold">+</span>
-          <ChevronDown className="w-2.5 h-2.5" />
-          <span className="font-bold">−</span>
+        <span className="flex items-center gap-0 text-primary">
+          {arrow}
+          {signs("+", "−")}
         </span>
       );
     }
