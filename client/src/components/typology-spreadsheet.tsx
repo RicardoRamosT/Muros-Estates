@@ -85,7 +85,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "fechahora",
-    label: "FECHA/HORA",
+    label: "Fecha/Hora",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -110,7 +110,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "generales",
-    label: "GENERALES",
+    label: "Generales",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -122,7 +122,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "precio_tamano",
-    label: "TAMAÑO",
+    label: "Tamaño",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -133,7 +133,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "precio_valores",
-    label: "PRECIO",
+    label: "Precio",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -154,7 +154,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "distribucion",
-    label: "DISTRIBUCIÓN",
+    label: "Distribución",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -189,7 +189,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "cajones",
-    label: "CAJONES",
+    label: "Cajones",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -204,7 +204,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "bodega",
-    label: "BODEGA",
+    label: "Bodega",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -223,7 +223,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "pago",
-    label: "ESQUEMA DE PAGO",
+    label: "Esquema de Pago",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -251,7 +251,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "gastos",
-    label: "GASTOS POST-ENTREGA",
+    label: "Gastos Post-Entrega",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -281,7 +281,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "credito",
-    label: "CRÉDITO HIPOTECARIO",
+    label: "Crédito Hipotecario",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -293,7 +293,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "mantenimiento",
-    label: "MANTENIMIENTO",
+    label: "Mantenimiento",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -308,7 +308,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "renta1",
-    label: "RENTA",
+    label: "Renta",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -330,7 +330,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "renta2",
-    label: "RENTA",
+    label: "Renta",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -352,7 +352,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "total_renta",
-    label: "TOTAL",
+    label: "Total",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -362,7 +362,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "inversion",
-    label: "INVERSIÓN",
+    label: "Inversión",
     headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -386,7 +386,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "plusvalia",
-    label: "PLUSVALÍA",
+    label: "Plusvalía",
     headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
