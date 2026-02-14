@@ -1160,6 +1160,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cellBorderClass = isLastInSection ? "no-border-r" : "";
   
   useEffect(() => {
     setLocalValue(value);
@@ -1192,7 +1193,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs",
+          "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.calculated && "bg-gray-200 dark:bg-gray-800/50",
           column.calculated && "text-muted-foreground",
@@ -1214,7 +1215,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-200 dark:bg-gray-800/50 text-muted-foreground",
+          "spreadsheet-cell px-2 text-xs cursor-pointer bg-gray-200 dark:bg-gray-800/50 text-muted-foreground", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
         )}
@@ -1244,7 +1245,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         : 'text-muted-foreground';
     return (
       <div 
-        className="spreadsheet-cell px-0"
+        className={cn("spreadsheet-cell px-0", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <Select
@@ -1295,7 +1296,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     
     return (
       <div 
-        className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
+        className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         {disabled ? (
@@ -1410,7 +1411,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     
     return (
       <div 
-        className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
+        className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Select 
@@ -1455,7 +1456,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     if (availableTypes.length === 0) {
       return (
         <div 
-          className="spreadsheet-cell px-1 bg-gray-100 dark:bg-gray-800/50" 
+          className={cn("spreadsheet-cell px-1 bg-gray-100 dark:bg-gray-800/50", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           <span className="text-xs text-muted-foreground">Sin tipos</span>
@@ -1469,7 +1470,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
     
     return (
       <div 
-        className="spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50" 
+        className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         {disabled ? (
@@ -1520,7 +1521,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   if (isEditing) {
     return (
       <div 
-        className="spreadsheet-cell px-1 bg-white dark:bg-gray-900 ring-1 ring-primary" 
+        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900 ring-1 ring-primary", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Input
@@ -1541,7 +1542,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   return (
     <div
       className={cn(
-        "spreadsheet-cell px-2 text-xs cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 overflow-hidden",
+        "spreadsheet-cell px-2 text-xs cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 overflow-hidden", cellBorderClass,
         column.centerCells && "justify-center text-center"
       )}
       style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
@@ -2518,7 +2519,7 @@ export function TypologySpreadsheet() {
                 return (
                   <div 
                     key={section.id} 
-                    className={cn("border-r flex-shrink-0 flex items-center justify-between h-full", section.headerColor, isFirstSection && "sticky z-30")}
+                    className={cn("flex-shrink-0 flex items-center justify-between h-full", section.headerColor, isFirstSection && "sticky z-30")}
                     style={{ 
                       width: isExpanded ? sectionWidth : collapsedWidth,
                       ...(isFirstSection ? { left: 45 } : {})
@@ -2553,7 +2554,7 @@ export function TypologySpreadsheet() {
             </div>
             
             {/* Row 2: Column names with individual collapse */}
-            <div className="flex spreadsheet-header-row2">
+            <div className="flex border-b spreadsheet-header-row2">
               <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
@@ -2565,19 +2566,21 @@ export function TypologySpreadsheet() {
                   return [(
                     <div 
                       key={`collapsed-${section.id}`}
-                      className={cn("border-r flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.headerColor, isFirstSection && "sticky z-30")}
+                      className={cn("flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.headerColor, isFirstSection && "sticky z-30")}
                       style={{ width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
-                return section.columns.map((col) => {
+                return section.columns.map((col, colIndex) => {
                   const isColCollapsed = collapsedColumns.has(col.key);
                   const colW = getColWidth(col);
+                  const isLastCol = colIndex === section.columns.length - 1;
                   return (
                     <div
                       key={`name-${col.key}`}
                       className={cn(
-                        "flex-shrink-0 h-full border-r flex items-center",
+                        "flex-shrink-0 h-full flex items-center",
+                        !isLastCol && "border-r",
                         isColCollapsed ? "justify-center" : "justify-between",
                         section.columnHeaderColor,
                         isFirstSection && "sticky z-30"
@@ -2639,19 +2642,21 @@ export function TypologySpreadsheet() {
                   return [(
                     <div 
                       key={`collapsed-filter-${section.id}`}
-                      className={cn("border-r flex-shrink-0 h-full", section.columnHeaderColor, isFirstSection && "sticky z-30")}
+                      className={cn("flex-shrink-0 h-full", section.columnHeaderColor, isFirstSection && "sticky z-30")}
                       style={{ width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
-                return section.columns.map((col) => {
+                return section.columns.map((col, colIndex) => {
                   const isColCollapsed = collapsedColumns.has(col.key);
                   const colW = getColWidth(col);
+                  const isLastCol = colIndex === section.columns.length - 1;
                   return (
                     <div
                       key={`filter-${col.key}`}
                       className={cn(
-                        "flex-shrink-0 h-full border-r",
+                        "flex-shrink-0 h-full",
+                        !isLastCol && "border-r",
                         isColCollapsed ? section.columnHeaderColor : "overflow-hidden",
                         isFirstSection && "sticky z-30"
                       )}
@@ -2717,7 +2722,7 @@ export function TypologySpreadsheet() {
                       <div 
                         key={`collapsed-${section.id}`}
                         className={cn(
-                          "spreadsheet-cell border-r",
+                          "spreadsheet-cell no-border-r",
                           section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20",
                           isFirstSection && "sticky z-10 bg-gray-50 dark:bg-gray-800"
                         )}
@@ -2727,11 +2732,12 @@ export function TypologySpreadsheet() {
                   }
                   return section.columns.map((col, colIndex) => {
                     const isColCollapsed = collapsedColumns.has(col.key);
+                    const isLastCol = colIndex === section.columns.length - 1;
                     if (isColCollapsed) {
                       const collapsedCell = (
                         <div
                           key={col.key}
-                          className={cn("spreadsheet-cell border-r", section.cellColor || "bg-muted/20")}
+                          className={cn("spreadsheet-cell", isLastCol ? "no-border-r" : "", section.cellColor || "bg-muted/20")}
                           style={{ width: COLLAPSED_COL_WIDTH }}
                         />
                       );
@@ -2750,7 +2756,7 @@ export function TypologySpreadsheet() {
                           key={col.key}
                           className={cn(
                             "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor
+                            section.cellColor, isLastCol && "no-border-r"
                           )}
                           style={{ width: (col.width || 85) + SORT_ICON_WIDTH }}
                           data-testid={`cell-createdDate-${row.id}`}
@@ -2765,7 +2771,7 @@ export function TypologySpreadsheet() {
                           key={col.key}
                           className={cn(
                             "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor
+                            section.cellColor, isLastCol && "no-border-r"
                           )}
                           style={{ width: (col.width || 65) + SORT_ICON_WIDTH }}
                           data-testid={`cell-createdTime-${row.id}`}

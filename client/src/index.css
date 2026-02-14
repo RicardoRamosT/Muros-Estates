@@ -338,6 +338,9 @@
     border-bottom: 1px solid hsl(var(--border));
     overflow: hidden;
   }
+  .spreadsheet-cell.no-border-r {
+    border-right: none;
+  }
 
   /* Spreadsheet header heights - consistent across section rows */
   .spreadsheet-header-row1 {
