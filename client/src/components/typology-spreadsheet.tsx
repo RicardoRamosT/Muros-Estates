@@ -443,8 +443,10 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const totalEnganche = initialAmount + duringConstructionAmount;
   const remainingPercent = 100 - initialPercent - duringConstructionPercent;
   
-  const isaPercent = parseFloat(row.isaPercent as string) || 3.0;
-  const notaryPercent = parseFloat(row.notaryPercent as string) || 2.5;
+  const isaPercentDefault = globalDefaults?.['isaPercent'] ?? 3.0;
+  const notaryPercentDefault = globalDefaults?.['notaryPercent'] ?? 2.5;
+  const isaPercent = parseFloat(row.isaPercent as string) || isaPercentDefault;
+  const notaryPercent = parseFloat(row.notaryPercent as string) || notaryPercentDefault;
   const equipmentCost = parseFloat(row.equipmentCost as string) || 0;
   const furnitureCost = parseFloat(row.furnitureCost as string) || 0;
   const isaAmount = finalPrice * (isaPercent / 100);
@@ -495,7 +497,9 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     totalEnganche: totalEnganche.toFixed(2),
     remainingPercent: remainingPercent.toFixed(2),
     remainingAmount: (finalPrice * remainingPercent / 100).toFixed(2),
+    isaPercent: row.isaPercent ?? isaPercent.toFixed(2),
     isaAmount: isaAmount.toFixed(2),
+    notaryPercent: row.notaryPercent ?? notaryPercent.toFixed(2),
     notaryAmount: notaryAmount.toFixed(2),
     totalPostDeliveryCosts: totalPostDeliveryCosts.toFixed(2),
     mortgageMonthlyPayment: mortgageMonthlyPayment.toFixed(2),
