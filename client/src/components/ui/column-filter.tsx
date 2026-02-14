@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowDown10, ArrowUpDown,
+  ArrowUpDown,
   ChevronDown, Check, X, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -112,10 +112,22 @@ export function ColumnFilter({
 
   const SortIcon = () => {
     if (sortDirection === "asc") {
-      return isNumeric ? <ArrowUp01 className="w-3 h-3 text-primary" /> : <ArrowUpAZ className="w-3 h-3 text-primary" />;
+      return (
+        <span className="flex items-center gap-0 text-primary" style={{ fontSize: 9, lineHeight: 1 }}>
+          <span className="font-bold">−</span>
+          <ChevronDown className="w-2.5 h-2.5" />
+          <span className="font-bold">+</span>
+        </span>
+      );
     }
     if (sortDirection === "desc") {
-      return isNumeric ? <ArrowDown10 className="w-3 h-3 text-primary" /> : <ArrowDownAZ className="w-3 h-3 text-primary" />;
+      return (
+        <span className="flex items-center gap-0 text-primary" style={{ fontSize: 9, lineHeight: 1 }}>
+          <span className="font-bold">+</span>
+          <ChevronDown className="w-2.5 h-2.5" />
+          <span className="font-bold">−</span>
+        </span>
+      );
     }
     return <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-60" />;
   };

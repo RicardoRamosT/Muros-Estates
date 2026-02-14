@@ -341,8 +341,8 @@
 
   /* Spreadsheet header heights - consistent across section rows */
   .spreadsheet-header-row1 {
-    height: 36px;
-    min-height: 36px;
+    height: 32px;
+    min-height: 32px;
   }
   .spreadsheet-header-row2 {
     height: 32px;
