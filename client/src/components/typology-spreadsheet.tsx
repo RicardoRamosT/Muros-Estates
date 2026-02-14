@@ -2542,9 +2542,9 @@ export function TypologySpreadsheet() {
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className={cn("w-4 h-4", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
+                        <Minus className={cn("w-3 h-3", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
                       ) : (
-                        <Plus className={cn("w-4 h-4", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
+                        <Plus className={cn("w-3 h-3", section.headerColor.includes("text-white") ? "text-white" : "text-gray-700 dark:text-gray-300")} />
                       )}
                     </button>
                   </div>
