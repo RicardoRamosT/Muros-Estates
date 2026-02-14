@@ -375,6 +375,8 @@ export const PAGE_PERMISSIONS = {
       hasSeedCapital: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
       // 19: Promo - Finanzas=0, Desarrollador=2
       hasPromo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      // 19b: Descripción Promo - same as Promo
+      promoDescription: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
       // 20: LockOff (DISTRIBUCIÓN) - Finanzas=0, Desarrollador=2
       lockOff: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
       // 21: REC - Finanzas=0, Desarrollador=2
@@ -961,6 +963,7 @@ export const typologies = pgTable("typologies", {
   // 18-19: Capital Semilla / Promo
   hasSeedCapital: boolean("has_seed_capital").default(false), // Capital Semilla
   hasPromo: boolean("has_promo").default(false), // Promo
+  promoDescription: text("promo_description"), // Descripción de promo
   
   // 20-34: DISTRIBUCIÓN
   lockOff: boolean("lock_off").default(false), // LockOff
@@ -1316,6 +1319,8 @@ export const catalogCities = pgTable("catalog_cities", {
   name: text("name").notNull().unique(),
   active: boolean("active").default(true),
   order: integer("order").default(0),
+  isaiPercent: decimal("isai_percent", { precision: 5, scale: 2 }).default("3.0"),
+  notariaPercent: decimal("notaria_percent", { precision: 5, scale: 2 }).default("2.0"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1872,3 +1877,20 @@ export const insertCatalogPresentacionSchema = createInsertSchema(catalogPresent
 
 export type InsertCatalogPresentacion = z.infer<typeof insertCatalogPresentacionSchema>;
 export type CatalogPresentacion = typeof catalogPresentacion.$inferSelect;
+
+// Global settings for typology defaults
+export const globalSettings = pgTable("global_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  label: text("label"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertGlobalSettingSchema = createInsertSchema(globalSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertGlobalSetting = z.infer<typeof insertGlobalSettingSchema>;
+export type GlobalSetting = typeof globalSettings.$inferSelect;

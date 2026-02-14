@@ -146,6 +146,7 @@ const SECTIONS: SectionDef[] = [
       { key: "pricePerM2", label: "$ / m²", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "hasSeedCapital", label: "Cap.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Capital Semilla" },
       { key: "hasPromo", label: "Promo", type: "boolean", width: 40, hideLabel: true, fullLabel: "Promo" },
+      { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
@@ -400,7 +401,8 @@ const SECTIONS: SectionDef[] = [
   },
   ];
 
-function calculateFields(row: Partial<Typology>): Partial<Typology> {
+function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>): Partial<Typology> {
+  const getDefault = (key: string, fallback: number): number => globalDefaults?.[key] ?? fallback;
   const price = parseFloat(row.price as string) || 0;
   const size = parseFloat(row.size as string) || 0;
   
@@ -450,8 +452,8 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
   
   const mortgageAmount = parseFloat(row.mortgageAmount as string) || 0;
-  const mortgageYears = (row.mortgageYears as number) || 15;
-  const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || 10.5;
+  const mortgageYears = (row.mortgageYears as number) || getDefault('mortgageYears', 15);
+  const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || getDefault('mortgageInterestPercent', 10.5);
   const monthlyRate = mortgageInterestPercent / 100 / 12;
   const numPayments = mortgageYears * 12;
   let mortgageMonthlyPayment = 0;
@@ -467,8 +469,8 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const maintenanceTotal = maintenanceM2 * size * 12;
   
   const rentInitial = parseFloat(row.rentInitial as string) || 0;
-  const rentRatePercent = parseFloat(row.rentRatePercent as string) || 7.0;
-  const rentMonths = (row.rentMonths as number) || 11;
+  const rentRatePercent = parseFloat(row.rentRatePercent as string) || getDefault('rentRatePercent', 7.0);
+  const rentMonths = (row.rentMonths as number) || getDefault('rentMonths', 11);
   const rentTotal = rentInitial * rentMonths;
   
   const investmentTotal = finalPrice + totalPostDeliveryCosts;
@@ -476,7 +478,7 @@ function calculateFields(row: Partial<Typology>): Partial<Typology> {
   const investmentMonthly = rentMonths > 0 ? investmentNet / rentMonths : 0;
   const investmentRate = investmentTotal > 0 ? (investmentNet / investmentTotal) * 100 : 0;
   
-  const appreciationRate = parseFloat(row.appreciationRate as string) || 7.0;
+  const appreciationRate = parseFloat(row.appreciationRate as string) || getDefault('appreciationRate', 7.0);
   const appreciationDays = (row.appreciationDays as number) || 0;
   const appreciationMonths = (row.appreciationMonths as number) || 0;
   const appreciationYears = (row.appreciationYears as number) || 0;
@@ -1621,6 +1623,19 @@ export function TypologySpreadsheet() {
   const { data: catalogZones = [] } = useQuery<any[]>({
     queryKey: ["/api/catalog/zones"],
   });
+
+  const { data: globalSettingsData = [] } = useQuery<{ id: string; key: string; value: string; label: string | null }[]>({
+    queryKey: ["/api/global-settings"],
+  });
+
+  const globalDefaultsMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    globalSettingsData.forEach(s => {
+      const val = parseFloat(s.value);
+      if (!isNaN(val)) map[s.key] = val;
+    });
+    return map;
+  }, [globalSettingsData]);
   
   const vistaOptions = useMemo(() => {
     return catalogVistas.map(v => v.name).filter(Boolean);
@@ -1994,7 +2009,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    // Clear development, zone, and developer when city changes
+    // Clear development, zone, and developer when city changes; auto-populate ISAI% from city
     if (field === "city") {
       autoPopulatedFields.development = "";
       autoPopulatedFields.zone = "";
@@ -2002,6 +2017,17 @@ export function TypologySpreadsheet() {
       (updatedRow as any).development = "";
       (updatedRow as any).zone = "";
       (updatedRow as any).developer = "";
+      const selectedCity = catalogCities.find((c: any) => c.name === value);
+      if (selectedCity) {
+        if (selectedCity.isaiPercent) {
+          autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
+          (updatedRow as any).isaPercent = selectedCity.isaiPercent;
+        }
+        if (selectedCity.notariaPercent) {
+          autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
+          (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
+        }
+      }
     }
     
     const dependentFieldsToClear: Record<string, string[]> = {
@@ -2092,7 +2118,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculatedFields = calculateFields(updatedRow);
+    const calculatedFields = calculateFields(updatedRow, globalDefaultsMap);
     
     // Don't overwrite remaining fields if user manually edited them
     if (field === "remainingPercent" || field === "remainingAmount") {
@@ -2358,7 +2384,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculated = calculateFields(merged);
+    const calculated = calculateFields(merged, globalDefaultsMap);
     return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper, deliveryDate: autoDeliveryDate } as Typology;
   };
   

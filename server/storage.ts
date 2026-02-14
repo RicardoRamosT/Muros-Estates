@@ -45,6 +45,7 @@ import {
   catalogTipoContrato, type CatalogTipoContrato, type InsertCatalogTipoContrato,
   catalogCesionDerechos, type CatalogCesionDerechos, type InsertCatalogCesionDerechos,
   catalogPresentacion, type CatalogPresentacion, type InsertCatalogPresentacion,
+  globalSettings, type GlobalSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, ilike } from "drizzle-orm";
@@ -229,6 +230,10 @@ export interface IStorage {
   createCatalogPresentacion(item: InsertCatalogPresentacion): Promise<CatalogPresentacion>;
   updateCatalogPresentacion(id: string, item: Partial<InsertCatalogPresentacion>): Promise<CatalogPresentacion | undefined>;
   deleteCatalogPresentacion(id: string): Promise<boolean>;
+
+  getGlobalSettings(): Promise<GlobalSetting[]>;
+  getGlobalSetting(key: string): Promise<GlobalSetting | undefined>;
+  upsertGlobalSetting(key: string, value: string, label?: string): Promise<GlobalSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1288,6 +1293,25 @@ export class DatabaseStorage implements IStorage {
   async deleteCatalogPresentacion(id: string): Promise<boolean> {
     await db.delete(catalogPresentacion).where(eq(catalogPresentacion.id, id));
     return true;
+  }
+
+  async getGlobalSettings(): Promise<GlobalSetting[]> {
+    return db.select().from(globalSettings);
+  }
+
+  async getGlobalSetting(key: string): Promise<GlobalSetting | undefined> {
+    const [setting] = await db.select().from(globalSettings).where(eq(globalSettings.key, key));
+    return setting;
+  }
+
+  async upsertGlobalSetting(key: string, value: string, label?: string): Promise<GlobalSetting> {
+    const existing = await this.getGlobalSetting(key);
+    if (existing) {
+      const [updated] = await db.update(globalSettings).set({ value, label, updatedAt: new Date() }).where(eq(globalSettings.key, key)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(globalSettings).values({ key, value, label }).returning();
+    return created;
   }
 }
 

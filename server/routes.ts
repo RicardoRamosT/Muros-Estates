@@ -1779,11 +1779,13 @@ export async function registerRoutes(
   });
   
   app.put("/api/catalog/cities/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    const { name, active, order, isaiPercent, notariaPercent } = req.body;
+    const updateData: { name?: string; active?: boolean; order?: number; isaiPercent?: string; notariaPercent?: string } = {};
     if (typeof name === "string") updateData.name = name;
     if (typeof active === "boolean") updateData.active = active;
     if (typeof order === "number") updateData.order = order;
+    if (isaiPercent !== undefined) updateData.isaiPercent = String(isaiPercent);
+    if (notariaPercent !== undefined) updateData.notariaPercent = String(notariaPercent);
     const city = await storage.updateCatalogCity(req.params.id as string, updateData);
     if (!city) return res.status(404).json({ error: "Ciudad no encontrada" });
     res.json(city);
@@ -1792,6 +1794,19 @@ export async function registerRoutes(
   app.delete("/api/catalog/cities/:id", requireAuth, requireRole("admin"), async (req, res) => {
     await storage.deleteCatalogCity(req.params.id as string);
     res.status(204).send();
+  });
+
+  // Global Settings
+  app.get("/api/global-settings", requireAuth, async (req, res) => {
+    const settings = await storage.getGlobalSettings();
+    res.json(settings);
+  });
+
+  app.put("/api/global-settings/:key", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { value, label } = req.body;
+    if (typeof value !== "string") return res.status(400).json({ error: "Value is required" });
+    const setting = await storage.upsertGlobalSetting(req.params.key, value, label);
+    res.json(setting);
   });
   
   // Zones

@@ -122,10 +122,11 @@ function DesarrollosCatalogs() {
 }
 
 function TipologiasCatalogs() {
-  const [subTab, setSubTab] = useState("niveles");
+  const [subTab, setSubTab] = useState("tasas");
   return (
     <Tabs value={subTab} onValueChange={setSubTab}>
       <TabsList className="h-auto gap-1 flex-wrap mb-4">
+        <TabsTrigger value="tasas" className="gap-2"><CreditCard className="w-4 h-4" />Tasas Globales</TabsTrigger>
         <TabsTrigger value="niveles" className="gap-2"><Layers className="w-4 h-4" />Niveles</TabsTrigger>
         <TabsTrigger value="torres" className="gap-2"><Grid3X3 className="w-4 h-4" />Torres</TabsTrigger>
         <TabsTrigger value="recamaras" className="gap-2"><DoorOpen className="w-4 h-4" />Recámaras</TabsTrigger>
@@ -137,6 +138,7 @@ function TipologiasCatalogs() {
         <TabsTrigger value="areas" className="gap-2"><LayoutGrid className="w-4 h-4" />Áreas</TabsTrigger>
         <TabsTrigger value="tipologias" className="gap-2"><Tag className="w-4 h-4" />Tipologías</TabsTrigger>
       </TabsList>
+      <TabsContent value="tasas"><GlobalRatesTable /></TabsContent>
       <TabsContent value="niveles"><ExcelTable title="Niveles" endpoint="/api/catalog/niveles" queryKey="/api/catalog/niveles" icon={Layers} /></TabsContent>
       <TabsContent value="torres"><ExcelTable title="Torres" endpoint="/api/catalog/torres" queryKey="/api/catalog/torres" icon={Grid3X3} /></TabsContent>
       <TabsContent value="recamaras"><ExcelTable title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" icon={DoorOpen} /></TabsContent>
@@ -197,6 +199,99 @@ function ProspectosCatalogs() {
   );
 }
 
+function GlobalRatesTable() {
+  const { toast } = useToast();
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const { data: settings = [], isLoading } = useQuery<{ id: string; key: string; value: string; label: string | null }[]>({ queryKey: ["/api/global-settings"] });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ key, value, label }: { key: string; value: string; label?: string }) =>
+      apiRequest("PUT", `/api/global-settings/${key}`, { value, label }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/global-settings"] });
+      toast({ title: "Tasa actualizada" });
+    },
+  });
+
+  const RATE_CONFIGS = [
+    { key: "mortgageInterestPercent", label: "TASA C.H.", defaultValue: "10.5", suffix: "%", color: "bg-[rgb(253,204,124)]" },
+    { key: "mortgageYears", label: "AÑOS", defaultValue: "15", suffix: "", color: "bg-[rgb(253,204,124)]" },
+    { key: "rentRatePercent", label: "TASA RENTA", defaultValue: "7.0", suffix: "%", color: "bg-green-400" },
+    { key: "rentMonths", label: "MESES", defaultValue: "11", suffix: "", color: "bg-green-400" },
+    { key: "appreciationRate", label: "TASA PLUSV.", defaultValue: "7.0", suffix: "%", color: "bg-green-500" },
+  ];
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+
+  const getValue = (key: string, defaultValue: string) => {
+    const setting = settings.find(s => s.key === key);
+    return setting?.value ?? defaultValue;
+  };
+
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden max-w-md" data-testid="global-rates-table">
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
+        <div className="flex items-center gap-2">
+          <CreditCard className="w-4 h-4 text-primary" />
+          <span className="font-medium text-sm">Tasas y Parámetros Globales</span>
+        </div>
+      </div>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr>
+            <th className={HEADER_STYLE} style={{ width: "180px" }}>Parámetro</th>
+            <th className={HEADER_STYLE} style={{ width: "120px" }}>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {RATE_CONFIGS.map(config => {
+            const currentValue = getValue(config.key, config.defaultValue);
+            const isEditing = editingKey === config.key;
+            return (
+              <tr key={config.key} data-testid={`row-rate-${config.key}`}>
+                <td className={`${getCellStyle({ type: "readonly" })} font-semibold text-xs`}>
+                  <span className={`inline-block px-2 py-0.5 rounded text-black ${config.color}`}>{config.label}</span>
+                </td>
+                <td className={getCellStyle({ type: "input", isEditing })}>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      step={config.suffix === "%" ? "0.1" : "1"}
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => {
+                        updateMutation.mutate({ key: config.key, value: editValue, label: config.label });
+                        setEditingKey(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          updateMutation.mutate({ key: config.key, value: editValue, label: config.label });
+                          setEditingKey(null);
+                        }
+                      }}
+                      autoFocus
+                      className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center"
+                    />
+                  ) : (
+                    <span
+                      className="block w-full cursor-text text-center font-medium"
+                      onClick={() => { setEditingKey(config.key); setEditValue(currentValue); }}
+                    >
+                      {currentValue}{config.suffix}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function CitiesTable() {
   const { toast } = useToast();
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
@@ -250,6 +345,8 @@ function CitiesTable() {
               <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
               <th className={HEADER_STYLE} style={{ width: "70px" }}>Activo</th>
               <th className={HEADER_STYLE} style={{ minWidth: "200px" }}>Nombre</th>
+              <th className={HEADER_STYLE} style={{ width: "90px" }}>ISAI %</th>
+              <th className={HEADER_STYLE} style={{ width: "90px" }}>Notaría %</th>
               <th className={HEADER_STYLE} style={{ width: "70px" }}>Orden</th>
               <th className={HEADER_STYLE} style={{ width: "50px" }}></th>
             </tr>
@@ -268,6 +365,20 @@ function CitiesTable() {
                     <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { name: editValue } }); setEditingCell(null); }} onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ id: city.id, data: { name: editValue } }), setEditingCell(null))} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0" />
                   ) : (
                     <span className="block w-full cursor-text" onClick={() => { setEditingCell({ id: city.id, field: "name" }); setEditValue(city.name); }}>{city.name || ""}</span>
+                  )}
+                </td>
+                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "isaiPercent" })}>
+                  {editingCell?.id === city.id && editingCell?.field === "isaiPercent" ? (
+                    <Input type="number" step="0.01" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { isaiPercent: editValue } }); setEditingCell(null); }} onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ id: city.id, data: { isaiPercent: editValue } }), setEditingCell(null))} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
+                  ) : (
+                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "isaiPercent" }); setEditValue(city.isaiPercent ?? "3.0"); }}>{city.isaiPercent ?? "3.0"}%</span>
+                  )}
+                </td>
+                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "notariaPercent" })}>
+                  {editingCell?.id === city.id && editingCell?.field === "notariaPercent" ? (
+                    <Input type="number" step="0.01" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { notariaPercent: editValue } }); setEditingCell(null); }} onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ id: city.id, data: { notariaPercent: editValue } }), setEditingCell(null))} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
+                  ) : (
+                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "notariaPercent" }); setEditValue(city.notariaPercent ?? "2.0"); }}>{city.notariaPercent ?? "2.0"}%</span>
                   )}
                 </td>
                 <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "order" })}>
