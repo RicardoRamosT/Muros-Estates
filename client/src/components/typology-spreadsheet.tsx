@@ -72,12 +72,20 @@ interface SectionDef {
 // Extra width for sort icon per column header
 const SORT_ICON_WIDTH = 18;
 
+const SECTION_COLOR_DARK = "rgb(13,149,225)";
+const SECTION_COLOR_LIGHT = "rgb(11,120,180)";
+const SECTION_BORDER_COLOR = "rgb(121,135,203)";
+
+function getSectionColor(index: number): string {
+  return index % 2 === 0 ? SECTION_COLOR_DARK : SECTION_COLOR_LIGHT;
+}
+
 const SECTIONS: SectionDef[] = [
   {
     id: "basico",
     label: "",
-    headerColor: "bg-gray-350 dark:bg-gray-600 text-white",
-    columnHeaderColor: "bg-gray-350 dark:bg-gray-600 text-white",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Activo" },
@@ -86,8 +94,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "fechahora",
     label: "Fecha/Hora",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
@@ -97,8 +105,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "ubicacion",
     label: "",
-    headerColor: "bg-gray-350 dark:bg-gray-600 text-white",
-    columnHeaderColor: "bg-gray-350 dark:bg-gray-600 text-white",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
@@ -111,8 +119,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "generales",
     label: "Generales",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
@@ -123,8 +131,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "precio_tamano",
     label: "Tamaño",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "size", label: "Unidad", type: "decimal", width: 85, format: "area" },
@@ -134,8 +142,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "precio_valores",
     label: "Precio",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 105, format: "currency" },
@@ -156,8 +164,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "distribucion",
     label: "Distribución",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 55, fullLabel: "Lock-Off" },
@@ -191,8 +199,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "cajones",
     label: "Cajones",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75, fullLabel: "Incluidos", centerCells: true },
@@ -206,8 +214,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "bodega",
     label: "Bodega",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "hasStorage", label: "Incl.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Incluye" },
@@ -225,8 +233,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "pago",
     label: "Esquema de Pago",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "initialPercent", label: "Inicial", type: "decimal", width: 60, format: "percent", centerCells: true },
@@ -243,8 +251,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "entrega",
     label: "",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
@@ -253,8 +261,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "gastos",
     label: "Gastos Post-Entrega",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
@@ -270,8 +278,8 @@ const SECTIONS: SectionDef[] = [
     id: "pre_credito",
     label: "",
     subheader: "10.5% | 15",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
@@ -283,8 +291,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "credito",
     label: "Crédito Hipotecario",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Mensualidad" },
@@ -295,8 +303,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "mantenimiento",
     label: "Mantenimiento",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "area" },
@@ -310,8 +318,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "renta1",
     label: "Renta",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "rentInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
@@ -322,8 +330,8 @@ const SECTIONS: SectionDef[] = [
     id: "tasa_renta",
     label: "",
     subheader: "7.0%",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
@@ -332,8 +340,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "renta2",
     label: "Renta",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "rentFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
@@ -344,8 +352,8 @@ const SECTIONS: SectionDef[] = [
     id: "meses",
     label: "",
     subheader: "11.0",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "rentMonths", label: "Meses", type: "number", width: 50 },
@@ -354,8 +362,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "total_renta",
     label: "Total",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "rentTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
@@ -364,8 +372,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "inversion",
     label: "Inversión",
-    headerColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
-    columnHeaderColor: "bg-[rgb(255,181,73)] dark:bg-[rgb(180,120,30)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "investmentTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
@@ -378,8 +386,8 @@ const SECTIONS: SectionDef[] = [
     id: "tasa_plusvalia",
     label: "",
     subheader: "7.0%",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "appreciationRate", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
@@ -388,8 +396,8 @@ const SECTIONS: SectionDef[] = [
   {
     id: "plusvalia",
     label: "Plusvalía",
-    headerColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
-    columnHeaderColor: "bg-[rgb(253,204,124)] dark:bg-[rgb(160,120,40)]",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "appreciationDays", label: "Días", type: "number", width: 45 },
@@ -836,7 +844,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center", hideLabel ? "justify-between px-1" : "", sectionColor, hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40")}>
+    <div className={cn("w-full h-full relative flex items-center text-white", hideLabel ? "justify-between px-1" : "", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <Tooltip>
@@ -2510,7 +2518,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[45px] flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 sticky left-0 z-30" />
+              <div className="w-[45px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {SECTIONS.map((section, sectionIndex) => {
                 const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                 const isExpanded = expandedSections.has(section.id);
@@ -2519,8 +2527,9 @@ export function TypologySpreadsheet() {
                 return (
                   <div 
                     key={section.id} 
-                    className={cn("flex-shrink-0 flex items-center justify-between h-full", section.headerColor, isFirstSection && "sticky z-30")}
+                    className={cn("flex-shrink-0 flex items-center justify-between h-full text-white", isFirstSection && "sticky z-30")}
                     style={{ 
+                      backgroundColor: getSectionColor(sectionIndex),
                       width: isExpanded ? sectionWidth : collapsedWidth,
                       ...(isFirstSection ? { left: 45 } : {})
                     }}
@@ -2553,7 +2562,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column names with individual collapse */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 flex items-center justify-center sticky left-0 z-30">
+              <div className="w-[45px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
@@ -2564,8 +2573,8 @@ export function TypologySpreadsheet() {
                   return [(
                     <div 
                       key={`collapsed-${section.id}`}
-                      className={cn("flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground h-full", section.headerColor, isFirstSection && "sticky z-30")}
-                      style={{ width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                      className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
+                      style={{ backgroundColor: getSectionColor(sectionIndex), width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
@@ -2577,13 +2586,16 @@ export function TypologySpreadsheet() {
                     <div
                       key={`name-${col.key}`}
                       className={cn(
-                        "flex-shrink-0 h-full flex items-center",
-                        !isLastCol && "border-r",
+                        "flex-shrink-0 h-full flex items-center text-white",
                         isColCollapsed ? "justify-center" : "justify-between",
-                        section.columnHeaderColor,
                         isFirstSection && "sticky z-30"
                       )}
-                      style={{ width: colW, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ 
+                        backgroundColor: getSectionColor(sectionIndex), 
+                        width: colW, 
+                        ...(isFirstSection ? { left: 45 } : {}),
+                        ...(!isLastCol ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
+                      }}
                     >
                       {isColCollapsed ? (
                         <button
@@ -2631,7 +2643,7 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[45px] h-full flex-shrink-0 border-r bg-gray-350 dark:bg-gray-600 sticky left-0 z-30" />
+              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {SECTIONS.flatMap((section, sectionIndex) => {
                 const collapsedSectionWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
@@ -2640,8 +2652,8 @@ export function TypologySpreadsheet() {
                   return [(
                     <div 
                       key={`collapsed-filter-${section.id}`}
-                      className={cn("flex-shrink-0 h-full", section.columnHeaderColor, isFirstSection && "sticky z-30")}
-                      style={{ width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                      className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
+                      style={{ backgroundColor: getSectionColor(sectionIndex), width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
@@ -2654,11 +2666,15 @@ export function TypologySpreadsheet() {
                       key={`filter-${col.key}`}
                       className={cn(
                         "flex-shrink-0 h-full",
-                        !isLastCol && "border-r",
-                        isColCollapsed ? section.columnHeaderColor : "overflow-hidden",
+                        !isColCollapsed && "overflow-hidden",
                         isFirstSection && "sticky z-30"
                       )}
-                      style={{ width: colW, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ 
+                        backgroundColor: getSectionColor(sectionIndex),
+                        width: colW, 
+                        ...(isFirstSection ? { left: 45 } : {}),
+                        ...(!isLastCol ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
+                      }}
                     >
                       {!isColCollapsed && (
                         <ColumnFilter
@@ -2668,7 +2684,7 @@ export function TypologySpreadsheet() {
                           sortDirection={columnSorts[col.key] || null}
                           onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
                           onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                          sectionColor={section.columnHeaderColor}
+                          sectionColor={getSectionColor(sectionIndex)}
                           availableValues={availableValuesMap[col.key]}
                           rangeFilter={rangeFilters[col.key]}
                           onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
@@ -2704,7 +2720,8 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-white bg-gray-350 dark:bg-gray-600 sticky left-0 z-10"
+                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10"
+                  style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
