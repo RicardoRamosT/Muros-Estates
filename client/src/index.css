@@ -334,8 +334,8 @@
     max-height: 2rem;
     padding-top: 0.25rem;
     padding-bottom: 0.25rem;
-    border-right: 1px solid rgb(121, 135, 203);
-    border-bottom: 1px solid rgb(121, 135, 203);
+    border-right: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
     overflow: hidden;
   }
   .spreadsheet-cell.no-border-r {

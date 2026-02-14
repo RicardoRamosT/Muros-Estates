@@ -840,7 +840,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </span>
       );
     }
-    return <ArrowUpDown className="w-3 h-3 opacity-60" />;
+    return <ArrowUpDown className="w-3 h-3 text-white opacity-80" />;
   };
 
   return (
@@ -861,7 +861,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                   >
                     <ChevronDown className={cn(
                       "w-3 h-3 flex-shrink-0",
-                      hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+                      hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white opacity-80"
                     )} />
                   </button>
                 </PopoverTrigger>
@@ -880,7 +880,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             >
               <ChevronDown className={cn(
                 "w-3 h-3 flex-shrink-0",
-                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "opacity-60"
+                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white opacity-80"
               )} />
             </button>
           </PopoverTrigger>
@@ -1168,7 +1168,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  const cellBorderClass = isLastInSection ? "no-border-r" : "";
+  const cellBorderClass = "";
   
   useEffect(() => {
     setLocalValue(value);
@@ -2549,9 +2549,9 @@ export function TypologySpreadsheet() {
                       data-testid={`section-toggle-${section.id}`}
                     >
                       {isExpanded ? (
-                        <Minus className="w-3 h-3 opacity-60" />
+                        <Minus className="w-3 h-3 text-white opacity-80" />
                       ) : (
-                        <Plus className="w-3 h-3 opacity-60" />
+                        <Plus className="w-3 h-3 text-white opacity-80" />
                       )}
                     </button>
                   </div>
@@ -2603,7 +2603,7 @@ export function TypologySpreadsheet() {
                           className="flex items-center justify-center w-full h-full hover-elevate cursor-pointer"
                           data-testid={`col-expand-${col.key}`}
                         >
-                          <Plus className="w-3 h-3 opacity-60" />
+                          <Plus className="w-3 h-3 text-white opacity-80" />
                         </button>
                       ) : (
                         <>
@@ -2618,7 +2618,7 @@ export function TypologySpreadsheet() {
                             style={{ width: 20 }}
                             data-testid={`col-collapse-${col.key}`}
                           >
-                            <Minus className="w-3 h-3 opacity-60" />
+                            <Minus className="w-3 h-3 text-white opacity-80" />
                           </button>
                         </>
                       )}
@@ -2737,7 +2737,7 @@ export function TypologySpreadsheet() {
                       <div 
                         key={`collapsed-${section.id}`}
                         className={cn(
-                          "spreadsheet-cell no-border-r",
+                          "spreadsheet-cell",
                           section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20",
                           isFirstSection && "sticky z-10 bg-gray-50 dark:bg-gray-800"
                         )}
@@ -2752,7 +2752,7 @@ export function TypologySpreadsheet() {
                       const collapsedCell = (
                         <div
                           key={col.key}
-                          className={cn("spreadsheet-cell", isLastCol ? "no-border-r" : "", section.cellColor || "bg-muted/20")}
+                          className={cn("spreadsheet-cell", section.cellColor || "bg-muted/20")}
                           style={{ width: COLLAPSED_COL_WIDTH }}
                         />
                       );
@@ -2771,7 +2771,7 @@ export function TypologySpreadsheet() {
                           key={col.key}
                           className={cn(
                             "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor, isLastCol && "no-border-r"
+                            section.cellColor
                           )}
                           style={{ width: (col.width || 85) + SORT_ICON_WIDTH }}
                           data-testid={`cell-createdDate-${row.id}`}
@@ -2786,7 +2786,7 @@ export function TypologySpreadsheet() {
                           key={col.key}
                           className={cn(
                             "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor, isLastCol && "no-border-r"
+                            section.cellColor
                           )}
                           style={{ width: (col.width || 65) + SORT_ICON_WIDTH }}
                           data-testid={`cell-createdTime-${row.id}`}
