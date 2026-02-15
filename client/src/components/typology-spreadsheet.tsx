@@ -2242,7 +2242,14 @@ export function TypologySpreadsheet() {
   }, [typologies, updateMutation, dbDevelopments, dbDevelopers]);
   
   const handleAddRow = () => {
-    createMutation.mutate({});
+    const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];
+    const initialData: Record<string, any> = {};
+    for (const key of globalKeys) {
+      if (globalDefaultsMap[key] !== undefined) {
+        initialData[key] = globalDefaultsMap[key];
+      }
+    }
+    createMutation.mutate(initialData);
   };
   
   const handleDeleteRow = (id: string) => {
