@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft } from "lucide-react";
+import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft, ChevronUp, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCellStyle } from "@/lib/spreadsheet-utils";
@@ -23,7 +23,8 @@ type CatalogItem = {
   icon?: string;
 };
 
-const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#2563eb] uppercase tracking-wide";
+const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#2563eb] uppercase tracking-wide rounded-t-md";
+const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#2563eb] text-white";
 const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
 
 export default function AdminCatalogos() {
@@ -118,9 +119,18 @@ function CompactList({ title, endpoint, queryKey, numbered = false }: { title: s
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
 
+  const swapOrder = (idx: number, direction: "up" | "down") => {
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= items.length) return;
+    const a = items[idx];
+    const b = items[targetIdx];
+    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
+    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+  };
+
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
-      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+      <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide">{title}</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid={`button-add-${queryKey.split('/').pop()}`}>
           <Plus className="w-3 h-3" />
@@ -135,7 +145,7 @@ function CompactList({ title, endpoint, queryKey, numbered = false }: { title: s
           <table className="w-full border-collapse text-xs">
             <tbody>
               {items.map((item, idx) => (
-                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                   {numbered && (
                     <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
                   )}
@@ -156,8 +166,16 @@ function CompactList({ title, endpoint, queryKey, numbered = false }: { title: s
                       >{item.name}</span>
                     )}
                   </td>
+                  <td className="w-10 text-center whitespace-nowrap">
+                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === 0} onClick={() => swapOrder(idx, "up")} data-testid={`button-up-${item.id}`}>
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === items.length - 1} onClick={() => swapOrder(idx, "down")} data-testid={`button-down-${item.id}`}>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </td>
                   <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100" onClick={() => setDeleteId(item.id)} style={{ opacity: undefined }}>
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)} data-testid={`button-delete-${item.id}`}>
                       <Trash2 className="w-2.5 h-2.5 text-destructive" />
                     </Button>
                   </td>
@@ -202,9 +220,18 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
 
+  const swapOrder = (idx: number, direction: "up" | "down") => {
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= items.length) return;
+    const a = items[idx];
+    const b = items[targetIdx];
+    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
+    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+  };
+
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
-      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+      <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide">{title}</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
@@ -218,8 +245,8 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
         ) : (
           <table className="w-full border-collapse text-xs">
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+              {items.map((item, idx) => (
+                <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                   <td className="w-8 text-center py-0.5 border-r border-gray-200 dark:border-gray-700">
                     <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 rounded cursor-pointer border-0 p-0" />
                   </td>
@@ -236,6 +263,14 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
                     ) : (
                       <span className="block w-full cursor-text truncate" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
                     )}
+                  </td>
+                  <td className="w-10 text-center whitespace-nowrap">
+                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === 0} onClick={() => swapOrder(idx, "up")}>
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === items.length - 1} onClick={() => swapOrder(idx, "down")}>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
@@ -285,7 +320,7 @@ function CitiesMini() {
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-cities">
-      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+      <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide">Ciudades</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-city">
           <Plus className="w-3 h-3" />
@@ -391,7 +426,7 @@ function ZonesMini() {
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-zones">
-      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+      <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide">Zonas</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-zone">
           <Plus className="w-3 h-3" />
@@ -483,7 +518,7 @@ function GlobalRatesMini() {
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-global-rates">
-      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+      <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide">Parámetros de Rendimiento</span>
       </div>
       <div className="overflow-auto max-h-[300px] flex-1">
@@ -554,7 +589,7 @@ function NivelMini() {
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-nivel-mantenimiento">
-      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+      <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide">Nivel Mantenimiento</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
