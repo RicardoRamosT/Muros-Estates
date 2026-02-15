@@ -135,3 +135,17 @@ Located in `client/src/components/ui/formula-tooltip.tsx`:
   - Asesor: 1-10 view, 11-13 none, 14 view, convenios hidden in documents
   - Desarrollador: all view
 - Added RolesPermissionsView component in admin users page showing permission matrix per role/section
+
+## Recent Changes (February 2026)
+- Made typology location fields (city, zone, developer, development) nullable for empty row creation
+- Added "Sin Asignar" option at top of all dropdown selects (bold, italic) that clears value to null
+- Implemented alphabetical sorting for all dropdown options using localeCompare('es'), with numeric detection for level-style options
+- Added Vistas column to Developments spreadsheet (multiselect between Niveles and Amenidades)
+- Development vistas flow down to typologies: Vista dropdown in typologies filters by selected development's configured vistas
+- Backend cleanTypologyData now normalizes empty strings to null for both numeric and text fields
+- EditableCell wrapped in React.memo for performance optimization
+- Zoom controls (+/- with percentage) in bottom-right corner of typology spreadsheet
+- Tooltip z-index increased to z-[100] globally for visibility over other UI elements
+- Sort icon redesigned: always white, arrow fixed pointing down on right, +/- swap positions
+- ID column has ColumnFilter in Row 3 header with filter/sort capabilities
+- Removed Card wrapper and container padding for flush scroll edges in spreadsheets
