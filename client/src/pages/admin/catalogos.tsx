@@ -4,10 +4,9 @@ import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Database, Plus, Trash2, Loader2, MapPin, Building, Home, Sparkles, Users, Layers, Grid3X3, DoorOpen, Bath, Car, Wrench, Paintbrush, Eye, LayoutGrid, Tag, UserCircle, Target, Activity, CreditCard, ThumbsUp, ThumbsDown, Factory, Pencil, FileText, Scale, Presentation } from "lucide-react";
+import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCellStyle } from "@/lib/spreadsheet-utils";
@@ -24,511 +23,78 @@ type CatalogItem = {
   icon?: string;
 };
 
-const HEADER_STYLE = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b-2 border-gray-300 dark:border-gray-600 font-semibold text-xs uppercase tracking-wide px-2 py-2 text-center";
+const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#2563eb] uppercase tracking-wide";
+const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
 
 export default function AdminCatalogos() {
-  const [activeTab, setActiveTab] = useState("ubicacion");
-  
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-3">
+      <main className="px-4 py-3">
         <div className="flex items-center gap-2 mb-3">
           <Database className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Catálogos</h1>
         </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4 flex-wrap h-auto gap-1">
-            <TabsTrigger value="ubicacion" className="gap-2" data-testid="tab-ubicacion">
-              <MapPin className="w-4 h-4" />
-              Ubicación
-            </TabsTrigger>
-            <TabsTrigger value="desarrollos" className="gap-2" data-testid="tab-desarrollos">
-              <Building className="w-4 h-4" />
-              Desarrollos
-            </TabsTrigger>
-            <TabsTrigger value="tipologias" className="gap-2" data-testid="tab-tipologias">
-              <Home className="w-4 h-4" />
-              Tipologías
-            </TabsTrigger>
-            <TabsTrigger value="caracteristicas" className="gap-2" data-testid="tab-caracteristicas">
-              <Sparkles className="w-4 h-4" />
-              Características
-            </TabsTrigger>
-            <TabsTrigger value="prospectos" className="gap-2" data-testid="tab-prospectos">
-              <Users className="w-4 h-4" />
-              Prospectos
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="ubicacion"><UbicacionCatalogs /></TabsContent>
-          <TabsContent value="desarrollos"><DesarrollosCatalogs /></TabsContent>
-          <TabsContent value="tipologias"><TipologiasCatalogs /></TabsContent>
-          <TabsContent value="caracteristicas"><CaracteristicasCatalogs /></TabsContent>
-          <TabsContent value="prospectos"><ProspectosCatalogs /></TabsContent>
-        </Tabs>
+
+        <div className="space-y-6">
+          <section>
+            <div className={SECTION_HEADER} data-testid="section-general">CATÁLOGO GENERAL</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+              <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" numbered />
+              <CitiesMini />
+              <ZonesMini />
+              <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" numbered />
+              <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" numbered />
+              <CompactList title="Tipo de Proveedor" endpoint="/api/catalog/tipo-proveedor" queryKey="/api/catalog/tipo-proveedor" />
+              <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
+              <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
+              <CompactList title="Cesión de Derechos" endpoint="/api/catalog/cesion-derechos" queryKey="/api/catalog/cesion-derechos" />
+              <CompactList title="Si / No" endpoint="/api/catalog/si-no" queryKey="/api/catalog/si-no" />
+              <GlobalRatesMini />
+            </div>
+          </section>
+
+          <section>
+            <div className={SECTION_HEADER} data-testid="section-desarrollos">CATÁLOGO DESARROLLOS</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+              <CompactList title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" numbered />
+              <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" numbered />
+              <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" />
+              <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" numbered />
+              <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" numbered />
+              <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
+              <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
+              <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" numbered />
+              <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
+              <CompactList title="Tipologías" endpoint="/api/catalog/tipologias" queryKey="/api/catalog/tipologias" />
+              <NivelMini />
+            </div>
+          </section>
+
+          <section>
+            <div className={SECTION_HEADER} data-testid="section-prospectos">CATÁLOGO PROSPECTOS</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+              <ColoredList title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
+              <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" />
+              <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" />
+              <CompactList title="Asesor" endpoint="/api/catalog/asesor" queryKey="/api/catalog/asesor" />
+              <CompactList title="Broker Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" />
+              <ColoredList title="Status" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" />
+              <ColoredList title="Etapa Embudo" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" />
+              <CompactList title="Cómo Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" />
+              <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" />
+              <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" />
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );
 }
 
-function UbicacionCatalogs() {
-  const [subTab, setSubTab] = useState("cities");
-  return (
-    <Tabs value={subTab} onValueChange={setSubTab}>
-      <TabsList className="h-auto gap-1 mb-4">
-        <TabsTrigger value="cities" className="gap-2"><MapPin className="w-4 h-4" />Ciudades</TabsTrigger>
-        <TabsTrigger value="zones" className="gap-2"><MapPin className="w-4 h-4" />Zonas</TabsTrigger>
-      </TabsList>
-      <TabsContent value="cities"><CitiesTable /></TabsContent>
-      <TabsContent value="zones"><ZonesTable /></TabsContent>
-    </Tabs>
-  );
-}
-
-function DesarrollosCatalogs() {
-  const [subTab, setSubTab] = useState("development-types");
-  return (
-    <Tabs value={subTab} onValueChange={setSubTab}>
-      <TabsList className="h-auto gap-1 flex-wrap mb-4">
-        <TabsTrigger value="development-types" className="gap-2"><Building className="w-4 h-4" />Tipos</TabsTrigger>
-        <TabsTrigger value="comercializadoras" className="gap-2"><Factory className="w-4 h-4" />Comercializadoras</TabsTrigger>
-        <TabsTrigger value="arquitectura" className="gap-2"><Pencil className="w-4 h-4" />Arquitectura</TabsTrigger>
-        <TabsTrigger value="tipo-contrato" className="gap-2"><FileText className="w-4 h-4" />Tipo Contrato</TabsTrigger>
-        <TabsTrigger value="cesion-derechos" className="gap-2"><Scale className="w-4 h-4" />Cesión</TabsTrigger>
-        <TabsTrigger value="presentacion" className="gap-2"><Presentation className="w-4 h-4" />Presentación</TabsTrigger>
-      </TabsList>
-      <TabsContent value="development-types">
-        <ExcelTable title="Tipos de Desarrollo" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" icon={Building} />
-      </TabsContent>
-      <TabsContent value="comercializadoras">
-        <ExcelTable title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" icon={Factory} />
-      </TabsContent>
-      <TabsContent value="arquitectura">
-        <ExcelTable title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" icon={Pencil} />
-      </TabsContent>
-      <TabsContent value="tipo-contrato">
-        <ExcelTable title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" icon={FileText} />
-      </TabsContent>
-      <TabsContent value="cesion-derechos">
-        <ExcelTable title="Cesión de Derechos" endpoint="/api/catalog/cesion-derechos" queryKey="/api/catalog/cesion-derechos" icon={Scale} />
-      </TabsContent>
-      <TabsContent value="presentacion">
-        <ExcelTable title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" icon={Presentation} />
-      </TabsContent>
-    </Tabs>
-  );
-}
-
-function TipologiasCatalogs() {
-  const [subTab, setSubTab] = useState("tasas");
-  return (
-    <Tabs value={subTab} onValueChange={setSubTab}>
-      <TabsList className="h-auto gap-1 flex-wrap mb-4">
-        <TabsTrigger value="tasas" className="gap-2"><CreditCard className="w-4 h-4" />Tasas Globales</TabsTrigger>
-        <TabsTrigger value="niveles" className="gap-2"><Layers className="w-4 h-4" />Niveles</TabsTrigger>
-        <TabsTrigger value="torres" className="gap-2"><Grid3X3 className="w-4 h-4" />Torres</TabsTrigger>
-        <TabsTrigger value="recamaras" className="gap-2"><DoorOpen className="w-4 h-4" />Recámaras</TabsTrigger>
-        <TabsTrigger value="banos" className="gap-2"><Bath className="w-4 h-4" />Baños</TabsTrigger>
-        <TabsTrigger value="cajones" className="gap-2"><Car className="w-4 h-4" />Cajones</TabsTrigger>
-        <TabsTrigger value="nivel-mant" className="gap-2"><Wrench className="w-4 h-4" />Nivel Mant.</TabsTrigger>
-        <TabsTrigger value="acabados" className="gap-2"><Paintbrush className="w-4 h-4" />Acabados</TabsTrigger>
-        <TabsTrigger value="vistas" className="gap-2"><Eye className="w-4 h-4" />Vistas</TabsTrigger>
-        <TabsTrigger value="areas" className="gap-2"><LayoutGrid className="w-4 h-4" />Áreas</TabsTrigger>
-        <TabsTrigger value="tipologias" className="gap-2"><Tag className="w-4 h-4" />Tipologías</TabsTrigger>
-      </TabsList>
-      <TabsContent value="tasas"><GlobalRatesTable /></TabsContent>
-      <TabsContent value="niveles"><ExcelTable title="Niveles" endpoint="/api/catalog/niveles" queryKey="/api/catalog/niveles" icon={Layers} /></TabsContent>
-      <TabsContent value="torres"><ExcelTable title="Torres" endpoint="/api/catalog/torres" queryKey="/api/catalog/torres" icon={Grid3X3} /></TabsContent>
-      <TabsContent value="recamaras"><ExcelTable title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" icon={DoorOpen} /></TabsContent>
-      <TabsContent value="banos"><ExcelTable title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" icon={Bath} /></TabsContent>
-      <TabsContent value="cajones"><ExcelTable title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" icon={Car} /></TabsContent>
-      <TabsContent value="nivel-mant"><NivelMantenimientoTable /></TabsContent>
-      <TabsContent value="acabados"><ExcelTable title="Acabados" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" icon={Paintbrush} /></TabsContent>
-      <TabsContent value="vistas"><ExcelTable title="Vistas" endpoint="/api/catalog/vistas" queryKey="/api/catalog/vistas" icon={Eye} /></TabsContent>
-      <TabsContent value="areas"><ExcelTable title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" icon={LayoutGrid} /></TabsContent>
-      <TabsContent value="tipologias"><ExcelTable title="Tipologías" endpoint="/api/catalog/tipologias" queryKey="/api/catalog/tipologias" icon={Tag} /></TabsContent>
-    </Tabs>
-  );
-}
-
-function CaracteristicasCatalogs() {
-  const [subTab, setSubTab] = useState("amenities");
-  return (
-    <Tabs value={subTab} onValueChange={setSubTab}>
-      <TabsList className="h-auto gap-1 mb-4">
-        <TabsTrigger value="amenities" className="gap-2"><Sparkles className="w-4 h-4" />Amenidades</TabsTrigger>
-        <TabsTrigger value="efficiency" className="gap-2"><Activity className="w-4 h-4" />Eficiencia</TabsTrigger>
-        <TabsTrigger value="other" className="gap-2"><Tag className="w-4 h-4" />Otras</TabsTrigger>
-      </TabsList>
-      <TabsContent value="amenities"><ExcelTable title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" hasIcon icon={Sparkles} /></TabsContent>
-      <TabsContent value="efficiency"><ExcelTable title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" icon={Activity} /></TabsContent>
-      <TabsContent value="other"><ExcelTable title="Otras Características" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" icon={Tag} /></TabsContent>
-    </Tabs>
-  );
-}
-
-function ProspectosCatalogs() {
-  const [subTab, setSubTab] = useState("tipo-cliente");
-  return (
-    <Tabs value={subTab} onValueChange={setSubTab}>
-      <TabsList className="h-auto gap-1 flex-wrap mb-4">
-        <TabsTrigger value="tipo-cliente" className="gap-2"><UserCircle className="w-4 h-4" />Tipo Cliente</TabsTrigger>
-        <TabsTrigger value="perfil" className="gap-2"><Users className="w-4 h-4" />Perfil</TabsTrigger>
-        <TabsTrigger value="fuente" className="gap-2"><Target className="w-4 h-4" />Fuente</TabsTrigger>
-        <TabsTrigger value="asesor" className="gap-2"><UserCircle className="w-4 h-4" />Asesor</TabsTrigger>
-        <TabsTrigger value="broker-externo" className="gap-2"><Users className="w-4 h-4" />Broker Externo</TabsTrigger>
-        <TabsTrigger value="status" className="gap-2"><Activity className="w-4 h-4" />Status</TabsTrigger>
-        <TabsTrigger value="etapa" className="gap-2"><Target className="w-4 h-4" />Etapa Embudo</TabsTrigger>
-        <TabsTrigger value="como-paga" className="gap-2"><CreditCard className="w-4 h-4" />Cómo Paga</TabsTrigger>
-        <TabsTrigger value="positivos" className="gap-2"><ThumbsUp className="w-4 h-4" />Positivos</TabsTrigger>
-        <TabsTrigger value="negativos" className="gap-2"><ThumbsDown className="w-4 h-4" />Negativos</TabsTrigger>
-      </TabsList>
-      <TabsContent value="tipo-cliente"><ColoredExcelTable title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" icon={UserCircle} /></TabsContent>
-      <TabsContent value="perfil"><ColoredExcelTable title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" icon={Users} /></TabsContent>
-      <TabsContent value="fuente"><ColoredExcelTable title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" icon={Target} /></TabsContent>
-      <TabsContent value="asesor"><ExcelTable title="Asesor" endpoint="/api/catalog/asesor" queryKey="/api/catalog/asesor" icon={UserCircle} /></TabsContent>
-      <TabsContent value="broker-externo"><ExcelTable title="Broker Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" icon={Users} /></TabsContent>
-      <TabsContent value="status"><ColoredExcelTable title="Status" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" icon={Activity} /></TabsContent>
-      <TabsContent value="etapa"><ColoredExcelTable title="Etapa Embudo" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" icon={Target} /></TabsContent>
-      <TabsContent value="como-paga"><ExcelTable title="Cómo Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" icon={CreditCard} /></TabsContent>
-      <TabsContent value="positivos"><ExcelTable title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" icon={ThumbsUp} /></TabsContent>
-      <TabsContent value="negativos"><ExcelTable title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" icon={ThumbsDown} /></TabsContent>
-    </Tabs>
-  );
-}
-
-function GlobalRatesTable() {
+function CompactList({ title, endpoint, queryKey, numbered = false }: { title: string; endpoint: string; queryKey: string; numbered?: boolean }) {
   const { toast } = useToast();
-  const [editingCell, setEditingCell] = useState<{ key: string; field: string } | null>(null);
-  const [editValue, setEditValue] = useState("");
-
-  const { data: settings = [], isLoading } = useQuery<{ id: string; key: string; value: string; label: string | null }[]>({ queryKey: ["/api/global-settings"] });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ key, value, label }: { key: string; value: string; label?: string }) =>
-      apiRequest("PUT", `/api/global-settings/${key}`, { value, label }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/global-settings"] });
-      toast({ title: "Tasa actualizada" });
-    },
-  });
-
-  const RATE_CONFIGS = [
-    { key: "mortgageInterestPercent", label: "Tasa C.H.", defaultValue: "10.5", suffix: "%", step: "0.1" },
-    { key: "mortgageYears", label: "Años", defaultValue: "15", suffix: "", step: "1" },
-    { key: "rentRatePercent", label: "Tasa Renta", defaultValue: "7.0", suffix: "%", step: "0.1" },
-    { key: "rentMonths", label: "Meses", defaultValue: "11", suffix: "", step: "1" },
-    { key: "appreciationRate", label: "Tasa Plusvalía", defaultValue: "7.0", suffix: "%", step: "0.1" },
-  ];
-
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
-
-  const getValue = (key: string, defaultValue: string) => {
-    const setting = settings.find(s => s.key === key);
-    return setting?.value ?? defaultValue;
-  };
-
-  const getLabel = (key: string, defaultLabel: string) => {
-    const setting = settings.find(s => s.key === key);
-    return setting?.label ?? defaultLabel;
-  };
-
-  return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden" data-testid="global-rates-table">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-        <div className="flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">{RATE_CONFIGS.length} Tasas y Parámetros Globales</span>
-        </div>
-      </div>
-      <div className="overflow-auto max-h-[600px]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
-              <th className={HEADER_STYLE} style={{ minWidth: "200px" }}>Parámetro</th>
-              <th className={HEADER_STYLE} style={{ width: "120px" }}>Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            {RATE_CONFIGS.map((config, idx) => {
-              const currentValue = getValue(config.key, config.defaultValue);
-              const currentLabel = getLabel(config.key, config.label);
-              const isEditingLabel = editingCell?.key === config.key && editingCell?.field === "label";
-              const isEditingValue = editingCell?.key === config.key && editingCell?.field === "value";
-              return (
-                <tr key={config.key} data-testid={`row-rate-${config.key}`}>
-                  <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
-                  <td className={getCellStyle({ type: "input", isEditing: isEditingLabel })}>
-                    {isEditingLabel ? (
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => { updateMutation.mutate({ key: config.key, value: currentValue, label: editValue }); setEditingCell(null); }}
-                        onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ key: config.key, value: currentValue, label: editValue }), setEditingCell(null))}
-                        autoFocus
-                        className="h-6 text-sm border-0 p-0 focus-visible:ring-0"
-                      />
-                    ) : (
-                      <span className="block w-full cursor-text" onClick={() => { setEditingCell({ key: config.key, field: "label" }); setEditValue(currentLabel); }}>{currentLabel}</span>
-                    )}
-                  </td>
-                  <td className={getCellStyle({ type: "input", isEditing: isEditingValue })}>
-                    {isEditingValue ? (
-                      <Input
-                        type="number"
-                        step={config.step}
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => { updateMutation.mutate({ key: config.key, value: editValue, label: currentLabel }); setEditingCell(null); }}
-                        onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ key: config.key, value: editValue, label: currentLabel }), setEditingCell(null))}
-                        autoFocus
-                        className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center"
-                      />
-                    ) : (
-                      <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ key: config.key, field: "value" }); setEditValue(currentValue); }}>{currentValue}{config.suffix}</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function CitiesTable() {
-  const { toast } = useToast();
-  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const { data: cities = [], isLoading } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
-
-  const createMutation = useMutation({
-    mutationFn: () => {
-      const nextOrder = cities.length > 0 ? Math.max(...cities.map(c => c.order ?? 0)) + 1 : 1;
-      let baseName = "Nueva Ciudad";
-      let counter = 1;
-      let uniqueName = baseName;
-      while (cities.some(c => c.name === uniqueName)) {
-        counter++;
-        uniqueName = `${baseName} ${counter}`;
-      }
-      return apiRequest("POST", "/api/catalog/cities", { name: uniqueName, active: true, order: nextOrder });
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); toast({ title: "Ciudad creada" }); },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CatalogCity> }) => apiRequest("PUT", `/api/catalog/cities/${id}`, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/cities/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Ciudad eliminada" }); setDeleteId(null); },
-  });
-
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
-
-  return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden" data-testid="catalog-cities-table">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">{cities.length} Ciudades</span>
-        </div>
-        <Button size="sm" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-city">
-          <Plus className="w-4 h-4 mr-1" />Agregar
-        </Button>
-      </div>
-      <div className="overflow-auto max-h-[600px]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Activo</th>
-              <th className={HEADER_STYLE} style={{ minWidth: "200px" }}>Nombre</th>
-              <th className={HEADER_STYLE} style={{ width: "90px" }}>ISAI %</th>
-              <th className={HEADER_STYLE} style={{ width: "90px" }}>Notaría %</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Orden</th>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {cities.map((city, idx) => (
-              <tr key={city.id} data-testid={`row-city-${city.id}`}>
-                <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
-                <td className={getCellStyle({ type: "checkbox" })} onClick={() => updateMutation.mutate({ id: city.id, data: { active: !city.active } })}>
-                  <div className="flex justify-center">
-                    <input type="checkbox" checked={city.active ?? false} readOnly className="w-4 h-4 cursor-pointer" />
-                  </div>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "name" })}>
-                  {editingCell?.id === city.id && editingCell?.field === "name" ? (
-                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { name: editValue } }); setEditingCell(null); }} onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ id: city.id, data: { name: editValue } }), setEditingCell(null))} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0" />
-                  ) : (
-                    <span className="block w-full cursor-text" onClick={() => { setEditingCell({ id: city.id, field: "name" }); setEditValue(city.name); }}>{city.name || ""}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "isaiPercent" })}>
-                  {editingCell?.id === city.id && editingCell?.field === "isaiPercent" ? (
-                    <Input type="number" step="0.01" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { isaiPercent: editValue } }); setEditingCell(null); }} onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ id: city.id, data: { isaiPercent: editValue } }), setEditingCell(null))} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "isaiPercent" }); setEditValue(city.isaiPercent ?? "3.0"); }}>{city.isaiPercent ?? "3.0"}%</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "notariaPercent" })}>
-                  {editingCell?.id === city.id && editingCell?.field === "notariaPercent" ? (
-                    <Input type="number" step="0.01" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { notariaPercent: editValue } }); setEditingCell(null); }} onKeyDown={(e) => e.key === "Enter" && (updateMutation.mutate({ id: city.id, data: { notariaPercent: editValue } }), setEditingCell(null))} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "notariaPercent" }); setEditValue(city.notariaPercent ?? "2.0"); }}>{city.notariaPercent ?? "2.0"}%</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === city.id && editingCell?.field === "order" })}>
-                  {editingCell?.id === city.id && editingCell?.field === "order" ? (
-                    <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: city.id, data: { order: parseInt(editValue) || 0 } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "order" }); setEditValue(String(city.order ?? 0)); }}>{city.order ?? 0}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "actions" })}>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDeleteId(city.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Eliminar ciudad</AlertDialogTitle><AlertDialogDescription>Esta acción también eliminará todas las zonas asociadas.</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
-
-function ZonesTable() {
-  const { toast } = useToast();
-  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [filterCityId, setFilterCityId] = useState<string>("all");
-
-  const { data: cities = [] } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
-  const { data: zones = [], isLoading } = useQuery<CatalogZone[]>({ queryKey: ["/api/catalog/zones"] });
-
-  const filteredZones = filterCityId === "all" ? zones : zones.filter(z => z.cityId === filterCityId);
-
-  const createMutation = useMutation({
-    mutationFn: () => {
-      const nextOrder = zones.length > 0 ? Math.max(...zones.map(z => z.order ?? 0)) + 1 : 1;
-      let baseName = "Nueva Zona";
-      let counter = 1;
-      let uniqueName = baseName;
-      while (zones.some(z => z.name === uniqueName)) {
-        counter++;
-        uniqueName = `${baseName} ${counter}`;
-      }
-      return apiRequest("POST", "/api/catalog/zones", { name: uniqueName, active: true, order: nextOrder, cityId: filterCityId !== "all" ? filterCityId : cities[0]?.id });
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona creada" }); },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CatalogZone> }) => apiRequest("PUT", `/api/catalog/zones/${id}`, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/zones/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona eliminada" }); setDeleteId(null); },
-  });
-
-  const getCityName = (cityId: string | null) => cities.find(c => c.id === cityId)?.name || "";
-
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
-
-  return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden" data-testid="catalog-zones-table">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
-          <MapPin className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">{filteredZones.length} Zonas</span>
-          <Select value={filterCityId} onValueChange={setFilterCityId}>
-            <SelectTrigger className="w-36 h-7 text-xs"><SelectValue placeholder="Filtrar" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {cities.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button size="sm" onClick={() => createMutation.mutate()} disabled={createMutation.isPending || cities.length === 0}><Plus className="w-4 h-4 mr-1" />Agregar</Button>
-      </div>
-      <div className="overflow-auto max-h-[600px]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Activo</th>
-              <th className={HEADER_STYLE} style={{ minWidth: "180px" }}>Nombre</th>
-              <th className={HEADER_STYLE} style={{ width: "140px" }}>Ciudad</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Orden</th>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredZones.map((zone, idx) => (
-              <tr key={zone.id}>
-                <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
-                <td className={getCellStyle({ type: "checkbox" })} onClick={() => updateMutation.mutate({ id: zone.id, data: { active: !zone.active } })}>
-                  <div className="flex justify-center"><input type="checkbox" checked={zone.active ?? false} readOnly className="w-4 h-4 cursor-pointer" /></div>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === zone.id && editingCell?.field === "name" })}>
-                  {editingCell?.id === zone.id && editingCell?.field === "name" ? (
-                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: zone.id, data: { name: editValue } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0" />
-                  ) : (
-                    <span className="block w-full cursor-text" onClick={() => { setEditingCell({ id: zone.id, field: "name" }); setEditValue(zone.name); }}>{zone.name || ""}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "dropdown" })}>
-                  <Select value={zone.cityId || ""} onValueChange={(v) => updateMutation.mutate({ id: zone.id, data: { cityId: v } })}>
-                    <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent"><SelectValue>{getCityName(zone.cityId)}</SelectValue></SelectTrigger>
-                    <SelectContent>{cities.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === zone.id && editingCell?.field === "order" })}>
-                  {editingCell?.id === zone.id && editingCell?.field === "order" ? (
-                    <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: zone.id, data: { order: parseInt(editValue) || 0 } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: zone.id, field: "order" }); setEditValue(String(zone.order ?? 0)); }}>{zone.order ?? 0}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "actions" })}><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDeleteId(zone.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar zona</AlertDialogTitle><AlertDialogDescription>¿Estás seguro?</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
-
-function ExcelTable({ title, endpoint, queryKey, hasIcon = false, icon: IconComponent }: { title: string; endpoint: string; queryKey: string; hasIcon?: boolean; icon?: React.ComponentType<{ className?: string }> }) {
-  const { toast } = useToast();
-  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -549,70 +115,60 @@ function ExcelTable({ title, endpoint, queryKey, hasIcon = false, icon: IconComp
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `${endpoint}/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `${title} eliminado` }); setDeleteId(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
 
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
-
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-        <div className="flex items-center gap-2">
-          {IconComponent && <IconComponent className="w-4 h-4 text-primary" />}
-          <span className="font-medium text-sm">{items.length} {title}</span>
-        </div>
-        <Button size="sm" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}><Plus className="w-4 h-4 mr-1" />Agregar</Button>
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
+      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+        <span className="font-semibold text-xs uppercase tracking-wide">{title}</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid={`button-add-${queryKey.split('/').pop()}`}>
+          <Plus className="w-3 h-3" />
+        </Button>
       </div>
-      <div className="overflow-auto max-h-[600px]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Activo</th>
-              <th className={HEADER_STYLE} style={{ minWidth: "200px" }}>Nombre</th>
-              {hasIcon && <th className={HEADER_STYLE} style={{ width: "100px" }}>Icono</th>}
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Orden</th>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => (
-              <tr key={item.id}>
-                <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
-                <td className={getCellStyle({ type: "checkbox" })} onClick={() => updateMutation.mutate({ id: item.id, data: { active: !item.active } })}>
-                  <div className="flex justify-center"><input type="checkbox" checked={item.active ?? false} readOnly className="w-4 h-4 cursor-pointer" /></div>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "name" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "name" ? (
-                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0" />
-                  ) : (
-                    <span className="block w-full cursor-text" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name || ""}</span>
+      <div className="overflow-auto max-h-[300px] flex-1">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
+        ) : items.length === 0 ? (
+          <div className="text-xs text-muted-foreground text-center py-3">Sin datos</div>
+        ) : (
+          <table className="w-full border-collapse text-xs">
+            <tbody>
+              {items.map((item, idx) => (
+                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  {numbered && (
+                    <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
                   )}
-                </td>
-                {hasIcon && (
-                  <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "icon" })}>
-                    {editingCell?.id === item.id && editingCell?.field === "icon" ? (
-                      <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { icon: editValue } as any }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0" />
+                  <td className="px-1.5 py-0.5">
+                    {editingId === item.id ? (
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingId(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingId(null); } if (e.key === "Escape") setEditingId(null); }}
+                        autoFocus
+                        className="h-5 text-xs border-0 p-0 focus-visible:ring-0"
+                      />
                     ) : (
-                      <span className="block w-full cursor-text text-muted-foreground" onClick={() => { setEditingCell({ id: item.id, field: "icon" }); setEditValue((item as any).icon || ""); }}>{(item as any).icon || ""}</span>
+                      <span
+                        className="block w-full cursor-text truncate"
+                        onClick={() => { setEditingId(item.id); setEditValue(item.name); }}
+                      >{item.name}</span>
                     )}
                   </td>
-                )}
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "order" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "order" ? (
-                    <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { order: parseInt(editValue) || 0 } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "order" }); setEditValue(String(item.order ?? 0)); }}>{item.order ?? 0}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "actions" })}><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDeleteId(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td className="w-6 text-center">
+                    <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100" onClick={() => setDeleteId(item.id)} style={{ opacity: undefined }}>
+                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar</AlertDialogTitle><AlertDialogDescription>¿Estás seguro?</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar</AlertDialogTitle><AlertDialogDescription>¿Estás seguro de eliminar este elemento?</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -620,7 +176,7 @@ function ExcelTable({ title, endpoint, queryKey, hasIcon = false, icon: IconComp
   );
 }
 
-function ColoredExcelTable({ title, endpoint, queryKey, icon: IconComponent }: { title: string; endpoint: string; queryKey: string; icon?: React.ComponentType<{ className?: string }> }) {
+function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: string; queryKey: string }) {
   const { toast } = useToast();
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -643,72 +199,57 @@ function ColoredExcelTable({ title, endpoint, queryKey, icon: IconComponent }: {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `${endpoint}/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `${title} eliminado` }); setDeleteId(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
 
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
-
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-        <div className="flex items-center gap-2">
-          {IconComponent && <IconComponent className="w-4 h-4 text-primary" />}
-          <span className="font-medium text-sm">{items.length} {title}</span>
-        </div>
-        <Button size="sm" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}><Plus className="w-4 h-4 mr-1" />Agregar</Button>
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
+      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+        <span className="font-semibold text-xs uppercase tracking-wide">{title}</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+          <Plus className="w-3 h-3" />
+        </Button>
       </div>
-      <div className="overflow-auto max-h-[600px]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Activo</th>
-              <th className={HEADER_STYLE} style={{ minWidth: "180px" }}>Nombre</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Color</th>
-              <th className={HEADER_STYLE} style={{ width: "140px" }}>Vista Previa</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Orden</th>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => (
-              <tr key={item.id}>
-                <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
-                <td className={getCellStyle({ type: "checkbox" })} onClick={() => updateMutation.mutate({ id: item.id, data: { active: !item.active } })}>
-                  <div className="flex justify-center"><input type="checkbox" checked={item.active ?? false} readOnly className="w-4 h-4 cursor-pointer" /></div>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "name" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "name" ? (
-                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0" />
-                  ) : (
-                    <span className="block w-full cursor-text" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name || ""}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "input" })}>
-                  <div className="flex justify-center">
-                    <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-7 h-6 rounded cursor-pointer border-0 p-0" />
-                  </div>
-                </td>
-                <td className={getCellStyle({ type: "readonly" })}>
-                  <div className="flex justify-center">
-                    <Badge style={{ backgroundColor: `${item.color || "#6366f1"}20`, color: item.color || "#6366f1", borderColor: item.color || "#6366f1" }} className="border text-xs">{item.name || "Ejemplo"}</Badge>
-                  </div>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "order" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "order" ? (
-                    <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { order: parseInt(editValue) || 0 } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "order" }); setEditValue(String(item.order ?? 0)); }}>{item.order ?? 0}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "actions" })}><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDeleteId(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="overflow-auto max-h-[300px] flex-1">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
+        ) : items.length === 0 ? (
+          <div className="text-xs text-muted-foreground text-center py-3">Sin datos</div>
+        ) : (
+          <table className="w-full border-collapse text-xs">
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  <td className="w-8 text-center py-0.5 border-r border-gray-200 dark:border-gray-700">
+                    <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 rounded cursor-pointer border-0 p-0" />
+                  </td>
+                  <td className="px-1.5 py-0.5">
+                    {editingCell?.id === item.id && editingCell?.field === "name" ? (
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); } if (e.key === "Escape") setEditingCell(null); }}
+                        autoFocus
+                        className="h-5 text-xs border-0 p-0 focus-visible:ring-0"
+                      />
+                    ) : (
+                      <span className="block w-full cursor-text truncate" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
+                    )}
+                  </td>
+                  <td className="w-6 text-center">
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar</AlertDialogTitle><AlertDialogDescription>¿Estás seguro?</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar</AlertDialogTitle><AlertDialogDescription>¿Estás seguro de eliminar este elemento?</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -716,13 +257,282 @@ function ColoredExcelTable({ title, endpoint, queryKey, icon: IconComponent }: {
   );
 }
 
-function NivelMantenimientoTable() {
+function CitiesMini() {
   const { toast } = useToast();
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: items = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: ["/api/catalog/nivel-mantenimiento"] });
+  const { data: cities = [], isLoading } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
+
+  const createMutation = useMutation({
+    mutationFn: () => {
+      const nextOrder = cities.length > 0 ? Math.max(...cities.map(c => c.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", "/api/catalog/cities", { name: "Nueva Ciudad", active: true, order: nextOrder });
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); toast({ title: "Ciudad creada" }); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CatalogCity> }) => apiRequest("PUT", `/api/catalog/cities/${id}`, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/cities/${id}`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Ciudad eliminada" }); setDeleteId(null); },
+  });
+
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-cities">
+      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+        <span className="font-semibold text-xs uppercase tracking-wide">Ciudades</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-city">
+          <Plus className="w-3 h-3" />
+        </Button>
+      </div>
+      <div className="overflow-auto max-h-[300px] flex-1">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
+        ) : (
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr>
+                <th className={TH}>Ciudad</th>
+                <th className={TH} style={{ width: "55px" }}>ISAI</th>
+                <th className={TH} style={{ width: "65px" }}>Notario</th>
+                <th className={TH} style={{ width: "24px" }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {cities.map((city) => (
+                <tr key={city.id} className="border-b border-gray-200 dark:border-gray-700">
+                  <td className="px-1.5 py-0.5">
+                    {editingCell?.id === city.id && editingCell?.field === "name" ? (
+                      <Input value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: city.id, data: { name: editValue } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: city.id, data: { name: editValue } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0" />
+                    ) : (
+                      <span className="block cursor-text font-medium truncate" onClick={() => { setEditingCell({ id: city.id, field: "name" }); setEditValue(city.name); }}>{city.name}</span>
+                    )}
+                  </td>
+                  <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700">
+                    {editingCell?.id === city.id && editingCell?.field === "isaiPercent" ? (
+                      <Input type="number" step="0.1" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: city.id, data: { isaiPercent: editValue } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: city.id, data: { isaiPercent: editValue } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0 text-center w-12" />
+                    ) : (
+                      <span className="block cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "isaiPercent" }); setEditValue(city.isaiPercent ?? "3.0"); }}>{city.isaiPercent ?? "3.0"}%</span>
+                    )}
+                  </td>
+                  <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700">
+                    {editingCell?.id === city.id && editingCell?.field === "notariaPercent" ? (
+                      <Input type="number" step="0.1" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: city.id, data: { notariaPercent: editValue } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: city.id, data: { notariaPercent: editValue } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0 text-center w-12" />
+                    ) : (
+                      <span className="block cursor-text text-center" onClick={() => { setEditingCell({ id: city.id, field: "notariaPercent" }); setEditValue(city.notariaPercent ?? "2.5"); }}>{city.notariaPercent ?? "2.5"}%</span>
+                    )}
+                  </td>
+                  <td className="w-6 text-center">
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(city.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar ciudad</AlertDialogTitle><AlertDialogDescription>Esta acción también eliminará todas las zonas asociadas.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function ZonesMini() {
+  const { toast } = useToast();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const { data: cities = [] } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
+  const { data: zones = [], isLoading } = useQuery<CatalogZone[]>({ queryKey: ["/api/catalog/zones"] });
+
+  const createMutation = useMutation({
+    mutationFn: () => {
+      const nextOrder = zones.length > 0 ? Math.max(...zones.map(z => z.order ?? 0)) + 1 : 1;
+      return apiRequest("POST", "/api/catalog/zones", { name: "Nueva Zona", active: true, order: nextOrder, cityId: cities[0]?.id });
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona creada" }); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiRequest("PUT", `/api/catalog/zones/${id}`, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/zones/${id}`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona eliminada" }); setDeleteId(null); },
+  });
+
+  const getCityName = (cityId: string | null | undefined) => {
+    if (!cityId) return "";
+    return cities.find(c => c.id === cityId)?.name || "";
+  };
+
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-zones">
+      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+        <span className="font-semibold text-xs uppercase tracking-wide">Zonas</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-zone">
+          <Plus className="w-3 h-3" />
+        </Button>
+      </div>
+      <div className="overflow-auto max-h-[300px] flex-1">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
+        ) : (
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr>
+                <th className={TH}>Ciudad</th>
+                <th className={TH}>Zona</th>
+                <th className={TH} style={{ width: "24px" }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {zones.map((zone) => (
+                <tr key={zone.id} className="border-b border-gray-200 dark:border-gray-700">
+                  <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700">
+                    <Select value={zone.cityId || ""} onValueChange={(val) => updateMutation.mutate({ id: zone.id, data: { cityId: val } })}>
+                      <SelectTrigger className="h-5 text-xs border-0 p-0 px-1 focus:ring-0 shadow-none bg-transparent [&_svg]:h-2.5 [&_svg]:w-2.5">
+                        <span className="truncate">{getCityName(zone.cityId)}</span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </td>
+                  <td className="px-1.5 py-0.5">
+                    {editingId === zone.id ? (
+                      <Input value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: zone.id, data: { name: editValue } }); setEditingId(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: zone.id, data: { name: editValue } }); setEditingId(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0" />
+                    ) : (
+                      <span className="block cursor-text truncate" onClick={() => { setEditingId(zone.id); setEditValue(zone.name); }}>{zone.name}</span>
+                    )}
+                  </td>
+                  <td className="w-6 text-center">
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(zone.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar zona</AlertDialogTitle><AlertDialogDescription>¿Estás seguro?</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function GlobalRatesMini() {
+  const { toast } = useToast();
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const { data: settings = [], isLoading } = useQuery<{ id: string; key: string; value: string; label: string | null }[]>({ queryKey: ["/api/global-settings"] });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ key, value, label }: { key: string; value: string; label?: string }) =>
+      apiRequest("PUT", `/api/global-settings/${key}`, { value, label }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/global-settings"] });
+      toast({ title: "Actualizado" });
+    },
+  });
+
+  const RATES = [
+    { key: "mortgageInterestPercent", label: "Tasa Crédito", defaultValue: "10.5", suffix: "%" },
+    { key: "mortgageYears", label: "Años Crédito", defaultValue: "15", suffix: "" },
+    { key: "rentRatePercent", label: "Tasa INPC", defaultValue: "7.0", suffix: "%" },
+    { key: "rentMonths", label: "Meses de Renta", defaultValue: "11", suffix: "" },
+    { key: "appreciationRate", label: "Tasa de Plusvalía", defaultValue: "7.0", suffix: "%" },
+  ];
+
+  const getValue = (key: string, defaultValue: string) => {
+    const s = settings.find(s => s.key === key);
+    return s?.value ?? defaultValue;
+  };
+
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-global-rates">
+      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+        <span className="font-semibold text-xs uppercase tracking-wide">Parámetros de Rendimiento</span>
+      </div>
+      <div className="overflow-auto max-h-[300px] flex-1">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
+        ) : (
+          <table className="w-full border-collapse text-xs">
+            <tbody>
+              {RATES.map((rate) => {
+                const currentValue = getValue(rate.key, rate.defaultValue);
+                return (
+                  <tr key={rate.key} className="border-b border-gray-200 dark:border-gray-700">
+                    <td className="px-1.5 py-0.5 font-medium">{rate.label}</td>
+                    <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700" style={{ width: "80px" }}>
+                      {editingKey === rate.key ? (
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => { updateMutation.mutate({ key: rate.key, value: editValue }); setEditingKey(null); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ key: rate.key, value: editValue }); setEditingKey(null); } }}
+                          autoFocus
+                          className="h-5 text-xs border-0 p-0 focus-visible:ring-0 text-center w-16"
+                        />
+                      ) : (
+                        <span className="block cursor-text text-center" onClick={() => { setEditingKey(rate.key); setEditValue(currentValue); }}>
+                          {currentValue}{rate.suffix}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NivelMini() {
+  const { toast } = useToast();
+  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const { data: items = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/catalog/nivel-mantenimiento"] });
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -733,71 +543,90 @@ function NivelMantenimientoTable() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CatalogItem> }) => apiRequest("PUT", `/api/catalog/nivel-mantenimiento/${id}`, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiRequest("PUT", `/api/catalog/nivel-mantenimiento/${id}`, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/nivel-mantenimiento/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }); toast({ title: "Nivel eliminado" }); setDeleteId(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }); toast({ title: "Eliminado" }); setDeleteId(null); },
   });
 
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
-
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-        <div className="flex items-center gap-2">
-          <Wrench className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">{items.length} Niveles de Mantenimiento</span>
-        </div>
-        <Button size="sm" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}><Plus className="w-4 h-4 mr-1" />Agregar</Button>
+    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-nivel-mantenimiento">
+      <div className="flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-900 text-white">
+        <span className="font-semibold text-xs uppercase tracking-wide">Nivel Mantenimiento</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+          <Plus className="w-3 h-3" />
+        </Button>
       </div>
-      <div className="overflow-auto max-h-[600px]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}>#</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Activo</th>
-              <th className={HEADER_STYLE} style={{ minWidth: "120px" }}>Nombre</th>
-              <th className={HEADER_STYLE} style={{ width: "100px" }}>Valor ($/m²)</th>
-              <th className={HEADER_STYLE} style={{ width: "70px" }}>Orden</th>
-              <th className={HEADER_STYLE} style={{ width: "50px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => (
-              <tr key={item.id}>
-                <td className={getCellStyle({ type: "index" })}>{idx + 1}</td>
-                <td className={getCellStyle({ type: "checkbox" })} onClick={() => updateMutation.mutate({ id: item.id, data: { active: !item.active } })}>
-                  <div className="flex justify-center"><input type="checkbox" checked={item.active ?? false} readOnly className="w-4 h-4 cursor-pointer" /></div>
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "name" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "name" ? (
-                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 font-medium" />
-                  ) : (
-                    <span className="block w-full cursor-text font-medium" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name || ""}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "valor" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "valor" ? (
-                    <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { valor: parseInt(editValue) || 0 } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "valor" }); setEditValue(String(item.valor ?? 0)); }}>${item.valor ?? 0}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "input", isEditing: editingCell?.id === item.id && editingCell?.field === "order" })}>
-                  {editingCell?.id === item.id && editingCell?.field === "order" ? (
-                    <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onBlur={() => { updateMutation.mutate({ id: item.id, data: { order: parseInt(editValue) || 0 } }); setEditingCell(null); }} autoFocus className="h-6 text-sm border-0 p-0 focus-visible:ring-0 text-center" />
-                  ) : (
-                    <span className="block w-full cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "order" }); setEditValue(String(item.order ?? 0)); }}>{item.order ?? 0}</span>
-                  )}
-                </td>
-                <td className={getCellStyle({ type: "actions" })}><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDeleteId(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></td>
+      <div className="overflow-auto max-h-[300px] flex-1">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
+        ) : (
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr>
+                <th className={TH}>Nivel</th>
+                <th className={TH} style={{ width: "55px" }}>Mtto.</th>
+                <th className={TH} style={{ width: "65px" }}>Equipo</th>
+                <th className={TH} style={{ width: "65px" }}>Muebles</th>
+                <th className={TH} style={{ width: "24px" }}></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((item: any) => (
+                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700">
+                  <td className="px-1.5 py-0.5 font-medium">
+                    {editingCell?.id === item.id && editingCell?.field === "name" ? (
+                      <Input value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: item.id, data: { name: editValue } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0 font-medium" />
+                    ) : (
+                      <span className="block cursor-text" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
+                    )}
+                  </td>
+                  <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700">
+                    {editingCell?.id === item.id && editingCell?.field === "valor" ? (
+                      <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: item.id, data: { valor: parseInt(editValue) || 0 } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: item.id, data: { valor: parseInt(editValue) || 0 } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0 text-center w-12" />
+                    ) : (
+                      <span className="block cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "valor" }); setEditValue(String(item.valor ?? 0)); }}>${item.valor ?? 0}</span>
+                    )}
+                  </td>
+                  <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700">
+                    {editingCell?.id === item.id && editingCell?.field === "equipo" ? (
+                      <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: item.id, data: { equipo: parseInt(editValue) || 0 } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: item.id, data: { equipo: parseInt(editValue) || 0 } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0 text-center w-12" />
+                    ) : (
+                      <span className="block cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "equipo" }); setEditValue(String(item.equipo ?? 0)); }}>${(item.equipo ?? 0).toLocaleString()}</span>
+                    )}
+                  </td>
+                  <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700">
+                    {editingCell?.id === item.id && editingCell?.field === "muebles" ? (
+                      <Input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => { updateMutation.mutate({ id: item.id, data: { muebles: parseInt(editValue) || 0 } }); setEditingCell(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: item.id, data: { muebles: parseInt(editValue) || 0 } }); setEditingCell(null); } }}
+                        autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0 text-center w-12" />
+                    ) : (
+                      <span className="block cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "muebles" }); setEditValue(String(item.muebles ?? 0)); }}>${(item.muebles ?? 0).toLocaleString()}</span>
+                    )}
+                  </td>
+                  <td className="w-6 text-center">
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar</AlertDialogTitle><AlertDialogDescription>¿Estás seguro?</AlertDialogDescription></AlertDialogHeader>

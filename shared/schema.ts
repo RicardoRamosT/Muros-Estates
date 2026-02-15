@@ -1637,7 +1637,9 @@ export type CatalogCajon = typeof catalogCajones.$inferSelect;
 export const catalogNivelMantenimiento = pgTable("catalog_nivel_mantenimiento", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
-  valor: integer("valor"), // Associated maintenance cost per m²
+  valor: integer("valor"),
+  equipo: integer("equipo"),
+  muebles: integer("muebles"),
   active: boolean("active").default(true),
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1895,3 +1897,36 @@ export const insertGlobalSettingSchema = createInsertSchema(globalSettings).omit
 
 export type InsertGlobalSetting = z.infer<typeof insertGlobalSettingSchema>;
 export type GlobalSetting = typeof globalSettings.$inferSelect;
+
+export const catalogTipoProveedor = pgTable("catalog_tipo_proveedor", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertCatalogTipoProveedorSchema = createInsertSchema(catalogTipoProveedor).omit({ id: true, createdAt: true });
+export type InsertCatalogTipoProveedor = z.infer<typeof insertCatalogTipoProveedorSchema>;
+export type CatalogTipoProveedor = typeof catalogTipoProveedor.$inferSelect;
+
+export const catalogIncluye = pgTable("catalog_incluye", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertCatalogIncluyeSchema = createInsertSchema(catalogIncluye).omit({ id: true, createdAt: true });
+export type InsertCatalogIncluye = z.infer<typeof insertCatalogIncluyeSchema>;
+export type CatalogIncluye = typeof catalogIncluye.$inferSelect;
+
+export const catalogSiNo = pgTable("catalog_si_no", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertCatalogSiNoSchema = createInsertSchema(catalogSiNo).omit({ id: true, createdAt: true });
+export type InsertCatalogSiNo = z.infer<typeof insertCatalogSiNoSchema>;
+export type CatalogSiNo = typeof catalogSiNo.$inferSelect;

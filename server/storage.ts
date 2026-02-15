@@ -45,6 +45,9 @@ import {
   catalogTipoContrato, type CatalogTipoContrato, type InsertCatalogTipoContrato,
   catalogCesionDerechos, type CatalogCesionDerechos, type InsertCatalogCesionDerechos,
   catalogPresentacion, type CatalogPresentacion, type InsertCatalogPresentacion,
+  catalogTipoProveedor, type CatalogTipoProveedor, type InsertCatalogTipoProveedor,
+  catalogIncluye, type CatalogIncluye, type InsertCatalogIncluye,
+  catalogSiNo, type CatalogSiNo, type InsertCatalogSiNo,
   globalSettings, type GlobalSetting,
 } from "@shared/schema";
 import { db } from "./db";
@@ -230,6 +233,21 @@ export interface IStorage {
   createCatalogPresentacion(item: InsertCatalogPresentacion): Promise<CatalogPresentacion>;
   updateCatalogPresentacion(id: string, item: Partial<InsertCatalogPresentacion>): Promise<CatalogPresentacion | undefined>;
   deleteCatalogPresentacion(id: string): Promise<boolean>;
+
+  getCatalogTipoProveedor(): Promise<CatalogTipoProveedor[]>;
+  createCatalogTipoProveedor(item: InsertCatalogTipoProveedor): Promise<CatalogTipoProveedor>;
+  updateCatalogTipoProveedor(id: string, item: Partial<InsertCatalogTipoProveedor>): Promise<CatalogTipoProveedor | undefined>;
+  deleteCatalogTipoProveedor(id: string): Promise<boolean>;
+
+  getCatalogIncluye(): Promise<CatalogIncluye[]>;
+  createCatalogIncluye(item: InsertCatalogIncluye): Promise<CatalogIncluye>;
+  updateCatalogIncluye(id: string, item: Partial<InsertCatalogIncluye>): Promise<CatalogIncluye | undefined>;
+  deleteCatalogIncluye(id: string): Promise<boolean>;
+
+  getCatalogSiNo(): Promise<CatalogSiNo[]>;
+  createCatalogSiNo(item: InsertCatalogSiNo): Promise<CatalogSiNo>;
+  updateCatalogSiNo(id: string, item: Partial<InsertCatalogSiNo>): Promise<CatalogSiNo | undefined>;
+  deleteCatalogSiNo(id: string): Promise<boolean>;
 
   getGlobalSettings(): Promise<GlobalSetting[]>;
   getGlobalSetting(key: string): Promise<GlobalSetting | undefined>;
@@ -1292,6 +1310,54 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCatalogPresentacion(id: string): Promise<boolean> {
     await db.delete(catalogPresentacion).where(eq(catalogPresentacion.id, id));
+    return true;
+  }
+
+  async getCatalogTipoProveedor(): Promise<CatalogTipoProveedor[]> {
+    return db.select().from(catalogTipoProveedor).orderBy(catalogTipoProveedor.order, catalogTipoProveedor.name);
+  }
+  async createCatalogTipoProveedor(item: InsertCatalogTipoProveedor): Promise<CatalogTipoProveedor> {
+    const [created] = await db.insert(catalogTipoProveedor).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogTipoProveedor(id: string, item: Partial<InsertCatalogTipoProveedor>): Promise<CatalogTipoProveedor | undefined> {
+    const [updated] = await db.update(catalogTipoProveedor).set(item as any).where(eq(catalogTipoProveedor.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogTipoProveedor(id: string): Promise<boolean> {
+    await db.delete(catalogTipoProveedor).where(eq(catalogTipoProveedor.id, id));
+    return true;
+  }
+
+  async getCatalogIncluye(): Promise<CatalogIncluye[]> {
+    return db.select().from(catalogIncluye).orderBy(catalogIncluye.order, catalogIncluye.name);
+  }
+  async createCatalogIncluye(item: InsertCatalogIncluye): Promise<CatalogIncluye> {
+    const [created] = await db.insert(catalogIncluye).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogIncluye(id: string, item: Partial<InsertCatalogIncluye>): Promise<CatalogIncluye | undefined> {
+    const [updated] = await db.update(catalogIncluye).set(item as any).where(eq(catalogIncluye.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogIncluye(id: string): Promise<boolean> {
+    await db.delete(catalogIncluye).where(eq(catalogIncluye.id, id));
+    return true;
+  }
+
+  async getCatalogSiNo(): Promise<CatalogSiNo[]> {
+    return db.select().from(catalogSiNo).orderBy(catalogSiNo.order, catalogSiNo.name);
+  }
+  async createCatalogSiNo(item: InsertCatalogSiNo): Promise<CatalogSiNo> {
+    const [created] = await db.insert(catalogSiNo).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogSiNo(id: string, item: Partial<InsertCatalogSiNo>): Promise<CatalogSiNo | undefined> {
+    const [updated] = await db.update(catalogSiNo).set(item as any).where(eq(catalogSiNo.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogSiNo(id: string): Promise<boolean> {
+    await db.delete(catalogSiNo).where(eq(catalogSiNo.id, id));
     return true;
   }
 
