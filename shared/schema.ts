@@ -675,6 +675,7 @@ export const developments = pgTable("developments", {
   nivel: text("nivel"), // Nivel
   torres: integer("torres"), // Número de torres
   niveles: integer("niveles"), // Número de niveles
+  vistas: text("vistas").array(), // Vistas disponibles del desarrollo
   amenities: text("amenities").array(), // Lista de amenidades
   efficiency: text("efficiency").array(), // Características de eficiencia
   otherFeatures: text("other_features").array(), // Otras características (Otros)
@@ -936,10 +937,10 @@ export const typologies = pgTable("typologies", {
   active: boolean("active").default(true), // Activo
   
   // 3-6: Ubicación
-  city: text("city").notNull(), // Ciudad
-  zone: text("zone").notNull(), // Zona
-  developer: text("developer").notNull(), // Desarrollador
-  development: text("development").notNull(), // Desarrollo
+  city: text("city"), // Ciudad
+  zone: text("zone"), // Zona
+  developer: text("developer"), // Desarrollador
+  development: text("development"), // Desarrollo
   tipoDesarrollo: text("tipo_desarrollo").array(), // Tipos de desarrollo (multi-select, heredado del desarrollo/desarrollador)
   
   // 7-9: GENERALES

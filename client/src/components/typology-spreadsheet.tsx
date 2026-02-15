@@ -1150,6 +1150,7 @@ interface EditableCellProps {
   allDevelopments?: any[];
   allDevelopers?: any[];
   vistaOptions?: string[];
+  vistasByDevelopment?: Record<string, string[]>;
   areaOptions?: string[];
   tipologiaOptions?: string[];
   typesByDevelopment?: Record<string, string[]>;
@@ -1164,7 +1165,7 @@ interface EditableCellProps {
   isDynamicCalculated?: boolean;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1366,15 +1367,21 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       const filteredDevs = allDevelopments
         .filter(d => d.city === city)
         .map(d => d.name)
-        .filter(Boolean);
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'es'));
       if (filteredDevs.length > 0) {
         options = filteredDevs;
       }
     }
     
-    // Use catalog options for specific columns
-    if (column.key === "view" && vistaOptions && vistaOptions.length > 0) {
-      options = vistaOptions;
+    // Use development-specific vistas if available, otherwise fallback to all catalog vistas
+    if (column.key === "view") {
+      const rowDev = row?.development;
+      if (rowDev && vistasByDevelopment && vistasByDevelopment[rowDev]?.length > 0) {
+        options = vistasByDevelopment[rowDev];
+      } else if (vistaOptions && vistaOptions.length > 0) {
+        options = vistaOptions;
+      }
     }
     
     if (column.key === "type") {
@@ -1412,7 +1419,10 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     // Ensure current value is always in options to prevent disappearing values
     const currentValue = value?.toString() || "";
-    let finalOptions = [...options];
+    const isNumericOptions = options.length > 0 && options.every(o => /^\d+$/.test(o));
+    let finalOptions = isNumericOptions 
+      ? [...options].sort((a, b) => parseInt(a) - parseInt(b))
+      : [...options].sort((a, b) => a.localeCompare(b, 'es'));
     if (currentValue && !finalOptions.includes(currentValue)) {
       finalOptions = [currentValue, ...finalOptions];
     }
@@ -1424,7 +1434,13 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       >
         <Select 
           value={currentValue} 
-          onValueChange={onChange}
+          onValueChange={(val) => {
+            if (val === "__sin_asignar__") {
+              onChange("");
+            } else {
+              onChange(val);
+            }
+          }}
         >
           <SelectTrigger 
             className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!currentValue || /^\d+$/.test(currentValue)) ? "text-center" : "text-left")}
@@ -1433,6 +1449,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="__sin_asignar__" className="font-bold text-muted-foreground italic">Sin Asignar</SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
@@ -1681,6 +1698,18 @@ export function TypologySpreadsheet() {
   const vistaOptions = useMemo(() => {
     return catalogVistas.map(v => v.name).filter(Boolean);
   }, [catalogVistas]);
+
+  const vistasByDevelopment = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    if (dbDevelopments) {
+      dbDevelopments.forEach((dev: any) => {
+        if (dev.name && Array.isArray(dev.vistas) && dev.vistas.length > 0) {
+          map[dev.name] = dev.vistas;
+        }
+      });
+    }
+    return map;
+  }, [dbDevelopments]);
   
   const areaOptions = useMemo(() => {
     return catalogAreas.map(a => a.name).filter(Boolean);
@@ -2213,12 +2242,7 @@ export function TypologySpreadsheet() {
   }, [typologies, updateMutation, dbDevelopments, dbDevelopers]);
   
   const handleAddRow = () => {
-    createMutation.mutate({
-      city: "Monterrey",
-      zone: "Centro",
-      developer: developerOptions[0] || "",
-      development: developmentOptions[0] || "",
-    });
+    createMutation.mutate({});
   };
   
   const handleDeleteRow = (id: string) => {
@@ -2852,6 +2876,7 @@ export function TypologySpreadsheet() {
                         allDevelopments={dbDevelopments}
                         allDevelopers={dbDevelopers}
                         vistaOptions={vistaOptions}
+                        vistasByDevelopment={vistasByDevelopment}
                         areaOptions={areaOptions}
                         tipologiaOptions={tipologiaOptions}
                         typesByDevelopment={typesByDevelopment}

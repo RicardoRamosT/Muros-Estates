@@ -41,9 +41,16 @@ const typologyNumericFields = [
 ];
 
 // Clean typology data: convert empty strings to null for numeric fields
+const typologyTextFields = ['city', 'zone', 'developer', 'development', 'type', 'view'];
+
 function cleanTypologyData(data: Record<string, any>): Record<string, any> {
   const cleaned = { ...data };
   for (const field of typologyNumericFields) {
+    if (field in cleaned && cleaned[field] === '') {
+      cleaned[field] = null;
+    }
+  }
+  for (const field of typologyTextFields) {
     if (field in cleaned && cleaned[field] === '') {
       cleaned[field] = null;
     }

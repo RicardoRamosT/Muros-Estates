@@ -21,7 +21,7 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
+import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogVista } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'recamaras-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'recamaras-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -92,6 +92,7 @@ const columns: ColumnDef[] = [
   { key: 'nivel', label: 'Nivel', group: 'structure', type: 'nivel-select', width: '75px', cellType: 'dropdown' },
   { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '60px', cellType: 'dropdown' },
   { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '65px', cellType: 'dropdown' },
+  { key: 'vistas', label: 'Vistas', group: 'structure', type: 'multiselect-vistas', width: '95px', cellType: 'dropdown' },
   { key: 'amenities', label: 'Amenidades', group: 'features', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
   { key: 'efficiency', label: 'Eficiencia', group: 'features', type: 'multiselect-efficiency', width: '90px', cellType: 'dropdown' },
   { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
@@ -170,6 +171,10 @@ export function DevelopmentsSpreadsheet() {
 
   const { data: acabados = [] } = useQuery<CatalogAcabado[]>({
     queryKey: ["/api/catalog/acabados"],
+  });
+
+  const { data: vistasOptions = [] } = useQuery<CatalogVista[]>({
+    queryKey: ["/api/catalog/vistas"],
   });
 
   const { data: comercializadoras = [] } = useQuery<CatalogComercializadora[]>({
@@ -940,6 +945,40 @@ export function DevelopmentsSpreadsheet() {
                           </PopoverTrigger>
                           <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
                             {amenities.map(item => (
+                              <div key={item.id} className="flex items-center gap-2 py-1">
+                                <Checkbox
+                                  checked={arrValue.includes(item.name)}
+                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                                />
+                                <span className="text-xs">{item.name}</span>
+                              </div>
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'multiselect-vistas') {
+                  const arrValue: string[] = Array.isArray(value) ? value : [];
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
+                            {vistasOptions.map(item => (
                               <div key={item.id} className="flex items-center gap-2 py-1">
                                 <Checkbox
                                   checked={arrValue.includes(item.name)}
