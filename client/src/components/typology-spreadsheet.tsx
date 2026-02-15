@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -826,7 +826,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     const arrow = <ArrowDown className="w-3 h-3 flex-shrink-0" />;
     if (sortDirection === "asc") {
       return (
-        <span className="flex items-center gap-0 text-primary">
+        <span className="flex items-center gap-0 text-white opacity-80">
           {signs("−", "+")}
           {arrow}
         </span>
@@ -834,9 +834,9 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     }
     if (sortDirection === "desc") {
       return (
-        <span className="flex items-center gap-0 text-primary">
-          {arrow}
+        <span className="flex items-center gap-0 text-white opacity-80">
           {signs("+", "−")}
+          {arrow}
         </span>
       );
     }
@@ -1164,7 +1164,7 @@ interface EditableCellProps {
   isDynamicCalculated?: boolean;
 }
 
-function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1203,7 +1203,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         className={cn(
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          column.calculated && "bg-gray-200 dark:bg-gray-800/50",
+          column.calculated && "bg-teal-50 dark:bg-teal-900/20",
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed",
@@ -1563,7 +1563,7 @@ function EditableCell({ value, column, rowId, city, developer, onChange, disable
         : <span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span>}
     </div>
   );
-}
+});
 
 type ColumnFilters = Record<string, Set<string>>;
 type ColumnSorts = Record<string, "asc" | "desc" | null>;
@@ -2082,11 +2082,8 @@ export function TypologySpreadsheet() {
       hasDiscount: ["discountPercent", "discountAmount"],
     };
     
-    if (dependentFieldsToClear[field] && value === false) {
-      dependentFieldsToClear[field].forEach(depField => {
-        (updatedRow as any)[depField] = null;
-      });
-    }
+    // When boolean toggles to false, don't clear dependent field values
+    // They stay in DB but the cell is visually disabled and hidden from Landing
     
     // Bidirectional calculation for discount: if user edits %, calculate Monto and vice versa
     const price = parseFloat(updatedRow.price as string) || 0;
@@ -2364,6 +2361,9 @@ export function TypologySpreadsheet() {
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const zoomIn = () => setZoomLevel(prev => Math.min(prev + 10, 200));
+  const zoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 50));
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -2513,7 +2513,7 @@ export function TypologySpreadsheet() {
         ref={contentScrollRef}
         className="flex-1 overflow-auto spreadsheet-scroll"
       >
-        <div className="min-w-max">
+        <div className="min-w-max" style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}>
           {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
@@ -2527,7 +2527,7 @@ export function TypologySpreadsheet() {
                 return (
                   <div 
                     key={section.id} 
-                    className={cn("flex-shrink-0 flex items-center justify-between h-full text-white", isFirstSection && "sticky z-30")}
+                    className={cn("flex-shrink-0 flex items-center h-full text-white", isExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
                     style={{ 
                       backgroundColor: getSectionColor(sectionIndex),
                       width: isExpanded ? sectionWidth : collapsedWidth,
@@ -2542,18 +2542,25 @@ export function TypologySpreadsheet() {
                         {section.label}
                       </span>
                     )}
-                    <button
-                      onClick={() => toggleSection(section.id)}
-                      className="flex items-center justify-center h-full flex-shrink-0 hover-elevate cursor-pointer"
-                      style={{ width: 20 }}
-                      data-testid={`section-toggle-${section.id}`}
-                    >
-                      {isExpanded ? (
-                        <Minus className="w-3 h-3 text-white opacity-80" />
-                      ) : (
-                        <Plus className="w-3 h-3 text-white opacity-80" />
-                      )}
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => toggleSection(section.id)}
+                          className={cn("flex items-center justify-center h-full flex-shrink-0 hover-elevate cursor-pointer", !isExpanded && "w-full")}
+                          style={isExpanded ? { width: 20 } : undefined}
+                          data-testid={`section-toggle-${section.id}`}
+                        >
+                          {isExpanded ? (
+                            <Minus className="w-3 h-3 text-white opacity-80" />
+                          ) : (
+                            <Plus className="w-3 h-3 text-white opacity-80" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        {isExpanded ? `Colapsar ${section.label}` : section.label}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 );
               })}
@@ -2598,13 +2605,20 @@ export function TypologySpreadsheet() {
                       }}
                     >
                       {isColCollapsed ? (
-                        <button
-                          onClick={() => toggleColumn(col.key)}
-                          className="flex items-center justify-center w-full h-full hover-elevate cursor-pointer"
-                          data-testid={`col-expand-${col.key}`}
-                        >
-                          <Plus className="w-3 h-3 text-white opacity-80" />
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => toggleColumn(col.key)}
+                              className="flex items-center justify-center w-full h-full hover-elevate cursor-pointer"
+                              data-testid={`col-expand-${col.key}`}
+                            >
+                              <Plus className="w-3 h-3 text-white opacity-80" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">
+                            {col.fullLabel || col.label}
+                          </TooltipContent>
+                        </Tooltip>
                       ) : (
                         <>
                           <div className="flex-shrink-0" style={{ width: 20 }} />
@@ -2644,7 +2658,18 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
+              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+                <ColumnFilter
+                  column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
+                  data={typologies}
+                  selectedValues={columnFilters["id"] || new Set()}
+                  onFilterChange={(values) => setColumnFilters(prev => ({ ...prev, id: values }))}
+                  sortDirection={columnSorts["id"] || null}
+                  onSortChange={(dir) => setColumnSorts(prev => ({ ...prev, id: dir }))}
+                  hideLabel
+                  sectionColor={getSectionColor(0)}
+                />
+              </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
                 const collapsedSectionWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
@@ -2924,6 +2949,16 @@ export function TypologySpreadsheet() {
         </div>
       </div>
       
+      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1 bg-background border rounded-md shadow-lg px-1 py-0.5" data-testid="zoom-controls">
+        <Button size="icon" variant="ghost" onClick={zoomOut} disabled={zoomLevel <= 50} data-testid="zoom-out">
+          <Minus className="w-3.5 h-3.5" />
+        </Button>
+        <span className="text-xs font-medium tabular-nums w-10 text-center" data-testid="zoom-level">{zoomLevel}%</span>
+        <Button size="icon" variant="ghost" onClick={zoomIn} disabled={zoomLevel >= 200} data-testid="zoom-in">
+          <Plus className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
       <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>

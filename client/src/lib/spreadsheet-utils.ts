@@ -43,7 +43,7 @@ export function getCellStyle(config: CellStyleConfig): string {
       return cn(baseStyles, "bg-gray-100 dark:bg-gray-800 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700");
     
     case "calculated":
-      return cn(baseStyles, "bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 cursor-default font-medium");
+      return cn(baseStyles, "bg-teal-50 dark:bg-teal-900/20 text-muted-foreground cursor-default font-medium");
     
     case "readonly":
       return cn(baseStyles, "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-default");
