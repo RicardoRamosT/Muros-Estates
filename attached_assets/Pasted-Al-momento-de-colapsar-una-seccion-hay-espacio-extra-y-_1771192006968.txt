@@ -1,0 +1,27 @@
+Al momento de colapsar una seccion hay espacio extra y no esta centrado como cuando colapsas una columna dividual
+
+En las celdas que tienen algo calculado en vez de ser gris, que tengan el color de las celdas de Fecha y Hora.
+
+En los Si y No, si bloquea o activa una celda, que esa celda no pierda el valor cuando sea bloqueada. Pero en el Landing no aparece porque esta desactivada.
+
+Crear una logica de Zoom In y Zoom Out, que abajo a la derecha en la esquina este un + y - y el porcentaje de Zoom en el centro
+
+En la columna de Activo, al hacer hover en el Sub encabezado, el total sale detras de los botones en vez de adelante de los botones y no se ve que dice
+
+Al momento de colapsar que el Icono de + te diga que columna o seccion, dependiendo de que se colapso
+
+En el icono de ordenamiento, que sea blanco en todas sus faces, que en vez de que la flecha cambie de lado, que al picarle la flecha se quede mirando hacia abajo del lado derecho, al picarle otra vez solamente en + y - cambian de posicion, hacer la flecha larga como las de la 1ra face sin ordenamiento.
+
+En la columna de ID en la 3ra fila que tenga los botones de filtrado y ordenamiento
+
+Optimizar las esquinas de la pagina, que hay mucho espacio, asi el slider parace nativo de chrome porque esta pegado a la esquina, igual el scroll de abajo, que no tenga espacio, y hacer una manera dinamica que se vea asi en todas las resoluciones o tamaños de monitor
+
+La lentitud de los procesos como colapsar, cargar son mucho, ver opciones de optimizacion o aumento de cpu, ram, etc
+
+Al crear una tipologia que no tenga ningun parametron default, mas que los globales
+
+En los dropdowns que exista hasta arriba la opcion de "Sin Asignar" en Bold que al picarle el dropdown se ponga en blanco y el valor sea null o como la logica lo agarre mejor
+
+En el catalogo y zonas no tiene sentido que tengan orden, ya que se tendrian que ordenar por orden alfabetico
+
+En Desarrollo entre las columnas Niveles y Amenidades debe de existir una columna que se llame vistas, ahi al picarle saldra un dropdown para poder editar o agregar vistas sin tener la necesidad de crear mas columnas, y al picarle guardar se guardan y esas vistas son las que veran la tipologia.
