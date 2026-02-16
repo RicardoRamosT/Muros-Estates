@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ChevronDown, Check, X, Search
+  ArrowUpDown, ChevronDown, Check, X, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -110,13 +110,8 @@ export function ColumnFilter({
   };
 
   const ThinArrowDown = () => (
-    <svg width="8" height="16" viewBox="0 0 8 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-      <path d="M4 1L4 14M4 14L1 10.5M4 14L7 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-  const ThinArrowUpDown = () => (
-    <svg width="8" height="16" viewBox="0 0 8 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-      <path d="M4 1L4 15M4 1L1 4M4 1L7 4M4 15L1 12M4 15L7 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+      <path d="M4 0.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
   const SortIcon = () => {
@@ -142,7 +137,7 @@ export function ColumnFilter({
         </span>
       );
     }
-    return <span className="text-muted-foreground opacity-60"><ThinArrowUpDown /></span>;
+    return <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-60" />;
   };
 
   return (
