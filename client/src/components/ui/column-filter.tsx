@@ -112,12 +112,12 @@ export function ColumnFilter({
 
   const SortIcon = () => {
     const signs = (top: string, bottom: string) => (
-      <span className="flex flex-col items-center leading-none" style={{ fontSize: 8, gap: 0 }}>
+      <span className="flex flex-col items-center leading-none" style={{ fontSize: 7, gap: 0 }}>
         <span className="font-bold">{top}</span>
         <span className="font-bold">{bottom}</span>
       </span>
     );
-    const arrow = <ArrowDown className="w-3 h-3 flex-shrink-0" />;
+    const arrow = <ArrowDown className="flex-shrink-0" style={{ width: 10, height: 14 }} />;
     if (sortDirection === "asc") {
       return (
         <span className="flex items-center gap-0 text-primary">
@@ -134,7 +134,7 @@ export function ColumnFilter({
         </span>
       );
     }
-    return <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-60" />;
+    return <ArrowUpDown className="text-muted-foreground opacity-60 flex-shrink-0" style={{ width: 10, height: 14 }} />;
   };
 
   return (
