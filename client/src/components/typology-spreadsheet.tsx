@@ -2544,7 +2544,7 @@ export function TypologySpreadsheet() {
         ref={contentScrollRef}
         className="flex-1 overflow-auto spreadsheet-scroll"
       >
-        <div className="min-w-max" style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}>
+        <div className="min-w-max" style={zoomLevel !== 100 ? { transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' } : undefined}>
           {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
@@ -2719,7 +2719,7 @@ export function TypologySpreadsheet() {
                     <div
                       key={`filter-${col.key}`}
                       className={cn(
-                        "flex-shrink-0 h-full",
+                        "flex-shrink-0 h-full overflow-hidden",
                         isFirstSection && "sticky z-30"
                       )}
                       style={{ 
