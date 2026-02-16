@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
-  Loader2, RefreshCw, AlertCircle, ArrowDown,
-  ArrowUpDown, Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
+  Loader2, RefreshCw, AlertCircle,
+  Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
 } from "lucide-react";
 import {
   DndContext,
@@ -816,6 +816,16 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     }
   };
 
+  const ThinArrowDown = () => (
+    <svg width="8" height="16" viewBox="0 0 8 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+      <path d="M4 1L4 14M4 14L1 10.5M4 14L7 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  const ThinArrowUpDown = () => (
+    <svg width="8" height="16" viewBox="0 0 8 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+      <path d="M4 1L4 15M4 1L1 4M4 1L7 4M4 15L1 12M4 15L7 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
   const SortIcon = () => {
     const signs = (top: string, bottom: string) => (
       <span className="flex flex-col items-center leading-none" style={{ fontSize: 7, gap: 0 }}>
@@ -823,12 +833,11 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         <span className="font-bold">{bottom}</span>
       </span>
     );
-    const arrow = <ArrowDown className="flex-shrink-0" style={{ width: 7, height: 18 }} />;
     if (sortDirection === "asc") {
       return (
         <span className="flex items-center gap-0 text-white opacity-80">
           {signs("−", "+")}
-          {arrow}
+          <ThinArrowDown />
         </span>
       );
     }
@@ -836,11 +845,11 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       return (
         <span className="flex items-center gap-0 text-white opacity-80">
           {signs("+", "−")}
-          {arrow}
+          <ThinArrowDown />
         </span>
       );
     }
-    return <ArrowUpDown className="text-white opacity-80 flex-shrink-0" style={{ width: 7, height: 18 }} />;
+    return <span className="text-white opacity-80"><ThinArrowUpDown /></span>;
   };
 
   return (

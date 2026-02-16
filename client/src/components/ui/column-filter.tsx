@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  ArrowUpDown, ArrowDown,
   ChevronDown, Check, X, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -110,6 +109,16 @@ export function ColumnFilter({
     }
   };
 
+  const ThinArrowDown = () => (
+    <svg width="8" height="16" viewBox="0 0 8 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+      <path d="M4 1L4 14M4 14L1 10.5M4 14L7 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  const ThinArrowUpDown = () => (
+    <svg width="8" height="16" viewBox="0 0 8 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+      <path d="M4 1L4 15M4 1L1 4M4 1L7 4M4 15L1 12M4 15L7 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
   const SortIcon = () => {
     const signs = (top: string, bottom: string) => (
       <span className="flex flex-col items-center leading-none" style={{ fontSize: 7, gap: 0 }}>
@@ -117,24 +126,23 @@ export function ColumnFilter({
         <span className="font-bold">{bottom}</span>
       </span>
     );
-    const arrow = <ArrowDown className="flex-shrink-0" style={{ width: 7, height: 18 }} />;
     if (sortDirection === "asc") {
       return (
         <span className="flex items-center gap-0 text-primary">
           {signs("−", "+")}
-          {arrow}
+          <ThinArrowDown />
         </span>
       );
     }
     if (sortDirection === "desc") {
       return (
         <span className="flex items-center gap-0 text-primary">
-          {arrow}
+          <ThinArrowDown />
           {signs("+", "−")}
         </span>
       );
     }
-    return <ArrowUpDown className="text-muted-foreground opacity-60 flex-shrink-0" style={{ width: 7, height: 18 }} />;
+    return <span className="text-muted-foreground opacity-60"><ThinArrowUpDown /></span>;
   };
 
   return (
