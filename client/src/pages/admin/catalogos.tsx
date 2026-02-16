@@ -149,6 +149,9 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
             <tbody>
               {items.map((item, idx) => (
                 <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  {ordered && (
+                    <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
+                  )}
                   <td className="px-1.5 py-0.5">
                     {editingId === item.id ? (
                       <Input
