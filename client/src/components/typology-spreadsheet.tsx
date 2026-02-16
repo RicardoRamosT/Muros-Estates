@@ -2553,7 +2553,6 @@ export function TypologySpreadsheet() {
               {SECTIONS.map((section, sectionIndex) => {
                 const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                 const isExpanded = expandedSections.has(section.id);
-                const collapsedWidth = 40;
                 const isFirstSection = sectionIndex === 0;
                 return (
                   <div 
@@ -2561,7 +2560,7 @@ export function TypologySpreadsheet() {
                     className={cn("flex-shrink-0 flex items-center h-full text-white", isExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
                     style={{ 
                       backgroundColor: getSectionColor(sectionIndex),
-                      width: isExpanded ? sectionWidth : collapsedWidth,
+                      width: isExpanded ? sectionWidth : COLLAPSED_COL_WIDTH,
                       ...(isFirstSection ? { left: 45 } : {})
                     }}
                   >
@@ -2604,7 +2603,6 @@ export function TypologySpreadsheet() {
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
-                const collapsedSectionWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
                 const isFirstSection = sectionIndex === 0;
                 if (!isExpanded) {
@@ -2612,7 +2610,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-${section.id}`}
                       className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionColor(sectionIndex), width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
@@ -2702,7 +2700,6 @@ export function TypologySpreadsheet() {
                 />
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
-                const collapsedSectionWidth = 40;
                 const isExpanded = expandedSections.has(section.id);
                 const isFirstSection = sectionIndex === 0;
                 if (!isExpanded) {
@@ -2710,7 +2707,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-filter-${section.id}`}
                       className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionColor(sectionIndex), width: collapsedSectionWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
                     />
                   )];
                 }
@@ -2786,7 +2783,6 @@ export function TypologySpreadsheet() {
                 
                 {/* Flat cell structure for perfect row alignment */}
                 {SECTIONS.flatMap((section, sectionIndex) => {
-                  const collapsedWidth = 40;
                   const isExpanded = expandedSections.has(section.id);
                   const isFirstSection = sectionIndex === 0;
                   if (!isExpanded) {
@@ -2798,7 +2794,7 @@ export function TypologySpreadsheet() {
                           section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20",
                           isFirstSection && "sticky z-10 bg-gray-50 dark:bg-gray-800"
                         )}
-                        style={{ width: collapsedWidth, ...(isFirstSection ? { left: 45 } : {}) }}
+                        style={{ width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
                       />
                     )];
                   }
