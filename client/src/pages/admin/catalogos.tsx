@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft, ChevronUp, ChevronDown } from "lucide-react";
+import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCellStyle } from "@/lib/spreadsheet-utils";
@@ -41,11 +41,11 @@ export default function AdminCatalogos() {
           <section>
             <div className={SECTION_HEADER} data-testid="section-general">CATÁLOGO GENERAL</div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
-              <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" numbered />
+              <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" />
               <CitiesMini />
               <ZonesMini />
-              <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" numbered />
-              <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" numbered />
+              <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" />
+              <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" />
               <CompactList title="Tipo de Proveedor" endpoint="/api/catalog/tipo-proveedor" queryKey="/api/catalog/tipo-proveedor" />
               <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
               <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
@@ -58,14 +58,14 @@ export default function AdminCatalogos() {
           <section>
             <div className={SECTION_HEADER} data-testid="section-desarrollos">CATÁLOGO DESARROLLOS</div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
-              <CompactList title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" numbered />
-              <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" numbered />
+              <CompactList title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" />
+              <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" />
               <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" />
-              <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" numbered />
-              <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" numbered />
+              <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" />
+              <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" />
               <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
               <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
-              <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" numbered />
+              <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" />
               <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
               <CompactList title="Tipologías" endpoint="/api/catalog/tipologias" queryKey="/api/catalog/tipologias" />
               <NivelMini />
@@ -93,17 +93,18 @@ export default function AdminCatalogos() {
   );
 }
 
-function CompactList({ title, endpoint, queryKey, numbered = false }: { title: string; endpoint: string; queryKey: string; numbered?: boolean }) {
+function CompactList({ title, endpoint, queryKey }: { title: string; endpoint: string; queryKey: string }) {
   const { toast } = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: items = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
+  const { data: rawItems = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
+  const items = [...rawItems].sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   const createMutation = useMutation({
     mutationFn: () => {
-      const nextOrder = items.length > 0 ? Math.max(...items.map(i => i.order ?? 0)) + 1 : 1;
+      const nextOrder = rawItems.length > 0 ? Math.max(...rawItems.map(i => i.order ?? 0)) + 1 : 1;
       return apiRequest("POST", endpoint, { name: "Nuevo", active: true, order: nextOrder });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `${title} creado` }); },
@@ -118,15 +119,6 @@ function CompactList({ title, endpoint, queryKey, numbered = false }: { title: s
     mutationFn: (id: string) => apiRequest("DELETE", `${endpoint}/${id}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
-
-  const swapOrder = (idx: number, direction: "up" | "down") => {
-    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= items.length) return;
-    const a = items[idx];
-    const b = items[targetIdx];
-    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
-    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
-  };
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
@@ -144,11 +136,8 @@ function CompactList({ title, endpoint, queryKey, numbered = false }: { title: s
         ) : (
           <table className="w-full border-collapse text-xs">
             <tbody>
-              {items.map((item, idx) => (
+              {items.map((item) => (
                 <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                  {numbered && (
-                    <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
-                  )}
                   <td className="px-1.5 py-0.5">
                     {editingId === item.id ? (
                       <Input
@@ -165,14 +154,6 @@ function CompactList({ title, endpoint, queryKey, numbered = false }: { title: s
                         onClick={() => { setEditingId(item.id); setEditValue(item.name); }}
                       >{item.name}</span>
                     )}
-                  </td>
-                  <td className="w-10 text-center whitespace-nowrap">
-                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === 0} onClick={() => swapOrder(idx, "up")} data-testid={`button-up-${item.id}`}>
-                      <ChevronUp className="w-3 h-3" />
-                    </button>
-                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === items.length - 1} onClick={() => swapOrder(idx, "down")} data-testid={`button-down-${item.id}`}>
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)} data-testid={`button-delete-${item.id}`}>
@@ -200,11 +181,12 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: items = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
+  const { data: rawItems = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
+  const items = [...rawItems].sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   const createMutation = useMutation({
     mutationFn: () => {
-      const nextOrder = items.length > 0 ? Math.max(...items.map(i => i.order ?? 0)) + 1 : 1;
+      const nextOrder = rawItems.length > 0 ? Math.max(...rawItems.map(i => i.order ?? 0)) + 1 : 1;
       return apiRequest("POST", endpoint, { name: "Nuevo", active: true, color: "#6366f1", order: nextOrder });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `${title} creado` }); },
@@ -219,15 +201,6 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
     mutationFn: (id: string) => apiRequest("DELETE", `${endpoint}/${id}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
-
-  const swapOrder = (idx: number, direction: "up" | "down") => {
-    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= items.length) return;
-    const a = items[idx];
-    const b = items[targetIdx];
-    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
-    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
-  };
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
@@ -245,7 +218,7 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
         ) : (
           <table className="w-full border-collapse text-xs">
             <tbody>
-              {items.map((item, idx) => (
+              {items.map((item) => (
                 <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                   <td className="w-8 text-center py-0.5 border-r border-gray-200 dark:border-gray-700">
                     <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 rounded cursor-pointer border-0 p-0" />
@@ -263,14 +236,6 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
                     ) : (
                       <span className="block w-full cursor-text truncate" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
                     )}
-                  </td>
-                  <td className="w-10 text-center whitespace-nowrap">
-                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === 0} onClick={() => swapOrder(idx, "up")}>
-                      <ChevronUp className="w-3 h-3" />
-                    </button>
-                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === items.length - 1} onClick={() => swapOrder(idx, "down")}>
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
@@ -298,11 +263,12 @@ function CitiesMini() {
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: cities = [], isLoading } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
+  const { data: rawCities = [], isLoading } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
+  const cities = [...rawCities].sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   const createMutation = useMutation({
     mutationFn: () => {
-      const nextOrder = cities.length > 0 ? Math.max(...cities.map(c => c.order ?? 0)) + 1 : 1;
+      const nextOrder = rawCities.length > 0 ? Math.max(...rawCities.map(c => c.order ?? 0)) + 1 : 1;
       return apiRequest("POST", "/api/catalog/cities", { name: "Nueva Ciudad", active: true, order: nextOrder });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/cities"] }); toast({ title: "Ciudad creada" }); },
@@ -399,11 +365,12 @@ function ZonesMini() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: cities = [] } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
-  const { data: zones = [], isLoading } = useQuery<CatalogZone[]>({ queryKey: ["/api/catalog/zones"] });
+  const { data: rawZones = [], isLoading } = useQuery<CatalogZone[]>({ queryKey: ["/api/catalog/zones"] });
+  const zones = [...rawZones].sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   const createMutation = useMutation({
     mutationFn: () => {
-      const nextOrder = zones.length > 0 ? Math.max(...zones.map(z => z.order ?? 0)) + 1 : 1;
+      const nextOrder = rawZones.length > 0 ? Math.max(...rawZones.map(z => z.order ?? 0)) + 1 : 1;
       return apiRequest("POST", "/api/catalog/zones", { name: "Nueva Zona", active: true, order: nextOrder, cityId: cities[0]?.id });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona creada" }); },
