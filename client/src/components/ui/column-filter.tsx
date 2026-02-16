@@ -117,7 +117,7 @@ export function ColumnFilter({
         <span className="font-bold">{bottom}</span>
       </span>
     );
-    const arrow = <ArrowDown className="flex-shrink-0" style={{ width: 10, height: 14 }} />;
+    const arrow = <ArrowDown className="flex-shrink-0" style={{ width: 7, height: 18 }} />;
     if (sortDirection === "asc") {
       return (
         <span className="flex items-center gap-0 text-primary">
@@ -134,7 +134,7 @@ export function ColumnFilter({
         </span>
       );
     }
-    return <ArrowUpDown className="text-muted-foreground opacity-60 flex-shrink-0" style={{ width: 10, height: 14 }} />;
+    return <ArrowUpDown className="text-muted-foreground opacity-60 flex-shrink-0" style={{ width: 7, height: 18 }} />;
   };
 
   return (
