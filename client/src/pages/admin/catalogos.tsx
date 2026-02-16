@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft, ChevronUp, ChevronDown } from "lucide-react";
+import { Database, Plus, Trash2, Loader2, MapPin, Building, Sparkles, Activity, CreditCard, ThumbsUp, ThumbsDown, UserCircle, Target, Users, DoorOpen, Bath, Car, Wrench, Paintbrush, LayoutGrid, Tag, FileText, Scale, Presentation, Factory, Pencil, Package, ToggleLeft, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCellStyle } from "@/lib/spreadsheet-utils";
@@ -27,66 +27,73 @@ const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#1e40af] up
 const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#3b82f6] text-white";
 const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
 
+function CollapsibleSection({ title, testId, children }: { title: string; testId: string; children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+  return (
+    <section>
+      <button
+        className={`${SECTION_HEADER} w-full flex items-center gap-2 cursor-pointer select-none`}
+        onClick={() => setCollapsed(!collapsed)}
+        data-testid={testId}
+      >
+        {collapsed ? <ChevronRight className="w-4 h-4 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 flex-shrink-0" />}
+        <span>{title}</span>
+      </button>
+      {!collapsed && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function AdminCatalogos() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="px-4 py-3">
-        <div className="flex items-center gap-2 mb-3">
-          <Database className="w-4 h-4 text-primary" />
-          <h1 className="text-sm font-bold" data-testid="text-page-title">Catálogos</h1>
-        </div>
-
         <div className="space-y-6">
-          <section>
-            <div className={SECTION_HEADER} data-testid="section-general">CATÁLOGO GENERAL</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
-              <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" />
-              <CitiesMini />
-              <ZonesMini />
-              <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" />
-              <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" />
-              <CompactList title="Tipo de Proveedor" endpoint="/api/catalog/tipo-proveedor" queryKey="/api/catalog/tipo-proveedor" />
-              <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
-              <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
-              <CompactList title="Cesión de Derechos" endpoint="/api/catalog/cesion-derechos" queryKey="/api/catalog/cesion-derechos" />
-              <CompactList title="Si / No" endpoint="/api/catalog/si-no" queryKey="/api/catalog/si-no" ordered />
-              <GlobalRatesMini />
-            </div>
-          </section>
+          <CollapsibleSection title="CATÁLOGO GENERAL" testId="section-general">
+            <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" />
+            <CitiesMini />
+            <ZonesMini />
+            <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" />
+            <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" />
+            <CompactList title="Tipo de Proveedor" endpoint="/api/catalog/tipo-proveedor" queryKey="/api/catalog/tipo-proveedor" />
+            <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
+            <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
+            <CompactList title="Cesión de Derechos" endpoint="/api/catalog/cesion-derechos" queryKey="/api/catalog/cesion-derechos" />
+            <CompactList title="Si / No" endpoint="/api/catalog/si-no" queryKey="/api/catalog/si-no" ordered />
+            <GlobalRatesMini />
+          </CollapsibleSection>
 
-          <section>
-            <div className={SECTION_HEADER} data-testid="section-desarrollos">CATÁLOGO DESARROLLOS</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
-              <CompactList title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" ordered />
-              <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" ordered />
-              <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" />
-              <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" ordered />
-              <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
-              <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
-              <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
-              <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" />
-              <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
-              <CompactList title="Tipologías" endpoint="/api/catalog/tipologias" queryKey="/api/catalog/tipologias" ordered />
-              <NivelMini />
-            </div>
-          </section>
+          <CollapsibleSection title="CATÁLOGO DESARROLLOS" testId="section-desarrollos">
+            <CompactList title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" ordered />
+            <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" ordered />
+            <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" />
+            <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" ordered />
+            <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
+            <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
+            <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
+            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" />
+            <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
+            <CompactList title="Tipologías" endpoint="/api/catalog/tipologias" queryKey="/api/catalog/tipologias" ordered />
+            <NivelMini />
+          </CollapsibleSection>
 
-          <section>
-            <div className={SECTION_HEADER} data-testid="section-prospectos">CATÁLOGO PROSPECTOS</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
-              <ColoredList title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
-              <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" />
-              <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" />
-              <CompactList title="Asesor" endpoint="/api/catalog/asesor" queryKey="/api/catalog/asesor" />
-              <CompactList title="Broker Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" />
-              <ColoredList title="Status" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" />
-              <ColoredList title="Etapa Embudo" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" />
-              <CompactList title="Cómo Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" />
-              <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" />
-              <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" />
-            </div>
-          </section>
+          <CollapsibleSection title="CATÁLOGO PROSPECTOS" testId="section-prospectos">
+            <ColoredList title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
+            <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" />
+            <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" />
+            <CompactList title="Asesor" endpoint="/api/catalog/asesor" queryKey="/api/catalog/asesor" />
+            <CompactList title="Broker Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" />
+            <ColoredList title="Status" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" />
+            <ColoredList title="Etapa Embudo" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" />
+            <CompactList title="Cómo Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" />
+            <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" />
+            <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" />
+          </CollapsibleSection>
         </div>
       </main>
     </div>
