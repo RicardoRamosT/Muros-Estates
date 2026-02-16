@@ -349,7 +349,7 @@ export function ColumnFilter({
       </span>
       <button
         onClick={handleSortClick}
-        className="flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0"
+        className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100"
         style={{ width: 28 }}
         data-testid={`sort-${columnKey}`}
       >

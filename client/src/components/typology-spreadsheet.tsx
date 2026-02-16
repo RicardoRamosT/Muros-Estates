@@ -853,7 +853,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                 <PopoverTrigger asChild>
                   <button
                     className={cn(
-                      "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
+                      "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
                       hasActiveFilter && "bg-primary/10"
                     )}
                     style={{ width: 20 }}
@@ -874,7 +874,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         ) : (
           <PopoverTrigger asChild>
             <button
-              className="flex items-center justify-center h-full text-xs font-medium hover-elevate cursor-pointer rounded flex-shrink-0"
+              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100"
               style={{ width: 28 }}
               data-testid={`filter-trigger-${column.key}`}
             >
@@ -1106,7 +1106,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             <button
               onClick={handleSortClick}
               className={cn(
-                "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
+                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
                 isSorted && "bg-primary/10"
               )}
               style={{ width: 20 }}
@@ -1124,7 +1124,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         <button
           onClick={handleSortClick}
           className={cn(
-            "flex items-center justify-center h-full hover-elevate cursor-pointer rounded flex-shrink-0",
+            "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
             isSorted && "bg-primary/10"
           )}
           style={{ width: 28 }}
@@ -2576,7 +2576,7 @@ export function TypologySpreadsheet() {
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => toggleSection(section.id)}
-                          className={cn("flex items-center justify-center h-full flex-shrink-0 hover-elevate cursor-pointer", !isExpanded && "w-full")}
+                          className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer opacity-80 hover:opacity-100", !isExpanded && "w-full")}
                           style={isExpanded ? { width: 20 } : undefined}
                           data-testid={`section-toggle-${section.id}`}
                         >
@@ -2638,7 +2638,7 @@ export function TypologySpreadsheet() {
                           <TooltipTrigger asChild>
                             <button
                               onClick={() => toggleColumn(col.key)}
-                              className="flex items-center justify-center w-full h-full hover-elevate cursor-pointer"
+                              className="flex items-center justify-center w-full h-full cursor-pointer opacity-80 hover:opacity-100"
                               data-testid={`col-expand-${col.key}`}
                             >
                               <Plus className="w-3 h-3 text-white opacity-80" />
@@ -2658,7 +2658,7 @@ export function TypologySpreadsheet() {
                           />
                           <button
                             onClick={() => toggleColumn(col.key)}
-                            className="flex items-center justify-center h-full flex-shrink-0 hover-elevate cursor-pointer"
+                            className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer opacity-80 hover:opacity-100"
                             style={{ width: 20 }}
                             data-testid={`col-collapse-${col.key}`}
                           >
@@ -2687,7 +2687,7 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
                   data={typologies}
@@ -2720,7 +2720,6 @@ export function TypologySpreadsheet() {
                       key={`filter-${col.key}`}
                       className={cn(
                         "flex-shrink-0 h-full",
-                        !isColCollapsed && "overflow-hidden",
                         isFirstSection && "sticky z-30"
                       )}
                       style={{ 
