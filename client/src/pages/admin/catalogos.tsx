@@ -23,8 +23,8 @@ type CatalogItem = {
   icon?: string;
 };
 
-const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#2563eb] uppercase tracking-wide rounded-t-md";
-const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#2563eb] text-white";
+const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#1e40af] uppercase tracking-wide rounded-t-md";
+const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#3b82f6] text-white";
 const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
 
 export default function AdminCatalogos() {
