@@ -36,7 +36,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'recamaras-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'recamaras-select' | 'banos-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -100,7 +100,10 @@ const columns: ColumnDef[] = [
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'lockOff', label: 'Lock Off', group: 'noheader1', type: 'boolean', width: '58px', cellType: 'checkbox' },
   { key: 'recamaras', label: 'Recámaras', group: 'rec', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
+  { key: 'banos', label: 'Baños', group: 'rec', type: 'banos-select', width: '80px', cellType: 'dropdown' },
   { key: 'acabados', label: 'Acabados', group: 'noheader2', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
+  { key: 'tipologiasCount', label: 'Tipologías', group: 'noheader2', type: 'tipologias-count', width: '110px', cellType: 'readonly' },
+  { key: 'redaccionValor', label: 'Redacción Valor', group: 'noheader2', type: 'redaccion-text', width: '120px', cellType: 'input' },
   { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader3', width: '90px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo', group: 'noheader3', width: '75px', cellType: 'input' },
   { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
@@ -196,6 +199,26 @@ export function DevelopmentsSpreadsheet() {
   const { data: presentaciones = [] } = useQuery<CatalogPresentacion[]>({
     queryKey: ["/api/catalog/presentacion"],
   });
+
+  const { data: catalogBanos = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/banos"],
+  });
+
+  const { data: typologies = [] } = useQuery<any[]>({
+    queryKey: ["/api/typologies"],
+  });
+
+  const typologyCountByDev = useMemo(() => {
+    const map: Record<string, { count: number; names: string[] }> = {};
+    typologies.forEach((t: any) => {
+      const devName = t.development;
+      if (!devName) return;
+      if (!map[devName]) map[devName] = { count: 0, names: [] };
+      map[devName].count++;
+      if (t.type) map[devName].names.push(String(t.type));
+    });
+    return map;
+  }, [typologies]);
 
   const isLoading = authLoading || developmentsLoading;
   const shouldCheckAccess = !authLoading;
@@ -1085,6 +1108,80 @@ export function DevelopmentsSpreadsheet() {
                             ))}
                           </SelectContent>
                         </Select>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'banos-select') {
+                  const banosOptions = catalogBanos.map((b: any) => b.name).filter(Boolean);
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        <Select
+                          value={value || "__unassigned__"}
+                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-banos-${dev.id}`}>
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">Seleccionar</SelectItem>
+                            {banosOptions.map((opt: string) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
+                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'tipologias-count') {
+                  const devData = typologyCountByDev[dev.name] || { count: 0, names: [] };
+                  const uniqueNames = Array.from(new Set(devData.names));
+                  const display = devData.count > 0 
+                    ? `${devData.count} (${uniqueNames.join(', ')})`
+                    : '—';
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }}>
+                      <span className="text-xs text-muted-foreground truncate px-2" title={display}>{display}</span>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'redaccion-text') {
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      {fieldCanEdit ? (
+                        editingCell?.id === dev.id && editingCell?.field === col.key ? (
+                          <Input
+                            autoFocus
+                            defaultValue={value || ""}
+                            onBlur={(e) => { updateMutation.mutate({ id: dev.id, data: { [col.key]: e.target.value || null } }); setEditingCell(null); }}
+                            onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: dev.id, data: { [col.key]: (e.target as HTMLInputElement).value || null } }); setEditingCell(null); } if (e.key === "Escape") setEditingCell(null); }}
+                            className="h-6 text-xs border-0 bg-transparent focus:ring-0 shadow-none p-1"
+                            data-testid={`input-redaccion-${dev.id}`}
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center px-2 cursor-pointer"
+                            onClick={() => { setEditingCell({ id: dev.id, field: col.key }); setEditValue(value || ""); }}
+                            title={value || ""}
+                          >
+                            <span className="text-xs truncate">{value || ""}</span>
+                          </div>
+                        )
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{value || ""}</span>

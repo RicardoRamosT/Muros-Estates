@@ -23,8 +23,8 @@ type CatalogItem = {
   icon?: string;
 };
 
-const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#1e40af] uppercase tracking-wide rounded-t-md";
-const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#3b82f6] text-white";
+const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#1e3a5f] uppercase tracking-wide";
+const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#4a90d9] text-white";
 const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
 
 function CollapsibleSection({ title, testId, children }: { title: string; testId: string; children: React.ReactNode }) {
@@ -40,7 +40,7 @@ function CollapsibleSection({ title, testId, children }: { title: string; testId
         <span>{title}</span>
       </button>
       {!collapsed && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 mt-2">
           {children}
         </div>
       )}
@@ -53,36 +53,33 @@ export default function AdminCatalogos() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="px-4 py-3">
-        <div className="space-y-6">
-          <CollapsibleSection title="CATÁLOGO GENERAL" testId="section-general">
-            <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" ordered />
+        <div className="space-y-4">
+          <CollapsibleSection title="GENERAL" testId="section-general">
             <CitiesMini />
             <ZonesMini />
+            <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" ordered />
             <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" ordered />
             <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" ordered />
             <CompactList title="Tipo de Proveedor" endpoint="/api/catalog/tipo-proveedor" queryKey="/api/catalog/tipo-proveedor" ordered />
-            <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
-            <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
-            <CompactList title="Cesión de Derechos" endpoint="/api/catalog/cesion-derechos" queryKey="/api/catalog/cesion-derechos" />
-            <CompactList title="Si / No" endpoint="/api/catalog/si-no" queryKey="/api/catalog/si-no" ordered />
             <GlobalRatesMini />
           </CollapsibleSection>
 
-          <CollapsibleSection title="CATÁLOGO DESARROLLOS" testId="section-desarrollos">
+          <CollapsibleSection title="DESARROLLOS" testId="section-desarrollos">
             <CompactList title="Recámaras" endpoint="/api/catalog/recamaras" queryKey="/api/catalog/recamaras" ordered />
             <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" ordered />
             <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" ordered />
             <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" ordered />
             <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
+            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
             <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
             <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
-            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
             <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
-            <CompactList title="Tipologías" endpoint="/api/catalog/tipologias" queryKey="/api/catalog/tipologias" ordered />
+            <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
+            <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
             <NivelMini />
           </CollapsibleSection>
 
-          <CollapsibleSection title="CATÁLOGO PROSPECTOS" testId="section-prospectos">
+          <CollapsibleSection title="PROSPECTOS Y CLIENTES" testId="section-prospectos">
             <ColoredList title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
             <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" />
             <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" />
@@ -139,14 +136,14 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid={`catalog-${queryKey.split('/').pop()}`}>
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide">{title}</span>
-        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid={`button-add-${queryKey.split('/').pop()}`}>
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title={title}>{title}</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid={`button-add-${queryKey.split('/').pop()}`}>
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto max-h-[300px] flex-1">
+      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : items.length === 0 ? (
@@ -159,7 +156,7 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
                   {ordered && (
                     <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
                   )}
-                  <td className="px-1.5 py-0.5">
+                  <td className="px-1.5 py-0.5 max-w-0">
                     {editingId === item.id ? (
                       <Input
                         value={editValue}
@@ -172,6 +169,7 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
                     ) : (
                       <span
                         className="block w-full cursor-text truncate"
+                        title={item.name}
                         onClick={() => { setEditingId(item.id); setEditValue(item.name); }}
                       >{item.name}</span>
                     )}
@@ -188,7 +186,7 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
                   )}
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)} data-testid={`button-delete-${item.id}`}>
-                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
                     </Button>
                   </td>
                 </tr>
@@ -234,14 +232,14 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
   });
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid={`catalog-${queryKey.split('/').pop()}`}>
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide">{title}</span>
-        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title={title}>{title}</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto max-h-[300px] flex-1">
+      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : items.length === 0 ? (
@@ -252,9 +250,9 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
               {items.map((item) => (
                 <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                   <td className="w-8 text-center py-0.5 border-r border-gray-200 dark:border-gray-700">
-                    <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 rounded cursor-pointer border-0 p-0" />
+                    <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 cursor-pointer border-0 p-0" />
                   </td>
-                  <td className="px-1.5 py-0.5">
+                  <td className="px-1.5 py-0.5 max-w-0">
                     {editingCell?.id === item.id && editingCell?.field === "name" ? (
                       <Input
                         value={editValue}
@@ -265,12 +263,12 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
                         className="h-5 text-xs border-0 p-0 focus-visible:ring-0"
                       />
                     ) : (
-                      <span className="block w-full cursor-text truncate" onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
+                      <span className="block w-full cursor-text truncate" title={item.name} onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
                     )}
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
                     </Button>
                   </td>
                 </tr>
@@ -316,14 +314,14 @@ function CitiesMini() {
   });
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-cities">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-cities">
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide">Ciudades</span>
-        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-city">
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Ciudades">Ciudades</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-city">
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto max-h-[300px] flex-1">
+      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -371,7 +369,7 @@ function CitiesMini() {
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(city.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
                     </Button>
                   </td>
                 </tr>
@@ -423,14 +421,14 @@ function ZonesMini() {
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-zones">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-zones">
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide">Zonas</span>
-        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-zone">
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Zonas">Zonas</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-zone">
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto max-h-[300px] flex-1">
+      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -467,7 +465,7 @@ function ZonesMini() {
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(zone.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
                     </Button>
                   </td>
                 </tr>
@@ -515,11 +513,11 @@ function GlobalRatesMini() {
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-global-rates">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-global-rates">
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide">Parámetros de Rendimiento</span>
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Parámetros de Rendimiento">Parámetros de Rendimiento</span>
       </div>
-      <div className="overflow-auto max-h-[300px] flex-1">
+      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -586,14 +584,14 @@ function NivelMini() {
   });
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden flex flex-col" data-testid="catalog-nivel-mantenimiento">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-nivel-mantenimiento">
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide">Nivel Mantenimiento</span>
-        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white hover:text-white" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Nivel Mantenimiento">Nivel Mantenimiento</span>
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto max-h-[300px] flex-1">
+      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -652,7 +650,7 @@ function NivelMini() {
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-destructive" />
+                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
                     </Button>
                   </td>
                 </tr>

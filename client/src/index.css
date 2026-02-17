@@ -338,6 +338,24 @@
     border-bottom: 1px solid hsl(var(--border));
     overflow: hidden;
   }
+
+  /* Remove blue focus ring on spreadsheet inputs */
+  .spreadsheet-cell input:focus,
+  .spreadsheet-cell input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    ring: 0 !important;
+  }
+
+  /* Remove spin buttons (arrows) on numeric inputs */
+  .spreadsheet-cell input[type="number"]::-webkit-inner-spin-button,
+  .spreadsheet-cell input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .spreadsheet-cell input[type="number"] {
+    -moz-appearance: textfield;
+  }
   .spreadsheet-cell.no-border-r {
     border-right: none;
   }

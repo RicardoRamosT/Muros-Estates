@@ -420,6 +420,7 @@ export const PAGE_PERMISSIONS = {
       storageSize2: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
       // 42: Bodega Precio - Profiler=0, Finanzas=0, Desarrollador=2
       storagePrice: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
+      queIncluye: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
       // 43: Inicial % (ESQUEMA DE PAGO) - Profiler=0, Finanzas=0, Desarrollador=2
       initialPercent: { admin: 'edit', actualizador: 'edit', perfilador: 'none', finanzas: 'none', asesor: 'view', desarrollador: 'edit' },
       // 44-50: Resto de ESQUEMA DE PAGO
@@ -690,7 +691,9 @@ export const developments = pgTable("developments", {
   recDesde: decimal("rec_desde", { precision: 10, scale: 2 }), // legacy
   recHasta: decimal("rec_hasta", { precision: 10, scale: 2 }), // legacy
   recamaras: text("recamaras"),
+  banos: text("banos"),
   acabados: text("acabados").array(),
+  redaccionValor: text("redaccion_valor"),
   
   // Unidades y Metros Cuadrados
   depasM2: decimal("depas_m2", { precision: 10, scale: 2 }),
@@ -994,6 +997,7 @@ export const typologies = pgTable("typologies", {
   hasStorageOptional: boolean("has_storage_optional").default(false), // Opcional
   storageSize2: decimal("storage_size_2", { precision: 5, scale: 2 }), // Tamaño (2)
   storagePrice: decimal("storage_price", { precision: 12, scale: 2 }), // Precio
+  queIncluye: text("que_incluye"), // Que Incluye - comma-separated multiselect (Cocina, Closets, Canceles, Climas)
   
   // 43-50: ESQUEMA DE PAGO
   initialPercent: decimal("initial_percent", { precision: 10, scale: 2 }), // Inicial %

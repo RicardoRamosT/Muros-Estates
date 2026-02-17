@@ -231,6 +231,16 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
+    id: "queIncluye",
+    label: "Que Incluye",
+    headerColor: "",
+    columnHeaderColor: "",
+    cellColor: "",
+    columns: [
+      { key: "queIncluye", label: "Que Incluye", type: "multiselect", width: 120 },
+    ],
+  },
+  {
     id: "pago",
     label: "Esquema de Pago",
     headerColor: "",
@@ -816,35 +826,22 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     }
   };
 
-  const ThinArrowDown = () => (
-    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-      <path d="M4 0.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
   const SortIcon = () => {
-    const signs = (top: string, bottom: string) => (
-      <span className="flex flex-col items-center leading-none" style={{ fontSize: 7, gap: 0 }}>
-        <span className="font-bold">{top}</span>
-        <span className="font-bold">{bottom}</span>
-      </span>
-    );
     if (sortDirection === "asc") {
       return (
-        <span className="flex items-center gap-0 text-white opacity-80">
-          {signs("−", "+")}
-          <ThinArrowDown />
-        </span>
+        <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 text-white">
+          <path d="M5 13V1.5M5 1.5L2 4.5M5 1.5L8 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       );
     }
     if (sortDirection === "desc") {
       return (
-        <span className="flex items-center gap-0 text-white opacity-80">
-          {signs("+", "−")}
-          <ThinArrowDown />
-        </span>
+        <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 text-white">
+          <path d="M5 1V12.5M5 12.5L2 9.5M5 12.5L8 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       );
     }
-    return <ArrowUpDown className="w-3 h-3 text-white opacity-80" />;
+    return <ArrowUpDown className="w-3 h-3 text-white opacity-60" />;
   };
 
   return (
@@ -1156,6 +1153,7 @@ interface EditableCellProps {
   vistaOptions?: string[];
   vistasByDevelopment?: Record<string, string[]>;
   areaOptions?: string[];
+  incluyeOptions?: string[];
   tipologiaOptions?: string[];
   typesByDevelopment?: Record<string, string[]>;
   recamaraOptions?: string[];
@@ -1169,7 +1167,7 @@ interface EditableCellProps {
   isDynamicCalculated?: boolean;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1208,7 +1206,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn(
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          column.calculated && "bg-teal-50 dark:bg-teal-900/20",
+          column.calculated && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
           column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed",
@@ -1279,10 +1277,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   
   // Multi-select with checkboxes (for areas)
   if (column.type === "multiselect") {
-    // Use areaOptions if available, fallback to column.options
-    const baseOptions: string[] = areaOptions && areaOptions.length > 0 
-      ? [...areaOptions] 
-      : (column.options ? [...column.options] : []);
+    const baseOptions: string[] = column.key === "queIncluye" && incluyeOptions && incluyeOptions.length > 0
+      ? [...incluyeOptions]
+      : areaOptions && areaOptions.length > 0 
+        ? [...areaOptions] 
+        : (column.options ? [...column.options] : []);
     
     // Parse current value - stored as comma-separated string, use Set to avoid duplicates
     const currentValuesSet = new Set(
@@ -1367,14 +1366,16 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       }
     }
 
-    if (column.key === "development" && city && allDevelopments) {
-      const filteredDevs = allDevelopments
-        .filter(d => d.city === city)
+    if (column.key === "development" && allDevelopments) {
+      const devsToShow = city
+        ? allDevelopments.filter(d => d.city === city)
+        : allDevelopments;
+      const devNames = devsToShow
         .map(d => d.name)
         .filter(Boolean)
         .sort((a, b) => a.localeCompare(b, 'es'));
-      if (filteredDevs.length > 0) {
-        options = filteredDevs;
+      if (devNames.length > 0) {
+        options = devNames;
       }
     }
     
@@ -1453,7 +1454,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__sin_asignar__" className="font-bold text-muted-foreground italic">Sin Asignar</SelectItem>
+            <SelectItem value="__sin_asignar__" className="font-bold text-muted-foreground">Sin Asignar</SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
@@ -1550,7 +1551,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   if (isEditing) {
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900 ring-1 ring-primary", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Input
@@ -1656,6 +1657,10 @@ export function TypologySpreadsheet() {
     queryKey: ["/api/catalog/cajones"],
   });
   
+  const { data: catalogIncluye = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/incluye"],
+  });
+  
   const { data: catalogCities = [] } = useQuery<any[]>({
     queryKey: ["/api/catalog/cities"],
   });
@@ -1718,6 +1723,10 @@ export function TypologySpreadsheet() {
   const areaOptions = useMemo(() => {
     return catalogAreas.map(a => a.name).filter(Boolean);
   }, [catalogAreas]);
+  
+  const incluyeOptions = useMemo(() => {
+    return catalogIncluye.map((i: any) => i.name).filter(Boolean);
+  }, [catalogIncluye]);
   
   const tipologiaOptions = useMemo(() => {
     return catalogTipologias.map(t => t.name).filter(Boolean);
@@ -2064,6 +2073,21 @@ export function TypologySpreadsheet() {
     if (field === "development" && dbDevelopments) {
       const selectedDev = dbDevelopments.find(d => d.name === value);
       if (selectedDev) {
+        if (selectedDev.city) {
+          autoPopulatedFields.city = selectedDev.city;
+          (updatedRow as any).city = selectedDev.city;
+          const selectedCity = catalogCities.find((c: any) => c.name === selectedDev.city);
+          if (selectedCity) {
+            if (selectedCity.isaiPercent) {
+              autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
+              (updatedRow as any).isaPercent = selectedCity.isaiPercent;
+            }
+            if (selectedCity.notariaPercent) {
+              autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
+              (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
+            }
+          }
+        }
         autoPopulatedFields.zone = selectedDev.zone || "";
         const developerRecord = dbDevelopers.find((dev: any) => dev.id === selectedDev.developerId);
         autoPopulatedFields.developer = developerRecord?.name || "";
@@ -2691,7 +2715,7 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[45px] h-full flex-shrink-0 sticky left-0 z-30 flex items-center justify-center" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
                   data={typologies}
@@ -2883,6 +2907,7 @@ export function TypologySpreadsheet() {
                         vistaOptions={vistaOptions}
                         vistasByDevelopment={vistasByDevelopment}
                         areaOptions={areaOptions}
+                        incluyeOptions={incluyeOptions}
                         tipologiaOptions={tipologiaOptions}
                         typesByDevelopment={typesByDevelopment}
                         recamaraOptions={recamaraOptions}
