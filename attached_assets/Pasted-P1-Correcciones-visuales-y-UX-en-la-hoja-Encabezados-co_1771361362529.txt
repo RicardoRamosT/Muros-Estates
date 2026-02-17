@@ -1,0 +1,103 @@
+P1 — Correcciones visuales y UX en la hoja
+Encabezados / columnas
+
+Columna “Desarrollador”: que se vea completo el nombre
+
+Resultado esperado: header muestra “Desarrollador” completo sin truncamiento.
+
+En ID: los botones no tienen el mismo espaciado
+
+Resultado esperado: botones (orden/filtro/etc.) con misma geometría/espaciado que el estándar del resto.
+
+Los calculados no tienen el color de Fecha/Hora
+
+Resultado esperado: valores calculados usan la tonalidad/estilo que corresponde a la sección Fecha/Hora (según tu sistema de color).
+
+El “Sin Asignar”: quitar itálica, mantener bold
+
+Resultado esperado: texto en negritas sin cursiva.
+
+Mejorar flechas de ordenamiento
+
+Resultado esperado: íconos más legibles/consistentes (tamaño, contraste, hitbox, estados activo/inactivo).
+
+Inputs manuales
+
+Quitar radio azul (focus) en inputs manuales, en todas
+
+Quitar flechas (spin buttons) para aumentar/disminuir valor
+
+Resultado esperado: inputs numéricos sin spinners; estilo focus consistente (sin outline azul por defecto).
+
+P1 — Tipologías (lógica y nuevas columnas)
+
+Tipología: Ciudad y Zona automáticas; poder elegir Desarrollador y Desarrollo
+
+Resultado esperado:
+
+Ciudad/Zona se autollenan (derivadas del Desarrollo o regla definida).
+
+Desarrollador y Desarrollo se seleccionan manualmente.
+
+Tipología: después de BODEGA agregar columna “Que Incluye”
+
+Tipo: dropdown con 4 checkboxes (mencionaste “cocina, clima” y faltan 2 opciones por definir).
+
+Resultado esperado: multi-select persistente por tipología.
+
+Nota: aquí hay una ambigüedad mínima: dices “4 checkboxes” pero solo listaste 2 (“cocina, clima”). Idealmente define las otras 2 opciones (o Replit debe tomar del Excel).
+
+P1 — Desarrollos (estructura de columnas)
+
+Faltan 3 columnas: “Redacción Valor”, “Recámaras”, “Baños” con checkboxes
+
+Referencia: “Ver excel, tipos y usuarios, columnas rojas”.
+
+Borrar “REC” y las columnas “desde / hasta”
+
+Resultado esperado: remover columnas del grid y su lógica asociada.
+
+Agregar columnas con dropdown para crear tipologías y eso (checar Excel)
+
+Agregar columnas con dropdown para crear tipologías… (CHECAR EXCEL)
+
+Lo mencionaste dos veces; lo dejo como una sola iniciativa:
+
+Resultado esperado: acciones/dropdowns para crear/gestionar tipologías desde Desarrollos según el Excel.
+
+P2 — Catálogos (UI, contenido, layout y orden)
+Estilo visual de tarjetas (“cuadrados”)
+
+Cuadrados sin border radius (completamente cuadrados)
+
+Bote de basura: bajar intensidad de color, quitar bold, líneas más suaves
+
+Todos los cuadrados con altura para ~5 renglones (uniformes)
+
+Títulos / navegación
+
+Quitar “Catálogo” del título: que solo diga “General”, “Desarrollos”, y el 3ro “Prospectos y Clientes”
+
+Contenido: agregar/quitar/mover
+
+Borrar cuadrados: “Cesión de Derechos”, “Sí/No” y “Tipologías”
+
+“Comercializadoras” y “Arquitectura” deben estar en Catálogo “Desarrolladores”
+
+Falta el cuadrado de “Incluye”
+
+Layout de grilla
+
+En vez de 4 catálogos por línea, que sean 5 por línea
+
+Todas del mismo tamaño
+
+Si el título no cabe: “..” + hover para ver completo; igual con celdas
+
+Colores
+
+Cambiar colores: secciones con azul oscuro de Tipologías; catálogos con azul suave de Tipologías
+
+Orden
+
+Ordenar catálogos en base al Excel
