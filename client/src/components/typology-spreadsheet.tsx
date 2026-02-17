@@ -845,7 +845,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center text-white", hideLabel ? "justify-between px-1" : "", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
+    <div className={cn("w-full h-full relative flex items-center text-white", hideLabel ? "justify-between px-2" : "", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <Tooltip>
