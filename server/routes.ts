@@ -877,20 +877,11 @@ export async function registerRoutes(
   
   app.post("/api/typologies", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
-      const validationResult = insertTypologySchema.safeParse(req.body);
-      
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Datos inválidos", 
-          details: validationResult.error.errors 
-        });
-      }
-      
-      const typologyData = {
-        ...validationResult.data,
+      const typologyData = cleanTypologyData({
+        ...req.body,
         createdBy: req.user!.id,
         updatedBy: req.user!.id,
-      };
+      });
       
       const typology = await storage.createTypology(typologyData);
       

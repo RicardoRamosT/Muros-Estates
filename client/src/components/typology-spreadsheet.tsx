@@ -2548,7 +2548,7 @@ export function TypologySpreadsheet() {
         ref={contentScrollRef}
         className="flex-1 overflow-auto spreadsheet-scroll"
       >
-        <div className="min-w-max" style={zoomLevel !== 100 ? { transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' } : undefined}>
+        <div className="min-w-max" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
           {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
@@ -2793,9 +2793,8 @@ export function TypologySpreadsheet() {
                       <div 
                         key={`collapsed-${section.id}`}
                         className={cn(
-                          "spreadsheet-cell",
-                          section.id === "fechahora" ? "bg-teal-50 dark:bg-teal-900/20" : "bg-muted/20",
-                          isFirstSection && "sticky z-10 bg-gray-50 dark:bg-gray-800"
+                          "spreadsheet-cell bg-white dark:bg-gray-900",
+                          isFirstSection && "sticky z-10"
                         )}
                         style={{ width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
                       />
@@ -2808,13 +2807,13 @@ export function TypologySpreadsheet() {
                       const collapsedCell = (
                         <div
                           key={col.key}
-                          className={cn("spreadsheet-cell", section.cellColor || "bg-muted/20")}
+                          className="spreadsheet-cell bg-white dark:bg-gray-900"
                           style={{ width: COLLAPSED_COL_WIDTH }}
                         />
                       );
                       if (isFirstSection) {
                         return (
-                          <div key={`sticky-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 45 }}>
+                          <div key={`sticky-${col.key}`} className="sticky z-10" style={{ left: 45 }}>
                             {collapsedCell}
                           </div>
                         );
