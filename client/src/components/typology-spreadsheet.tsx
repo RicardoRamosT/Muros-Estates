@@ -111,7 +111,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
       { key: "zone", label: "Zona", type: "select", options: [], width: 100 },
-      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 105 },
+      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
     ],
