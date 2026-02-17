@@ -231,6 +231,8 @@ export const PAGE_PERMISSIONS = {
       torres: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 12. niveles - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       niveles: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // vistas - Multiselect de vistas del desarrollo
+      vistas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 13. amenities - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       amenities: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 14. efficiency - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
