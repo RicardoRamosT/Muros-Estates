@@ -2725,7 +2725,6 @@ export function TypologySpreadsheet() {
                   onFilterChange={(values) => setColumnFilters(prev => ({ ...prev, id: values }))}
                   sortDirection={columnSorts["id"] || null}
                   onSortChange={(dir) => setColumnSorts(prev => ({ ...prev, id: dir }))}
-                  hideLabel
                   sectionColor={getSectionColor(0)}
                 />
               </div>
