@@ -2269,7 +2269,7 @@ export function TypologySpreadsheet() {
     }, 500);
     
     return () => clearTimeout(debounceId);
-  }, [typologies, updateMutation, dbDevelopments, dbDevelopers]);
+  }, [typologies, updateMutation, dbDevelopments, dbDevelopers, catalogCities]);
   
   const handleAddRow = () => {
     const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];

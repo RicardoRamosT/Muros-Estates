@@ -249,6 +249,12 @@ export const PAGE_PERMISSIONS = {
       recHasta: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // recamaras - Selector controlado de recámaras
       recamaras: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // banos - Selector de baños
+      banos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
+      // tipologiasCount - Conteo de tipologías (readonly)
+      tipologiasCount: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // redaccionValor - Texto libre de redacción de valor
+      redaccionValor: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 21. acabados - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       acabados: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 22. depasM2 - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
