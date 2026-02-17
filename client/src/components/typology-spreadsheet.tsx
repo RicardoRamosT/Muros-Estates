@@ -2579,7 +2579,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[45px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
+              <div className="w-[70px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {SECTIONS.map((section, sectionIndex) => {
                 const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                 const isExpanded = expandedSections.has(section.id);
@@ -2591,7 +2591,7 @@ export function TypologySpreadsheet() {
                     style={{ 
                       backgroundColor: getSectionColor(sectionIndex),
                       width: isExpanded ? sectionWidth : COLLAPSED_COL_WIDTH,
-                      ...(isFirstSection ? { left: 45 } : {})
+                      ...(isFirstSection ? { left: 70 } : {})
                     }}
                   >
                     {isExpanded && (
@@ -2629,7 +2629,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Column names with individual collapse */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[45px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[70px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
@@ -2640,7 +2640,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-${section.id}`}
                       className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 70 } : {}) }}
                     />
                   )];
                 }
@@ -2659,7 +2659,7 @@ export function TypologySpreadsheet() {
                       style={{ 
                         backgroundColor: getSectionColor(sectionIndex), 
                         width: colW, 
-                        ...(isFirstSection ? { left: 45 } : {}),
+                        ...(isFirstSection ? { left: 70 } : {}),
                         ...(!isLastCol ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
                       }}
                     >
@@ -2717,7 +2717,7 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[45px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[70px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
                   data={typologies}
@@ -2736,7 +2736,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-filter-${section.id}`}
                       className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
+                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 70 } : {}) }}
                     />
                   )];
                 }
@@ -2754,7 +2754,7 @@ export function TypologySpreadsheet() {
                       style={{ 
                         backgroundColor: getSectionColor(sectionIndex),
                         width: colW, 
-                        ...(isFirstSection ? { left: 45 } : {}),
+                        ...(isFirstSection ? { left: 70 } : {}),
                         ...(!isLastCol ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
                       }}
                     >
@@ -2802,7 +2802,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[45px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10"
+                  className="spreadsheet-cell w-[70px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10"
                   style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
@@ -2821,7 +2821,7 @@ export function TypologySpreadsheet() {
                           "spreadsheet-cell bg-white dark:bg-gray-900",
                           isFirstSection && "sticky z-10"
                         )}
-                        style={{ width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 45 } : {}) }}
+                        style={{ width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 70 } : {}) }}
                       />
                     )];
                   }
@@ -2838,7 +2838,7 @@ export function TypologySpreadsheet() {
                       );
                       if (isFirstSection) {
                         return (
-                          <div key={`sticky-${col.key}`} className="sticky z-10" style={{ left: 45 }}>
+                          <div key={`sticky-${col.key}`} className="sticky z-10" style={{ left: 70 }}>
                             {collapsedCell}
                           </div>
                         );
@@ -2924,7 +2924,7 @@ export function TypologySpreadsheet() {
                     );
                     if (isFirstSection) {
                       return (
-                        <div key={`sticky-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 45 }}>
+                        <div key={`sticky-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 70 }}>
                           {cell}
                         </div>
                       );
