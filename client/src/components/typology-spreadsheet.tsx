@@ -845,7 +845,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center text-white", hideLabel ? "justify-between px-2" : "", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
+    <div className={cn("w-full h-full relative flex items-center text-white", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <Tooltip>
@@ -857,7 +857,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                       "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
                       hasActiveFilter && "bg-primary/10"
                     )}
-                    style={{ width: 20 }}
+                    style={{ width: 28 }}
                     data-testid={`filter-trigger-${column.key}`}
                   >
                     <ChevronDown className={cn(
@@ -1094,7 +1094,9 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </div>
       </PopoverContent>
       </Popover>
-      {!hideLabel && (
+      {hideLabel ? (
+        <div className="flex-1" />
+      ) : (
         <TruncatedLabel 
           label={column.label} 
           fullLabel={fullLabel}
@@ -1110,7 +1112,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                 "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
                 isSorted && "bg-primary/10"
               )}
-              style={{ width: 20 }}
+              style={{ width: 28 }}
               title={undefined}
               data-testid={`sort-toggle-${column.key}`}
             >
