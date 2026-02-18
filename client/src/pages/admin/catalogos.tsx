@@ -73,27 +73,27 @@ export default function AdminCatalogos() {
             <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" ordered />
             <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" ordered />
             <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" ordered />
-            <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
+            <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" ordered />
             <CompactList title="Como Se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
-            <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
-            <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
+            <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" ordered />
+            <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" ordered />
             <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
-            <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
-            <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
+            <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" ordered />
+            <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" ordered />
             <NivelMini />
           </CollapsibleSection>
 
           <CollapsibleSection title="PROSPECTOS Y CLIENTES" testId="section-prospectos">
-            <ColoredList title="Tipo" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
-            <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" />
-            <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" />
-            <CompactList title="Asesor Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" />
-            <ColoredList title="Estatus" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" />
-            <ColoredList title="Etapa" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" />
-            <CompactList title="Como Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" />
-            <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" />
-            <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" />
-            <ColoredList title="Etapa Clientes" endpoint="/api/catalog/etapa-clientes" queryKey="/api/catalog/etapa-clientes" />
+            <ColoredList title="Tipo" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" ordered />
+            <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" ordered />
+            <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" ordered />
+            <CompactList title="Asesor Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" ordered />
+            <ColoredList title="Estatus" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" ordered />
+            <ColoredList title="Etapa" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" ordered />
+            <CompactList title="Como Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" ordered />
+            <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" ordered />
+            <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" ordered />
+            <ColoredList title="Etapa Clientes" endpoint="/api/catalog/etapa-clientes" queryKey="/api/catalog/etapa-clientes" ordered />
           </CollapsibleSection>
         </div>
       </main>
@@ -208,14 +208,16 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
   );
 }
 
-function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: string; queryKey: string }) {
+function ColoredList({ title, endpoint, queryKey, ordered = false }: { title: string; endpoint: string; queryKey: string; ordered?: boolean }) {
   const { toast } = useToast();
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: rawItems = [], isLoading } = useQuery<CatalogItem[]>({ queryKey: [queryKey] });
-  const items = [...rawItems].sort((a, b) => a.name.localeCompare(b.name, "es"));
+  const items = ordered
+    ? [...rawItems].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    : [...rawItems].sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -235,6 +237,15 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
   });
 
+  const swapOrder = (idx: number, direction: "up" | "down") => {
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= items.length) return;
+    const a = items[idx];
+    const b = items[targetIdx];
+    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
+    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+  };
+
   return (
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
       <div className={CARD_HEADER}>
@@ -251,8 +262,11 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
         ) : (
           <table className="w-full border-collapse text-xs">
             <tbody>
-              {items.map((item) => (
+              {items.map((item, idx) => (
                 <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  {ordered && (
+                    <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
+                  )}
                   <td className="w-8 text-center py-0.5 border-r border-gray-200 dark:border-gray-700">
                     <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 cursor-pointer border-0 p-0" />
                   </td>
@@ -270,6 +284,16 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
                       <span className="block w-full cursor-text truncate" title={item.name} onClick={() => { setEditingCell({ id: item.id, field: "name" }); setEditValue(item.name); }}>{item.name}</span>
                     )}
                   </td>
+                  {ordered && (
+                    <td className="w-10 text-center whitespace-nowrap">
+                      <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === 0} onClick={() => swapOrder(idx, "up")}>
+                        <ChevronUp className="w-3 h-3" />
+                      </button>
+                      <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === items.length - 1} onClick={() => swapOrder(idx, "down")}>
+                        <ChevronDown className="w-3 h-3" />
+                      </button>
+                    </td>
+                  )}
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
                       <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
