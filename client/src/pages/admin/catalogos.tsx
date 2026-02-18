@@ -533,7 +533,7 @@ function GlobalRatesMini() {
               {RATES.map((rate) => {
                 const currentValue = getValue(rate.key, rate.defaultValue);
                 return (
-                  <tr key={rate.key} className="border-b border-gray-200 dark:border-gray-700">
+                  <tr key={rate.key} className="border-b border-gray-200 dark:border-gray-700" style={{ height: `${ROW_HEIGHT}px` }}>
                     <td className="px-1.5 py-0.5">{rate.label}</td>
                     <td className="text-center py-0.5 border-l border-gray-200 dark:border-gray-700" style={{ width: "80px" }}>
                       {editingKey === rate.key ? (
