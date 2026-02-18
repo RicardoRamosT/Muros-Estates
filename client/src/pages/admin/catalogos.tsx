@@ -55,13 +55,13 @@ export default function AdminCatalogos() {
       <main className="px-4 py-3">
         <div className="space-y-4">
           <CollapsibleSection title="GENERAL" testId="section-general">
-            <CitiesMini />
-            <ZonesMini />
             <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" ordered />
             <CompactList title="Tipo de Contrato" endpoint="/api/catalog/tipo-contrato" queryKey="/api/catalog/tipo-contrato" ordered />
             <CompactList title="Presentación" endpoint="/api/catalog/presentacion" queryKey="/api/catalog/presentacion" ordered />
             <CompactList title="Tipo de Proveedor" endpoint="/api/catalog/tipo-proveedor" queryKey="/api/catalog/tipo-proveedor" ordered />
             <GlobalRatesMini />
+            <CitiesMini />
+            <ZonesMini />
           </CollapsibleSection>
 
           <CollapsibleSection title="DESARROLLOS" testId="section-desarrollos">
@@ -69,27 +69,27 @@ export default function AdminCatalogos() {
             <CompactList title="Baños" endpoint="/api/catalog/banos" queryKey="/api/catalog/banos" ordered />
             <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" ordered />
             <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" ordered />
-            <CompactList title="Como se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
-            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
+            <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
+            <CompactList title="Como Se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
             <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" />
             <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" />
-            <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" />
+            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
             <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" />
             <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" />
             <NivelMini />
           </CollapsibleSection>
 
           <CollapsibleSection title="PROSPECTOS Y CLIENTES" testId="section-prospectos">
-            <ColoredList title="Tipo Cliente" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
+            <ColoredList title="Tipo" endpoint="/api/catalog/tipo-cliente" queryKey="/api/catalog/tipo-cliente" />
             <ColoredList title="Perfil" endpoint="/api/catalog/perfil" queryKey="/api/catalog/perfil" />
             <ColoredList title="Fuente" endpoint="/api/catalog/fuente" queryKey="/api/catalog/fuente" />
-            <CompactList title="Asesor" endpoint="/api/catalog/asesor" queryKey="/api/catalog/asesor" />
-            <CompactList title="Broker Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" />
-            <ColoredList title="Status" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" />
-            <ColoredList title="Etapa Embudo" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" />
-            <CompactList title="Cómo Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" />
+            <CompactList title="Asesor Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" />
+            <ColoredList title="Estatus" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" />
+            <ColoredList title="Etapa" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" />
+            <CompactList title="Como Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" />
             <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" />
             <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" />
+            <ColoredList title="Etapa Clientes" endpoint="/api/catalog/etapa-clientes" queryKey="/api/catalog/etapa-clientes" />
           </CollapsibleSection>
         </div>
       </main>

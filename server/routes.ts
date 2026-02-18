@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -2441,6 +2441,33 @@ export async function registerRoutes(
   });
   app.delete("/api/catalog/etapa-embudo/:id", requireAuth, requireRole("admin"), async (req, res) => {
     await storage.deleteCatalogEtapaEmbudo(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // Etapa Clientes catalog
+  app.get("/api/catalog/etapa-clientes", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogEtapaClientes();
+    res.json(items);
+  });
+  app.post("/api/catalog/etapa-clientes", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogEtapaClientesSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogEtapaClientes(result.data);
+    res.status(201).json(item);
+  });
+  app.put("/api/catalog/etapa-clientes/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
+    if (typeof active === "boolean") updateData.active = active;
+    if (typeof order === "number") updateData.order = order;
+    const item = await storage.updateCatalogEtapaClientes(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "Etapa no encontrada" });
+    res.json(item);
+  });
+  app.delete("/api/catalog/etapa-clientes/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogEtapaClientes(req.params.id as string);
     res.status(204).send();
   });
 

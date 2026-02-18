@@ -1943,3 +1943,15 @@ export const catalogSiNo = pgTable("catalog_si_no", {
 export const insertCatalogSiNoSchema = createInsertSchema(catalogSiNo).omit({ id: true, createdAt: true });
 export type InsertCatalogSiNo = z.infer<typeof insertCatalogSiNoSchema>;
 export type CatalogSiNo = typeof catalogSiNo.$inferSelect;
+
+export const catalogEtapaClientes = pgTable("catalog_etapa_clientes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  color: text("color"),
+  active: boolean("active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertCatalogEtapaClientesSchema = createInsertSchema(catalogEtapaClientes).omit({ id: true, createdAt: true });
+export type InsertCatalogEtapaClientes = z.infer<typeof insertCatalogEtapaClientesSchema>;
+export type CatalogEtapaClientes = typeof catalogEtapaClientes.$inferSelect;

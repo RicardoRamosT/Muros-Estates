@@ -37,6 +37,7 @@ import {
   catalogFuente, type CatalogFuente, type InsertCatalogFuente,
   catalogStatusProspecto, type CatalogStatusProspecto, type InsertCatalogStatusProspecto,
   catalogEtapaEmbudo, type CatalogEtapaEmbudo, type InsertCatalogEtapaEmbudo,
+  catalogEtapaClientes, type CatalogEtapaClientes, type InsertCatalogEtapaClientes,
   catalogComoPaga, type CatalogComoPaga, type InsertCatalogComoPaga,
   catalogPositivos, type CatalogPositivo, type InsertCatalogPositivo,
   catalogNegativos, type CatalogNegativo, type InsertCatalogNegativo,
@@ -1174,6 +1175,23 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCatalogEtapaEmbudo(id: string): Promise<boolean> {
     await db.delete(catalogEtapaEmbudo).where(eq(catalogEtapaEmbudo.id, id));
+    return true;
+  }
+
+  // Catalog Etapa Clientes
+  async getCatalogEtapaClientes(): Promise<CatalogEtapaClientes[]> {
+    return db.select().from(catalogEtapaClientes).orderBy(catalogEtapaClientes.order, catalogEtapaClientes.name);
+  }
+  async createCatalogEtapaClientes(item: InsertCatalogEtapaClientes): Promise<CatalogEtapaClientes> {
+    const [created] = await db.insert(catalogEtapaClientes).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogEtapaClientes(id: string, item: Partial<InsertCatalogEtapaClientes>): Promise<CatalogEtapaClientes | undefined> {
+    const [updated] = await db.update(catalogEtapaClientes).set(item as any).where(eq(catalogEtapaClientes.id, id)).returning();
+    return updated;
+  }
+  async deleteCatalogEtapaClientes(id: string): Promise<boolean> {
+    await db.delete(catalogEtapaClientes).where(eq(catalogEtapaClientes.id, id));
     return true;
   }
   
