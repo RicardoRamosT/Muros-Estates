@@ -118,7 +118,7 @@ export function ColumnFilter({
           <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
             <path d="M4 0.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: 12, height: 14, fontSize: 11, lineHeight: 1, fontWeight: 800, color: 'white', flexShrink: 0 }}>
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: 12, height: 14, fontSize: 11, lineHeight: 1, fontWeight: 400, color: 'white', flexShrink: 0 }}>
             <span style={{ height: 7, display: 'flex', alignItems: 'center' }}>{topSign}</span>
             <span style={{ height: 7, display: 'flex', alignItems: 'center' }}>{bottomSign}</span>
           </span>
