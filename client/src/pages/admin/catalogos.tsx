@@ -594,7 +594,8 @@ function NivelMini() {
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: items = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/catalog/nivel-mantenimiento"] });
+  const { data: rawItems = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/catalog/nivel-mantenimiento"] });
+  const items = [...rawItems].sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -614,6 +615,15 @@ function NivelMini() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }); toast({ title: "Eliminado" }); setDeleteId(null); },
   });
 
+  const swapOrder = (idx: number, direction: "up" | "down") => {
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= items.length) return;
+    const a = items[idx];
+    const b = items[targetIdx];
+    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
+    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+  };
+
   return (
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-nivel-mantenimiento">
       <div className={CARD_HEADER}>
@@ -629,16 +639,19 @@ function NivelMini() {
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr>
+                <th className={TH} style={{ width: "28px" }}>#</th>
                 <th className={TH}>Nivel</th>
                 <th className={TH} style={{ width: "55px" }}>Mtto.</th>
                 <th className={TH} style={{ width: "65px" }}>Equipo</th>
                 <th className={TH} style={{ width: "65px" }}>Muebles</th>
+                <th className={TH} style={{ width: "40px" }}></th>
                 <th className={TH} style={{ width: "24px" }}></th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item: any) => (
+              {items.map((item: any, idx: number) => (
                 <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700">
+                  <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50 text-xs">{idx + 1}</td>
                   <td className="px-1.5 py-0.5 font-medium">
                     {editingCell?.id === item.id && editingCell?.field === "name" ? (
                       <Input value={editValue} onChange={(e) => setEditValue(e.target.value)}
@@ -678,6 +691,14 @@ function NivelMini() {
                     ) : (
                       <span className="block cursor-text text-center" onClick={() => { setEditingCell({ id: item.id, field: "muebles" }); setEditValue(String(item.muebles ?? 0)); }}>${(item.muebles ?? 0).toLocaleString()}</span>
                     )}
+                  </td>
+                  <td className="w-10 text-center whitespace-nowrap">
+                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === 0} onClick={() => swapOrder(idx, "up")}>
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button className="inline-flex p-0 border-0 bg-transparent cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-default" disabled={idx === items.length - 1} onClick={() => swapOrder(idx, "down")}>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
                   </td>
                   <td className="w-6 text-center">
                     <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
