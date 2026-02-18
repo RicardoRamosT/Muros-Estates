@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
-  Loader2, RefreshCw, AlertCircle, ArrowUpDown,
+  Loader2, RefreshCw, AlertCircle,
   Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
 } from "lucide-react";
 import {
@@ -827,21 +827,26 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   };
 
   const SortIcon = () => {
-    if (sortDirection === "asc") {
+    if (sortDirection === "asc" || sortDirection === "desc") {
+      const topSign = sortDirection === "asc" ? "+" : "−";
+      const bottomSign = sortDirection === "asc" ? "−" : "+";
       return (
-        <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 text-white">
-          <path d="M5 13V1.5M5 1.5L2 4.5M5 1.5L8 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <span className="flex items-center gap-0 flex-shrink-0" style={{ width: 20, height: 14 }}>
+          <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+            <path d="M4 0.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: 12, height: 14, fontSize: 11, lineHeight: 1, fontWeight: 800, color: 'white', flexShrink: 0 }}>
+            <span style={{ height: 7, display: 'flex', alignItems: 'center' }}>{topSign}</span>
+            <span style={{ height: 7, display: 'flex', alignItems: 'center' }}>{bottomSign}</span>
+          </span>
+        </span>
       );
     }
-    if (sortDirection === "desc") {
-      return (
-        <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 text-white">
-          <path d="M5 1V12.5M5 12.5L2 9.5M5 12.5L8 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    }
-    return <ArrowUpDown className="w-3 h-3 text-white opacity-60" />;
+    return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+        <path d="M7 1L7 5.5M7 1L4.5 3.5M7 1L9.5 3.5M7 13L7 8.5M7 13L4.5 10.5M7 13L9.5 10.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
   };
 
   return (
