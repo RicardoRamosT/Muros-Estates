@@ -17,8 +17,6 @@ import {
   catalogEfficiencyFeatures, type CatalogEfficiencyFeature, type InsertCatalogEfficiencyFeature,
   catalogOtherFeatures, type CatalogOtherFeature, type InsertCatalogOtherFeature,
   catalogAcabados, type CatalogAcabado, type InsertCatalogAcabado,
-  catalogComercializadoras, type CatalogComercializadora, type InsertCatalogComercializadora,
-  catalogArquitectura, type CatalogArquitectura, type InsertCatalogArquitectura,
   catalogVistas, type CatalogVista, type InsertCatalogVista,
   catalogAreas, type CatalogArea, type InsertCatalogArea,
   catalogTipologias, type CatalogTipologia, type InsertCatalogTipologia,
@@ -175,16 +173,6 @@ export interface IStorage {
   createCatalogAcabado(acabado: InsertCatalogAcabado): Promise<CatalogAcabado>;
   updateCatalogAcabado(id: string, acabado: Partial<InsertCatalogAcabado>): Promise<CatalogAcabado | undefined>;
   deleteCatalogAcabado(id: string): Promise<boolean>;
-  
-  getCatalogComercializadoras(): Promise<CatalogComercializadora[]>;
-  createCatalogComercializadora(comercializadora: InsertCatalogComercializadora): Promise<CatalogComercializadora>;
-  updateCatalogComercializadora(id: string, comercializadora: Partial<InsertCatalogComercializadora>): Promise<CatalogComercializadora | undefined>;
-  deleteCatalogComercializadora(id: string): Promise<boolean>;
-  
-  getCatalogArquitectura(): Promise<CatalogArquitectura[]>;
-  createCatalogArquitectura(arquitectura: InsertCatalogArquitectura): Promise<CatalogArquitectura>;
-  updateCatalogArquitectura(id: string, arquitectura: Partial<InsertCatalogArquitectura>): Promise<CatalogArquitectura | undefined>;
-  deleteCatalogArquitectura(id: string): Promise<boolean>;
   
   getCatalogVistas(): Promise<CatalogVista[]>;
   createCatalogVista(vista: InsertCatalogVista): Promise<CatalogVista>;
@@ -786,46 +774,6 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCatalogAcabado(id: string): Promise<boolean> {
     await db.delete(catalogAcabados).where(eq(catalogAcabados.id, id));
-    return true;
-  }
-  
-  // Catalog Comercializadoras
-  async getCatalogComercializadoras(): Promise<CatalogComercializadora[]> {
-    return db.select().from(catalogComercializadoras).orderBy(catalogComercializadoras.order, catalogComercializadoras.name);
-  }
-
-  async createCatalogComercializadora(comercializadora: InsertCatalogComercializadora): Promise<CatalogComercializadora> {
-    const [item] = await db.insert(catalogComercializadoras).values(comercializadora as any).returning();
-    return item;
-  }
-
-  async updateCatalogComercializadora(id: string, comercializadora: Partial<InsertCatalogComercializadora>): Promise<CatalogComercializadora | undefined> {
-    const [item] = await db.update(catalogComercializadoras).set(comercializadora as any).where(eq(catalogComercializadoras.id, id)).returning();
-    return item || undefined;
-  }
-
-  async deleteCatalogComercializadora(id: string): Promise<boolean> {
-    await db.delete(catalogComercializadoras).where(eq(catalogComercializadoras.id, id));
-    return true;
-  }
-  
-  // Catalog Arquitectura
-  async getCatalogArquitectura(): Promise<CatalogArquitectura[]> {
-    return db.select().from(catalogArquitectura).orderBy(catalogArquitectura.order, catalogArquitectura.name);
-  }
-
-  async createCatalogArquitectura(arquitectura: InsertCatalogArquitectura): Promise<CatalogArquitectura> {
-    const [item] = await db.insert(catalogArquitectura).values(arquitectura as any).returning();
-    return item;
-  }
-
-  async updateCatalogArquitectura(id: string, arquitectura: Partial<InsertCatalogArquitectura>): Promise<CatalogArquitectura | undefined> {
-    const [item] = await db.update(catalogArquitectura).set(arquitectura as any).where(eq(catalogArquitectura.id, id)).returning();
-    return item || undefined;
-  }
-
-  async deleteCatalogArquitectura(id: string): Promise<boolean> {
-    await db.delete(catalogArquitectura).where(eq(catalogArquitectura.id, id));
     return true;
   }
   

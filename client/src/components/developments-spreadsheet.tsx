@@ -21,7 +21,7 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
+import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'recamaras-select' | 'banos-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -137,8 +137,6 @@ const columns: ColumnDef[] = [
   { key: 'pagosNombre', label: 'Nombre', group: 'pagos', width: '100px', cellType: 'input' },
   { key: 'pagosTelefono', label: 'Teléfono', group: 'pagos', width: '90px', cellType: 'input' },
   { key: 'pagosCorreo', label: 'Correo', group: 'pagos', width: '120px', cellType: 'input' },
-  { key: 'comercializacion', label: 'Comercializadora', group: 'noheader4', type: 'comercializadora-select', width: '120px', cellType: 'dropdown' },
-  { key: 'arquitectura', label: 'Arquitectura', group: 'noheader4', type: 'arquitectura-select', width: '100px', cellType: 'dropdown' },
   { key: 'location', label: 'Ubicación', group: 'noheader4', width: '80px', cellType: 'input' },
   { key: 'presentacion', label: 'Presentación', group: 'noheader4', type: 'presentacion-select', width: '100px', cellType: 'dropdown' },
   { key: 'legalesFolder', label: 'Legales', group: 'noheader4', type: 'folder-link', folderSection: 'legales', width: '70px' },
@@ -181,14 +179,6 @@ export function DevelopmentsSpreadsheet() {
     queryKey: ["/api/catalog/acabados"],
   });
 
-
-  const { data: comercializadoras = [] } = useQuery<CatalogComercializadora[]>({
-    queryKey: ["/api/catalog/comercializadoras"],
-  });
-
-  const { data: arquitecturas = [] } = useQuery<CatalogArquitectura[]>({
-    queryKey: ["/api/catalog/arquitectura"],
-  });
 
   const { data: tiposContrato = [] } = useQuery<CatalogTipoContrato[]>({
     queryKey: ["/api/catalog/tipo-contrato"],
@@ -1241,62 +1231,6 @@ export function DevelopmentsSpreadsheet() {
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
                           <Lock className="w-3 h-3 opacity-50 shrink-0" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-
-                if (col.type === 'comercializadora-select') {
-                  return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
-                      {fieldCanEdit ? (
-                        <Select
-                          value={value || "__unassigned__"}
-                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                        >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                            <SelectValue placeholder="Comercializadora" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                            {comercializadoras.map(c => (
-                              <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-
-                if (col.type === 'arquitectura-select') {
-                  return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
-                      {fieldCanEdit ? (
-                        <Select
-                          value={value || "__unassigned__"}
-                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                        >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                            <SelectValue placeholder="Arquitectura" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                            {arquitecturas.map(a => (
-                              <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
                         </div>
                       )}
                     </div>

@@ -78,8 +78,6 @@ export default function AdminCatalogos() {
             <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" ordered />
             <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" ordered />
             <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
-            <CompactList title="Comercializadoras" endpoint="/api/catalog/comercializadoras" queryKey="/api/catalog/comercializadoras" ordered />
-            <CompactList title="Arquitectura" endpoint="/api/catalog/arquitectura" queryKey="/api/catalog/arquitectura" ordered />
             <NivelMini />
           </CollapsibleSection>
 
@@ -125,6 +123,16 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),
   });
 
+  const swapMutation = useMutation({
+    mutationFn: async ({ idA, orderA, idB, orderB }: { idA: string; orderA: number; idB: string; orderB: number }) => {
+      await Promise.all([
+        apiRequest("PUT", `${endpoint}/${idA}`, { order: orderA }),
+        apiRequest("PUT", `${endpoint}/${idB}`, { order: orderB }),
+      ]);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `${endpoint}/${id}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
@@ -135,8 +143,7 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
     if (targetIdx < 0 || targetIdx >= items.length) return;
     const a = items[idx];
     const b = items[targetIdx];
-    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
-    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+    swapMutation.mutate({ idA: a.id, orderA: b.order ?? targetIdx + 1, idB: b.id, orderB: a.order ?? idx + 1 });
   };
 
   return (
@@ -232,6 +239,16 @@ function ColoredList({ title, endpoint, queryKey, ordered = false }: { title: st
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),
   });
 
+  const swapMutation = useMutation({
+    mutationFn: async ({ idA, orderA, idB, orderB }: { idA: string; orderA: number; idB: string; orderB: number }) => {
+      await Promise.all([
+        apiRequest("PUT", `${endpoint}/${idA}`, { order: orderA }),
+        apiRequest("PUT", `${endpoint}/${idB}`, { order: orderB }),
+      ]);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `${endpoint}/${id}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: [queryKey] }); toast({ title: `Eliminado` }); setDeleteId(null); },
@@ -242,8 +259,7 @@ function ColoredList({ title, endpoint, queryKey, ordered = false }: { title: st
     if (targetIdx < 0 || targetIdx >= items.length) return;
     const a = items[idx];
     const b = items[targetIdx];
-    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
-    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+    swapMutation.mutate({ idA: a.id, orderA: b.order ?? targetIdx + 1, idB: b.id, orderB: a.order ?? idx + 1 });
   };
 
   return (
@@ -610,6 +626,16 @@ function NivelMini() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }),
   });
 
+  const swapMutation = useMutation({
+    mutationFn: async ({ idA, orderA, idB, orderB }: { idA: string; orderA: number; idB: string; orderB: number }) => {
+      await Promise.all([
+        apiRequest("PUT", `/api/catalog/nivel-mantenimiento/${idA}`, { order: orderA }),
+        apiRequest("PUT", `/api/catalog/nivel-mantenimiento/${idB}`, { order: orderB }),
+      ]);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/nivel-mantenimiento/${id}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/nivel-mantenimiento"] }); toast({ title: "Eliminado" }); setDeleteId(null); },
@@ -620,8 +646,7 @@ function NivelMini() {
     if (targetIdx < 0 || targetIdx >= items.length) return;
     const a = items[idx];
     const b = items[targetIdx];
-    updateMutation.mutate({ id: a.id, data: { order: b.order ?? targetIdx + 1 } });
-    updateMutation.mutate({ id: b.id, data: { order: a.order ?? idx + 1 } });
+    swapMutation.mutate({ idA: a.id, orderA: b.order ?? targetIdx + 1, idB: b.id, orderB: a.order ?? idx + 1 });
   };
 
   return (

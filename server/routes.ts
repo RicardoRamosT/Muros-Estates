@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogComercializadoraSchema, insertCatalogArquitecturaSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -2001,64 +2001,6 @@ export async function registerRoutes(
     res.status(204).send();
   });
   
-  // Comercializadoras
-  app.get("/api/catalog/comercializadoras", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogComercializadoras();
-    res.json(items);
-  });
-  
-  app.post("/api/catalog/comercializadoras", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogComercializadoraSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogComercializadora(result.data);
-    res.status(201).json(item);
-  });
-  
-  app.put("/api/catalog/comercializadoras/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogComercializadora(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Comercializadora no encontrada" });
-    res.json(item);
-  });
-  
-  app.delete("/api/catalog/comercializadoras/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogComercializadora(req.params.id as string);
-    res.status(204).send();
-  });
-  
-  // Arquitectura
-  app.get("/api/catalog/arquitectura", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogArquitectura();
-    res.json(items);
-  });
-  
-  app.post("/api/catalog/arquitectura", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogArquitecturaSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogArquitectura(result.data);
-    res.status(201).json(item);
-  });
-  
-  app.put("/api/catalog/arquitectura/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogArquitectura(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Arquitectura no encontrada" });
-    res.json(item);
-  });
-  
-  app.delete("/api/catalog/arquitectura/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogArquitectura(req.params.id as string);
-    res.status(204).send();
-  });
-
   // Vistas catalog
   app.get("/api/catalog/vistas", requireAuth, async (req, res) => {
     const items = await storage.getCatalogVistas();

@@ -75,7 +75,7 @@ interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'fechahora-collapsed';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'select';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -99,6 +99,13 @@ export function DevelopersSpreadsheet() {
     queryKey: ["/api/catalog/tipo-contrato"],
   });
 
+  const { data: catalogCities = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ["/api/catalog/cities"],
+  });
+  const { data: catalogZones = [] } = useQuery<{ id: string; name: string; cityId?: string }[]>({
+    queryKey: ["/api/catalog/zones"],
+  });
+
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
     { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox" },
@@ -106,6 +113,8 @@ export function DevelopersSpreadsheet() {
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown" },
+    { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown" },
     { key: "name", label: "Desarrollador", width: "170px", cellType: "input" },
     { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input" },
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
@@ -546,6 +555,56 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="truncate text-xs">{tipoValue}</span>
+                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'select') {
+                  const selectValue = (dev[field as keyof Developer] as string) || '';
+                  const isCiudad = col.key === 'ciudad';
+                  const isZona = col.key === 'zona';
+                  let selectOptions: { value: string; label: string }[] = [];
+                  if (isCiudad) {
+                    selectOptions = catalogCities.map(c => ({ value: c.name, label: c.name }));
+                  } else if (isZona) {
+                    const devCiudad = (dev as any).ciudad || '';
+                    const cityRecord = catalogCities.find(c => c.name === devCiudad);
+                    const filtered = cityRecord
+                      ? catalogZones.filter(z => z.cityId === cityRecord.id)
+                      : catalogZones;
+                    selectOptions = filtered.map(z => ({ value: z.name, label: z.name }));
+                  }
+                  return (
+                    <div
+                      key={field}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      {fieldCanEdit ? (
+                        <Select
+                          value={selectValue || "__empty__"}
+                          onValueChange={(v) => {
+                            const val = v === "__empty__" ? "" : v;
+                            updateMutation.mutate({ id: dev.id, data: { [field]: val } });
+                          }}
+                        >
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__empty__">Seleccionar</SelectItem>
+                            {selectOptions.map(o => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className="truncate text-xs">{selectValue}</span>
                           <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                         </div>
                       )}
