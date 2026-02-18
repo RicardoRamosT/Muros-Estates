@@ -1,0 +1,30 @@
+-- Cambios de nombre de encabezado y extra:
+
+1. Nivel, que diga Nivel completamente
+2. Bono Descuento, que diga Bono
+3. En $ / m^2, que se llame m^2
+4. En Capital Semilla que se vea Capital...
+5. En Promo, que diga Promo completamente
+6. En Lock-Off, que se vea Lock-Off completamente
+7. En Recamaras, que se vea Recámaras completamente
+8. En Baños, que digas Baños completamente
+9. En Area, que diga Areas
+10. En Balcón, que diga Balcón completamente y unificar Balcon con Tamaño, para que Balcon tenga el Si y No, y el inputa de m^2, que tenga ambas columnas
+11. En Terraza, que diga Terraza completamente y unificar Terraza con Tamaño, para que Terraza tenga el Si y No, y el input de m^2, que tenga ambas columnas Terraza
+12. En Incluidos, que diga Incluye completamente
+13. En Opcional, que se vea Opcional completamente
+14. En seccion BODEGA, las columnas Incluye, Tamaño, Opcional, Tamaño y Precio que se vean con el titulo completo.
+15. En GENERALES, Deberian estar odenados como Tipología, Vista y Nivel
+16. En ESQUEMA DE PAGO, que Total Enganche, diga Total
+17. En ISAI, unificar ISAI% con ISAI$ con el nombre de encabezado "Impuestos" unificado con las 2 columnas debajo, y disminuir los tamaños de width lo mas posible, que en ISAI$, tenga espacio para 99,999,999.
+18. En Notario% con Notario$, que tengan igual el encabezado unificado de "Notaria" con las 2 columnas debajo, aplica lo mismo con el width, y los 99,999,999 que ISAI
+19. En Equipo se van a multiplicar los m^2 por el monto que diga en el catalogo dependiendo de que Nivel es. maximo width para 9,999,999 (Calculado sin editar)
+20. En Muebles aplica lo mismo que en Equipo, maximo width para 9,999,999 (Calculado sin editar)
+21. En POST ENTREGA, Total, maximo width para 9,999,999
+22. Monto, Inicia, Tasa y Años son parte de Credito Hipotecario
+23. En MANTENIMIENTO m^2 va calculado dependiendo del costo del nivel en catalogo, Pondria lo que cuesta el m^2
+24. En Inicial va a calcular el costo de Mantenimiento de ese departamento (m^2 x cantidad de costo del mantenimiento del departamento)
+25. En Fecha de Inicial, es la fecha de entrega que agarrara de la columna Entrega
+26. En Final, la formula esta en el excel. (NOTA)
+27. En Fecha de Final, es la fecha de entrega + 15 años (Que es el valor de los Años del Credito Hipotecario que esta en Catalogo)
+28. En Total, la formula esta en el excel. (NOTA)
