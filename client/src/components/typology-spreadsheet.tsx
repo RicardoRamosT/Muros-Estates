@@ -2616,14 +2616,14 @@ export function TypologySpreadsheet() {
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => toggleSection(section.id)}
-                          className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer opacity-80 hover:opacity-100", !isExpanded && "w-full")}
+                          className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !isExpanded && "w-full")}
                           style={isExpanded ? { width: 20 } : undefined}
                           data-testid={`section-toggle-${section.id}`}
                         >
                           {isExpanded ? (
-                            <Minus className="w-3 h-3 text-white opacity-80" />
+                            <Minus className="w-3 h-3 text-white" />
                           ) : (
-                            <Plus className="w-3 h-3 text-white opacity-80" />
+                            <Plus className="w-3 h-3 text-white" />
                           )}
                         </button>
                       </TooltipTrigger>
@@ -2678,10 +2678,10 @@ export function TypologySpreadsheet() {
                           <TooltipTrigger asChild>
                             <button
                               onClick={() => toggleColumn(col.key)}
-                              className="flex items-center justify-center w-full h-full cursor-pointer opacity-80 hover:opacity-100"
+                              className="flex items-center justify-center w-full h-full cursor-pointer"
                               data-testid={`col-expand-${col.key}`}
                             >
-                              <Plus className="w-3 h-3 text-white opacity-80" />
+                              <Plus className="w-3 h-3 text-white" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" className="text-xs">
@@ -2698,11 +2698,11 @@ export function TypologySpreadsheet() {
                           />
                           <button
                             onClick={() => toggleColumn(col.key)}
-                            className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer opacity-80 hover:opacity-100"
+                            className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
                             style={{ width: 20 }}
                             data-testid={`col-collapse-${col.key}`}
                           >
-                            <Minus className="w-3 h-3 text-white opacity-80" />
+                            <Minus className="w-3 h-3 text-white" />
                           </button>
                         </>
                       )}
