@@ -23,8 +23,8 @@ type CatalogItem = {
   icon?: string;
 };
 
-const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#1e3a5f] uppercase tracking-wide";
-const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#4a90d9] text-white";
+const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[rgb(11,120,180)] uppercase tracking-wide";
+const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[rgb(13,149,225)] text-white";
 const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
 const ROW_HEIGHT = 24;
 const VISIBLE_ROWS = 5;
@@ -520,6 +520,7 @@ function GlobalRatesMini() {
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-global-rates">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Parámetros de Rendimiento">Parámetros de Rendimiento</span>
+        <div className="h-5 w-5 flex-shrink-0" />
       </div>
       <div className="overflow-auto" style={{ height: BODY_HEIGHT }}>
         {isLoading ? (
