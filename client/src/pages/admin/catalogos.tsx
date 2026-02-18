@@ -26,6 +26,10 @@ type CatalogItem = {
 const SECTION_HEADER = "text-white text-sm font-bold px-3 py-1.5 bg-[#1e3a5f] uppercase tracking-wide";
 const CARD_HEADER = "flex items-center justify-between px-2 py-1 bg-[#4a90d9] text-white";
 const TH = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-600 font-semibold text-[10px] uppercase tracking-wide px-1.5 py-1 text-center whitespace-nowrap";
+const ROW_HEIGHT = 24;
+const VISIBLE_ROWS = 5;
+const BODY_HEIGHT = `${ROW_HEIGHT * VISIBLE_ROWS}px`;
+const BODY_HEIGHT_WITH_HEADER = `${ROW_HEIGHT * (VISIBLE_ROWS + 1)}px`;
 
 function CollapsibleSection({ title, testId, children }: { title: string; testId: string; children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -136,14 +140,14 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid={`catalog-${queryKey.split('/').pop()}`}>
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title={title}>{title}</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid={`button-add-${queryKey.split('/').pop()}`}>
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
+      <div className="overflow-auto" style={{ height: BODY_HEIGHT }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : items.length === 0 ? (
@@ -232,14 +236,14 @@ function ColoredList({ title, endpoint, queryKey }: { title: string; endpoint: s
   });
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid={`catalog-${queryKey.split('/').pop()}`}>
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid={`catalog-${queryKey.split('/').pop()}`}>
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title={title}>{title}</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
+      <div className="overflow-auto" style={{ height: BODY_HEIGHT }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : items.length === 0 ? (
@@ -314,14 +318,14 @@ function CitiesMini() {
   });
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-cities">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-cities">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Ciudades">Ciudades</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-city">
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
+      <div className="overflow-auto" style={{ height: BODY_HEIGHT_WITH_HEADER }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -421,14 +425,14 @@ function ZonesMini() {
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-zones">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-zones">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Zonas">Zonas</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-zone">
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
+      <div className="overflow-auto" style={{ height: BODY_HEIGHT_WITH_HEADER }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -513,11 +517,11 @@ function GlobalRatesMini() {
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-global-rates">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-global-rates">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Parámetros de Rendimiento">Parámetros de Rendimiento</span>
       </div>
-      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
+      <div className="overflow-auto" style={{ height: BODY_HEIGHT }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
@@ -584,14 +588,14 @@ function NivelMini() {
   });
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" style={{ minHeight: "160px" }} data-testid="catalog-nivel-mantenimiento">
+    <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-nivel-mantenimiento">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Nivel Mantenimiento">Nivel Mantenimiento</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      <div className="overflow-auto flex-1" style={{ maxHeight: "200px" }}>
+      <div className="overflow-auto" style={{ height: BODY_HEIGHT_WITH_HEADER }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
         ) : (
