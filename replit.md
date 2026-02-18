@@ -149,3 +149,10 @@ Located in `client/src/components/ui/formula-tooltip.tsx`:
 - Sort icon redesigned: always white, arrow fixed pointing down on right, +/- swap positions
 - ID column has ColumnFilter in Row 3 header with filter/sort capabilities
 - Removed Card wrapper and container padding for flush scroll edges in spreadsheets
+- Merged Balcón+Tamaño and Terraza+Tamaño into combined boolean+area cells using linkedSizeField property
+- Reordered Generales columns: Tipología, Vista, Nivel
+- Renamed "Total Enganche" to "Total" in Enganche section
+- Split "Gastos Post-Entrega" into 3 subsections: Impuestos (ISAI), Notaría, Post Entrega (Equipo/Muebles/Total)
+- Merged pre_credito section into Crédito Hipotecario (single section with all mortgage fields)
+- Added nivelMantenimiento dropdown to typologies (populated from catalog_nivel_mantenimiento)
+- Calculated fields from Nivel Mantenimiento catalog: Equipo = sizeFinal × equipo, Muebles = sizeFinal × muebles, maintenanceM2 = valor, maintenanceInitial = maintenanceM2 × sizeFinal

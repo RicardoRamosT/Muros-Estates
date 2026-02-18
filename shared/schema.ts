@@ -1023,6 +1023,8 @@ export const typologies = pgTable("typologies", {
   // 51: Entrega (sin agrupación)
   deliveryDate: text("delivery_date"), // Entrega
   
+  nivelMantenimiento: text("nivel_mantenimiento"), // Nivel de mantenimiento (AAA, A, B, C)
+  
   // 52-56: Gastos post-entrega (headers: 3.0%, 2.5%)
   isaPercent: decimal("isa_percent", { precision: 10, scale: 2 }), // ISAI % (default 3.0%)
   isaAmount: decimal("isa_amount", { precision: 14, scale: 2 }), // ISAI monto (calculado: precio × %)

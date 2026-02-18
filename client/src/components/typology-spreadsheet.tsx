@@ -56,6 +56,7 @@ interface ColumnDef {
   hideLabel?: boolean;
   fullLabel?: string;
   centerCells?: boolean;
+  linkedSizeField?: TypologyField;
 }
 
 interface SectionDef {
@@ -124,8 +125,8 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
-      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 40, hideLabel: true, fullLabel: "Nivel", centerCells: true },
       { key: "view", label: "Vista", type: "select", options: [], width: 80 },
+      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 50, centerCells: true },
     ],
   },
   {
@@ -151,9 +152,9 @@ const SECTIONS: SectionDef[] = [
       { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
       { key: "discountAmount", label: "$ Monto", type: "decimal", width: 100, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 120, format: "currency", calculated: true },
-      { key: "pricePerM2", label: "$ / m²", type: "decimal", width: 100, format: "currency", calculated: true },
-      { key: "hasSeedCapital", label: "Cap.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Capital Semilla" },
-      { key: "hasPromo", label: "Promo", type: "boolean", width: 40, hideLabel: true, fullLabel: "Promo" },
+      { key: "pricePerM2", label: "m²", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Precio por m²" },
+      { key: "hasSeedCapital", label: "Capital...", type: "boolean", width: 55, fullLabel: "Capital Semilla" },
+      { key: "hasPromo", label: "Promo", type: "boolean", width: 50, fullLabel: "Promo" },
       { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
@@ -168,18 +169,12 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "bedrooms", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
-      { key: "bathrooms", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
-      { key: "areas", label: "Area", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Balcon", type: "boolean", width: 50, fullLabel: "Balcón" },
-      { key: "balconySize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
-      { key: "hasTerrace", label: "Terr...", type: "boolean", width: 40, hideLabel: true, fullLabel: "Terraza" },
-      { key: "terraceSize", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 55, fullLabel: "Lock-Off" },
-    ],
-    conditionalFields: [
-      { field: "balconySize", dependsOn: "hasBalcony" },
-      { field: "terraceSize", dependsOn: "hasTerrace" },
+      { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 75 },
+      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 55 },
+      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
+      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize" },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize" },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 60 },
     ],
   },
   {
@@ -189,22 +184,18 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "bedrooms2", label: "Rec...", type: "select", options: [] as string[], width: 55, fullLabel: "Recámaras" },
-      { key: "bathrooms2", label: "B...", type: "select", options: [] as string[], width: 50, fullLabel: "Baños" },
-      { key: "areas2", label: "Area", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Balcon", type: "boolean", width: 50, fullLabel: "Balcón" },
-      { key: "balconySize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
-      { key: "hasTerrace2", label: "Terr...", type: "boolean", width: 40, hideLabel: true, fullLabel: "Terraza" },
-      { key: "terraceSize2", label: "Tam...", type: "decimal", width: 70, format: "area", fullLabel: "Tamaño" },
+      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 75 },
+      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 55 },
+      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize2" },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize2" },
     ],
     conditionalFields: [
       { field: "bedrooms2", dependsOn: "lockOff" },
       { field: "bathrooms2", dependsOn: "lockOff" },
       { field: "areas2", dependsOn: "lockOff" },
       { field: "hasBalcony2", dependsOn: "lockOff" },
-      { field: "balconySize2", dependsOn: ["lockOff", "hasBalcony2"] },
       { field: "hasTerrace2", dependsOn: "lockOff" },
-      { field: "terraceSize2", dependsOn: ["lockOff", "hasTerrace2"] },
     ],
   },
   {
@@ -214,8 +205,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "parkingIncluded", label: "Incl.", type: "select", options: [] as string[], width: 75, fullLabel: "Incluidos", centerCells: true },
-      { key: "hasParkingOptional", label: "Opc.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Opcional" },
+      { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true },
+      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
     conditionalFields: [
@@ -229,10 +220,10 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "hasStorage", label: "Incl.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Incluye" },
-      { key: "storageSize", label: "Tam.", type: "decimal", width: 75, format: "area", fullLabel: "Tamaño" },
-      { key: "hasStorageOptional", label: "Opc.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Opcional" },
-      { key: "storageSize2", label: "Tam.", type: "decimal", width: 75, format: "area", fullLabel: "Tamaño" },
+      { key: "hasStorage", label: "Incluye", type: "boolean", width: 55 },
+      { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
+      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 60 },
+      { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
     ],
     conditionalFields: [
@@ -264,7 +255,7 @@ const SECTIONS: SectionDef[] = [
       { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 110, format: "currency" },
       { key: "paymentMonths", label: "M", type: "number", width: 40, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 110, format: "currency", calculated: true, fullLabel: "Mensualidad" },
-      { key: "totalEnganche", label: "Tot.Eng.", type: "decimal", width: 115, format: "currency", calculated: true, fullLabel: "Total Enganche" },
+      { key: "totalEnganche", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
     ],
   },
   {
@@ -286,36 +277,41 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
+      { key: "nivelMantenimiento", label: "Nivel M.", type: "select", options: [], width: 65, fullLabel: "Nivel Mantenimiento" },
     ],
   },
   {
-    id: "gastos",
-    label: "Gastos Post-Entrega",
+    id: "impuestos",
+    label: "Impuestos",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "isaPercent", label: "ISAI%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
-      { key: "isaAmount", label: "ISAI$", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "ISAI Monto" },
-      { key: "notaryPercent", label: "Not.%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
-      { key: "notaryAmount", label: "Not.$", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Notaría Monto" },
-      { key: "equipmentCost", label: "Equipo", type: "decimal", width: 95, format: "currency" },
-      { key: "furnitureCost", label: "Muebles", type: "decimal", width: 95, format: "currency" },
-      { key: "totalPostDeliveryCosts", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
+      { key: "isaPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
+      { key: "isaAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "ISAI Monto" },
     ],
   },
   {
-    id: "pre_credito",
-    label: "",
-    subheader: "10.5% | 15",
+    id: "notaria",
+    label: "Notaría",
     headerColor: "",
     columnHeaderColor: "",
-    cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
+    cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
-      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
-      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
-      { key: "mortgageYears", label: "Años", type: "number", width: 45 },
+      { key: "notaryPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
+      { key: "notaryAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "Notaría Monto" },
+    ],
+  },
+  {
+    id: "gastos_extra",
+    label: "Post Entrega",
+    headerColor: "",
+    columnHeaderColor: "",
+    cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
+    columns: [
+      { key: "equipmentCost", label: "Equipo", type: "decimal", width: 80, format: "currency", calculated: true },
+      { key: "furnitureCost", label: "Muebles", type: "decimal", width: 80, format: "currency", calculated: true },
+      { key: "totalPostDeliveryCosts", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
@@ -325,6 +321,10 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
+      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
+      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
+      { key: "mortgageYears", label: "Años", type: "number", width: 45 },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
@@ -337,8 +337,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "area" },
-      { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
+      { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "currency" },
+      { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 90, format: "currency", calculated: true },
       { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 85 },
       { key: "maintenanceFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
       { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 85 },
@@ -439,7 +439,7 @@ const SECTIONS: SectionDef[] = [
   },
   ];
 
-function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>): Partial<Typology> {
+function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>, nivelMantenimientoLookup?: Record<string, { valor: number; equipo: number; muebles: number }>): Partial<Typology> {
   const getDefault = (key: string, fallback: number): number => globalDefaults?.[key] ?? fallback;
   const price = parseFloat(row.price as string) || 0;
   const size = parseFloat(row.size as string) || 0;
@@ -485,8 +485,12 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const notaryPercentDefault = globalDefaults?.['notaryPercent'] ?? 2.5;
   const isaPercent = parseFloat(row.isaPercent as string) || isaPercentDefault;
   const notaryPercent = parseFloat(row.notaryPercent as string) || notaryPercentDefault;
-  const equipmentCost = parseFloat(row.equipmentCost as string) || 0;
-  const furnitureCost = parseFloat(row.furnitureCost as string) || 0;
+  const nivelKey = row.nivelMantenimiento as string;
+  const nivelData = nivelKey && nivelMantenimientoLookup ? nivelMantenimientoLookup[nivelKey] : null;
+  const sizeFinal = parseFloat(row.sizeFinal as string) || size;
+  const equipmentCost = nivelData ? sizeFinal * nivelData.equipo : (parseFloat(row.equipmentCost as string) || 0);
+  const furnitureCost = nivelData ? sizeFinal * nivelData.muebles : (parseFloat(row.furnitureCost as string) || 0);
+  const maintenanceM2FromNivel = nivelData ? nivelData.valor : 0;
   const isaAmount = finalPrice * (isaPercent / 100);
   const notaryAmount = finalPrice * (notaryPercent / 100);
   const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
@@ -505,8 +509,10 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   }
   const mortgageTotal = mortgageMonthlyPayment * numPayments;
   
-  const maintenanceM2 = parseFloat(row.maintenanceM2 as string) || 0;
-  const maintenanceTotal = maintenanceM2 * size * 12;
+  const maintenanceM2 = maintenanceM2FromNivel || (parseFloat(row.maintenanceM2 as string) || 0);
+  const maintenanceInitialCalc = maintenanceM2 * sizeFinal;
+  const maintenanceInitial = maintenanceInitialCalc > 0 ? maintenanceInitialCalc : (parseFloat(row.maintenanceInitial as string) || 0);
+  const maintenanceTotal = maintenanceInitial * 12;
   
   const rentInitial = parseFloat(row.rentInitial as string) || 0;
   const rentRatePercent = parseFloat(row.rentRatePercent as string) || getDefault('rentRatePercent', 7.0);
@@ -526,11 +532,9 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const appreciationTotal = finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice;
   const finalValue = finalPrice + appreciationTotal;
   
-  return {
-    // discountAmount, initialAmount, duringConstructionAmount are calculated bidirectionally in handleCellChange, not here
+  const result: Partial<Typology> = {
     finalPrice: finalPrice.toFixed(2),
     pricePerM2: pricePerM2.toFixed(2),
-    // initialAmount and duringConstructionAmount are now bidirectional, don't overwrite here
     monthlyPayment: monthlyPayment.toFixed(2),
     totalEnganche: totalEnganche.toFixed(2),
     remainingPercent: remainingPercent.toFixed(2),
@@ -539,11 +543,14 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     isaAmount: isaAmount.toFixed(2),
     notaryPercent: row.notaryPercent ?? notaryPercent.toFixed(2),
     notaryAmount: notaryAmount.toFixed(2),
+    equipmentCost: equipmentCost.toFixed(2),
+    furnitureCost: furnitureCost.toFixed(2),
     totalPostDeliveryCosts: totalPostDeliveryCosts.toFixed(2),
     mortgageInterestPercent: row.mortgageInterestPercent ?? mortgageInterestPercent.toFixed(2),
     mortgageYears: row.mortgageYears ?? mortgageYears,
     mortgageMonthlyPayment: mortgageMonthlyPayment.toFixed(2),
     mortgageTotal: mortgageTotal.toFixed(2),
+    maintenanceInitial: maintenanceInitialCalc > 0 ? maintenanceInitialCalc.toFixed(2) : (row.maintenanceInitial ?? "0"),
     maintenanceTotal: maintenanceTotal.toFixed(2),
     rentRatePercent: row.rentRatePercent ?? rentRatePercent.toFixed(2),
     rentMonths: row.rentMonths ?? rentMonths,
@@ -555,7 +562,11 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     appreciationRate: row.appreciationRate ?? appreciationRate.toFixed(2),
     appreciationTotal: appreciationTotal.toFixed(2),
     finalValue: finalValue.toFixed(2),
-  } as Partial<Typology>;
+  };
+  if (nivelData) {
+    result.maintenanceM2 = maintenanceM2.toFixed(2);
+  }
+  return result;
 }
 
 function formatValue(value: any, format?: string): string {
@@ -1198,9 +1209,11 @@ interface EditableCellProps {
   sectionCellColor?: string;
   isDynamicCalculated?: boolean;
   filteredDevelopmentName?: string | null;
+  linkedSizeValue?: any;
+  onLinkedSizeChange?: (value: any) => void;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1288,6 +1301,46 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       : value === false 
         ? 'text-red-600 font-medium' 
         : 'text-muted-foreground';
+    if (column.linkedSizeField && onLinkedSizeChange) {
+      const sizeVal = linkedSizeValue != null ? String(linkedSizeValue) : "";
+      const showSizeInput = value === true;
+      return (
+        <div 
+          className={cn("spreadsheet-cell px-0 flex", cellBorderClass)}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
+        >
+          <Select
+            value={value === true ? "si" : value === false ? "no" : ""}
+            onValueChange={(val) => onChange(val === "si")}
+          >
+            <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} style={{ width: 42 }} data-testid={`boolean-${column.key}-${rowId}`}>
+              <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex-1 border-l border-gray-200 dark:border-gray-700">
+            {showSizeInput ? (
+              <input
+                type="text"
+                value={sizeVal}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, "");
+                  onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
+                }}
+                className="h-6 w-full text-xs px-1 bg-transparent border-0 outline-none text-right"
+                placeholder="m²"
+                data-testid={`input-${column.linkedSizeField}-${rowId}`}
+              />
+            ) : (
+              <div className="h-6 w-full bg-gray-100 dark:bg-gray-800" />
+            )}
+          </div>
+        </div>
+      );
+    }
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
@@ -1701,6 +1754,10 @@ export function TypologySpreadsheet() {
     queryKey: ["/api/catalog/incluye"],
   });
   
+  const { data: catalogNivelMantenimiento = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/nivel-mantenimiento"],
+  });
+  
   const { data: catalogCities = [] } = useQuery<any[]>({
     queryKey: ["/api/catalog/cities"],
   });
@@ -1734,6 +1791,20 @@ export function TypologySpreadsheet() {
     });
     return map;
   }, [catalogCities]);
+
+  const nivelMantenimientoLookup = useMemo(() => {
+    const map: Record<string, { valor: number; equipo: number; muebles: number }> = {};
+    catalogNivelMantenimiento.forEach((n: any) => {
+      if (n.name) {
+        map[n.name] = {
+          valor: parseFloat(n.valor) || 0,
+          equipo: parseFloat(n.equipo) || 0,
+          muebles: parseFloat(n.muebles) || 0,
+        };
+      }
+    });
+    return map;
+  }, [catalogNivelMantenimiento]);
 
   const getDefaultsForRow = (row: Partial<Typology>) => {
     const cityName = row.city as string;
@@ -2291,7 +2362,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculatedFields = calculateFields(updatedRow, getDefaultsForRow(updatedRow));
+    const calculatedFields = calculateFields(updatedRow, getDefaultsForRow(updatedRow), nivelMantenimientoLookup);
     
     // Don't overwrite remaining fields if user manually edited them
     if (field === "remainingPercent" || field === "remainingAmount") {
@@ -2581,7 +2652,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculated = calculateFields(merged, getDefaultsForRow(merged));
+    const calculated = calculateFields(merged, getDefaultsForRow(merged), nivelMantenimientoLookup);
     return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper, deliveryDate: autoDeliveryDate } as Typology;
   };
   
@@ -2956,6 +3027,7 @@ export function TypologySpreadsheet() {
                     let dynamicOpts: string[] | undefined;
                     if (col.key === "developer") dynamicOpts = developerOptions;
                     if (col.key === "development") dynamicOpts = developmentOptions;
+                    if (col.key === "nivelMantenimiento") dynamicOpts = catalogNivelMantenimiento.filter((n: any) => n.active !== false).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)).map((n: any) => n.name);
                     
                     const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
                     let isConditionallyDisabled = false;
@@ -2998,6 +3070,8 @@ export function TypologySpreadsheet() {
                         sectionCellColor={section.cellColor}
                         isDynamicCalculated={isDynCalc}
                         filteredDevelopmentName={filteredDevelopmentName}
+                        linkedSizeValue={col.linkedSizeField ? mergedRow[col.linkedSizeField] : undefined}
+                        onLinkedSizeChange={col.linkedSizeField ? (val) => handleCellChange(row.id, col.linkedSizeField!, val) : undefined}
                       />
                     );
                     if (isFirstSection) {
