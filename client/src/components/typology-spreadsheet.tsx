@@ -864,7 +864,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                 <PopoverTrigger asChild>
                   <button
                     className={cn(
-                      "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
+                      "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
                       hasActiveFilter && "bg-primary/10"
                     )}
                     style={{ width: 28 }}
@@ -872,7 +872,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                   >
                     <ChevronDown className={cn(
                       "w-3 h-3 flex-shrink-0",
-                      hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white opacity-80"
+                      hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white"
                     )} />
                   </button>
                 </PopoverTrigger>
@@ -885,13 +885,13 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         ) : (
           <PopoverTrigger asChild>
             <button
-              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100"
+              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer rounded flex-shrink-0"
               style={{ width: 28 }}
               data-testid={`filter-trigger-${column.key}`}
             >
               <ChevronDown className={cn(
                 "w-3 h-3 flex-shrink-0",
-                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white opacity-80"
+                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white"
               )} />
             </button>
           </PopoverTrigger>
@@ -1119,7 +1119,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             <button
               onClick={handleSortClick}
               className={cn(
-                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
+                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
                 isSorted && "bg-primary/10"
               )}
               style={{ width: 28 }}
@@ -1137,7 +1137,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         <button
           onClick={handleSortClick}
           className={cn(
-            "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 opacity-80 hover:opacity-100",
+            "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
             isSorted && "bg-primary/10"
           )}
           style={{ width: 28 }}
