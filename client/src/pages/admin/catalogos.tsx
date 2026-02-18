@@ -268,7 +268,7 @@ function ColoredList({ title, endpoint, queryKey, ordered = false }: { title: st
                     <td className="w-7 text-center text-muted-foreground border-r border-gray-200 dark:border-gray-700 py-0.5 bg-gray-50 dark:bg-gray-800/50">{idx + 1}</td>
                   )}
                   <td className="w-8 text-center py-0.5 border-r border-gray-200 dark:border-gray-700">
-                    <input type="color" value={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 cursor-pointer border-0 p-0" />
+                    <input type="color" defaultValue={item.color || "#6366f1"} onChange={(e) => updateMutation.mutate({ id: item.id, data: { color: e.target.value } })} className="w-5 h-4 cursor-pointer border-0 p-0" />
                   </td>
                   <td className="px-1.5 py-0.5 max-w-0">
                     {editingCell?.id === item.id && editingCell?.field === "name" ? (
