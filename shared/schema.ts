@@ -253,8 +253,8 @@ export const PAGE_PERMISSIONS = {
       recamaras: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // banos - Selector de baños
       banos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
-      // tipologiasCount - Conteo de tipologías (readonly)
-      tipologiasCount: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // tipologiasList - Listado libre de tipologías del desarrollo
+      tipologiasList: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // redaccionValor - Texto libre de redacción de valor
       redaccionValor: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 21. acabados - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
@@ -684,6 +684,7 @@ export const developments = pgTable("developments", {
   nivel: text("nivel"), // Nivel
   torres: integer("torres"), // Número de torres
   niveles: integer("niveles"), // Número de niveles
+  tipologiasList: text("tipologias_list").array(), // Listado libre de tipologías del desarrollo
   vistas: text("vistas").array(), // Vistas disponibles del desarrollo
   amenities: text("amenities").array(), // Lista de amenidades
   efficiency: text("efficiency").array(), // Características de eficiencia

@@ -21,7 +21,7 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogVista } from "@shared/schema";
+import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogComercializadora, CatalogArquitectura, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'recamaras-select' | 'banos-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'recamaras-select' | 'banos-select' | 'comercializadora-select' | 'arquitectura-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -60,6 +60,7 @@ const columnGroups: ColumnGroup[] = [
   { key: 'features', label: '' },
   { key: 'noheader_acabados', label: '' },
   { key: 'tamano', label: 'TAMAÑO', color: '#6b5b95' },
+  { key: 'noheader_lockoff', label: '' },
   { key: 'distribucion', label: 'DISTRIBUCIÓN', color: '#88b04b' },
   { key: 'depas', label: 'DEPAS', color: '#92a8d1' },
   { key: 'locales', label: 'LOCALES', color: '#955251' },
@@ -96,15 +97,15 @@ const columns: ColumnDef[] = [
   { key: 'nivel', label: 'Nivel', group: 'structure', type: 'nivel-select', width: '75px', cellType: 'dropdown' },
   { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '60px', cellType: 'dropdown' },
   { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '65px', cellType: 'dropdown' },
-  { key: 'tipologiasCount', label: 'Tipologías', group: 'structure', type: 'tipologias-count', width: '110px', cellType: 'readonly' },
-  { key: 'vistas', label: 'Vistas', group: 'structure', type: 'multiselect-vistas', width: '95px', cellType: 'dropdown' },
+  { key: 'tipologiasList', label: 'Tipologías', group: 'structure', type: 'multiselect-creatable', width: '110px', cellType: 'dropdown' },
+  { key: 'vistas', label: 'Vistas', group: 'structure', type: 'multiselect-creatable', width: '95px', cellType: 'dropdown' },
   { key: 'amenities', label: 'Amenidades', group: 'features', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
   { key: 'efficiency', label: 'Eficiencia', group: 'features', type: 'multiselect-efficiency', width: '90px', cellType: 'dropdown' },
   { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
   { key: 'acabados', label: 'Acabados', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
-  { key: 'lockOff', label: 'Lock Off', group: 'tamano', type: 'boolean', width: '58px', cellType: 'checkbox' },
+  { key: 'lockOff', label: 'Lock Off', group: 'noheader_lockoff', type: 'boolean', width: '58px', cellType: 'checkbox' },
   { key: 'recamaras', label: 'Recámaras', group: 'distribucion', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
   { key: 'banos', label: 'Baños', group: 'distribucion', type: 'banos-select', width: '80px', cellType: 'dropdown' },
   { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
@@ -180,9 +181,6 @@ export function DevelopmentsSpreadsheet() {
     queryKey: ["/api/catalog/acabados"],
   });
 
-  const { data: vistasOptions = [] } = useQuery<CatalogVista[]>({
-    queryKey: ["/api/catalog/vistas"],
-  });
 
   const { data: comercializadoras = [] } = useQuery<CatalogComercializadora[]>({
     queryKey: ["/api/catalog/comercializadoras"],
@@ -208,21 +206,6 @@ export function DevelopmentsSpreadsheet() {
     queryKey: ["/api/catalog/banos"],
   });
 
-  const { data: typologies = [] } = useQuery<any[]>({
-    queryKey: ["/api/typologies"],
-  });
-
-  const typologyCountByDev = useMemo(() => {
-    const map: Record<string, { count: number; names: string[] }> = {};
-    typologies.forEach((t: any) => {
-      const devName = t.development;
-      if (!devName) return;
-      if (!map[devName]) map[devName] = { count: 0, names: [] };
-      map[devName].count++;
-      if (t.type) map[devName].names.push(String(t.type));
-    });
-    return map;
-  }, [typologies]);
 
   const isLoading = authLoading || developmentsLoading;
   const shouldCheckAccess = !authLoading;
@@ -992,7 +975,7 @@ export function DevelopmentsSpreadsheet() {
                   );
                 }
 
-                if (col.type === 'multiselect-vistas') {
+                if (col.type === 'multiselect-creatable') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
@@ -1000,25 +983,54 @@ export function DevelopmentsSpreadsheet() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
+                              <span className="truncate">{arrValue.length > 0 ? arrValue.join(', ') : ""}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-56 p-2 max-h-60 overflow-y-auto">
-                            {vistasOptions.map(item => (
-                              <div key={item.id} className="flex items-center gap-2 py-1">
-                                <Checkbox
-                                  checked={arrValue.includes(item.name)}
-                                  onCheckedChange={() => handleMultiSelectChange(dev.id, col.key, arrValue, item.name)}
+                          <PopoverContent className="w-56 p-2">
+                            <div className="flex flex-col gap-2">
+                              <div className="flex gap-1">
+                                <Input
+                                  placeholder="Agregar..."
+                                  className="h-7 text-xs"
+                                  data-testid={`creatable-input-${col.key}-${dev.id}`}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = (e.target as HTMLInputElement).value.trim();
+                                      if (val && !arrValue.includes(val)) {
+                                        const newArr = [...arrValue, val];
+                                        updateMutation.mutate({ id: dev.id, data: { [col.key]: newArr } });
+                                      }
+                                      (e.target as HTMLInputElement).value = '';
+                                    }
+                                  }}
                                 />
-                                <span className="text-xs">{item.name}</span>
                               </div>
-                            ))}
+                              {arrValue.length > 0 && (
+                                <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                                  {arrValue.map((item, idx) => (
+                                    <div key={idx} className="flex items-center justify-between gap-1 px-1 py-0.5 rounded bg-muted/50">
+                                      <span className="text-xs truncate">{item}</span>
+                                      <button
+                                        onClick={() => {
+                                          const newArr = arrValue.filter((_, i) => i !== idx);
+                                          updateMutation.mutate({ id: dev.id, data: { [col.key]: newArr } });
+                                        }}
+                                        className="flex-shrink-0 cursor-pointer"
+                                        data-testid={`creatable-remove-${col.key}-${dev.id}-${idx}`}
+                                      >
+                                        <X className="w-3 h-3 text-muted-foreground" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </PopoverContent>
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? arrValue.join(', ') : ""}</span>
                           <Lock className="w-3 h-3 opacity-50 shrink-0" />
                         </div>
                       )}
@@ -1151,18 +1163,6 @@ export function DevelopmentsSpreadsheet() {
                   );
                 }
 
-                if (col.type === 'tipologias-count') {
-                  const devData = typologyCountByDev[dev.name] || { count: 0, names: [] };
-                  const uniqueNames = Array.from(new Set(devData.names));
-                  const display = devData.count > 0 
-                    ? `${devData.count} (${uniqueNames.join(', ')})`
-                    : '—';
-                  return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }}>
-                      <span className="text-xs text-muted-foreground truncate px-2" title={display}>{display}</span>
-                    </div>
-                  );
-                }
 
                 if (col.type === 'redaccion-text') {
                   return (
