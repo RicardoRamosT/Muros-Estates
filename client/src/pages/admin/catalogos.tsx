@@ -520,7 +520,9 @@ function GlobalRatesMini() {
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-global-rates">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Parámetros de Rendimiento">Parámetros de Rendimiento</span>
-        <div className="h-5 w-5 flex-shrink-0" />
+        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80 invisible" tabIndex={-1} aria-hidden>
+          <Plus className="w-3 h-3" />
+        </Button>
       </div>
       <div className="overflow-auto" style={{ height: BODY_HEIGHT }}>
         {isLoading ? (
