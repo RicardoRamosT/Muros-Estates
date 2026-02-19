@@ -187,10 +187,10 @@ export function ColumnFilter({
               </div>
 
               <div 
-                className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
+                className="flex items-center gap-2 mb-1 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
                 onClick={(e) => {
                   e.preventDefault();
-                  handleSelectAllToggle(!allSelected);
+                  handleSelectAllToggle(true);
                 }}
               >
                 <div className="pointer-events-none flex items-center gap-2">
@@ -201,6 +201,23 @@ export function ColumnFilter({
                   />
                   <span className="text-xs font-medium select-none">
                     (Seleccionar todo)
+                  </span>
+                </div>
+              </div>
+
+              <div 
+                className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelectAllToggle(false);
+                }}
+              >
+                <div className="pointer-events-none flex items-center gap-2">
+                  <div className="h-3 w-3 border rounded-sm flex items-center justify-center bg-background">
+                    <X className="h-2 w-2 text-muted-foreground" />
+                  </div>
+                  <span className="text-xs font-medium select-none text-muted-foreground">
+                    (Deseleccionar todo)
                   </span>
                 </div>
               </div>
