@@ -3440,6 +3440,12 @@ export function TypologySpreadsheet() {
         </div>
       </div>
       
+      {showZoomPopup && (
+        <div className="fixed bottom-4 right-12 z-[100] bg-black/80 text-white px-2 py-1 rounded-md text-[10px] font-medium animate-in fade-in slide-in-from-right-1 duration-200 shadow-sm border border-white/10">
+          {zoomLevel}%
+        </div>
+      )}
+
       <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center bg-background border rounded-md shadow-md p-0" data-testid="zoom-controls">
         <Button size="icon" variant="ghost" className="h-6 w-6 rounded-b-none" onClick={zoomIn} disabled={zoomLevel >= 150} data-testid="zoom-in">
           <Plus className="h-3 w-3" />
