@@ -3041,7 +3041,7 @@ export function TypologySpreadsheet() {
                   ];
                 }
 
-                if (section.id === "credito") {
+                if (section.id === "credito" || section.id === "mantenimiento") {
                   return section.columns.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0));
                 }
 
