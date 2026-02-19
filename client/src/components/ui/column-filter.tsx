@@ -76,13 +76,15 @@ export function ColumnFilter({
   };
 
   const handleToggleValue = (value: string) => {
-    const newSet = new Set(localSelected);
-    if (newSet.has(value)) {
-      newSet.delete(value);
-    } else {
-      newSet.add(value);
-    }
-    setLocalSelected(newSet);
+    setLocalSelected((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
   };
 
   const handleApply = () => {
@@ -188,14 +190,22 @@ export function ColumnFilter({
                 />
               </div>
 
-              <div className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" onClick={() => handleSelectAllToggle(!allSelected)}>
+              <div 
+                className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSelectAllToggle(!allSelected);
+                }}
+              >
                 <Checkbox
                   checked={allSelected}
-                  onCheckedChange={(checked) => handleSelectAllToggle(!!checked)}
-                  className="h-3 w-3"
-                  onClick={(e) => e.stopPropagation()}
+                  onCheckedChange={(checked) => {
+                    // Do nothing here, handleSelectAllToggle is called by the div's onClick
+                  }}
+                  className="h-3 w-3 pointer-events-none"
                 />
-                <span className="text-xs font-medium">
+                <span className="text-xs font-medium select-none">
                   (Seleccionar todo)
                 </span>
               </div>
