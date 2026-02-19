@@ -235,8 +235,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 75 },
-      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 55 },
+      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
+      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 45 },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
