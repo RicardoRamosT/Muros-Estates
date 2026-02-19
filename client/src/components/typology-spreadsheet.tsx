@@ -221,8 +221,10 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize" },
-      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize" },
+      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 45, linkedSizeField: "balconySize" },
+      { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize" },
+      { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85 },
     ],
   },
@@ -236,8 +238,10 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 75 },
       { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 55 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize2" },
-      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize2" },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 45, linkedSizeField: "balconySize2" },
+      { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize2" },
+      { key: "terraceSize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
     ],
     conditionalFields: [
       { field: "bedrooms2", dependsOn: "lockOff" },
@@ -1389,8 +1393,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               value={value === true ? "si" : value === false ? "no" : ""}
               onValueChange={(val) => onChange(val === "si")}
             >
-              <SelectTrigger className="h-full w-full text-[10px] border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 [&_svg]:h-3 [&_svg]:w-3">
-                <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+              <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
+                <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
