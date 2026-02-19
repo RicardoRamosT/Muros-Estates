@@ -175,7 +175,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
       { key: "view", label: "Vista", type: "select", options: [], width: 80 },
-      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 50, centerCells: true },
+      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 60, centerCells: true },
     ],
   },
   {
@@ -197,13 +197,13 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 90, format: "currency" },
-      { key: "hasDiscount", label: "Bono", type: "boolean", width: 40, fullLabel: "Bono Descuento" },
+      { key: "hasDiscount", label: "Bono", type: "boolean", width: 50, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
       { key: "discountAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital...", type: "boolean", width: 55, fullLabel: "Capital Semilla" },
-      { key: "hasPromo", label: "Promo", type: "boolean", width: 50, fullLabel: "Promo" },
+      { key: "hasPromo", label: "Promo", type: "boolean", width: 55, fullLabel: "Promo" },
       { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
@@ -223,7 +223,7 @@ const SECTIONS: SectionDef[] = [
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize" },
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 60 },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 70 },
     ],
   },
   {
