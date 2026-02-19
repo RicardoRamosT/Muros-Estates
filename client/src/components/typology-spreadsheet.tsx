@@ -2824,11 +2824,13 @@ export function TypologySpreadsheet() {
     let autoDeliveryDate: string | null = null;
     let displayCity = merged.city;
     let displayZone = merged.zone;
+    let displayNivelMantenimiento = merged.nivelMantenimiento;
     if (merged.development && dbDevelopments.length > 0) {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev) {
         if (!displayCity && dev.city) displayCity = dev.city;
         if (!displayZone && dev.zone) displayZone = dev.zone;
+        if (!displayNivelMantenimiento && (dev as any).nivel) displayNivelMantenimiento = (dev as any).nivel;
         if (dev.entregaProyectada) {
           const date = new Date(dev.entregaProyectada);
           const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -2844,8 +2846,9 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const defaults = getDefaultsForRow(merged);
-    const calculated = calculateFields(merged, defaults, nivelMantenimientoLookup);
+    const mergedWithInherited = { ...merged, nivelMantenimiento: displayNivelMantenimiento } as Typology;
+    const defaults = getDefaultsForRow(mergedWithInherited);
+    const calculated = calculateFields(mergedWithInherited, defaults, nivelMantenimientoLookup);
     
     let maintenanceStartDate: string | null = null;
     let maintenanceEndDate: string | null = null;
@@ -2862,7 +2865,7 @@ export function TypologySpreadsheet() {
       }
     }
     
-    return { ...merged, ...calculated, city: displayCity, zone: displayZone, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate } as Typology;
+    return { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate } as Typology;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;

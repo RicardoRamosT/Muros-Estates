@@ -21,12 +21,11 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
+import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
 
-const NIVEL_OPTIONS = ['AAA', 'A', 'B', 'C'] as const;
 const TORRES_OPTIONS = Array.from({ length: 9 }, (_, i) => i + 1);
 const NIVELES_OPTIONS = Array.from({ length: 110 }, (_, i) => i + 1);
 const EMPRESA_TIPO_OPTIONS = ['Desarrollador', 'Comercializadora'] as const;
@@ -191,6 +190,18 @@ export function DevelopmentsSpreadsheet() {
   const { data: presentaciones = [] } = useQuery<CatalogPresentacion[]>({
     queryKey: ["/api/catalog/presentacion"],
   });
+
+  const { data: catalogNivelMantenimiento = [] } = useQuery<CatalogNivelMantenimiento[]>({
+    queryKey: ["/api/catalog/nivel-mantenimiento"],
+  });
+
+  const nivelOptions = useMemo(() =>
+    catalogNivelMantenimiento
+      .filter((n) => n.active !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((n) => n.name),
+    [catalogNivelMantenimiento]
+  );
 
   const { data: catalogBanos = [] } = useQuery<any[]>({
     queryKey: ["/api/catalog/banos"],
@@ -860,7 +871,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                            {NIVEL_OPTIONS.map(n => (
+                            {nivelOptions.map(n => (
                               <SelectItem key={n} value={n}>{n}</SelectItem>
                             ))}
                           </SelectContent>
