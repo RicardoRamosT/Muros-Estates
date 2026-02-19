@@ -377,6 +377,7 @@ const SECTIONS: SectionDef[] = [
       { key: "isaPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
       { key: "isaAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "ISAI Monto" },
     ],
+    hideInRow1: true
   },
   {
     id: "notaria",
@@ -389,6 +390,7 @@ const SECTIONS: SectionDef[] = [
       { key: "notaryPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
       { key: "notaryAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "Notaría Monto" },
     ],
+    hideInRow1: true
   },
   {
     id: "gastos_extra",
@@ -402,6 +404,7 @@ const SECTIONS: SectionDef[] = [
       { key: "furnitureCost", label: "Muebles", type: "decimal", width: 80, format: "currency", calculated: true },
       { key: "totalPostDeliveryCosts", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
+    hideInRow1: true
   },
   {
     id: "credito",
@@ -2836,6 +2839,7 @@ export function TypologySpreadsheet() {
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
+                  if ((section as any).hideInRow1) return;
                   const groupLabel = section.parentLabel || section.label;
                   const lastGroup = groups[groups.length - 1];
                   if (lastGroup && lastGroup.label === groupLabel) {
