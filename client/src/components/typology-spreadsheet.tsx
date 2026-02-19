@@ -818,6 +818,8 @@ interface ColumnFilterProps {
   columnWidth?: number;
   hideLabel?: boolean;
   fullLabel?: string;
+  disabledMessage?: string;
+  overrideUniqueValues?: string[];
 }
 
 function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLabel?: string; columnKey: string }) {
@@ -866,7 +868,7 @@ function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLa
   );
 }
 
-function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel }: ColumnFilterProps) {
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel, disabledMessage, overrideUniqueValues }: ColumnFilterProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [localMin, setLocalMin] = useState(rangeFilter?.min || "");
@@ -879,6 +881,9 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   }, [rangeFilter?.min, rangeFilter?.max]);
   
   const uniqueValues = useMemo(() => {
+    if (overrideUniqueValues) {
+      return overrideUniqueValues.sort((a, b) => a.localeCompare(b, "es"));
+    }
     const values = new Set<string>();
     data.forEach(row => {
       const val = row[column.key];
@@ -893,7 +898,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       return arr.sort((a, b) => parseFloat(a) - parseFloat(b));
     }
     return arr.sort((a, b) => a.localeCompare(b, "es"));
-  }, [data, column]);
+  }, [data, column, overrideUniqueValues]);
   
   const filteredValues = useMemo(() => {
     if (!search) return uniqueValues;
@@ -1033,6 +1038,27 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
             {column.calculated && <span className="text-xs text-muted-foreground ml-1">(calculado)</span>}
           </div>
           
+          {disabledMessage ? (
+            <div className="flex flex-col">
+              {hasActiveFilter && (
+                <>
+                  <button
+                    className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left text-muted-foreground"
+                    onClick={handleClearFilter}
+                    data-testid={`clear-filter-${column.key}-disabled`}
+                  >
+                    <X className="w-4 h-4" />
+                    Borrar filtro de "{column.label}"
+                  </button>
+                  <div className="border-t" />
+                </>
+              )}
+              <div className="px-3 py-4 text-xs text-muted-foreground text-center">
+                {disabledMessage}
+              </div>
+            </div>
+          ) : (
+          <>
           {hasActiveFilter && (
             <>
               <button
@@ -1230,6 +1256,8 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                 </Button>
               </div>
             </>
+          )}
+          </>
           )}
         </div>
       </PopoverContent>
@@ -1932,6 +1960,23 @@ export function TypologySpreadsheet() {
     }
     return null;
   }, [columnFilters]);
+
+  const vistaFilterState = useMemo(() => {
+    const devFilter = columnFilters["development"];
+    const filteredCount = devFilter ? devFilter.size : 0;
+    if (filteredCount === 0) {
+      return { disabledMessage: "Primero filtre un Desarrollo para ver sus vistas disponibles.", overrideValues: undefined as string[] | undefined };
+    }
+    if (filteredCount > 1) {
+      return { disabledMessage: "Seleccione solo un Desarrollo para filtrar por Vista.", overrideValues: undefined as string[] | undefined };
+    }
+    const devName = Array.from(devFilter!)[0] as string;
+    const devVistas = vistasByDevelopment[devName] || [];
+    if (devVistas.length === 0) {
+      return { disabledMessage: "Este Desarrollo no tiene vistas configuradas.", overrideValues: undefined as string[] | undefined };
+    }
+    return { disabledMessage: undefined as string | undefined, overrideValues: devVistas };
+  }, [columnFilters, vistasByDevelopment]);
   
   const areaOptions = useMemo(() => {
     return catalogAreas.map(a => a.name).filter(Boolean);
@@ -3225,6 +3270,8 @@ export function TypologySpreadsheet() {
                           columnWidth={col.width}
                           hideLabel={true}
                           fullLabel={col.fullLabel || col.label}
+                          disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
+                          overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
                         />
                       )}
                     </div>
