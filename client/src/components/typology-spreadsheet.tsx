@@ -1417,7 +1417,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...(isLastInSection ? { borderRight: '1px solid transparent' } : {}) }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
         data-testid={`cell-${column.key}-disabled`}
       >
         {(column.format === "currency" || column.format === "area") 
@@ -1436,7 +1436,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...(isLastInSection ? { borderRight: '1px solid transparent' } : {}) }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
         onClick={() => setIsEditing(true)}
         data-testid={`cell-${column.key}-${rowId}`}
       >
@@ -1470,7 +1470,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           {/* Boolean Part (Sí/No) */}
           <div 
             className={cn("flex items-center justify-center border-r border-gray-200 dark:border-gray-700", textColorClass)}
-            style={{ backgroundColor: cellBgColor, width: 44, flexShrink: 0, ...(isLastInSection ? { borderRightColor: 'transparent' } : {}) }}
+            style={{ backgroundColor: cellBgColor, width: 44, flexShrink: 0 }}
           >
             <ExclusiveSelect
               value={value === true ? "si" : value === false ? "no" : ""}
@@ -1505,7 +1505,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor, ...(isLastInSection ? { borderRight: '1px solid transparent' } : {}) }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
       >
         <ExclusiveSelect
           value={value === true ? "si" : value === false ? "no" : ""}
@@ -2938,7 +2938,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid transparent` }} />
+              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -2974,7 +2974,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
                         ...(isFirstSection ? { left: 60 } : {}),
-                        borderRight: isUnified ? 'none' : '1px solid transparent'
+                        borderRight: sectionIndex === SECTIONS.length - 1 ? 'none' : `1px solid ${SECTION_BORDER_COLOR}`
                       }}
                     >
                       {anyExpanded && (
@@ -3022,7 +3022,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Section/column labels */}
             <div className="flex border-b spreadsheet-header-row2">
-              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid transparent` }}>
+              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {SECTIONS.flatMap((section, sectionIndex) => {
@@ -3073,7 +3073,7 @@ export function TypologySpreadsheet() {
                   const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
                   const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
                   return [
-                    <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!), ...(isLastInParentGroup ? { borderRight: '1px solid transparent' } : {}) }}>
+                    <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Impuestos (ISAI)</span>
                     </div>
                   ];
@@ -3083,7 +3083,7 @@ export function TypologySpreadsheet() {
                   const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent");
                   const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount");
                   return [
-                    <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!), ...(isLastInParentGroup ? { borderRight: '1px solid transparent' } : {}) }}>
+                    <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Notaría</span>
                     </div>
                   ];
@@ -3097,10 +3097,10 @@ export function TypologySpreadsheet() {
                     <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!) }}>
                       <span className="text-xs font-medium text-center w-full">Equipo</span>
                     </div>,
-                    <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!) }}>
+                    <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Muebles</span>
                     </div>,
-                    <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!), ...(isLastInParentGroup ? { borderRight: '1px solid transparent' } : {}) }}>
+                    <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Total</span>
                     </div>
                   ];
@@ -3116,10 +3116,10 @@ export function TypologySpreadsheet() {
 
                   return [
                     ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false)),
-                    <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                    <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Balcón</span>
                     </div>,
-                    <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!), ...(isLastInParentGroup ? { borderRight: '1px solid transparent' } : {}) }}>
+                    <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Terraza</span>
                     </div>
                   ];
@@ -3140,7 +3140,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: colW, 
                         ...(isSticky ? { left: 60 } : {}),
-                        ...(showBorder ? { borderRight: '1px solid transparent' } : {})
+                        ...(showBorder ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
                       }}
                     >
                       {isColCollapsed ? (
@@ -3161,7 +3161,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`parent-${section.id}`}
                       className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}), borderRight: '1px solid transparent' }}
+                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}), borderRight: sectionIndex === SECTIONS.length - 1 ? 'none' : `1px solid ${SECTION_BORDER_COLOR}` }}
                     >
                       <span className="text-xs font-medium text-center w-full">{section.subheader}</span>
                     </div>
@@ -3179,7 +3179,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: sectionWidth,
                         ...(isFirstSection ? { left: 60 } : {}),
-                        ...(!isLastInGroup ? { borderRight: '1px solid transparent' } : {}),
+                        borderRight: sectionIndex === SECTIONS.length - 1 ? 'none' : `1px solid ${SECTION_BORDER_COLOR}`,
                       }}
                     >
                       <div className="pointer-events-none" style={{ width: 20 }} />
@@ -3199,7 +3199,7 @@ export function TypologySpreadsheet() {
                   const isColCollapsed = collapsedColumns.has(col.key);
                   const colW = getColWidth(col);
                   const isLastCol = colIndex === section.columns.length - 1;
-                  const showBorder = isLastCol ? isLastInParentGroup : true;
+                  const showBorder = true;
                   return (
                     <div
                       key={`name-${col.key}`}
@@ -3212,7 +3212,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: colW, 
                         ...(isFirstSection ? { left: 60 } : {}),
-                        ...(showBorder ? { borderRight: '1px solid transparent' } : {})
+                        ...(showBorder ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
                       }}
                     >
                       {isColCollapsed ? (
@@ -3269,7 +3269,7 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid transparent` }}>
+              <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
                   data={typologies}
@@ -3298,7 +3298,7 @@ export function TypologySpreadsheet() {
                   const isColCollapsed = collapsedColumns.has(col.key);
                   const colW = getColWidth(col);
                   const isLastCol = colIndex === section.columns.length - 1;
-                  const showBorder = isLastCol ? isLastInParentGroup3 : true;
+                  const showBorder = true;
                   return (
                     <div
                       key={`filter-${col.key}`}
@@ -3310,7 +3310,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
                         width: colW, 
                         ...(isFirstSection ? { left: 60 } : {}),
-                        ...(showBorder ? { borderRight: '1px solid transparent' } : {})
+                        ...(showBorder ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
                       }}
                     >
                       {!isColCollapsed && (
@@ -3360,7 +3360,7 @@ export function TypologySpreadsheet() {
               >
                 <div 
                   className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10"
-                  style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid transparent` }}
+                  style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
                   {rowIndex + 1}
@@ -3385,12 +3385,16 @@ export function TypologySpreadsheet() {
                   return section.columns.map((col, colIndex) => {
                     const isColCollapsed = collapsedColumns.has(col.key);
                     const isLastCol = colIndex === section.columns.length - 1;
+                    const isLastInSection = isLastCol && sectionIndex === SECTIONS.length - 1;
+                    const showBorder = !isLastInSection;
+                    const colW = getColWidth(col);
+
                     if (isColCollapsed) {
                       const collapsedCell = (
                         <div
                           key={col.key}
                           className="spreadsheet-cell bg-white dark:bg-gray-900"
-                          style={{ width: COLLAPSED_COL_WIDTH }}
+                          style={{ width: COLLAPSED_COL_WIDTH, ...(showBorder ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {}) }}
                         />
                       );
                       if (isFirstSection) {
@@ -3401,21 +3405,6 @@ export function TypologySpreadsheet() {
                         );
                       }
                       return collapsedCell;
-                    }
-                    if (col.key === "createdDate") {
-                      return (
-                        <div
-                          key={col.key}
-                          className={cn(
-                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor
-                          )}
-                          style={{ width: (col.width || 85) + SORT_ICON_WIDTH }}
-                          data-testid={`cell-createdDate-${row.id}`}
-                        >
-                          {formatDate(row.createdAt)}
-                        </div>
-                      );
                     }
                     if (col.key === "createdTime") {
                       return (
@@ -3474,7 +3463,7 @@ export function TypologySpreadsheet() {
                         cajonOptions={cajonOptions}
                         developerSelectOptions={developerOptions}
                         zoneOptionsByCity={zoneOptionsByCity}
-                        isLastInSection={colIndex === section.columns.length - 1}
+                        isLastInSection={isLastInSection}
                         row={mergedRow as Typology}
                         sectionCellColor={section.cellColor}
                         isDynamicCalculated={isDynCalc}
