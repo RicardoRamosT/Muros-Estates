@@ -3051,10 +3051,10 @@ export function TypologySpreadsheet() {
 
                   return [
                     ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0)),
-                    <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                    <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Balcón</span>
                     </div>,
-                    <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
+                    <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Terraza</span>
                     </div>,
                     ...otherColsAfter.map(col => renderStandardCol(col, false))
@@ -3069,7 +3069,7 @@ export function TypologySpreadsheet() {
                   const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
                   const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
                   return [
-                    <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!) }}>
+                    <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Impuestos (ISAI)</span>
                     </div>
                   ];
@@ -3079,7 +3079,7 @@ export function TypologySpreadsheet() {
                   const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent");
                   const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount");
                   return [
-                    <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!) }}>
+                    <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Notaría</span>
                     </div>
                   ];
@@ -3090,13 +3090,13 @@ export function TypologySpreadsheet() {
                   const furnitureCol = section.columns.find(c => c.key === "furnitureCost");
                   const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts");
                   return [
-                    <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!) }}>
+                    <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Equipo</span>
                     </div>,
-                    <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!) }}>
+                    <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Muebles</span>
                     </div>,
-                    <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!) }}>
+                    <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Total</span>
                     </div>
                   ];
@@ -3112,10 +3112,10 @@ export function TypologySpreadsheet() {
 
                   return [
                     ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0)),
-                    <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                    <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Balcón</span>
                     </div>,
-                    <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
+                    <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                       <span className="text-xs font-medium text-center w-full">Terraza</span>
                     </div>
                   ];
@@ -3156,8 +3156,8 @@ export function TypologySpreadsheet() {
                   return [(
                     <div 
                       key={`parent-${section.id}`}
-                      className={cn("flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}) }}
+                      className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
+                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                     >
                       <span className="text-xs font-medium text-center w-full">{section.subheader}</span>
                     </div>
