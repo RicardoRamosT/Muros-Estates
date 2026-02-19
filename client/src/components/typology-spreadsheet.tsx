@@ -2884,7 +2884,7 @@ export function TypologySpreadsheet() {
                       )}
                       {anyExpanded && (
                         <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
-                          {displayLabel}
+                          {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
                         </span>
                       )}
                       <Tooltip>
