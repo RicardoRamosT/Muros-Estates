@@ -259,7 +259,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true },
-      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
+      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 85 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
     conditionalFields: [
@@ -275,7 +275,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "hasStorage", label: "Incluye", type: "boolean", width: 55 },
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
-      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 60 },
+      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 85 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
