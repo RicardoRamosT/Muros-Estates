@@ -356,7 +356,8 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "impuestos",
-    label: "Impuestos",
+    label: "",
+    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -367,7 +368,8 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "notaria",
-    label: "Notaría",
+    label: "",
+    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -2919,6 +2921,27 @@ export function TypologySpreadsheet() {
                       <span className="text-xs font-medium text-center w-full">Terraza</span>
                     </div>,
                     ...otherColsAfter.map(col => renderStandardCol(col, false))
+                  ];
+                }
+
+                // UNIFIED TITLES for Impuestos and Notaría in Row 2
+                if (section.id === "impuestos") {
+                  const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
+                  const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
+                  return [
+                    <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!) }}>
+                      <span className="text-xs font-medium text-center w-full">Impuestos (ISAI)</span>
+                    </div>
+                  ];
+                }
+
+                if (section.id === "notaria") {
+                  const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent");
+                  const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount");
+                  return [
+                    <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!) }}>
+                      <span className="text-xs font-medium text-center w-full">Notaría</span>
+                    </div>
                   ];
                 }
 
