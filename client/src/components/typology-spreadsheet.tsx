@@ -73,6 +73,28 @@ interface SectionDef {
 // Extra width for sort icon per column header
 const SORT_ICON_WIDTH = 18;
 
+const ActiveDropdownRef = { current: null as (() => void) | null };
+
+function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+  const [open, setOpen] = useState(false);
+  const closeMe = useCallback(() => setOpen(false), []);
+  useEffect(() => {
+    return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
+  }, [closeMe]);
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    if (isOpen) {
+      if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+        ActiveDropdownRef.current();
+      }
+      ActiveDropdownRef.current = closeMe;
+    } else {
+      if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+    }
+    setOpen(isOpen);
+  }, [closeMe]);
+  return <Select {...props} open={open} onOpenChange={handleOpenChange}>{children}</Select>;
+}
+
 const SECTION_COLOR_DARK = "rgb(13,149,225)";
 const SECTION_COLOR_LIGHT = "rgb(11,120,180)";
 const SECTION_BORDER_COLOR = "rgb(121,135,203)";
@@ -147,12 +169,12 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "price", label: "Precio", type: "decimal", width: 120, format: "currency" },
+      { key: "price", label: "Precio", type: "decimal", width: 100, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 40, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
-      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 90, format: "currency" },
-      { key: "finalPrice", label: "Final", type: "decimal", width: 110, format: "currency", calculated: true },
-      { key: "pricePerM2", label: "m²", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Precio por m²" },
+      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 75, format: "currency" },
+      { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital...", type: "boolean", width: 55, fullLabel: "Capital Semilla" },
       { key: "hasPromo", label: "Promo", type: "boolean", width: 50, fullLabel: "Promo" },
       { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
@@ -207,7 +229,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true },
       { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
-      { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
+      { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
     conditionalFields: [
       { field: "parkingOptionalPrice", dependsOn: "hasParkingOptional" },
@@ -224,7 +246,7 @@ const SECTIONS: SectionDef[] = [
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 60 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
-      { key: "storagePrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
+      { key: "storagePrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
     conditionalFields: [
       { field: "storageSize", dependsOn: "hasStorage" },
@@ -250,7 +272,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "initialPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
-      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 95, format: "currency", fullLabel: "Inicial Monto" },
+      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 80, format: "currency", fullLabel: "Inicial Monto" },
     ],
   },
   {
@@ -261,9 +283,9 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "duringConstructionPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
-      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 95, format: "currency", fullLabel: "Plazo Monto" },
+      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 80, format: "currency", fullLabel: "Plazo Monto" },
       { key: "paymentMonths", label: "M", type: "number", width: 35, hideLabel: true, fullLabel: "Meses", centerCells: true },
-      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Mensualidad" },
+      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
     ],
   },
   {
@@ -274,7 +296,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "remainingPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
-      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 95, format: "currency", fullLabel: "Al Escriturar Monto" },
+      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 80, format: "currency", fullLabel: "Al Escriturar Monto" },
     ],
   },
   {
@@ -284,7 +306,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "totalEnganche", label: "Total", type: "decimal", width: 95, format: "currency", calculated: true },
+      { key: "totalEnganche", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
@@ -338,13 +360,13 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 100, format: "currency" },
+      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 80, format: "currency" },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 45 },
-      { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Mensualidad" },
+      { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
-      { key: "mortgageTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
+      { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
     ],
   },
   {
@@ -355,11 +377,11 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "currency" },
-      { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 90, format: "currency", calculated: true },
+      { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 75, format: "currency", calculated: true },
       { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 85 },
-      { key: "maintenanceFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
+      { key: "maintenanceFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
       { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 85 },
-      { key: "maintenanceTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "maintenanceTotal", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
@@ -369,7 +391,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "rentInitial", label: "Inicial", type: "decimal", width: 90, format: "currency" },
+      { key: "rentInitial", label: "Inicial", type: "decimal", width: 75, format: "currency" },
       { key: "rentStartDate", label: "Fecha", type: "date", width: 85 },
     ],
   },
@@ -391,7 +413,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "rentFinal", label: "Final", type: "decimal", width: 90, format: "currency" },
+      { key: "rentFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
       { key: "rentEndDate", label: "Fecha", type: "date", width: 85 },
     ],
   },
@@ -413,7 +435,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "rentTotal", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "rentTotal", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
@@ -423,9 +445,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "investmentTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "investmentNet", label: "Neta", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Inversión Neta" },
-      { key: "investmentMonthly", label: "Mens.", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Mensualidad" },
+      { key: "investmentTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
+      { key: "investmentNet", label: "Neta", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Inversión Neta" },
+      { key: "investmentMonthly", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "investmentRate", label: "Tasa", type: "decimal", width: 55, format: "percent", calculated: true, centerCells: true },
     ],
   },
@@ -450,8 +472,8 @@ const SECTIONS: SectionDef[] = [
       { key: "appreciationDays", label: "Días", type: "number", width: 45 },
       { key: "appreciationMonths", label: "Meses", type: "number", width: 50 },
       { key: "appreciationYears", label: "Años", type: "number", width: 45 },
-      { key: "appreciationTotal", label: "Total", type: "decimal", width: 105, format: "currency", calculated: true },
-      { key: "finalValue", label: "M. Final", type: "decimal", width: 110, format: "currency", calculated: true, fullLabel: "Monto Final" },
+      { key: "appreciationTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
+      { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Monto Final" },
     ],
   },
   ];
@@ -1327,7 +1349,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           <div style={{ backgroundColor: cellBgColor, width: 42, flexShrink: 0 }}>
-            <Select
+            <ExclusiveSelect
               value={value === true ? "si" : value === false ? "no" : ""}
               onValueChange={(val) => onChange(val === "si")}
             >
@@ -1338,7 +1360,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                 <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
               </SelectContent>
-            </Select>
+            </ExclusiveSelect>
           </div>
           <div className="flex-1 border-l border-gray-200 dark:border-gray-700">
             {showSizeInput ? (
@@ -1365,7 +1387,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
-        <Select
+        <ExclusiveSelect
           value={value === true ? "si" : value === false ? "no" : ""}
           onValueChange={(val) => onChange(val === "si")}
         >
@@ -1376,7 +1398,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
           </SelectContent>
-        </Select>
+        </ExclusiveSelect>
       </div>
     );
   }
@@ -1542,7 +1564,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
-        <Select 
+        <ExclusiveSelect 
           value={currentValue} 
           onValueChange={(val) => {
             if (val === "__sin_asignar__") {
@@ -1564,7 +1586,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </ExclusiveSelect>
       </div>
     );
   }
