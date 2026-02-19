@@ -3041,7 +3041,10 @@ export function TypologySpreadsheet() {
                   ];
                 }
 
-                // UNIFIED TITLES for Impuestos, Notaría and Gastos Extra in Row 2
+                if (section.id === "credito") {
+                  return section.columns.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0));
+                }
+
                 if (section.id === "impuestos") {
                   const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
                   const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
