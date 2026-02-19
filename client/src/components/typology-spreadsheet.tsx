@@ -223,7 +223,7 @@ const SECTIONS: SectionDef[] = [
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 45, linkedSizeField: "balconySize" },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize" },
+      { key: "hasTerrace", label: " Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize" },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85 },
     ],
@@ -240,7 +240,7 @@ const SECTIONS: SectionDef[] = [
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 45, linkedSizeField: "balconySize2" },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize2" },
+      { key: "hasTerrace2", label: " Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize2" },
       { key: "terraceSize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
     ],
     conditionalFields: [
@@ -1393,8 +1393,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               value={value === true ? "si" : value === false ? "no" : ""}
               onValueChange={(val) => onChange(val === "si")}
             >
-              <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-                <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+              <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
+                <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+                <ChevronDown className="h-3 w-3 shrink-0 opacity-50 ml-0.5" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
@@ -2817,21 +2818,17 @@ export function TypologySpreadsheet() {
                   const isFirstSection = firstIndex === 0;
                   const allExpanded = group.sections.every(s => expandedSections.has(s.section.id));
                   const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                  
+                  // Unified labels for grouped columns
+                  const displayLabel = group.label;
+                  const isUnified = displayLabel === "Balcón" || displayLabel === "Terraza";
+
                   let totalWidth = 0;
                   for (const { section } of group.sections) {
                     const isExp = expandedSections.has(section.id);
                     totalWidth += isExp ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
                   }
-                  const toggleAll = () => {
-                    setExpandedSections(prev => {
-                      const n = new Set(prev);
-                      for (const { section } of group.sections) {
-                        if (allExpanded) n.delete(section.id);
-                        else n.add(section.id);
-                      }
-                      return n;
-                    });
-                  };
+                  
                   return (
                     <div 
                       key={group.sections.map(s => s.section.id).join("-")} 
@@ -2839,7 +2836,8 @@ export function TypologySpreadsheet() {
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
-                        ...(isFirstSection ? { left: 60 } : {})
+                        ...(isFirstSection ? { left: 60 } : {}),
+                        borderRight: isUnified ? 'none' : `1px solid ${SECTION_BORDER_COLOR}`
                       }}
                     >
                       {anyExpanded && (
@@ -2847,13 +2845,22 @@ export function TypologySpreadsheet() {
                       )}
                       {anyExpanded && (
                         <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
-                          {group.label}
+                          {displayLabel}
                         </span>
                       )}
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
-                            onClick={toggleAll}
+                            onClick={() => {
+                              setExpandedSections(prev => {
+                                const n = new Set(prev);
+                                for (const { section } of group.sections) {
+                                  if (allExpanded) n.delete(section.id);
+                                  else n.add(section.id);
+                                }
+                                return n;
+                              });
+                            }}
                             className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
                             style={anyExpanded ? { width: 20 } : undefined}
                             data-testid={`section-toggle-${group.sections[0].section.id}`}
