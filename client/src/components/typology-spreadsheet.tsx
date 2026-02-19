@@ -100,8 +100,34 @@ const SECTION_COLOR_DARK = "rgb(13,149,225)";
 const SECTION_COLOR_LIGHT = "rgb(11,120,180)";
 const SECTION_BORDER_COLOR = "rgb(121,135,203)";
 
+
 function getSectionColor(index: number): string {
   return index % 2 === 0 ? SECTION_COLOR_DARK : SECTION_COLOR_LIGHT;
+}
+
+const _groupColorCache = new Map<number, string>();
+function buildGroupColorCache(sections: SectionDef[]) {
+  _groupColorCache.clear();
+  let visualIndex = 0;
+  let i = 0;
+  while (i < sections.length) {
+    const pl = sections[i].parentLabel;
+    if (pl) {
+      const color = visualIndex % 2 === 0 ? SECTION_COLOR_DARK : SECTION_COLOR_LIGHT;
+      while (i < sections.length && sections[i].parentLabel === pl) {
+        _groupColorCache.set(i, color);
+        i++;
+      }
+    } else {
+      _groupColorCache.set(i, visualIndex % 2 === 0 ? SECTION_COLOR_DARK : SECTION_COLOR_LIGHT);
+      i++;
+    }
+    visualIndex++;
+  }
+}
+
+function getSectionGroupColor(_sections: SectionDef[], index: number): string {
+  return _groupColorCache.get(index) || getSectionColor(index);
 }
 
 const SECTIONS: SectionDef[] = [
@@ -482,6 +508,8 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   ];
+
+buildGroupColorCache(SECTIONS);
 
 function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>, nivelMantenimientoLookup?: Record<string, { valor: number; equipo: number; muebles: number }>): Partial<Typology> {
   const getDefault = (key: string, fallback: number): number => globalDefaults?.[key] ?? fallback;
@@ -2805,7 +2833,7 @@ export function TypologySpreadsheet() {
                       key={group.sections.map(s => s.section.id).join("-")} 
                       className={cn("flex-shrink-0 flex items-center h-full text-white", anyExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
                       style={{ 
-                        backgroundColor: getSectionColor(firstIndex),
+                        backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
                         ...(isFirstSection ? { left: 60 } : {})
                       }}
@@ -2857,7 +2885,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-${section.id}`}
                       className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
+                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                     />
                   )];
                 }
@@ -2868,13 +2896,13 @@ export function TypologySpreadsheet() {
                       key={`subsec-${section.id}`}
                       className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
                       style={{ 
-                        backgroundColor: getSectionColor(sectionIndex), 
+                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: sectionWidth,
                         ...(isFirstSection ? { left: 60 } : {}),
                       }}
                     >
                       <div className="pointer-events-none" style={{ width: 20 }} />
-                      <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">{section.label}</span>
+                      <span className="text-xs font-medium flex-1 text-center pointer-events-none">{section.label}</span>
                       <button
                         onClick={() => toggleSection(section.id)}
                         className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
@@ -2899,7 +2927,7 @@ export function TypologySpreadsheet() {
                         isFirstSection && "sticky z-30"
                       )}
                       style={{ 
-                        backgroundColor: getSectionColor(sectionIndex), 
+                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: colW, 
                         ...(isFirstSection ? { left: 60 } : {}),
                         ...(!isLastCol ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
@@ -2979,7 +3007,7 @@ export function TypologySpreadsheet() {
                     <div 
                       key={`collapsed-filter-${section.id}`}
                       className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
+                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                     />
                   )];
                 }
@@ -2995,7 +3023,7 @@ export function TypologySpreadsheet() {
                         isFirstSection && "sticky z-30"
                       )}
                       style={{ 
-                        backgroundColor: getSectionColor(sectionIndex),
+                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
                         width: colW, 
                         ...(isFirstSection ? { left: 60 } : {}),
                         ...(!isLastCol ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {})
@@ -3009,7 +3037,7 @@ export function TypologySpreadsheet() {
                           sortDirection={columnSorts[col.key] || null}
                           onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
                           onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                          sectionColor={getSectionColor(sectionIndex)}
+                          sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
                           availableValues={availableValuesMap[col.key]}
                           rangeFilter={rangeFilters[col.key]}
                           onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
