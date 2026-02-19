@@ -273,7 +273,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "hasStorage", label: "Incluye", type: "boolean", width: 55 },
+      { key: "hasStorage", label: "Incluye", type: "boolean", width: 75 },
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 85 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
