@@ -2650,8 +2650,25 @@ export function TypologySpreadsheet() {
   const LOAD_MORE = 30;
   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
   const [zoomLevel, setZoomLevel] = useState(100);
-  const zoomIn = () => setZoomLevel(prev => Math.min(prev + 10, 200));
-  const zoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 50));
+  const [showZoomPopup, setShowZoomPopup] = useState(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleZoomChange = (newZoom: number) => {
+    const clampedZoom = Math.max(50, Math.min(150, newZoom));
+    setZoomLevel(clampedZoom);
+    setShowZoomPopup(true);
+    
+    if (zoomTimeoutRef.current) {
+      clearTimeout(zoomTimeoutRef.current);
+    }
+    
+    zoomTimeoutRef.current = setTimeout(() => {
+      setShowZoomPopup(false);
+    }, 2000);
+  };
+
+  const zoomIn = () => handleZoomChange(zoomLevel + 5);
+  const zoomOut = () => handleZoomChange(zoomLevel - 5);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
