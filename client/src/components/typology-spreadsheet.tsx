@@ -1383,15 +1383,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           {/* Boolean Part (Sí/No) */}
           <div 
             className={cn("flex items-center justify-center border-r border-gray-200 dark:border-gray-700", textColorClass)}
-            style={{ backgroundColor: cellBgColor, width: 42, flexShrink: 0 }}
+            style={{ backgroundColor: cellBgColor, width: 44, flexShrink: 0 }}
           >
             <ExclusiveSelect
               value={value === true ? "si" : value === false ? "no" : ""}
               onValueChange={(val) => onChange(val === "si")}
             >
-              <SelectTrigger className="h-full w-full text-xs border-0 bg-transparent px-0 !justify-center focus:ring-0 focus:ring-offset-0 [&_svg]:hidden">
+              <SelectTrigger className="h-full w-full text-[10px] border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 [&_svg]:h-3 [&_svg]:w-3">
                 <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
-                <ChevronDown className={cn("h-3 w-3 shrink-0 opacity-50 ml-0.5", textColorClass)} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
