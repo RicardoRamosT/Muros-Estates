@@ -3019,6 +3019,17 @@ export function TypologySpreadsheet() {
                   );
                 }
 
+                if (section.id === "entrega") {
+                  return [(
+                    <div 
+                      key={`parent-${section.id}`}
+                      className={cn("flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]", isFirstSection && "sticky z-30")}
+                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}) }}
+                    >
+                    </div>
+                  )];
+                }
+
                 if (section.parentLabel && !section.subSections) {
                   const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                   const isLastInGroup = sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
