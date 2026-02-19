@@ -362,7 +362,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [],
-    subSections: ["impuestos", "notaria", "gastos_extra"]
+    subSections: ["impuestos", "notaria", "gastos_extra"],
+    hideInRow2: true
   },
   {
     id: "impuestos",
@@ -2917,7 +2918,8 @@ export function TypologySpreadsheet() {
               {SECTIONS.flatMap((section, sectionIndex) => {
                 const isExpanded = expandedSections.has(section.id);
                 const isFirstSection = sectionIndex === 0;
-                if (!isExpanded) {
+                if (!isExpanded || (section as any).hideInRow2) {
+                  if ((section as any).hideInRow2) return [];
                   return [(
                     <div 
                       key={`collapsed-${section.id}`}
@@ -3044,6 +3046,7 @@ export function TypologySpreadsheet() {
                       className={cn("flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]", isFirstSection && "sticky z-30")}
                       style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}) }}
                     >
+                      <span className="text-xs font-medium text-center w-full">{section.subheader}</span>
                     </div>
                   )];
                 }
