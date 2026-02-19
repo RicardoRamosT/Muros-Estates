@@ -3041,7 +3041,7 @@ export function TypologySpreadsheet() {
                   ];
                 }
 
-                if (section.id === "credito" || section.id === "mantenimiento") {
+                if (section.id === "credito" || section.id === "mantenimiento" || section.id === "tasa_renta" || section.id === "meses") {
                   return section.columns.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0));
                 }
 
