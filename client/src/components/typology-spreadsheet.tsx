@@ -2974,7 +2974,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
                         ...(isFirstSection ? { left: 60 } : {}),
-                        borderRight: sectionIndex === SECTIONS.length - 1 ? 'none' : `1px solid ${SECTION_BORDER_COLOR}`
+                        borderRight: group.sections[group.sections.length - 1].index === SECTIONS.length - 1 ? 'none' : `1px solid ${SECTION_BORDER_COLOR}`
                       }}
                     >
                       {anyExpanded && (
