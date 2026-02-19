@@ -221,10 +221,8 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 45, linkedSizeField: "balconySize" },
-      { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize" },
-      { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
+      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize" },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize" },
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85 },
     ],
   },
@@ -238,10 +236,8 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 75 },
       { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 55 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 45, linkedSizeField: "balconySize2" },
-      { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 45, linkedSizeField: "terraceSize2" },
-      { key: "terraceSize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize2" },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize2" },
     ],
     conditionalFields: [
       { field: "bedrooms2", dependsOn: "lockOff" },
@@ -1379,19 +1375,23 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         : 'text-muted-foreground';
     if (column.linkedSizeField && onLinkedSizeChange) {
       const sizeVal = linkedSizeValue != null ? String(linkedSizeValue) : "";
-      const showSizeInput = value === true;
       return (
         <div 
-          className={cn("spreadsheet-cell px-0 flex", cellBorderClass)}
+          className={cn("spreadsheet-cell px-0 flex items-stretch h-full", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
-          <div style={{ backgroundColor: cellBgColor, width: 42, flexShrink: 0 }}>
+          {/* Boolean Part (Sí/No) */}
+          <div 
+            className={cn("flex items-center justify-center border-r border-gray-200 dark:border-gray-700", textColorClass)}
+            style={{ backgroundColor: cellBgColor, width: 42, flexShrink: 0 }}
+          >
             <ExclusiveSelect
               value={value === true ? "si" : value === false ? "no" : ""}
               onValueChange={(val) => onChange(val === "si")}
             >
-              <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} style={{ width: 42 }} data-testid={`boolean-${column.key}-${rowId}`}>
-                <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+              <SelectTrigger className="h-full w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0">
+                <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+                <ChevronDown className="opacity-50" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
@@ -1399,22 +1399,19 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               </SelectContent>
             </ExclusiveSelect>
           </div>
-          <div className="flex-1 border-l border-gray-200 dark:border-gray-700">
-            {showSizeInput ? (
-              <input
-                type="text"
-                value={sizeVal}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9.]/g, "");
-                  onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
-                }}
-                className="h-6 w-full text-xs px-1 bg-white dark:bg-gray-900 border-0 outline-none text-right"
-                placeholder="m²"
-                data-testid={`input-${column.linkedSizeField}-${rowId}`}
-              />
-            ) : (
-              <div className="h-6 w-full bg-gray-100 dark:bg-gray-800" />
-            )}
+          {/* Size Part (m²) */}
+          <div className="flex-1 bg-white dark:bg-gray-900">
+            <input
+              type="text"
+              value={sizeVal}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9.]/g, "");
+                onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
+              }}
+              className="h-full w-full text-xs px-2 bg-transparent border-0 outline-none text-right"
+              placeholder="0.00"
+              data-testid={`input-${column.linkedSizeField}-${rowId}`}
+            />
           </div>
         </div>
       );
