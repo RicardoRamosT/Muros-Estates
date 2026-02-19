@@ -1,0 +1,71 @@
+Al poner un Desarrollador que Ciudad y Zona sean automaticos (calculados con los colores de fhecay hora) y que ya despues ponga yo el Desarrollo, la logica de automatic de Desarrollo no se necesita
+
+Editar los valores de Catalogo manualmente a los del excel. (IGNORAR EN EL PROMPT)
+
+En el catalogo Borrar Comercializadoras y Arquitectura
+
+En incluye al no tener nada incluye agarra los valores de Areas, pero si no hay nada no deberia tener nada y ya, esto pasa en otras areas?
+
+Al meter un dropdown, poner valores y salirte, que al salir con click que no te deje seleccionar otra celda, que el 1er click sea para salir y ya el 2do si selecciona
+
+En Precio cambiar la celda para que maximo quepan 999,999,999 y que diga Precio totalmente en el encabezado, el demas espacio ahorrarlo, que el $ este separado como cuando poner 99,999,999,999.
+
+En CAJONES, Precio, cambiar la celda para que maximo quepan 9,999,999 y que diga Precio totalmente en el encabezado, el demas espacio ahorrarlo
+
+En BODEGA, Precio, cambiar la celda para que maximo quepan 9,999,999 y que diga Precio totalmente en el encabezado, el demas espacio ahorrarlo
+
+En Monto cambiar la celda para que maximo quepan 9,999,999 y que diga Monto totalmente en el encabezado
+
+En ESQUEMA DE PAGO, en Monto, cambiar la celda para que maximo quepan 99,999,999 y que diga Precio totalmente en el encabezado, el demas espacio ahorrarlo (Que aplique en ambos Montos de ESQUEMA DE PAGO)
+
+En Final lo mismo que Precio
+
+En Vista Ocupo la siguiente Logica, En vista si no hay ningun Desarrollo filtrado, que muestre un mensaje de  "Debe filtrar 1 Desarrollo", y ya al filtrar un desarrollo que muestre las vistas de ese desarrollo.
+
+Al momento de editar un valor de una columna como Precio, en una calculado de Monto, en vez de actualizarse con ese precio y su porcentaje tuve que poner denuevo el input del porcentaje para que se actualizara el dato (Analizar como hacer cambio y que si afecta en algo mas se actualice en vivo, y aparte analizar como hacerlo sin tener problema de lageo, o hasta busca como optimizarlo.)
+
+En Esquema de Pago, al poner un valor en Monto o Porcentaje que el calculado sea del color piel como Fecha/Hora
+
+En Lock-Off moverlo a despues de Terraza Tamaño, para que despues de Lock-Off esten las celdas del lockoff y despues vamos a dividir distribucion en 2 secciones, Distribucion y Lock-Off, asi podemos colapsar todas las de Lock-Off. La Columna Lock-Off seria la ultima de Distribucion, y despues de esa en la seccion diferente de Lock-Off solamente estuarian las columnas de Lock-Offm, habilitadas o no dependiendo de si si o no
+
+-- En ESQUEMA DE PAGO se haran los siguientes cambios:
+1. Vamos a dividirlo en secciones de encabezado: 
+	Inicial y Monto, tendran un titulo "Inicial" unificado que tenga las 2 columnas. 
+	Plazo, Monto, Meses, Mensualidad tendran un titulo "A Plazo" unificado que tenga las 4 columnas.
+	Resto, Monto tendran un titulo "Al Escriturar" unificado que tenga las 2 columnas.
+
+2. El titulo ESQUEMA DE PAGO se cambiara a ENGANCHE
+3. La columa Al Escriturar tendran nombre de Seccion "PAGO FINAL"
+
+Entonces serian 2 secciones
+
+-- Cambios de nombre de encabezado y extra:
+
+1. Nivel, que diga Nivel completamente
+2. Bono Descuento, que diga Bono
+3. En $ / m^2, que se llame m^2
+4. En Capital Semilla que se vea Capital...
+5. En Promo, que diga Promo completamente
+6. En Lock-Off, que se vea Lock-Off completamente
+7. En Recamaras, que se vea Recámaras completamente
+8. En Baños, que digas Baños completamente
+9. En Area, que diga Areas
+10. En Balcón, que diga Balcón completamente y unificar Balcon con Tamaño, para que Balcon tenga el Si y No, y el inputa de m^2, que tenga ambas columnas
+11. En Terraza, que diga Terraza completamente y unificar Terraza con Tamaño, para que Terraza tenga el Si y No, y el input de m^2, que tenga ambas columnas Terraza
+12. En Incluidos, que diga Incluye completamente
+13. En Opcional, que se vea Opcional completamente
+14. En seccion BODEGA, las columnas Incluye, Tamaño, Opcional, Tamaño y Precio que se vean con el titulo completo.
+15. En GENERALES, Deberian estar odenados como Tipología, Vista y Nivel
+16. En ESQUEMA DE PAGO, que Total Enganche, diga Total
+17. En ISAI, unificar ISAI% con ISAI$ con el nombre de encabezado "Impuestos" unificado con las 2 columnas debajo, y disminuir los tamaños de width lo mas posible, que en ISAI$, tenga espacio para 99,999,999.
+18. En Notario% con Notario$, que tengan igual el encabezado unificado de "Notaria" con las 2 columnas debajo, aplica lo mismo con el width, y los 99,999,999 que ISAI
+19. En Equipo se van a multiplicar los m^2 por el monto que diga en el catalogo dependiendo de que Nivel es. maximo width para 9,999,999 (Calculado sin editar)
+20. En Muebles aplica lo mismo que en Equipo, maximo width para 9,999,999 (Calculado sin editar)
+21. En POST ENTREGA, Total, maximo width para 9,999,999
+22. Monto, Inicia, Tasa y Años son parte de Credito Hipotecario
+23. En MANTENIMIENTO m^2 va calculado dependiendo del costo del nivel en catalogo, Pondria lo que cuesta el m^2
+24. En Inicial va a calcular el costo de Mantenimiento de ese departamento (m^2 x cantidad de costo del mantenimiento del departamento)
+25. En Fecha de Inicial, es la fecha de entrega que agarrara de la columna Entrega
+26. En Final, la formula esta en el excel. (NOTA)
+27. En Fecha de Final, es la fecha de entrega + 15 años (Que es el valor de los Años del Credito Hipotecario que esta en Catalogo)
+28. En Total, la formula esta en el excel. (NOTA)
