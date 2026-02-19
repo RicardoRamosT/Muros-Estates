@@ -409,6 +409,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "credito",
     label: "Crédito Hipotecario",
+    parentLabel: "Crédito Hipotecario",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -425,6 +426,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "mantenimiento",
     label: "Mantenimiento",
+    parentLabel: "Mantenimiento",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -440,6 +442,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "renta1",
     label: "Renta",
+    parentLabel: "Renta",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -451,6 +454,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "tasa_renta",
     label: "",
+    parentLabel: "Renta",
     subheader: "7.0%",
     headerColor: "",
     columnHeaderColor: "",
@@ -462,6 +466,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "renta2",
     label: "Renta",
+    parentLabel: "Renta",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -473,6 +478,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "meses",
     label: "",
+    parentLabel: "Renta",
     subheader: "11.0",
     headerColor: "",
     columnHeaderColor: "",
@@ -484,6 +490,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "total_renta",
     label: "Total",
+    parentLabel: "Renta",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
