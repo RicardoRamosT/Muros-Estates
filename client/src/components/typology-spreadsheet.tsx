@@ -2914,10 +2914,10 @@ export function TypologySpreadsheet() {
                   return [
                     ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0)),
                     <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
-                      <span className="text-xs font-medium uppercase text-center w-full">Balcón</span>
+                      <span className="text-xs font-medium text-center w-full">Balcón</span>
                     </div>,
                     <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
-                      <span className="text-xs font-medium uppercase text-center w-full">Terraza</span>
+                      <span className="text-xs font-medium text-center w-full">Terraza</span>
                     </div>,
                     ...otherColsAfter.map(col => renderStandardCol(col, false))
                   ];
@@ -2934,10 +2934,10 @@ export function TypologySpreadsheet() {
                   return [
                     ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0)),
                     <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
-                      <span className="text-xs font-medium uppercase text-center w-full">Balcón</span>
+                      <span className="text-xs font-medium text-center w-full">Balcón</span>
                     </div>,
                     <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
-                      <span className="text-xs font-medium uppercase text-center w-full">Terraza</span>
+                      <span className="text-xs font-medium text-center w-full">Terraza</span>
                     </div>
                   ];
                 }
