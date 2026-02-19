@@ -382,8 +382,8 @@ const SECTIONS: SectionDef[] = [
     id: "notaria",
     label: "",
     parentLabel: "",
-    headerColor: "",
-    columnHeaderColor: "",
+    headerColor: "bg-[rgb(40,70,140)]",
+    columnHeaderColor: "bg-[rgb(40,70,140)]",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "notaryPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
