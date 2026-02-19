@@ -2900,6 +2900,79 @@ export function TypologySpreadsheet() {
                     />
                   )];
                 }
+
+                // UNIFIED TITLES for Balcón and Terraza in Row 2
+                if (section.id === "distribucion") {
+                  const balconyCol = section.columns.find(c => c.key === "hasBalcony");
+                  const balconySizeCol = section.columns.find(c => c.key === "balconySize");
+                  const terraceCol = section.columns.find(c => c.key === "hasTerrace");
+                  const terraceSizeCol = section.columns.find(c => c.key === "terraceSize");
+                  
+                  const otherColsBefore = section.columns.filter(c => c.key === "bedrooms" || c.key === "bathrooms" || c.key === "areas");
+                  const otherColsAfter = section.columns.filter(c => c.key === "lockOff");
+
+                  return [
+                    ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0)),
+                    <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                      <span className="text-xs font-medium uppercase text-center w-full">Balcón</span>
+                    </div>,
+                    <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
+                      <span className="text-xs font-medium uppercase text-center w-full">Terraza</span>
+                    </div>,
+                    ...otherColsAfter.map(col => renderStandardCol(col, false))
+                  ];
+                }
+
+                if (section.id === "lockoff") {
+                  const balconyCol = section.columns.find(c => c.key === "hasBalcony2");
+                  const balconySizeCol = section.columns.find(c => c.key === "balconySize2");
+                  const terraceCol = section.columns.find(c => c.key === "hasTerrace2");
+                  const terraceSizeCol = section.columns.find(c => c.key === "terraceSize2");
+                  
+                  const otherColsBefore = section.columns.filter(c => c.key === "bedrooms2" || c.key === "bathrooms2" || c.key === "areas2");
+
+                  return [
+                    ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0)),
+                    <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                      <span className="text-xs font-medium uppercase text-center w-full">Balcón</span>
+                    </div>,
+                    <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
+                      <span className="text-xs font-medium uppercase text-center w-full">Terraza</span>
+                    </div>
+                  ];
+                }
+
+                function renderStandardCol(col: ColumnDef, isSticky: boolean) {
+                  const isColCollapsed = collapsedColumns.has(col.key);
+                  const colW = getColWidth(col);
+                  return (
+                    <div
+                      key={`name-${col.key}`}
+                      className={cn(
+                        "flex-shrink-0 h-full flex items-center text-white",
+                        isColCollapsed ? "justify-center" : "justify-between",
+                        isSticky && "sticky z-30"
+                      )}
+                      style={{ 
+                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                        width: colW, 
+                        ...(isSticky ? { left: 60 } : {}),
+                        borderRight: `1px solid ${SECTION_BORDER_COLOR}`
+                      }}
+                    >
+                      {isColCollapsed ? (
+                        <button onClick={() => toggleColumn(col.key)} className="w-full h-full flex items-center justify-center"><Plus className="w-3 h-3 text-white" /></button>
+                      ) : (
+                        <>
+                          <div style={{ width: 20 }} />
+                          <TruncatedLabel label={col.label} fullLabel={col.fullLabel} columnKey={col.key} />
+                          <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center"><Minus className="w-3 h-3 text-white" /></button>
+                        </>
+                      )}
+                    </div>
+                  );
+                }
+
                 if (section.parentLabel) {
                   const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                   const isLastInGroup = sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
