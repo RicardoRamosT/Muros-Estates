@@ -219,7 +219,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
-      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 55 },
+      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 110, linkedSizeField: "balconySize" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 110, linkedSizeField: "terraceSize" },
