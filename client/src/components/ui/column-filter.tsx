@@ -65,8 +65,11 @@ export function ColumnFilter({
     onSort(dir);
   };
 
-  const handleSelectAllToggle = () => {
-    if (localSelected.size === uniqueValues.length) {
+  const allSelected = localSelected.size > 0 && localSelected.size === uniqueValues.length;
+
+  const handleSelectAllToggle = (e?: any) => {
+    if (e?.preventDefault) e.preventDefault();
+    if (allSelected) {
       setLocalSelected(new Set());
     } else {
       setLocalSelected(new Set(uniqueValues));
@@ -186,16 +189,16 @@ export function ColumnFilter({
                 />
               </div>
 
-              <div className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" onClick={handleSelectAllToggle}>
+              <label className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors">
                 <Checkbox
-                  checked={localSelected.size === uniqueValues.length && uniqueValues.length > 0}
+                  checked={allSelected}
                   onCheckedChange={handleSelectAllToggle}
                   className="h-3 w-3"
                 />
                 <span className="text-xs font-medium">
                   (Seleccionar todo)
                 </span>
-              </div>
+              </label>
 
               <div className="max-h-40 overflow-y-auto space-y-1 border rounded p-1">
                 {filteredValues.length === 0 ? (
