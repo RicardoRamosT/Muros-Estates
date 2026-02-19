@@ -2891,6 +2891,7 @@ export function TypologySpreadsheet() {
                 }
                 if (section.parentLabel) {
                   const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
+                  const isLastInGroup = sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
                   return [(
                     <div
                       key={`subsec-${section.id}`}
@@ -2899,6 +2900,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: sectionWidth,
                         ...(isFirstSection ? { left: 60 } : {}),
+                        ...(!isLastInGroup ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {}),
                       }}
                     >
                       <div className="pointer-events-none" style={{ width: 20 }} />
