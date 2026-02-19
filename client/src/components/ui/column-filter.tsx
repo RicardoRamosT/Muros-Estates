@@ -65,25 +65,21 @@ export function ColumnFilter({
     onSort(dir);
   };
 
-  const allSelected = localSelected.size > 0 && localSelected.size === uniqueValues.length;
+  const allSelected = localSelected.size === uniqueValues.length && uniqueValues.length > 0;
 
   const handleSelectAllToggle = (checked: boolean) => {
-    if (checked) {
-      setLocalSelected(new Set(uniqueValues));
-    } else {
-      setLocalSelected(new Set());
-    }
+    setLocalSelected(checked ? new Set(uniqueValues) : new Set());
   };
 
   const handleToggleValue = (value: string) => {
     setLocalSelected((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(value)) {
-        newSet.delete(value);
+      const next = new Set(prev);
+      if (next.has(value)) {
+        next.delete(value);
       } else {
-        newSet.add(value);
+        next.add(value);
       }
-      return newSet;
+      return next;
     });
   };
 
@@ -194,20 +190,19 @@ export function ColumnFilter({
                 className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
                 onClick={(e) => {
                   e.preventDefault();
-                  e.stopPropagation();
                   handleSelectAllToggle(!allSelected);
                 }}
               >
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={(checked) => {
-                    // Do nothing here, handleSelectAllToggle is called by the div's onClick
-                  }}
-                  className="h-3 w-3 pointer-events-none"
-                />
-                <span className="text-xs font-medium select-none">
-                  (Seleccionar todo)
-                </span>
+                <div className="pointer-events-none flex items-center gap-2">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={() => {}}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-xs font-medium select-none">
+                    (Seleccionar todo)
+                  </span>
+                </div>
               </div>
 
               <div className="max-h-40 overflow-y-auto space-y-1 border rounded p-1">
