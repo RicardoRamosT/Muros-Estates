@@ -196,8 +196,8 @@ function CompactList({ title, endpoint, queryKey, ordered = false }: { title: st
                     </td>
                   )}
                   <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)} data-testid={`button-delete-${item.id}`}>
-                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
+                    <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-red-50 hover:text-red-500" onClick={() => setDeleteId(item.id)} data-testid={`button-delete-${item.id}`}>
+                      <Trash2 className="w-2.5 h-2.5 text-red-500/40" />
                     </Button>
                   </td>
                 </tr>
@@ -311,8 +311,8 @@ function ColoredList({ title, endpoint, queryKey, ordered = false }: { title: st
                     </td>
                   )}
                   <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
+                    <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-red-50 hover:text-red-500" onClick={() => setDeleteId(item.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-red-500/40" />
                     </Button>
                   </td>
                 </tr>
@@ -412,8 +412,8 @@ function CitiesMini() {
                     )}
                   </td>
                   <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(city.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
+                    <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-red-50 hover:text-red-500" onClick={() => setDeleteId(city.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-red-500/40" />
                     </Button>
                   </td>
                 </tr>
@@ -508,8 +508,8 @@ function ZonesMini() {
                     )}
                   </td>
                   <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(zone.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
+                    <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-red-50 hover:text-red-500" onClick={() => setDeleteId(zone.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-red-500/40" />
                     </Button>
                   </td>
                 </tr>
@@ -726,8 +726,8 @@ function NivelMini() {
                     </button>
                   </td>
                   <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDeleteId(item.id)}>
-                      <Trash2 className="w-2.5 h-2.5 text-muted-foreground/60" />
+                    <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-red-50 hover:text-red-500" onClick={() => setDeleteId(item.id)}>
+                      <Trash2 className="w-2.5 h-2.5 text-red-500/40" />
                     </Button>
                   </td>
                 </tr>
