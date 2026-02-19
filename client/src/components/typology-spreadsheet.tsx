@@ -906,21 +906,35 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     return uniqueValues.filter(v => v.toLowerCase().includes(searchLower));
   }, [uniqueValues, search]);
   
-  const allSelected = selectedValues.size === 0 || selectedValues.size === uniqueValues.length;
+  const allSelected = selectedValues.size === 0 || (selectedValues.size === uniqueValues.length && !selectedValues.has("__none__"));
   
   const handleSelectAll = () => {
     onFilterChange(new Set());
   };
   
+  const noneSelected = selectedValues.size === 1 && selectedValues.has("__none__");
+  
+  const handleDeselectAll = () => {
+    onFilterChange(new Set(["__none__"]));
+  };
+  
   const handleToggleValue = (value: string) => {
-    const newSet = new Set(selectedValues.size === 0 ? uniqueValues : selectedValues);
-    if (newSet.has(value)) {
-      newSet.delete(value);
+    let newSet: Set<string>;
+    if (noneSelected) {
+      newSet = new Set([value]);
     } else {
-      newSet.add(value);
+      newSet = new Set(selectedValues.size === 0 ? uniqueValues : selectedValues);
+      newSet.delete("__none__");
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
     }
     if (newSet.size === uniqueValues.length) {
       onFilterChange(new Set());
+    } else if (newSet.size === 0) {
+      onFilterChange(new Set(["__none__"]));
     } else {
       onFilterChange(newSet);
     }
@@ -944,7 +958,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     setOpen(false);
   };
   
-  const isFiltered = selectedValues.size > 0 && selectedValues.size < uniqueValues.length;
+  const isFiltered = noneSelected || (selectedValues.size > 0 && selectedValues.size < uniqueValues.length);
   const isRangeFiltered = rangeFilter && (rangeFilter.min !== "" || rangeFilter.max !== "");
   const hasActiveFilter = isFiltered || isRangeFiltered;
   const isSorted = sortDirection !== null;
@@ -1143,7 +1157,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
               <div className="max-h-48 overflow-y-auto px-2 pb-2">
                 {groupedOptions && groupedOptions.length > 0 ? (
                   <>
-                    <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded mb-2 border-b pb-2">
+                    <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
                       <Checkbox
                         checked={allSelected}
                         onCheckedChange={handleSelectAll}
@@ -1151,6 +1165,15 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                       />
                       <span className="text-xs font-medium">(Seleccionar todo)</span>
                     </label>
+                    <div
+                      className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded mb-2 border-b pb-2"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
+                    >
+                      <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
+                    </div>
                     {groupedOptions.map(group => {
                       if (!group.group) return null;
                       const groupFilteredValues = group.values.filter(v => 
@@ -1206,6 +1229,15 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                       />
                       <span className="text-xs font-medium">(Seleccionar todo)</span>
                     </label>
+                    <div
+                      className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
+                    >
+                      <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
+                    </div>
                     
                     {filteredValues.map((value) => {
                       const isChecked = selectedValues.size === 0 || selectedValues.has(value);
@@ -1955,7 +1987,7 @@ export function TypologySpreadsheet() {
 
   const filteredDevelopmentName = useMemo(() => {
     const devFilter = columnFilters["development"];
-    if (devFilter && devFilter.size === 1) {
+    if (devFilter && devFilter.size === 1 && !devFilter.has("__none__")) {
       return Array.from(devFilter)[0] as string;
     }
     return null;
@@ -1963,7 +1995,8 @@ export function TypologySpreadsheet() {
 
   const vistaFilterState = useMemo(() => {
     const devFilter = columnFilters["development"];
-    const filteredCount = devFilter ? devFilter.size : 0;
+    const hasDevFilter = devFilter && devFilter.size > 0 && !devFilter.has("__none__");
+    const filteredCount = hasDevFilter ? devFilter!.size : 0;
     if (filteredCount === 0) {
       return { disabledMessage: "Primero filtre un Desarrollo para ver sus vistas disponibles.", overrideValues: undefined as string[] | undefined };
     }
