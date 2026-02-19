@@ -482,7 +482,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "rentMonths", label: "Meses", type: "number", width: 50 },
+      { key: "rentMonths", label: "Meses", type: "number", width: 65 },
     ],
   },
   {
