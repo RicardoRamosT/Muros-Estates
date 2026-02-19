@@ -363,12 +363,14 @@
   /* Spreadsheet header heights - consistent across section rows */
   .spreadsheet-header-row1,
   .spreadsheet-header-row2,
-  .spreadsheet-header-row3 {
+  .spreadsheet-header-row3,
+  .spreadsheet-header-row4 {
     border-color: rgb(121, 135, 203) !important;
   }
   .spreadsheet-header-row1 *,
   .spreadsheet-header-row2 *,
-  .spreadsheet-header-row3 * {
+  .spreadsheet-header-row3 *,
+  .spreadsheet-header-row4 * {
     border-color: rgb(121, 135, 203);
   }
   .spreadsheet-header-row1 {
@@ -376,10 +378,14 @@
     min-height: 32px;
   }
   .spreadsheet-header-row2 {
+    height: 24px;
+    min-height: 24px;
+  }
+  .spreadsheet-header-row3 {
     height: 32px;
     min-height: 32px;
   }
-  .spreadsheet-header-row3 {
+  .spreadsheet-header-row4 {
     height: 24px;
     min-height: 24px;
   }

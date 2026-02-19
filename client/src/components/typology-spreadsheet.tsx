@@ -62,6 +62,7 @@ interface ColumnDef {
 interface SectionDef {
   id: string;
   label: string;
+  parentLabel?: string;
   headerColor: string;  // Strongest color for section headers
   columnHeaderColor?: string;  // Medium color for column names/filters
   cellColor?: string;   // Lightest color for calculated/disabled cells (input cells stay white)
@@ -169,10 +170,10 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "price", label: "Precio", type: "decimal", width: 100, format: "currency" },
+      { key: "price", label: "Precio", type: "decimal", width: 90, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 40, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
-      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 75, format: "currency" },
+      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital...", type: "boolean", width: 55, fullLabel: "Capital Semilla" },
@@ -267,23 +268,25 @@ const SECTIONS: SectionDef[] = [
   {
     id: "enganche_inicial",
     label: "Inicial",
+    parentLabel: "Enganche",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "initialPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
-      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 80, format: "currency", fullLabel: "Inicial Monto" },
+      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial Monto" },
     ],
   },
   {
     id: "enganche_plazo",
     label: "A Plazo",
+    parentLabel: "Enganche",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "duringConstructionPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
-      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 80, format: "currency", fullLabel: "Plazo Monto" },
+      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo Monto" },
       { key: "paymentMonths", label: "M", type: "number", width: 35, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
     ],
@@ -291,17 +294,19 @@ const SECTIONS: SectionDef[] = [
   {
     id: "enganche_escritura",
     label: "Al Escriturar",
+    parentLabel: "Pago Final",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "remainingPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
-      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 80, format: "currency", fullLabel: "Al Escriturar Monto" },
+      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar Monto" },
     ],
   },
   {
     id: "enganche_total",
-    label: "",
+    label: "Total",
+    parentLabel: "Pago Final",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
@@ -360,7 +365,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 80, format: "currency" },
+      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency" },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 45 },
@@ -2761,61 +2766,116 @@ export function TypologySpreadsheet() {
         <div className="min-w-max" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
           {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
-            {/* Row 1: Section toggle triggers */}
+            {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex border-b spreadsheet-header-row1">
               <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
-              {SECTIONS.map((section, sectionIndex) => {
-                const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
-                const isExpanded = expandedSections.has(section.id);
-                const isFirstSection = sectionIndex === 0;
-                return (
-                  <div 
-                    key={section.id} 
-                    className={cn("flex-shrink-0 flex items-center h-full text-white", isExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
-                    style={{ 
-                      backgroundColor: getSectionColor(sectionIndex),
-                      width: isExpanded ? sectionWidth : COLLAPSED_COL_WIDTH,
-                      ...(isFirstSection ? { left: 60 } : {})
-                    }}
-                  >
-                    {isExpanded && (
-                      <div className="pointer-events-none" style={{ width: 20 }} />
-                    )}
-                    {isExpanded && (
-                      <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
-                        {section.label}
-                      </span>
-                    )}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => toggleSection(section.id)}
-                          className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !isExpanded && "w-full")}
-                          style={isExpanded ? { width: 20 } : undefined}
-                          data-testid={`section-toggle-${section.id}`}
-                        >
-                          {isExpanded ? (
-                            <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                          ) : (
-                            <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                          )}
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="text-xs">
-                        {isExpanded ? `Colapsar ${section.label}` : section.label}
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                );
-              })}
+              {(() => {
+                const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
+                SECTIONS.forEach((section, sectionIndex) => {
+                  const groupLabel = section.parentLabel || section.label;
+                  const lastGroup = groups[groups.length - 1];
+                  if (lastGroup && lastGroup.label === groupLabel) {
+                    lastGroup.sections.push({ section, index: sectionIndex });
+                  } else {
+                    groups.push({ label: groupLabel, sections: [{ section, index: sectionIndex }] });
+                  }
+                });
+                return groups.map((group) => {
+                  const firstIndex = group.sections[0].index;
+                  const isFirstSection = firstIndex === 0;
+                  const allExpanded = group.sections.every(s => expandedSections.has(s.section.id));
+                  const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                  let totalWidth = 0;
+                  for (const { section } of group.sections) {
+                    const isExp = expandedSections.has(section.id);
+                    totalWidth += isExp ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
+                  }
+                  const toggleAll = () => {
+                    setExpandedSections(prev => {
+                      const n = new Set(prev);
+                      for (const { section } of group.sections) {
+                        if (allExpanded) n.delete(section.id);
+                        else n.add(section.id);
+                      }
+                      return n;
+                    });
+                  };
+                  return (
+                    <div 
+                      key={group.sections.map(s => s.section.id).join("-")} 
+                      className={cn("flex-shrink-0 flex items-center h-full text-white", anyExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
+                      style={{ 
+                        backgroundColor: getSectionColor(firstIndex),
+                        width: totalWidth,
+                        ...(isFirstSection ? { left: 60 } : {})
+                      }}
+                    >
+                      {anyExpanded && (
+                        <div className="pointer-events-none" style={{ width: 20 }} />
+                      )}
+                      {anyExpanded && (
+                        <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
+                          {group.label}
+                        </span>
+                      )}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={toggleAll}
+                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
+                            style={anyExpanded ? { width: 20 } : undefined}
+                            data-testid={`section-toggle-${group.sections[0].section.id}`}
+                          >
+                            {allExpanded ? (
+                              <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                            ) : (
+                              <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {allExpanded ? `Colapsar ${group.label}` : group.label}
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  );
+                });
+              })()}
               <div className="w-24 flex-shrink-0 bg-muted/50" />
             </div>
             
-            {/* Row 2: Column names with individual collapse */}
+            {/* Row 2: Subsection labels */}
             <div className="flex border-b spreadsheet-header-row2">
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
+              {SECTIONS.map((section, sectionIndex) => {
+                const isExpanded = expandedSections.has(section.id);
+                const isFirstSection = sectionIndex === 0;
+                const sectionWidth = isExpanded ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
+                return (
+                  <div
+                    key={`subsec-${section.id}`}
+                    className={cn("flex-shrink-0 flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
+                    style={{ 
+                      backgroundColor: getSectionColor(sectionIndex), 
+                      width: sectionWidth,
+                      ...(isFirstSection ? { left: 60 } : {}),
+                      borderRight: `1px solid ${SECTION_BORDER_COLOR}`
+                    }}
+                  >
+                    {isExpanded && (
+                      <span className="text-xs font-medium uppercase">{section.label}</span>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="w-24 h-full flex-shrink-0 bg-muted/50" />
+            </div>
+
+            {/* Row 3: Column names with individual collapse */}
+            <div className="flex border-b spreadsheet-header-row3-names">
+              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {SECTIONS.flatMap((section, sectionIndex) => {
                 const isExpanded = expandedSections.has(section.id);
                 const isFirstSection = sectionIndex === 0;
