@@ -65,12 +65,12 @@ export function ColumnFilter({
     onSort(dir);
   };
 
-  const handleSelectAll = () => {
-    setLocalSelected(new Set(uniqueValues));
-  };
-
-  const handleDeselectAll = () => {
-    setLocalSelected(new Set());
+  const handleSelectAllToggle = () => {
+    if (localSelected.size === uniqueValues.length) {
+      setLocalSelected(new Set());
+    } else {
+      setLocalSelected(new Set(uniqueValues));
+    }
   };
 
   const handleToggleValue = (value: string) => {
@@ -176,30 +176,6 @@ export function ColumnFilter({
             )}
 
             <div className="px-3 py-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">
-                  Filtrar
-                </span>
-                <div className="flex gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-5 px-1 text-xs"
-                    onClick={handleSelectAll}
-                  >
-                    Todos
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-5 px-1 text-xs"
-                    onClick={handleDeselectAll}
-                  >
-                    Ninguno
-                  </Button>
-                </div>
-              </div>
-              
               <div className="relative mb-2">
                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
@@ -208,6 +184,17 @@ export function ColumnFilter({
                   onChange={(e) => setLocalSearch(e.target.value)}
                   className="h-7 pl-7 text-xs"
                 />
+              </div>
+
+              <div className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" onClick={handleSelectAllToggle}>
+                <Checkbox
+                  checked={localSelected.size === uniqueValues.length && uniqueValues.length > 0}
+                  onCheckedChange={handleSelectAllToggle}
+                  className="h-3 w-3"
+                />
+                <span className="text-xs font-medium">
+                  (Seleccionar todo)
+                </span>
               </div>
 
               <div className="max-h-40 overflow-y-auto space-y-1 border rounded p-1">
