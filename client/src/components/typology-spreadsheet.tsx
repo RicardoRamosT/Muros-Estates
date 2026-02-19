@@ -110,8 +110,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
-      { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
-      { key: "zone", label: "Zona", type: "select", options: [], width: 100 },
+      { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80, calculated: true },
+      { key: "zone", label: "Zona", type: "select", options: [], width: 100, calculated: true },
       { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
@@ -150,9 +150,9 @@ const SECTIONS: SectionDef[] = [
       { key: "price", label: "Precio", type: "decimal", width: 120, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 40, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
-      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 100, format: "currency" },
-      { key: "finalPrice", label: "Final", type: "decimal", width: 120, format: "currency", calculated: true },
-      { key: "pricePerM2", label: "m²", type: "decimal", width: 100, format: "currency", calculated: true, fullLabel: "Precio por m²" },
+      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 90, format: "currency" },
+      { key: "finalPrice", label: "Final", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "pricePerM2", label: "m²", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital...", type: "boolean", width: 55, fullLabel: "Capital Semilla" },
       { key: "hasPromo", label: "Promo", type: "boolean", width: 50, fullLabel: "Promo" },
       { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
@@ -207,7 +207,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true },
       { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 60 },
-      { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
+      { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
     ],
     conditionalFields: [
       { field: "parkingOptionalPrice", dependsOn: "hasParkingOptional" },
@@ -224,7 +224,7 @@ const SECTIONS: SectionDef[] = [
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 60 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
-      { key: "storagePrice", label: "Precio", type: "decimal", width: 100, format: "currency" },
+      { key: "storagePrice", label: "Precio", type: "decimal", width: 90, format: "currency" },
     ],
     conditionalFields: [
       { field: "storageSize", dependsOn: "hasStorage" },
@@ -243,30 +243,48 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
-    id: "enganche",
-    label: "Enganche",
+    id: "enganche_inicial",
+    label: "Inicial",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "initialPercent", label: "Inicial %", type: "decimal", width: 60, format: "percent", centerCells: true },
-      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 110, format: "currency" },
-      { key: "duringConstructionPercent", label: "Plazo %", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
-      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 110, format: "currency" },
-      { key: "paymentMonths", label: "M", type: "number", width: 40, hideLabel: true, fullLabel: "Meses", centerCells: true },
-      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 110, format: "currency", calculated: true, fullLabel: "Mensualidad" },
-      { key: "totalEnganche", label: "Total", type: "decimal", width: 100, format: "currency", calculated: true },
+      { key: "initialPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
+      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 95, format: "currency", fullLabel: "Inicial Monto" },
     ],
   },
   {
-    id: "pagoFinal",
-    label: "Pago Final",
+    id: "enganche_plazo",
+    label: "A Plazo",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "remainingPercent", label: "Resto %", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Resto Porcentaje" },
-      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 110, format: "currency" },
+      { key: "duringConstructionPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
+      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 95, format: "currency", fullLabel: "Plazo Monto" },
+      { key: "paymentMonths", label: "M", type: "number", width: 35, hideLabel: true, fullLabel: "Meses", centerCells: true },
+      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 95, format: "currency", calculated: true, fullLabel: "Mensualidad" },
+    ],
+  },
+  {
+    id: "enganche_escritura",
+    label: "Al Escriturar",
+    headerColor: "",
+    columnHeaderColor: "",
+    cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
+    columns: [
+      { key: "remainingPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
+      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 95, format: "currency", fullLabel: "Al Escriturar Monto" },
+    ],
+  },
+  {
+    id: "enganche_total",
+    label: "",
+    headerColor: "",
+    columnHeaderColor: "",
+    cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
+    columns: [
+      { key: "totalEnganche", label: "Total", type: "decimal", width: 95, format: "currency", calculated: true },
     ],
   },
   {
@@ -277,7 +295,6 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
-      { key: "nivelMantenimiento", label: "Nivel M.", type: "select", options: [], width: 65, fullLabel: "Nivel Mantenimiento" },
     ],
   },
   {
@@ -1307,20 +1324,22 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       return (
         <div 
           className={cn("spreadsheet-cell px-0 flex", cellBorderClass)}
-          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
-          <Select
-            value={value === true ? "si" : value === false ? "no" : ""}
-            onValueChange={(val) => onChange(val === "si")}
-          >
-            <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} style={{ width: 42 }} data-testid={`boolean-${column.key}-${rowId}`}>
-              <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
-              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
-            </SelectContent>
-          </Select>
+          <div style={{ backgroundColor: cellBgColor, width: 42, flexShrink: 0 }}>
+            <Select
+              value={value === true ? "si" : value === false ? "no" : ""}
+              onValueChange={(val) => onChange(val === "si")}
+            >
+              <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} style={{ width: 42 }} data-testid={`boolean-${column.key}-${rowId}`}>
+                <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
+                <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex-1 border-l border-gray-200 dark:border-gray-700">
             {showSizeInput ? (
               <input
@@ -1330,7 +1349,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                   const raw = e.target.value.replace(/[^0-9.]/g, "");
                   onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
                 }}
-                className="h-6 w-full text-xs px-1 bg-transparent border-0 outline-none text-right"
+                className="h-6 w-full text-xs px-1 bg-white dark:bg-gray-900 border-0 outline-none text-right"
                 placeholder="m²"
                 data-testid={`input-${column.linkedSizeField}-${rowId}`}
               />
@@ -1467,18 +1486,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
     
     if (column.key === "view") {
-      if (!filteredDevelopmentName) {
-        return (
-          <div 
-            className={cn("spreadsheet-cell px-1", cellBorderClass)}
-            style={{ width: (column.width || 100) + SORT_ICON_WIDTH, background: sectionCellColor || undefined }}
-          >
-            <span className="text-[9px] text-muted-foreground italic leading-tight px-0.5">Filtrar 1 Desarrollo</span>
-          </div>
-        );
-      }
-      if (vistasByDevelopment && vistasByDevelopment[filteredDevelopmentName]?.length > 0) {
-        options = vistasByDevelopment[filteredDevelopmentName];
+      const rowDevName = row?.development;
+      if (rowDevName && vistasByDevelopment && vistasByDevelopment[rowDevName]?.length > 0) {
+        options = vistasByDevelopment[rowDevName];
+      } else if (vistaOptions && vistaOptions.length > 0) {
+        options = vistaOptions;
       }
     }
     
@@ -2632,18 +2644,14 @@ export function TypologySpreadsheet() {
     const pending = pendingChanges.get(row.id);
     const merged = pending ? { ...row, ...pending } : row;
     
-    // Auto-populate zone, developer, and deliveryDate from selected development
-    let autoZone = merged.zone;
-    let autoDeveloper = merged.developer;
     let autoDeliveryDate: string | null = null;
+    let displayCity = merged.city;
+    let displayZone = merged.zone;
     if (merged.development && dbDevelopments.length > 0) {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev) {
-        autoZone = dev.zone || merged.zone;
-        // Find developer name from developerId
-        const developerRecord = dbDevelopers.find((d: any) => d.id === dev.developerId);
-        autoDeveloper = developerRecord?.name || merged.developer;
-        // Get delivery date from development and format as Mes/Año
+        if (!displayCity && dev.city) displayCity = dev.city;
+        if (!displayZone && dev.zone) displayZone = dev.zone;
         if (dev.entregaProyectada) {
           const date = new Date(dev.entregaProyectada);
           const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -2651,9 +2659,16 @@ export function TypologySpreadsheet() {
         }
       }
     }
+    if (!displayCity && merged.developer && dbDevelopers.length > 0) {
+      const devRecord = dbDevelopers.find((d: any) => d.name === merged.developer);
+      if (devRecord) {
+        if (!displayCity && (devRecord as any).ciudad) displayCity = (devRecord as any).ciudad;
+        if (!displayZone && (devRecord as any).zona) displayZone = (devRecord as any).zona;
+      }
+    }
     
     const calculated = calculateFields(merged, getDefaultsForRow(merged), nivelMantenimientoLookup);
-    return { ...merged, ...calculated, zone: autoZone, developer: autoDeveloper, deliveryDate: autoDeliveryDate } as Typology;
+    return { ...merged, ...calculated, city: displayCity, zone: displayZone, deliveryDate: autoDeliveryDate } as Typology;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;
