@@ -3440,13 +3440,13 @@ export function TypologySpreadsheet() {
         </div>
       </div>
       
-      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1 bg-background border rounded-md shadow-lg p-0.5" data-testid="zoom-controls">
-        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={zoomOut} disabled={zoomLevel <= 50} data-testid="zoom-out">
-          <Minus className="h-3.5 w-3.5" />
-        </Button>
-        <div className="w-px h-4 bg-border mx-0.5" />
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center gap-1 bg-background border rounded-md shadow-lg p-0.5" data-testid="zoom-controls">
         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={zoomIn} disabled={zoomLevel >= 150} data-testid="zoom-in">
           <Plus className="h-3.5 w-3.5" />
+        </Button>
+        <div className="h-px w-4 bg-border my-0.5" />
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={zoomOut} disabled={zoomLevel <= 50} data-testid="zoom-out">
+          <Minus className="h-3.5 w-3.5" />
         </Button>
       </div>
 
