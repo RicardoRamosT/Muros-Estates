@@ -357,8 +357,8 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "gastos_post_entrega",
-    label: "Gastos Post-Entrega",
-    parentLabel: "Gastos Post-Entrega",
+    label: "",
+    parentLabel: "",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -369,7 +369,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "impuestos",
     label: "",
-    parentLabel: "Gastos Post-Entrega",
+    parentLabel: "",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -381,7 +381,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "notaria",
     label: "",
-    parentLabel: "Gastos Post-Entrega",
+    parentLabel: "",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -393,7 +393,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "gastos_extra",
     label: "",
-    parentLabel: "Gastos Post-Entrega",
+    parentLabel: "",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
