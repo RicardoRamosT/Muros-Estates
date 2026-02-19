@@ -3019,7 +3019,7 @@ export function TypologySpreadsheet() {
                   );
                 }
 
-                if (section.parentLabel) {
+                if (section.parentLabel && !section.subSections) {
                   const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                   const isLastInGroup = sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
                   return [(
@@ -3033,16 +3033,6 @@ export function TypologySpreadsheet() {
                         ...(!isLastInGroup ? { borderRight: `1px solid ${SECTION_BORDER_COLOR}` } : {}),
                       }}
                     >
-                      <div className="pointer-events-none" style={{ width: 20 }} />
-                      <span className="text-xs font-medium flex-1 text-center pointer-events-none">{section.label}</span>
-                      <button
-                        onClick={() => toggleSection(section.id)}
-                        className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
-                        style={{ width: 20 }}
-                        data-testid={`section-toggle-${section.id}`}
-                      >
-                        <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                      </button>
                     </div>
                   )];
                 }
