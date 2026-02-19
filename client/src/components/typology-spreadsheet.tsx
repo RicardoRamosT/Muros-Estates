@@ -355,9 +355,17 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
+    id: "gastos_post_entrega",
+    label: "Gastos Post-Entrega",
+    headerColor: "",
+    columnHeaderColor: "",
+    cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
+    columns: [],
+    subSections: ["impuestos", "notaria", "gastos_extra"]
+  },
+  {
     id: "impuestos",
     label: "",
-    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -369,7 +377,6 @@ const SECTIONS: SectionDef[] = [
   {
     id: "notaria",
     label: "",
-    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -381,7 +388,6 @@ const SECTIONS: SectionDef[] = [
   {
     id: "gastos_extra",
     label: "",
-    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -2942,6 +2948,23 @@ export function TypologySpreadsheet() {
                   return [
                     <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!) }}>
                       <span className="text-xs font-medium text-center w-full">Notaría</span>
+                    </div>
+                  ];
+                }
+
+                if (section.id === "gastos_extra") {
+                  const equipmentCol = section.columns.find(c => c.key === "equipmentCost");
+                  const furnitureCol = section.columns.find(c => c.key === "furnitureCost");
+                  const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts");
+                  return [
+                    <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!) }}>
+                      <span className="text-xs font-medium text-center w-full">Equipo</span>
+                    </div>,
+                    <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!) }}>
+                      <span className="text-xs font-medium text-center w-full">Muebles</span>
+                    </div>,
+                    <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white border-r border-[rgb(121,135,203)]" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!) }}>
+                      <span className="text-xs font-medium text-center w-full">Total</span>
                     </div>
                   ];
                 }
