@@ -380,7 +380,8 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "gastos_extra",
-    label: "Post Entrega",
+    label: "",
+    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
