@@ -2844,38 +2844,11 @@ export function TypologySpreadsheet() {
               <div className="w-24 flex-shrink-0 bg-muted/50" />
             </div>
             
-            {/* Row 2: Subsection labels */}
+            {/* Row 2: Section/column labels */}
             <div className="flex border-b spreadsheet-header-row2">
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
-              {SECTIONS.map((section, sectionIndex) => {
-                const isExpanded = expandedSections.has(section.id);
-                const isFirstSection = sectionIndex === 0;
-                const sectionWidth = isExpanded ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
-                return (
-                  <div
-                    key={`subsec-${section.id}`}
-                    className={cn("flex-shrink-0 flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
-                    style={{ 
-                      backgroundColor: getSectionColor(sectionIndex), 
-                      width: sectionWidth,
-                      ...(isFirstSection ? { left: 60 } : {}),
-                      borderRight: `1px solid ${SECTION_BORDER_COLOR}`
-                    }}
-                  >
-                    {isExpanded && (
-                      <span className="text-xs font-medium uppercase">{section.label}</span>
-                    )}
-                  </div>
-                );
-              })}
-              <div className="w-24 h-full flex-shrink-0 bg-muted/50" />
-            </div>
-
-            {/* Row 3: Column names with individual collapse */}
-            <div className="flex border-b spreadsheet-header-row3-names">
-              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {SECTIONS.flatMap((section, sectionIndex) => {
                 const isExpanded = expandedSections.has(section.id);
                 const isFirstSection = sectionIndex === 0;
@@ -2886,6 +2859,31 @@ export function TypologySpreadsheet() {
                       className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
                       style={{ backgroundColor: getSectionColor(sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                     />
+                  )];
+                }
+                if (section.parentLabel) {
+                  const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
+                  return [(
+                    <div
+                      key={`subsec-${section.id}`}
+                      className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
+                      style={{ 
+                        backgroundColor: getSectionColor(sectionIndex), 
+                        width: sectionWidth,
+                        ...(isFirstSection ? { left: 60 } : {}),
+                      }}
+                    >
+                      <div className="pointer-events-none" style={{ width: 20 }} />
+                      <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">{section.label}</span>
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                        style={{ width: 20 }}
+                        data-testid={`section-toggle-${section.id}`}
+                      >
+                        <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                      </button>
+                    </div>
                   )];
                 }
                 return section.columns.map((col, colIndex) => {
