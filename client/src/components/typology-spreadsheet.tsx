@@ -431,9 +431,9 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "currency" },
       { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 75, format: "currency", calculated: true },
-      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 85 },
+      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 85, calculated: true },
       { key: "maintenanceFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
-      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 85 },
+      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 85, calculated: true },
       { key: "maintenanceTotal", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
@@ -2844,8 +2844,25 @@ export function TypologySpreadsheet() {
       }
     }
     
-    const calculated = calculateFields(merged, getDefaultsForRow(merged), nivelMantenimientoLookup);
-    return { ...merged, ...calculated, city: displayCity, zone: displayZone, deliveryDate: autoDeliveryDate } as Typology;
+    const defaults = getDefaultsForRow(merged);
+    const calculated = calculateFields(merged, defaults, nivelMantenimientoLookup);
+    
+    let maintenanceStartDate: string | null = null;
+    let maintenanceEndDate: string | null = null;
+    if (autoDeliveryDate && merged.development && dbDevelopments.length > 0) {
+      const dev = dbDevelopments.find(d => d.name === merged.development);
+      if (dev?.entregaProyectada) {
+        maintenanceStartDate = autoDeliveryDate;
+        const mortgageYrs = (calculated.mortgageYears as number) || (merged.mortgageYears as number) || defaults?.['mortgageYears'] || 15;
+        const deliveryDateObj = new Date(dev.entregaProyectada);
+        const endDateObj = new Date(deliveryDateObj);
+        endDateObj.setFullYear(endDateObj.getFullYear() + mortgageYrs);
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        maintenanceEndDate = `${months[endDateObj.getMonth()]}/${endDateObj.getFullYear().toString().slice(-2)}`;
+      }
+    }
+    
+    return { ...merged, ...calculated, city: displayCity, zone: displayZone, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate } as Typology;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;
