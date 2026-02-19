@@ -1395,7 +1395,6 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             >
               <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
                 <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
-                <ChevronDown className="h-3 w-3 shrink-0 opacity-50 ml-0.5" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
