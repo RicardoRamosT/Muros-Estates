@@ -347,6 +347,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "entrega",
     label: "",
+    parentLabel: "Entrega",
     subheader: "Entrega",
     headerColor: "",
     columnHeaderColor: "",
@@ -358,7 +359,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "gastos_post_entrega",
     label: "",
-    parentLabel: "",
+    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -369,7 +370,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "impuestos",
     label: "",
-    parentLabel: "",
+    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
@@ -381,9 +382,9 @@ const SECTIONS: SectionDef[] = [
   {
     id: "notaria",
     label: "",
-    parentLabel: "",
-    headerColor: "bg-[rgb(40,70,140)]",
-    columnHeaderColor: "bg-[rgb(40,70,140)]",
+    parentLabel: "Gastos Post-Entrega",
+    headerColor: "",
+    columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "notaryPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
@@ -393,7 +394,7 @@ const SECTIONS: SectionDef[] = [
   {
     id: "gastos_extra",
     label: "",
-    parentLabel: "",
+    parentLabel: "Gastos Post-Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
