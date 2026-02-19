@@ -415,7 +415,7 @@ const SECTIONS: SectionDef[] = [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency" },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
-      { key: "mortgageYears", label: "Años", type: "number", width: 45 },
+      { key: "mortgageYears", label: "Años", type: "number", width: 55 },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
