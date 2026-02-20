@@ -3449,7 +3449,7 @@ export function TypologySpreadsheet() {
                           style={{ width: (col.width || 65) + SORT_ICON_WIDTH }}
                           data-testid={`cell-createdTime-${row.id}`}
                         >
-                          {formatTime(row.createdAt)}
+                          {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
                         </div>
                       );
                     }
