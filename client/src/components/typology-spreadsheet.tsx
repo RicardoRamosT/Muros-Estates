@@ -160,8 +160,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
     columns: [
-      { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80, calculated: true },
-      { key: "zone", label: "Zona", type: "select", options: [], width: 100, calculated: true },
+      { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
+      { key: "zone", label: "Zona", type: "select", options: [], width: 100 },
       { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
@@ -1416,7 +1416,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     );
   }
   
-  if (isDynamicCalculated && !isEditing) {
+  if (isDynamicCalculated && !isEditing && column.type !== "select") {
     return (
       <div 
         className={cn(
@@ -1677,7 +1677,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <ExclusiveSelect 
@@ -2395,6 +2395,16 @@ export function TypologySpreadsheet() {
             (updatedRow as any).tipoDesarrollo = devRecTipos;
           }
         }
+
+        setDynamicGray(prev => ({
+          ...prev,
+          [rowId]: { 
+            ...(prev[rowId] || {}), 
+            city: autoPopulatedFields.city ? "calculated" : "input",
+            zone: autoPopulatedFields.zone ? "calculated" : "input",
+            development: "input"
+          }
+        }));
       }
     }
     
@@ -2467,7 +2477,6 @@ export function TypologySpreadsheet() {
       }));
     }
     
-    // Clear development, zone, and developer when city changes; auto-populate ISAI% from city
     if (field === "city") {
       autoPopulatedFields.development = "";
       autoPopulatedFields.zone = "";
@@ -2486,6 +2495,25 @@ export function TypologySpreadsheet() {
           (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
         }
       }
+      setDynamicGray(prev => ({
+        ...prev,
+        [rowId]: { 
+          ...(prev[rowId] || {}), 
+          city: "input",
+          zone: "input",
+          development: "input"
+        }
+      }));
+    }
+    
+    if (field === "zone") {
+      setDynamicGray(prev => ({
+        ...prev,
+        [rowId]: { 
+          ...(prev[rowId] || {}), 
+          zone: "input"
+        }
+      }));
     }
     
     const dependentFieldsToClear: Record<string, string[]> = {
