@@ -851,7 +851,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
     return () => window.removeEventListener("resize", checkTruncation);
   }, [label]);
   
-  const tooltipContent = uppercaseTooltip ? (fullLabel || label).toUpperCase() : (fullLabel || label);
+  const tooltipContent = uppercaseTooltip ? label.toUpperCase() : label;
 
   const isAmountField = (columnKey.toLowerCase().includes("amount") || 
                         columnKey.toLowerCase().includes("price") || 
@@ -1048,7 +1048,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           <div className="w-full h-full" />
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {column.key.toLowerCase().includes("percent") ? "Porcentaje" : (fullLabel || column.label).toUpperCase()}
+          {column.key.toLowerCase().includes("percent") ? "Porcentaje" : label.toUpperCase()}
         </TooltipContent>
       </Tooltip>
     </div>
