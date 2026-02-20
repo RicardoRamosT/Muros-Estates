@@ -2412,6 +2412,8 @@ export function TypologySpreadsheet() {
     },
   });
   
+  const saveRowByIdRef = useRef<(rowId: string) => Promise<void>>(async () => {});
+
   const handleCellChange = useCallback((rowId: string, field: TypologyField, value: any) => {
     const currentRow = typologies.find(t => t.id === rowId);
     if (!currentRow) return;
@@ -2684,6 +2686,12 @@ export function TypologySpreadsheet() {
       return next;
     });
     
+    if (activeEditingRowId && activeEditingRowId !== rowId) {
+      const prevChanges = pendingChanges.get(activeEditingRowId);
+      if (prevChanges && Object.keys(prevChanges).length > 0) {
+        saveRowByIdRef.current(activeEditingRowId);
+      }
+    }
     if (activeEditingRowId !== rowId) {
       setActiveEditingRowId(rowId);
     }
@@ -2711,6 +2719,8 @@ export function TypologySpreadsheet() {
       setIsSaving(false);
     }
   }, [pendingChanges, toast]);
+
+  saveRowByIdRef.current = saveRowById;
 
   const saveActiveRow = useCallback(async () => {
     if (!activeEditingRowId) return;
