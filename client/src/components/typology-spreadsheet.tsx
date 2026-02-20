@@ -1044,7 +1044,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       className="absolute inset-0 z-0 flex items-center justify-center cursor-default group/center"
       onClick={(e) => e.stopPropagation()}
     >
-      <Tooltip>
+      <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div className="w-full h-full" />
         </TooltipTrigger>
@@ -1053,7 +1053,21 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         </TooltipContent>
       </Tooltip>
     </div>
-  ) : null;
+  ) : (
+    <div 
+      className="absolute inset-0 z-0 flex items-center justify-center cursor-default group/center"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <div className="w-full h-full" />
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          {(fullLabel || column.label).toUpperCase()}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
 
   return (
     <div className={cn("w-full h-full relative flex items-center text-white", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
