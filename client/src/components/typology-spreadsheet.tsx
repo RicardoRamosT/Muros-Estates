@@ -857,7 +857,10 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
                         columnKey.toLowerCase().includes("price") || 
                         columnKey.toLowerCase().includes("payment") ||
                         columnKey.toLowerCase().includes("total") ||
-                        columnKey.toLowerCase().includes("cost");
+                        columnKey.toLowerCase().includes("cost") ||
+                        columnKey.toLowerCase().includes("remaining") ||
+                        columnKey.toLowerCase().includes("initial") ||
+                        columnKey.toLowerCase().includes("during");
 
   if ((isTruncated || fullLabel) && !isAmountField) {
     return (
@@ -1024,7 +1027,16 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     );
   };
 
-  const centerHoverZone = !column.calculated ? (
+  const isAmountField = column.key.toLowerCase().includes("amount") || 
+                        column.key.toLowerCase().includes("price") || 
+                        column.key.toLowerCase().includes("payment") ||
+                        column.key.toLowerCase().includes("total") ||
+                        column.key.toLowerCase().includes("cost") ||
+                        column.key.toLowerCase().includes("remaining") ||
+                        column.key.toLowerCase().includes("initial") ||
+                        column.key.toLowerCase().includes("during");
+
+  const centerHoverZone = (!column.calculated && !isAmountField) ? (
     <div 
       className="absolute inset-x-7 inset-y-0 z-0 flex items-center justify-center cursor-default group/center"
       onClick={(e) => e.stopPropagation()}
@@ -1323,14 +1335,18 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       </PopoverContent>
       </Popover>
       {hideLabel ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            {fullLabel || column.label}
-          </TooltipContent>
-        </Tooltip>
+        (!isAmountField) ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {fullLabel || column.label}
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+        )
       ) : (
         <TruncatedLabel 
           label={column.label} 
