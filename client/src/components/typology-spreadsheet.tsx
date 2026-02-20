@@ -1931,6 +1931,9 @@ export function TypologySpreadsheet() {
   const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
   const [dynamicGray, setDynamicGray] = useState<DynamicGrayState>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFlash, setSaveFlash] = useState(false);
   const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -2395,22 +2398,6 @@ export function TypologySpreadsheet() {
     },
   });
   
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Typology> }) => {
-      const res = await apiRequest("PUT", `/api/typologies/${id}`, data);
-      return res.json();
-    },
-    onSuccess: (_, variables) => {
-      setPendingChanges(prev => {
-        const next = new Map(prev);
-        next.delete(variables.id);
-        return next;
-      });
-    },
-    onError: () => {
-      toast({ title: "Error al actualizar", variant: "destructive" });
-    },
-  });
   
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -2697,14 +2684,51 @@ export function TypologySpreadsheet() {
       return next;
     });
     
-    const debounceId = setTimeout(() => {
-      const updateData = { [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields };
-      updateMutation.mutate({ id: rowId, data: updateData });
-    }, 500);
-    
-    return () => clearTimeout(debounceId);
-  }, [typologies, updateMutation, dbDevelopments, dbDevelopers, catalogCities, pendingChanges, typesByDevelopment]);
+    if (activeEditingRowId !== rowId) {
+      setActiveEditingRowId(rowId);
+    }
+  }, [typologies, dbDevelopments, dbDevelopers, catalogCities, pendingChanges, typesByDevelopment, activeEditingRowId]);
   
+  const saveRowById = useCallback(async (rowId: string) => {
+    const changes = pendingChanges.get(rowId);
+    if (!changes || Object.keys(changes).length === 0) return;
+    
+    setIsSaving(true);
+    try {
+      const res = await apiRequest("PUT", `/api/typologies/${rowId}`, changes);
+      await res.json();
+      setPendingChanges(prev => {
+        const next = new Map(prev);
+        next.delete(rowId);
+        return next;
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
+      setSaveFlash(true);
+      setTimeout(() => setSaveFlash(false), 1200);
+    } catch (error) {
+      toast({ title: "Error al guardar", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [pendingChanges, toast]);
+
+  const saveActiveRow = useCallback(async () => {
+    if (!activeEditingRowId) return;
+    await saveRowById(activeEditingRowId);
+  }, [activeEditingRowId, saveRowById]);
+
+  const handleRowClick = useCallback(async (rowId: string) => {
+    if (activeEditingRowId && activeEditingRowId !== rowId) {
+      const changes = pendingChanges.get(activeEditingRowId);
+      if (changes && Object.keys(changes).length > 0) {
+        await saveRowById(activeEditingRowId);
+      }
+    }
+    setActiveEditingRowId(rowId);
+  }, [activeEditingRowId, pendingChanges, saveRowById]);
+
+  const hasPendingRowChanges = activeEditingRowId ? pendingChanges.has(activeEditingRowId) : false;
+
   const handleAddRow = () => {
     const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];
     const initialData: Record<string, any> = {};
@@ -3048,13 +3072,35 @@ export function TypologySpreadsheet() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {pendingChanges.size > 0 && (
+          {isSaving && (
             <Badge variant="secondary" className="animate-pulse">
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               Guardando...
             </Badge>
           )}
           <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
+          <Button 
+            onClick={async () => {
+              await saveActiveRow();
+            }}
+            size="sm"
+            disabled={!hasPendingRowChanges || isSaving}
+            className={cn(
+              "transition-all duration-300",
+              saveFlash 
+                ? "text-white shadow-lg scale-105" 
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            )}
+            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
+            data-testid="button-save-row"
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-1" />
+            )}
+            Guardar
+          </Button>
           <Button 
             onClick={handleAddRow} 
             size="sm"
@@ -3658,14 +3704,20 @@ export function TypologySpreadsheet() {
           {visibleData.map((row, rowIndex) => {
             const mergedRow = getMergedRow(row);
             
+            const isActiveRow = activeEditingRowId === row.id;
+            const hasRowPending = pendingChanges.has(row.id);
+            
             return (
               <div
                 key={row.id}
                 className={cn(
-                  "flex border-b",
-                  rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  "flex border-b cursor-pointer",
+                  isActiveRow 
+                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
+                    : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
                 style={{ height: '32px', maxHeight: '32px' }}
+                onClick={() => handleRowClick(row.id)}
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
