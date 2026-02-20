@@ -2468,10 +2468,12 @@ export function TypologySpreadsheet() {
       autoPopulatedFields.zone = "";
       autoPopulatedFields.development = "";
       autoPopulatedFields.type = null;
+      autoPopulatedFields.tipoDesarrollo = null;
       (updatedRow as any).city = "";
       (updatedRow as any).zone = "";
       (updatedRow as any).development = "";
       (updatedRow as any).type = null;
+      (updatedRow as any).tipoDesarrollo = null;
 
       const selectedDeveloper = dbDevelopers.find((d: any) => d.name === value);
       if (selectedDeveloper) {
@@ -2485,9 +2487,12 @@ export function TypologySpreadsheet() {
           autoFillCityZoneFromDevelopment(autoDevName);
           
           const devTipos = (developerDevelopments[0] as any).tipos as string[] | null;
-          if (devTipos && devTipos.length > 0) {
+          if (devTipos && devTipos.length === 1) {
             autoPopulatedFields.tipoDesarrollo = devTipos;
             (updatedRow as any).tipoDesarrollo = devTipos;
+          } else if (devTipos && devTipos.length > 1) {
+            autoPopulatedFields.tipoDesarrollo = null;
+            (updatedRow as any).tipoDesarrollo = null;
           }
 
           const availableTypes = typesByDevelopment[autoDevName] || [];
@@ -2499,7 +2504,7 @@ export function TypologySpreadsheet() {
 
         if (!autoPopulatedFields.tipoDesarrollo) {
           const devRecTipos = (selectedDeveloper as any).tipos as string[] | null;
-          if (devRecTipos && devRecTipos.length > 0) {
+          if (devRecTipos && devRecTipos.length === 1) {
             autoPopulatedFields.tipoDesarrollo = devRecTipos;
             (updatedRow as any).tipoDesarrollo = devRecTipos;
           }
@@ -2536,6 +2541,16 @@ export function TypologySpreadsheet() {
 
       const devName = value as string;
       if (devName) {
+        const devEntity = dbDevelopments.find(d => d.name === devName);
+        const devTipos = (devEntity as any)?.tipos as string[] | null;
+        if (devTipos && devTipos.length === 1) {
+          autoPopulatedFields.tipoDesarrollo = devTipos;
+          (updatedRow as any).tipoDesarrollo = devTipos;
+        } else {
+          autoPopulatedFields.tipoDesarrollo = null;
+          (updatedRow as any).tipoDesarrollo = null;
+        }
+
         const availableTypes = typesByDevelopment[devName] || [];
         if (availableTypes.length === 1) {
           autoPopulatedFields.type = availableTypes[0];
@@ -2547,6 +2562,8 @@ export function TypologySpreadsheet() {
       } else {
         autoPopulatedFields.type = null;
         (updatedRow as any).type = null;
+        autoPopulatedFields.tipoDesarrollo = null;
+        (updatedRow as any).tipoDesarrollo = null;
       }
     }
     
