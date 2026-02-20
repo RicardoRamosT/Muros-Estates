@@ -332,7 +332,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "remainingPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
-      { key: "remainingAmount" as any, label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar Monto" },
+      { key: "remainingAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar Monto", calculated: true },
     ],
   },
   {
@@ -565,6 +565,13 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const initialPercent = parseFloat(row.initialPercent as string) || 0;
   const duringConstructionPercent = parseFloat(row.duringConstructionPercent as string) || 0;
   const paymentMonths = (row.paymentMonths as number) || 0;
+
+  // Calculate remainingPercent as a base value
+  const calculatedRemainingPercent = 100 - initialPercent - duringConstructionPercent;
+  // If the row has a value for remainingPercent, use it, otherwise use the calculated one
+  const remainingPercent = row.remainingPercent !== undefined && row.remainingPercent !== null 
+    ? parseFloat(row.remainingPercent as string) 
+    : calculatedRemainingPercent;
   
   // Use existing initialAmount from row if available, otherwise calculate from percent
   let initialAmount = parseFloat(row.initialAmount as string) || 0;
@@ -580,7 +587,6 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   
   const monthlyPayment = paymentMonths > 0 ? duringConstructionAmount / paymentMonths : 0;
   const totalEnganche = initialAmount + duringConstructionAmount;
-  const remainingPercent = 100 - initialPercent - duringConstructionPercent;
   
   const isaPercentDefault = globalDefaults?.['isaPercent'] ?? 3.0;
   const notaryPercentDefault = globalDefaults?.['notaryPercent'] ?? 2.5;
