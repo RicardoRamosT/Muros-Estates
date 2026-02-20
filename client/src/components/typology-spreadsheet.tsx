@@ -248,7 +248,9 @@ const SECTIONS: SectionDef[] = [
       { field: "bathrooms2", dependsOn: "lockOff" },
       { field: "areas2", dependsOn: "lockOff" },
       { field: "hasBalcony2", dependsOn: "lockOff" },
+      { field: "balconySize2", dependsOn: ["lockOff", "hasBalcony2"] },
       { field: "hasTerrace2", dependsOn: "lockOff" },
+      { field: "terraceSize2", dependsOn: ["lockOff", "hasTerrace2"] },
     ],
   },
   {
@@ -3481,7 +3483,10 @@ export function TypologySpreadsheet() {
                       const deps = Array.isArray(conditionalField.dependsOn) 
                         ? conditionalField.dependsOn 
                         : [conditionalField.dependsOn];
-                      isConditionallyDisabled = deps.some(dep => !mergedRow[dep]);
+                      isConditionallyDisabled = deps.some(dep => {
+                        const val = mergedRow[dep];
+                        return val === false || val === null || val === undefined || val === "";
+                      });
                     }
                     
                     const rowGrayState = dynamicGray[row.id];
