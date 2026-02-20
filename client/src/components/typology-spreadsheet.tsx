@@ -3059,7 +3059,8 @@ export function TypologySpreadsheet() {
                   });
 
                   const showLabel = !isGroupCollapsed;
-                  const showMinus = !isGroupCollapsed && anyExpanded && !allColsInGroupCollapsed;
+                  const allSectionsIndivCollapsedR1 = !anyExpanded && !isGroupCollapsed;
+                  const showMinus = !isGroupCollapsed && (allSectionsIndivCollapsedR1 || (anyExpanded && !allColsInGroupCollapsed));
                   
                   return (
                     <div 
@@ -3108,12 +3109,10 @@ export function TypologySpreadsheet() {
                                   return next;
                                 });
                               } else if (!anyExpanded) {
-                                setExpandedSections(prev => {
-                                  const n = new Set(prev);
-                                  for (const { section } of group.sections) {
-                                    n.add(section.id);
-                                  }
-                                  return n;
+                                setCollapsedGroups(prev => {
+                                  const next = new Set(prev);
+                                  next.add(groupKey);
+                                  return next;
                                 });
                               } else {
                                 setCollapsedGroups(prev => {
