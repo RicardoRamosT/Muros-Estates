@@ -515,23 +515,13 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
-    id: "tasa_plusvalia",
-    label: "",
-    subheader: "7.0%",
-    headerColor: "",
-    columnHeaderColor: "",
-    cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
-    columns: [
-      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
-    ],
-  },
-  {
     id: "plusvalia",
     label: "Plusvalía",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
+      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "appreciationDays", label: "Días", type: "number", width: 60 },
       { key: "appreciationMonths", label: "Meses", type: "number", width: 60 },
       { key: "appreciationYears", label: "Años", type: "number", width: 60 },
