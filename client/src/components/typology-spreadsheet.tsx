@@ -3384,7 +3384,7 @@ export function TypologySpreadsheet() {
                       return [renderStandardCol(section.columns[0], isFirstSection, false, sectionIndex)];
                     }
 
-                    if (section.parentLabel && !section.subSections) {
+                    if (section.parentLabel && !section.subSections && section.id !== "generales") {
                       const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                       const allColsCollapsedInSection = section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
                       const sectionColKeys = section.columns.map(c => c.key);
