@@ -322,8 +322,8 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo" },
-      { key: "paymentMonths", label: "M", type: "number", width: 60, hideLabel: true, fullLabel: "Meses", centerCells: true },
-      { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
+      { key: "paymentMonths", label: "Meses", type: "number", width: 60, fullLabel: "Meses", centerCells: true },
+      { key: "monthlyPayment", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Total" },
     ],
   },
   {
