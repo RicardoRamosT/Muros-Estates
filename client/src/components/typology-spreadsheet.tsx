@@ -3158,29 +3158,40 @@ export function TypologySpreadsheet() {
 
                     if (allColumnsCollapsed && section.columns.length > 0) {
                       // If all columns are collapsed, we show the label and minus button in Row 2
-                      // but their widths in the header will be sum of collapsed widths (Row 3 handles the pluses)
-                      const sectionWidth = section.columns.length * COLLAPSED_COL_WIDTH;
-                      return [(
-                        <div
-                          key={`all-cols-collapsed-${section.id}`}
-                          className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
-                          style={{ 
-                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
-                            width: sectionWidth,
-                            ...(isFirstSection ? { left: 60 } : {}),
-                          }}
-                        >
-                          <div className="pointer-events-none" style={{ width: 20 }} />
-                          <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
-                          <button
-                            onClick={() => toggleSection(section.id)}
-                            className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
-                            style={{ width: 20 }}
+                      // matching the header structure (Row 3 shows a '+' per column)
+                      return section.columns.map((col, idx) => {
+                        const isFirstCol = idx === 0;
+                        const isLastCol = idx === section.columns.length - 1;
+                        return (
+                          <div
+                            key={`all-cols-collapsed-${section.id}-${col.key}`}
+                            className={cn(
+                              "flex-shrink-0 h-full flex items-center text-white",
+                              isFirstCol && isFirstSection && "sticky z-30"
+                            )}
+                            style={{ 
+                              backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                              width: COLLAPSED_COL_WIDTH,
+                              ...(isFirstCol && isFirstSection ? { left: 60 } : {}),
+                            }}
                           >
-                            <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                          </button>
-                        </div>
-                      )];
+                            {isFirstCol && (
+                              <div className="flex items-center justify-center w-full h-full relative overflow-hidden">
+                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold opacity-20 pointer-events-none uppercase tracking-tighter">
+                                  {section.label}
+                                </span>
+                                <button
+                                  onClick={() => toggleSection(section.id)}
+                                  className="flex items-center justify-center w-full h-full cursor-pointer z-10"
+                                  data-testid={`section-collapse-${section.id}`}
+                                >
+                                  <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
                     }
 
                     // UNIFIED TITLES for Balcón and Terraza in Row 2
@@ -3591,25 +3602,6 @@ export function TypologySpreadsheet() {
                         )];
                       }
 
-                      // Check if ALL columns in this section are manually collapsed in Row 3
-                      const allColumnsCollapsed = section.columns.every(col => collapsedColumns.has(col.key));
-
-                      if (allColumnsCollapsed && section.columns.length > 0) {
-                        // If all columns are collapsed, we show one '+' for each column, 
-                        // matching the header structure (Row 3 shows a '+' per column)
-                        return section.columns.map((col) => (
-                          <div 
-                            key={`collapsed-col-row-${row.id}-${col.key}`}
-                            className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
-                            style={{ 
-                              backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
-                              width: COLLAPSED_COL_WIDTH,
-                              ...(isFirstSection ? { left: 60 } : {})
-                            }}
-                          />
-                        ));
-                      }
-
                       return section.columns.map((col, colIndex) => {
                         const isColCollapsed = collapsedColumns.has(col.key);
                         const isLastCol = colIndex === section.columns.length - 1;
@@ -3619,11 +3611,11 @@ export function TypologySpreadsheet() {
                           return (
                             <div 
                               key={`${row.id}-${col.key}`}
-                              className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
+                              className={cn("spreadsheet-cell h-full", isFirstSection && colIndex === 0 && "sticky z-10")}
                               style={{ 
                                 backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
                                 width: COLLAPSED_COL_WIDTH,
-                                ...(isFirstSection ? { left: 60 } : {})
+                                ...(isFirstSection && colIndex === 0 ? { left: 60 } : {})
                               }}
                             />
                           );
