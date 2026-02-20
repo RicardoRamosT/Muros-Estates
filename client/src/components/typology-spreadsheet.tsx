@@ -3250,24 +3250,28 @@ export function TypologySpreadsheet() {
                           >
                             <div className="flex items-center justify-center w-full h-full relative">
                               {isFirstCol && (
-                                <span className="absolute left-1 text-[8px] font-bold truncate uppercase opacity-30 pointer-events-none" style={{ maxWidth: COLLAPSED_COL_WIDTH - 15 }}>
-                                  {section.label}
-                                </span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span 
+                                      className="absolute left-1 text-[8px] font-bold truncate uppercase opacity-30 z-20 cursor-default" 
+                                      style={{ maxWidth: COLLAPSED_COL_WIDTH - 15 }}
+                                    >
+                                      {section.label}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="bottom" className="text-xs z-[200]">
+                                    {section.label.toUpperCase()}
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={() => toggleColumn(col.key)}
-                                    className="flex items-center justify-center w-full h-full cursor-pointer hover:bg-white/10 z-10"
-                                    data-testid={`col-expand-all-${col.key}`}
-                                  >
-                                    <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">
-                                  {isFirstCol ? `${section.label.toUpperCase()} - ${col.fullLabel || col.label}` : (col.fullLabel || col.label)}
-                                </TooltipContent>
-                              </Tooltip>
+                              <button
+                                onClick={() => toggleColumn(col.key)}
+                                className="flex items-center justify-center w-full h-full cursor-pointer hover:bg-white/10"
+                                data-testid={`col-expand-all-${col.key}`}
+                                title={col.fullLabel || col.label}
+                              >
+                                <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                              </button>
                             </div>
                           </div>
                         );
