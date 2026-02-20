@@ -2387,55 +2387,7 @@ export function TypologySpreadsheet() {
     const pending = pendingChanges.get(rowId);
     const updatedRow = { ...currentRow, ...(pending || {}), [field]: value };
     
-    // Auto-populate zone and developer when development changes
     const autoPopulatedFields: Record<string, any> = {};
-    if (field === "development" && dbDevelopments) {
-      const selectedDev = dbDevelopments.find(d => d.name === value);
-      if (selectedDev) {
-        if (selectedDev.city) {
-          autoPopulatedFields.city = selectedDev.city;
-          (updatedRow as any).city = selectedDev.city;
-          const selectedCity = catalogCities.find((c: any) => c.name === selectedDev.city);
-          if (selectedCity) {
-            if (selectedCity.isaiPercent) {
-              autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
-              (updatedRow as any).isaPercent = selectedCity.isaiPercent;
-            }
-            if (selectedCity.notariaPercent) {
-              autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
-              (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
-            }
-          }
-        }
-        autoPopulatedFields.zone = selectedDev.zone || "";
-        const developerRecord = dbDevelopers.find((dev: any) => dev.id === selectedDev.developerId);
-        autoPopulatedFields.developer = developerRecord?.name || "";
-        (updatedRow as any).zone = autoPopulatedFields.zone;
-        (updatedRow as any).developer = autoPopulatedFields.developer;
-        const devTipos = (selectedDev as any).tipos as string[] | null;
-        if (devTipos && devTipos.length > 0) {
-          autoPopulatedFields.tipoDesarrollo = devTipos;
-          (updatedRow as any).tipoDesarrollo = devTipos;
-        } else if (developerRecord) {
-          const devRecTipos = (developerRecord as any).tipos as string[] | null;
-          if (devRecTipos && devRecTipos.length > 0) {
-            autoPopulatedFields.tipoDesarrollo = devRecTipos;
-            (updatedRow as any).tipoDesarrollo = devRecTipos;
-          }
-        }
-
-        setDynamicGray(prev => ({
-          ...prev,
-          [rowId]: { 
-            ...(prev[rowId] || {}), 
-            city: autoPopulatedFields.city ? "calculated" : "input",
-            zone: autoPopulatedFields.zone ? "calculated" : "input",
-            development: "input"
-          }
-        }));
-      }
-    }
-    
     if (field === "developer" && dbDevelopers && dbDevelopments) {
       autoPopulatedFields.city = "";
       autoPopulatedFields.zone = "";
