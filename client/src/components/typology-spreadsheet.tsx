@@ -2399,13 +2399,18 @@ export function TypologySpreadsheet() {
     }
     
     if (field === "developer" && dbDevelopers && dbDevelopments) {
+      autoPopulatedFields.city = "";
+      autoPopulatedFields.zone = "";
+      autoPopulatedFields.development = "";
+      (updatedRow as any).city = "";
+      (updatedRow as any).zone = "";
+      (updatedRow as any).development = "";
+
       const selectedDeveloper = dbDevelopers.find((d: any) => d.name === value);
       if (selectedDeveloper) {
-        // Find all developments for this developer
         const developerDevelopments = dbDevelopments.filter(d => d.developerId === selectedDeveloper.id);
         
         if (developerDevelopments.length > 0) {
-          // Unique cities
           const uniqueCities = Array.from(new Set(developerDevelopments.map(d => d.city).filter(Boolean)));
           if (uniqueCities.length === 1) {
             autoPopulatedFields.city = uniqueCities[0];
@@ -2424,14 +2429,12 @@ export function TypologySpreadsheet() {
             }
           }
 
-          // Unique zones
           const uniqueZones = Array.from(new Set(developerDevelopments.map(d => d.zone).filter(Boolean)));
           if (uniqueZones.length === 1) {
             autoPopulatedFields.zone = uniqueZones[0];
             (updatedRow as any).zone = uniqueZones[0];
           }
 
-          // Unique development
           if (developerDevelopments.length === 1) {
             autoPopulatedFields.development = developerDevelopments[0].name;
             (updatedRow as any).development = developerDevelopments[0].name;
@@ -2444,7 +2447,6 @@ export function TypologySpreadsheet() {
           }
         }
 
-        // Keep existing logic for developer-specific types if not already set
         if (!autoPopulatedFields.tipoDesarrollo) {
           const devRecTipos = (selectedDeveloper as any).tipos as string[] | null;
           if (devRecTipos && devRecTipos.length > 0) {
@@ -2452,17 +2454,17 @@ export function TypologySpreadsheet() {
             (updatedRow as any).tipoDesarrollo = devRecTipos;
           }
         }
-
-        setDynamicGray(prev => ({
-          ...prev,
-          [rowId]: { 
-            ...(prev[rowId] || {}), 
-            city: autoPopulatedFields.city ? "calculated" : (prev[rowId]?.city || "input"),
-            zone: autoPopulatedFields.zone ? "calculated" : (prev[rowId]?.zone || "input"),
-            development: autoPopulatedFields.development ? "calculated" : (prev[rowId]?.development || "input")
-          }
-        }));
       }
+
+      setDynamicGray(prev => ({
+        ...prev,
+        [rowId]: { 
+          ...(prev[rowId] || {}), 
+          city: autoPopulatedFields.city ? "calculated" : "input",
+          zone: autoPopulatedFields.zone ? "calculated" : "input",
+          development: autoPopulatedFields.development ? "calculated" : "input"
+        }
+      }));
     }
     
     // Clear development, zone, and developer when city changes; auto-populate ISAI% from city
