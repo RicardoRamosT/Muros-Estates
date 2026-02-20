@@ -1772,7 +1772,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__sin_asignar__" className="text-muted-foreground italic">Sin Asignar</SelectItem>
+            <SelectItem value="__sin_asignar__" className="text-muted-foreground">Sin Asignar</SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
