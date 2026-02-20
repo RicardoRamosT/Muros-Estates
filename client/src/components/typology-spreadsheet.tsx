@@ -3438,6 +3438,22 @@ export function TypologySpreadsheet() {
                       }
                       return collapsedCell;
                     }
+                    if (col.key === "createdDate") {
+                      return (
+                        <div
+                          key={col.key}
+                          className={cn(
+                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
+                            section.cellColor
+                          )}
+                          style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
+                          data-testid={`cell-createdDate-${row.id}`}
+                        >
+                          {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
+                        </div>
+                      );
+                    }
+
                     if (col.key === "createdTime") {
                       return (
                         <div
@@ -3446,10 +3462,10 @@ export function TypologySpreadsheet() {
                             "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
                             section.cellColor
                           )}
-                          style={{ width: (col.width || 65) + SORT_ICON_WIDTH }}
+                          style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
                           data-testid={`cell-createdTime-${row.id}`}
                         >
-                          {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
+                          {formatTime(row.createdAt)}
                         </div>
                       );
                     }
