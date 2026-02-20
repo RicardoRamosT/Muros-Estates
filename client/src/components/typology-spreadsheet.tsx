@@ -3004,12 +3004,10 @@ export function TypologySpreadsheet() {
                 return groups.map((group) => {
                   const firstIndex = group.sections[0].index;
                   const isFirstSection = firstIndex === 0;
-                  const allExpanded = group.sections.every(s => expandedSections.has(s.section.id));
                   const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
                   
                   // Unified labels for grouped columns
                   const displayLabel = (group.label === "" || group.label === " ") ? "" : group.label;
-                  const isUnified = displayLabel === "Balcón" || displayLabel === "Terraza";
 
                   let totalWidth = 0;
                   if (!anyExpanded) {
@@ -3020,22 +3018,12 @@ export function TypologySpreadsheet() {
                       if (!isExp) {
                         totalWidth += COLLAPSED_COL_WIDTH;
                       } else {
-                        // Even if all columns are collapsed, Row 1 preserves individual column widths (which are COLLAPSED_COL_WIDTH)
+                        // Width should be based on columns, even if collapsed individually in Row 3
                         totalWidth += section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                       }
                     }
                   }
                   
-                  // Row 1 should only show toggle if it's the top-level parent and has no sub-sections,
-                  // or if we want it to specifically control the entire group.
-                  // The user says: "al colapsar algo de la 2da fila, no deberia aparecer en la 1ra fila como +"
-                  // This means Row 1 toggle should probably only be visible if it's NOT a sub-sectioned group,
-                  // OR it should reflect the state of the first section only.
-                  // Actually, the issue is that Row 1 "plus" appears when Row 2 is collapsed.
-                  // But Row 1 label "ENGANCHE" is still there.
-                  
-                  const showRow1Toggle = true;
-
                   return (
                     <div 
                       key={group.sections.map(s => s.section.id).join("-")} 
@@ -3055,37 +3043,35 @@ export function TypologySpreadsheet() {
                           {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
                         </span>
                       )}
-                      {showRow1Toggle && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() => {
-                                setExpandedSections(prev => {
-                                  const n = new Set(prev);
-                                  const anyCurrentGroupExpanded = group.sections.some(s => prev.has(s.section.id));
-                                  for (const { section } of group.sections) {
-                                    if (anyCurrentGroupExpanded) n.delete(section.id);
-                                    else n.add(section.id);
-                                  }
-                                  return n;
-                                });
-                              }}
-                              className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
-                              style={anyExpanded ? { width: 20 } : undefined}
-                              data-testid={`section-toggle-${group.sections[0].section.id}`}
-                            >
-                              {anyExpanded ? (
-                                <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                              ) : (
-                                <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                              )}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">
-                            {anyExpanded ? `Colapsar ${group.label}` : group.label}
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              setExpandedSections(prev => {
+                                const n = new Set(prev);
+                                const anyCurrentGroupExpanded = group.sections.some(s => prev.has(s.section.id));
+                                for (const { section } of group.sections) {
+                                  if (anyCurrentGroupExpanded) n.delete(section.id);
+                                  else n.add(section.id);
+                                }
+                                return n;
+                              });
+                            }}
+                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
+                            style={anyExpanded ? { width: 20 } : undefined}
+                            data-testid={`section-toggle-${group.sections[0].section.id}`}
+                          >
+                            {anyExpanded ? (
+                              <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                            ) : (
+                              <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {anyExpanded ? `Colapsar ${group.label}` : group.label}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   );
                 });
@@ -3132,14 +3118,14 @@ export function TypologySpreadsheet() {
                       return [(
                         <div 
                           key={`collapsed-${section.id}`}
-                          className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
+                          className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white border-r border-white/20", isFirstSection && "sticky z-30")}
                           style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => toggleSection(section.id)}
-                                className="flex items-center justify-center w-full h-full cursor-pointer"
+                                className="flex items-center justify-center w-full h-full cursor-pointer hover:bg-white/10"
                                 data-testid={`section-expand-${section.id}`}
                               >
                                 <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3154,19 +3140,19 @@ export function TypologySpreadsheet() {
                     }
 
                     // Check if ALL columns in this section are manually collapsed in Row 3
-                    const allColumnsCollapsed = section.columns.every(col => collapsedColumns.has(col.key));
+                    const allColumnsCollapsed = section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
 
-                    if (allColumnsCollapsed && section.columns.length > 0) {
-                      // If all columns are collapsed, we show the label and minus button in Row 2
-                      // matching the header structure (Row 3 shows a '+' per column)
+                    if (allColumnsCollapsed) {
+                      // Show '+' buttons for each collapsed column in Row 2 when they are all collapsed
+                      // This ensures consistency with Row 3 and allows re-expansion
+                      // AND show the section label in the first collapsed column
                       return section.columns.map((col, idx) => {
                         const isFirstCol = idx === 0;
-                        const isLastCol = idx === section.columns.length - 1;
                         return (
                           <div
                             key={`all-cols-collapsed-${section.id}-${col.key}`}
                             className={cn(
-                              "flex-shrink-0 h-full flex items-center text-white",
+                              "flex-shrink-0 h-full flex items-center justify-center text-white border-r border-white/10",
                               isFirstCol && isFirstSection && "sticky z-30"
                             )}
                             style={{ 
@@ -3175,20 +3161,27 @@ export function TypologySpreadsheet() {
                               ...(isFirstCol && isFirstSection ? { left: 60 } : {}),
                             }}
                           >
-                            {isFirstCol && (
-                              <div className="flex items-center justify-center w-full h-full relative overflow-hidden">
-                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold opacity-20 pointer-events-none uppercase tracking-tighter">
+                            <div className="flex items-center justify-center w-full h-full relative">
+                              {isFirstCol && (
+                                <span className="absolute left-1 text-[8px] font-bold truncate uppercase opacity-30 pointer-events-none" style={{ maxWidth: COLLAPSED_COL_WIDTH - 15 }}>
                                   {section.label}
                                 </span>
-                                <button
-                                  onClick={() => toggleSection(section.id)}
-                                  className="flex items-center justify-center w-full h-full cursor-pointer z-10"
-                                  data-testid={`section-collapse-${section.id}`}
-                                >
-                                  <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                                </button>
-                              </div>
-                            )}
+                              )}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => toggleColumn(col.key)}
+                                    className="flex items-center justify-center w-full h-full cursor-pointer hover:bg-white/10 z-10"
+                                    data-testid={`col-expand-all-${col.key}`}
+                                  >
+                                    <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="text-xs">
+                                  {col.fullLabel || col.label}
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
                           </div>
                         );
                       });
@@ -3326,21 +3319,23 @@ export function TypologySpreadsheet() {
                       )];
                     }
 
+                    // Row 3: Filter/Sort icons and individual column collapse
                     return section.columns.map((col, colIndex) => {
                       const isColCollapsed = collapsedColumns.has(col.key);
                       const colW = getColWidth(col);
+                      const isFirstCol = colIndex === 0;
                       return (
                         <div
-                          key={`name-${col.key}`}
+                          key={`row3-${col.key}`}
                           className={cn(
-                            "flex-shrink-0 h-full flex items-center text-white",
+                            "flex-shrink-0 h-full flex items-center text-white border-r border-white/10",
                             isColCollapsed ? "justify-center" : "justify-between",
-                            isFirstSection && "sticky z-30"
+                            isFirstCol && isFirstSection && "sticky z-30"
                           )}
                           style={{ 
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                             width: colW, 
-                            ...(isFirstSection ? { left: 60 } : {})
+                            ...(isFirstCol && isFirstSection ? { left: 60 } : {})
                           }}
                         >
                           {isColCollapsed ? (
@@ -3348,27 +3343,43 @@ export function TypologySpreadsheet() {
                               <TooltipTrigger asChild>
                                 <button
                                   onClick={() => toggleColumn(col.key)}
-                                  className="flex items-center justify-center w-full h-full cursor-pointer"
+                                  className="flex items-center justify-center w-full h-full cursor-pointer hover:bg-white/10"
                                   data-testid={`col-expand-${col.key}`}
                                 >
                                   <Plus className="w-3 h-3" style={{ color: 'white' }} />
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent side="bottom" className="text-xs">
-                                {col.fullLabel || col.label}
+                                Expandir {col.fullLabel || col.label}
                               </TooltipContent>
                             </Tooltip>
                           ) : (
                             <>
-                              <div className="flex-shrink-0" style={{ width: 20 }} />
-                              <TruncatedLabel 
-                                label={col.label} 
-                                fullLabel={col.fullLabel}
-                                columnKey={col.key}
-                              />
+                              <div className="flex items-center gap-1 px-1 overflow-hidden flex-1">
+                                <ColumnFilter 
+                                  columnKey={col.key}
+                                  label={col.fullLabel || col.label}
+                                  values={getUniqueValues(col.key)}
+                                  activeFilters={columnFilters[col.key] || new Set()}
+                                  onFilterChange={(selected) => {
+                                    setColumnFilters(prev => ({ ...prev, [col.key]: selected }));
+                                  }}
+                                  sortDirection={columnSorts[col.key] || null}
+                                  onSortChange={(dir) => {
+                                    setColumnSorts({ [col.key]: dir });
+                                  }}
+                                  rangeFilter={rangeFilters[col.key]}
+                                  onRangeFilterChange={(range) => {
+                                    setRangeFilters(prev => ({ ...prev, [col.key]: range }));
+                                  }}
+                                />
+                                <span className="text-[10px] font-bold truncate uppercase opacity-50">
+                                  {col.label}
+                                </span>
+                              </div>
                               <button
                                 onClick={() => toggleColumn(col.key)}
-                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10"
                                 style={{ width: 20 }}
                                 data-testid={`col-collapse-${col.key}`}
                               >
