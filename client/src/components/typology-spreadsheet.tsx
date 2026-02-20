@@ -2467,24 +2467,33 @@ export function TypologySpreadsheet() {
       autoPopulatedFields.city = "";
       autoPopulatedFields.zone = "";
       autoPopulatedFields.development = "";
+      autoPopulatedFields.type = null;
       (updatedRow as any).city = "";
       (updatedRow as any).zone = "";
       (updatedRow as any).development = "";
+      (updatedRow as any).type = null;
 
       const selectedDeveloper = dbDevelopers.find((d: any) => d.name === value);
       if (selectedDeveloper) {
         const developerDevelopments = dbDevelopments.filter(d => d.developerId === selectedDeveloper.id);
         
         if (developerDevelopments.length === 1) {
-          autoPopulatedFields.development = developerDevelopments[0].name;
-          (updatedRow as any).development = developerDevelopments[0].name;
+          const autoDevName = developerDevelopments[0].name;
+          autoPopulatedFields.development = autoDevName;
+          (updatedRow as any).development = autoDevName;
           
-          autoFillCityZoneFromDevelopment(developerDevelopments[0].name);
+          autoFillCityZoneFromDevelopment(autoDevName);
           
           const devTipos = (developerDevelopments[0] as any).tipos as string[] | null;
           if (devTipos && devTipos.length > 0) {
             autoPopulatedFields.tipoDesarrollo = devTipos;
             (updatedRow as any).tipoDesarrollo = devTipos;
+          }
+
+          const availableTypes = typesByDevelopment[autoDevName] || [];
+          if (availableTypes.length === 1) {
+            autoPopulatedFields.type = availableTypes[0];
+            (updatedRow as any).type = availableTypes[0];
           }
         }
 
@@ -2524,6 +2533,21 @@ export function TypologySpreadsheet() {
           zone: "calculated"
         }
       }));
+
+      const devName = value as string;
+      if (devName) {
+        const availableTypes = typesByDevelopment[devName] || [];
+        if (availableTypes.length === 1) {
+          autoPopulatedFields.type = availableTypes[0];
+          (updatedRow as any).type = availableTypes[0];
+        } else {
+          autoPopulatedFields.type = null;
+          (updatedRow as any).type = null;
+        }
+      } else {
+        autoPopulatedFields.type = null;
+        (updatedRow as any).type = null;
+      }
     }
     
     const dependentFieldsToClear: Record<string, string[]> = {
@@ -2665,7 +2689,7 @@ export function TypologySpreadsheet() {
     }, 500);
     
     return () => clearTimeout(debounceId);
-  }, [typologies, updateMutation, dbDevelopments, dbDevelopers, catalogCities, pendingChanges]);
+  }, [typologies, updateMutation, dbDevelopments, dbDevelopers, catalogCities, pendingChanges, typesByDevelopment]);
   
   const handleAddRow = () => {
     const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];
@@ -3769,6 +3793,18 @@ export function TypologySpreadsheet() {
                             return val === false;
                           });
                         }
+
+                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development", "tipoDesarrollo"]);
+                        const hasDevelopment = !!(mergedRow.development);
+                        const hasType = !!(mergedRow.type);
+                        let isLockedByFlow = false;
+                        if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
+                          if (!hasDevelopment) {
+                            isLockedByFlow = true;
+                          } else if (!hasType && col.key !== "type") {
+                            isLockedByFlow = true;
+                          }
+                        }
                         
                         const rowGrayState = dynamicGray[row.id];
                         const isDynCalc = rowGrayState?.[col.key] === "calculated";
@@ -3782,7 +3818,7 @@ export function TypologySpreadsheet() {
                             city={mergedRow.city || undefined}
                             developer={mergedRow.developer || undefined}
                             onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
-                            disabled={isConditionallyDisabled}
+                            disabled={isConditionallyDisabled || isLockedByFlow}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
                             allDevelopers={dbDevelopers}
