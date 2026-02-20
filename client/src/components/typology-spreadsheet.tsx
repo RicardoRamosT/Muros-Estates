@@ -3300,7 +3300,7 @@ export function TypologySpreadsheet() {
                     if (section.id === "impuestos") {
                       const isaPercentCol = section.columns.find(c => c.key === "isaPercent")!;
                       const isaAmountCol = section.columns.find(c => c.key === "isaAmount")!;
-                      return [renderUnifiedCol("impuestos", "Impuestos (ISAI)", [isaPercentCol, isaAmountCol], sectionIndex)];
+                      return [renderUnifiedCol("impuestos", "Impuestos", [isaPercentCol, isaAmountCol], sectionIndex)];
                     }
 
                     if (section.id === "notaria") {
