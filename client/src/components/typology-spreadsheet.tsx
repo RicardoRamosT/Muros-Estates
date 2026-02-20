@@ -3017,7 +3017,12 @@ export function TypologySpreadsheet() {
                   } else {
                     for (const { section } of group.sections) {
                       const isExp = expandedSections.has(section.id);
-                      totalWidth += isExp ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
+                      if (!isExp) {
+                        totalWidth += COLLAPSED_COL_WIDTH;
+                      } else {
+                        // Even if all columns are collapsed, Row 1 preserves individual column widths (which are COLLAPSED_COL_WIDTH)
+                        totalWidth += section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
+                      }
                     }
                   }
                   
@@ -3106,8 +3111,8 @@ export function TypologySpreadsheet() {
                 });
 
                 return groups.flatMap((group) => {
-                  const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
-                  if (!anyExpanded) {
+                  const anySectionExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                  if (!anySectionExpanded) {
                     return [(
                       <div 
                         key={`group-collapsed-${group.label}`}
@@ -3118,11 +3123,11 @@ export function TypologySpreadsheet() {
                   }
 
                   return group.sections.flatMap(({ section, index: sectionIndex }) => {
-                    const isExpanded = expandedSections.has(section.id);
+                    const isSectionExpanded = expandedSections.has(section.id);
                     const isFirstSection = sectionIndex === 0;
                     const isLastInParentGroup = !section.parentLabel || sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
                     
-                    if (!isExpanded || (section as any).hideInRow2) {
+                    if (!isSectionExpanded || (section as any).hideInRow2) {
                       if ((section as any).hideInRow2) return [];
                       return [(
                         <div 
@@ -3144,6 +3149,36 @@ export function TypologySpreadsheet() {
                               {section.label || section.subheader}
                             </TooltipContent>
                           </Tooltip>
+                        </div>
+                      )];
+                    }
+
+                    // Check if ALL columns in this section are manually collapsed in Row 3
+                    const allColumnsCollapsed = section.columns.every(col => collapsedColumns.has(col.key));
+
+                    if (allColumnsCollapsed && section.columns.length > 0) {
+                      // If all columns are collapsed, we show the label and minus button in Row 2
+                      // but their widths in the header will be sum of collapsed widths (Row 3 handles the pluses)
+                      const sectionWidth = section.columns.length * COLLAPSED_COL_WIDTH;
+                      return [(
+                        <div
+                          key={`all-cols-collapsed-${section.id}`}
+                          className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
+                          style={{ 
+                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                            width: sectionWidth,
+                            ...(isFirstSection ? { left: 60 } : {}),
+                          }}
+                        >
+                          <div className="pointer-events-none" style={{ width: 20 }} />
+                          <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
+                          <button
+                            onClick={() => toggleSection(section.id)}
+                            className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                            style={{ width: 20 }}
+                          >
+                            <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                          </button>
                         </div>
                       )];
                     }
@@ -3522,10 +3557,10 @@ export function TypologySpreadsheet() {
                   });
 
                   return groups.flatMap((group) => {
-                    const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                    const anySectionExpanded = group.sections.some(s => expandedSections.has(s.section.id));
                     const isFirstSectionGlobal = group.sections[0].index === 0;
 
-                    if (!anyExpanded) {
+                    if (!anySectionExpanded) {
                       return [(
                         <div 
                           key={`group-collapsed-row-${row.id}-${group.label}`}
@@ -3540,9 +3575,9 @@ export function TypologySpreadsheet() {
                     }
 
                     return group.sections.flatMap(({ section, index: sectionIndex }) => {
-                      const isExpanded = expandedSections.has(section.id);
+                      const isSectionExpanded = expandedSections.has(section.id);
                       const isFirstSection = sectionIndex === 0;
-                      if (!isExpanded) {
+                      if (!isSectionExpanded) {
                         return [(
                           <div 
                             key={`collapsed-row-${row.id}-${section.id}`}
@@ -3555,6 +3590,26 @@ export function TypologySpreadsheet() {
                           />
                         )];
                       }
+
+                      // Check if ALL columns in this section are manually collapsed in Row 3
+                      const allColumnsCollapsed = section.columns.every(col => collapsedColumns.has(col.key));
+
+                      if (allColumnsCollapsed && section.columns.length > 0) {
+                        // If all columns are collapsed, we show one '+' for each column, 
+                        // matching the header structure (Row 3 shows a '+' per column)
+                        return section.columns.map((col) => (
+                          <div 
+                            key={`collapsed-col-row-${row.id}-${col.key}`}
+                            className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
+                            style={{ 
+                              backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                              width: COLLAPSED_COL_WIDTH,
+                              ...(isFirstSection ? { left: 60 } : {})
+                            }}
+                          />
+                        ));
+                      }
+
                       return section.columns.map((col, colIndex) => {
                         const isColCollapsed = collapsedColumns.has(col.key);
                         const isLastCol = colIndex === section.columns.length - 1;
