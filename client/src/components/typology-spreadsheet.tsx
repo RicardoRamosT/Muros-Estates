@@ -833,7 +833,7 @@ interface ColumnFilterProps {
   overrideUniqueValues?: string[];
 }
 
-function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLabel?: string; columnKey: string }) {
+function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean }) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
   
@@ -849,6 +849,8 @@ function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLa
     return () => window.removeEventListener("resize", checkTruncation);
   }, [label]);
   
+  const tooltipContent = uppercaseTooltip ? (fullLabel || label).toUpperCase() : (fullLabel || label);
+
   if (isTruncated || fullLabel) {
     return (
       <Tooltip>
@@ -862,7 +864,7 @@ function TruncatedLabel({ label, fullLabel, columnKey }: { label: string; fullLa
           </span>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {fullLabel || label}
+          {tooltipContent}
         </TooltipContent>
       </Tooltip>
     );
@@ -3053,15 +3055,17 @@ export function TypologySpreadsheet() {
                         <div className="pointer-events-none" style={{ width: 20 }} />
                       )}
                       {showLabel && (
-                        <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
-                          {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
-                        </span>
+                        <TruncatedLabel 
+                          label={(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel} 
+                          columnKey={groupKey} 
+                          uppercaseTooltip={true}
+                        />
                       )}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => {
-                              if (isGroupCollapsed) {
+                      {isGroupCollapsed ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => {
                                 setCollapsedGroups(prev => {
                                   const next = new Set(prev);
                                   next.delete(groupKey);
@@ -3074,52 +3078,62 @@ export function TypologySpreadsheet() {
                                   }
                                   return n;
                                 });
-                              } else if (allColsInGroupCollapsed) {
-                                setCollapsedColumns(prev => {
-                                  const next = new Set(prev);
-                                  for (const { section } of group.sections) {
-                                    for (const col of section.columns) {
-                                      next.delete(col.key);
-                                    }
-                                  }
-                                  return next;
-                                });
-                              } else if (!anyExpanded) {
-                                setCollapsedGroups(prev => {
-                                  const next = new Set(prev);
-                                  next.add(groupKey);
-                                  return next;
-                                });
-                              } else {
-                                setCollapsedGroups(prev => {
-                                  const next = new Set(prev);
-                                  next.add(groupKey);
-                                  return next;
-                                });
-                                setExpandedSections(prev => {
-                                  const n = new Set(prev);
-                                  for (const { section } of group.sections) {
-                                    n.delete(section.id);
-                                  }
-                                  return n;
-                                });
-                              }
-                            }}
-                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", isGroupCollapsed && "w-full")}
-                            style={!isGroupCollapsed ? { width: 20 } : undefined}
-                            data-testid={`section-toggle-${group.sections[0].section.id}`}
-                          >
-                            {showMinus ? (
-                              <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                            ) : (
+                              }}
+                              className="flex items-center justify-center h-full w-full cursor-pointer flex-shrink-0"
+                              data-testid={`section-toggle-${group.sections[0].section.id}`}
+                            >
                               <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                            )}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">
-                          {showMinus ? `Colapsar ${group.label}` : group.label}
-                        </TooltipContent>
-                      </Tooltip>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">
+                            {group.label.toUpperCase()}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (allColsInGroupCollapsed) {
+                              setCollapsedColumns(prev => {
+                                const next = new Set(prev);
+                                for (const { section } of group.sections) {
+                                  for (const col of section.columns) {
+                                    next.delete(col.key);
+                                  }
+                                }
+                                return next;
+                              });
+                            } else if (!anyExpanded) {
+                              setCollapsedGroups(prev => {
+                                const next = new Set(prev);
+                                next.add(groupKey);
+                                return next;
+                              });
+                            } else {
+                              setCollapsedGroups(prev => {
+                                const next = new Set(prev);
+                                next.add(groupKey);
+                                return next;
+                              });
+                              setExpandedSections(prev => {
+                                const n = new Set(prev);
+                                for (const { section } of group.sections) {
+                                  n.delete(section.id);
+                                }
+                                return n;
+                              });
+                            }
+                          }}
+                          className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                          style={{ width: 20 }}
+                          data-testid={`section-toggle-${group.sections[0].section.id}`}
+                        >
+                          {showMinus ? (
+                            <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                          ) : (
+                            <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                          )}
+                        </button>
+                      )}
                     </div>
                   );
                 });
@@ -3327,35 +3341,36 @@ export function TypologySpreadsheet() {
                             ...(isFirstSection ? { left: 60 } : {}),
                           }}
                         >
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-between w-full h-full">
-                                <div className="pointer-events-none" style={{ width: 20 }} />
-                                <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
-                                <button
-                                  onClick={() => {
-                                    if (allColsCollapsedInSection) {
-                                      toggleColumns(sectionColKeys);
-                                    } else {
-                                      toggleSection(section.id);
-                                    }
-                                  }}
-                                  className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
-                                  style={{ width: 20 }}
-                                  data-testid={`section-toggle-${section.id}`}
-                                >
-                                  {allColsCollapsedInSection ? (
+                          <div className="flex items-center justify-between w-full h-full">
+                            <div className="pointer-events-none" style={{ width: 20 }} />
+                            <TruncatedLabel label={section.label} columnKey={section.id} />
+                            {allColsCollapsedInSection ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => toggleColumns(sectionColKeys)}
+                                    className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                    style={{ width: 20 }}
+                                    data-testid={`section-toggle-${section.id}`}
+                                  >
                                     <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                                  ) : (
-                                    <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                                  )}
-                                </button>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="text-xs">
-                              {allColsCollapsedInSection ? `Expandir ${section.label}` : `Colapsar ${section.label}`}
-                            </TooltipContent>
-                          </Tooltip>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="text-xs">
+                                  {section.label}
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <button
+                                onClick={() => toggleSection(section.id)}
+                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                style={{ width: 20 }}
+                                data-testid={`section-toggle-${section.id}`}
+                              >
+                                <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       )];
                     }
@@ -3384,12 +3399,21 @@ export function TypologySpreadsheet() {
                       }}
                     >
                       {isColCollapsed ? (
-                        <button onClick={() => toggleColumn(col.key)} className="w-full h-full flex items-center justify-center"><Plus className="w-3 h-3 text-white" /></button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button onClick={() => toggleColumn(col.key)} className="w-full h-full flex items-center justify-center cursor-pointer">
+                              <Plus className="w-3 h-3 text-white" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">
+                            {col.fullLabel || col.label}
+                          </TooltipContent>
+                        </Tooltip>
                       ) : (
                         <>
                           <div style={{ width: 20 }} />
                           <TruncatedLabel label={col.label} fullLabel={col.fullLabel} columnKey={col.key} />
-                          <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center"><Minus className="w-3 h-3 text-white" /></button>
+                          <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center cursor-pointer"><Minus className="w-3 h-3 text-white" /></button>
                         </>
                       )}
                     </div>
@@ -3409,7 +3433,7 @@ export function TypologySpreadsheet() {
                               <Plus className="w-3 h-3 text-white" />
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Expandir {label}</TooltipContent>
+                          <TooltipContent side="bottom" className="text-xs">{label}</TooltipContent>
                         </Tooltip>
                       </div>
                     );
@@ -3417,7 +3441,7 @@ export function TypologySpreadsheet() {
                   return (
                     <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW }}>
                       <div style={{ width: 20 }} />
-                      <span className="text-xs font-medium text-center flex-1 truncate px-1">{label}</span>
+                      <TruncatedLabel label={label} columnKey={key} />
                       <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
                         <Minus className="w-3 h-3 text-white" />
                       </button>
