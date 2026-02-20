@@ -308,7 +308,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "initialPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
+      { key: "initialPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "initialAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial" },
     ],
   },
@@ -320,7 +320,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
+      { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo" },
       { key: "paymentMonths", label: "M", type: "number", width: 60, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
