@@ -853,14 +853,15 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
   
   const tooltipContent = uppercaseTooltip ? (fullLabel || label).toUpperCase() : (fullLabel || label);
 
-  const isAmountField = columnKey.toLowerCase().includes("amount") || 
+  const isAmountField = (columnKey.toLowerCase().includes("amount") || 
                         columnKey.toLowerCase().includes("price") || 
                         columnKey.toLowerCase().includes("payment") ||
                         columnKey.toLowerCase().includes("total") ||
                         columnKey.toLowerCase().includes("cost") ||
                         columnKey.toLowerCase().includes("remaining") ||
                         columnKey.toLowerCase().includes("initial") ||
-                        columnKey.toLowerCase().includes("during");
+                        columnKey.toLowerCase().includes("during")) && 
+                        !columnKey.toLowerCase().includes("percent");
 
   if ((isTruncated || fullLabel) && !isAmountField) {
     return (
@@ -875,7 +876,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
           </span>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {tooltipContent}
+          {columnKey.toLowerCase().includes("percent") ? "PORCENTAJES" : tooltipContent}
         </TooltipContent>
       </Tooltip>
     );
@@ -1027,14 +1028,15 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     );
   };
 
-  const isAmountField = column.key.toLowerCase().includes("amount") || 
+  const isAmountField = (column.key.toLowerCase().includes("amount") || 
                         column.key.toLowerCase().includes("price") || 
                         column.key.toLowerCase().includes("payment") ||
                         column.key.toLowerCase().includes("total") ||
                         column.key.toLowerCase().includes("cost") ||
                         column.key.toLowerCase().includes("remaining") ||
                         column.key.toLowerCase().includes("initial") ||
-                        column.key.toLowerCase().includes("during");
+                        column.key.toLowerCase().includes("during")) && 
+                        !column.key.toLowerCase().includes("percent");
 
   const centerHoverZone = (!column.calculated && !isAmountField) ? (
     <div 
@@ -1046,7 +1048,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           <div className="w-full h-full" />
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {(fullLabel || column.label).toUpperCase()}
+          {column.key.toLowerCase().includes("percent") ? "PORCENTAJES" : (fullLabel || column.label).toUpperCase()}
         </TooltipContent>
       </Tooltip>
     </div>
