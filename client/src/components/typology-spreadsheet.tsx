@@ -200,7 +200,7 @@ const SECTIONS: SectionDef[] = [
       { key: "price", label: "Precio", type: "decimal", width: 90, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 75, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 60, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
-      { key: "discountAmount", label: "$", type: "decimal", width: 70, format: "currency" },
+      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital Semilla", type: "boolean", width: 95, fullLabel: "Capital Semilla" },
@@ -307,7 +307,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "initialPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
-      { key: "initialAmount", label: "$", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial" },
+      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial" },
     ],
   },
   {
@@ -319,7 +319,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
-      { key: "duringConstructionAmount", label: "$", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo" },
+      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo" },
       { key: "paymentMonths", label: "M", type: "number", width: 60, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
     ],
@@ -333,7 +333,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "remainingPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
-      { key: "remainingAmount", label: "$", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar", calculated: true },
+      { key: "remainingAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar", calculated: true },
     ],
   },
   {
@@ -851,7 +851,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
   
   const tooltipContent = uppercaseTooltip ? (fullLabel || label).toUpperCase() : (fullLabel || label);
 
-  if (isTruncated || fullLabel) {
+  if ((isTruncated || fullLabel) && !column.calculated) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -1016,6 +1016,22 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     );
   };
 
+  const centerHoverZone = !column.calculated ? (
+    <div 
+      className="absolute inset-x-7 inset-y-0 z-0 flex items-center justify-center cursor-default group/center"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="w-full h-full" />
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          {(fullLabel || column.label).toUpperCase()}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  ) : null;
+
   return (
     <div className={cn("w-full h-full relative flex items-center text-white", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
       <Popover open={open} onOpenChange={setOpen}>
@@ -1023,7 +1039,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
+                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 z-10",
                 hasActiveFilter && "bg-primary/10"
               )}
               style={{ width: 28 }}
@@ -1038,7 +1054,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         ) : (
           <PopoverTrigger asChild>
             <button
-              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer rounded flex-shrink-0"
+              className="flex items-center justify-center h-full text-xs font-medium cursor-pointer rounded flex-shrink-0 z-10"
               style={{ width: 28 }}
               data-testid={`filter-trigger-${column.key}`}
             >
