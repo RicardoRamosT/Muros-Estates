@@ -1759,7 +1759,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         <ExclusiveSelect 
           value={currentValue} 
           onValueChange={(val) => {
-            if (val === "__sin_asignar__") {
+            if (val === "__clear__") {
               onChange("");
             } else {
               onChange(val);
@@ -1773,7 +1773,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__sin_asignar__" className="text-muted-foreground">Sin Asignar</SelectItem>
+            <SelectItem value="__clear__" className="text-muted-foreground italic">
+              <span className="opacity-50">—</span>
+            </SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
@@ -3811,12 +3813,15 @@ export function TypologySpreadsheet() {
                           });
                         }
 
-                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development", "tipoDesarrollo"]);
+                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development"]);
                         const hasDevelopment = !!(mergedRow.development);
+                        const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
                         let isLockedByFlow = false;
                         if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
                           if (!hasDevelopment) {
+                            isLockedByFlow = true;
+                          } else if (!hasTipoDesarrollo && col.key !== "tipoDesarrollo") {
                             isLockedByFlow = true;
                           } else if (!hasType && col.key !== "type") {
                             isLockedByFlow = true;
