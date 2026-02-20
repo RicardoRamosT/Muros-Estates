@@ -3385,11 +3385,9 @@ export function TypologySpreadsheet() {
                                 }}
                                 hideLabel
                               />
-                              <div className="flex-1 min-w-0 flex justify-center items-center">
-                                <span className="text-[10px] font-bold truncate uppercase opacity-50 px-1">
-                                  {col.label}
-                                </span>
-                              </div>
+                              <span className="text-[10px] font-bold truncate uppercase opacity-50 flex-1 text-center px-1">
+                                {col.label}
+                              </span>
                               <button
                                 onClick={() => toggleColumn(col.key)}
                                 className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10"
