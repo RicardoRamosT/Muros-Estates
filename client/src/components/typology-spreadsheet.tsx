@@ -171,7 +171,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "generales",
-    label: "",
+    label: "DEPARTAMENTO",
     parentLabel: "DEPARTAMENTO",
     headerColor: "",
     columnHeaderColor: "",
@@ -3118,7 +3118,7 @@ export function TypologySpreadsheet() {
                       )}
                       {showLabel && (
                         <TruncatedLabel 
-                          label={(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel} 
+                          label={displayLabel} 
                           columnKey={groupKey} 
                           uppercaseTooltip={true}
                         />
