@@ -3046,6 +3046,10 @@ export function TypologySpreadsheet() {
                         totalWidth += section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                       }
                     }
+                    if (!anyExpanded && displayLabel) {
+                      const minLabelWidth = displayLabel.length * 8 + 44;
+                      totalWidth = Math.max(totalWidth, minLabelWidth);
+                    }
                   }
 
                   const allColsInGroupCollapsed = !isGroupCollapsed && anyExpanded && group.sections.every(({ section }) => {
@@ -3169,6 +3173,7 @@ export function TypologySpreadsheet() {
                   const groupKey = group.sections.map(s => s.section.id).join("-");
                   const isGroupCollapsed = collapsedGroups.has(groupKey);
                   const anySectionExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                  const displayLabel2 = (group.label === "" || group.label === " ") ? "" : group.label;
                   if (isGroupCollapsed) {
                     return [(
                       <div 
@@ -3177,6 +3182,13 @@ export function TypologySpreadsheet() {
                         style={{ backgroundColor: getSectionGroupColor(SECTIONS, group.sections[0].index), width: COLLAPSED_COL_WIDTH }}
                       />
                     )];
+                  }
+                  const allSectionsIndividuallyCollapsed = !anySectionExpanded && !isGroupCollapsed;
+                  let perSectionCollapsedWidth = COLLAPSED_COL_WIDTH;
+                  if (allSectionsIndividuallyCollapsed && displayLabel2 && group.sections.length > 0) {
+                    const minLabelWidth = displayLabel2.length * 8 + 44;
+                    const totalNeeded = Math.max(group.sections.length * COLLAPSED_COL_WIDTH, minLabelWidth);
+                    perSectionCollapsedWidth = Math.ceil(totalNeeded / group.sections.length);
                   }
 
                   return group.sections.flatMap(({ section, index: sectionIndex }) => {
@@ -3190,7 +3202,7 @@ export function TypologySpreadsheet() {
                         <div 
                           key={`collapsed-${section.id}`}
                           className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white border-r border-white/20", isFirstSection && "sticky z-30")}
-                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
+                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: allSectionsIndividuallyCollapsed ? perSectionCollapsedWidth : COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -3498,6 +3510,14 @@ export function TypologySpreadsheet() {
                       />
                     )];
                   }
+                  const allSectionsIndivCollapsed3 = !anyExpanded && !isGroupCollapsed;
+                  const displayLabel3 = (group.label === "" || group.label === " ") ? "" : group.label;
+                  let perSectionCollapsedWidth3 = COLLAPSED_COL_WIDTH;
+                  if (allSectionsIndivCollapsed3 && displayLabel3 && group.sections.length > 0) {
+                    const minLabelWidth = displayLabel3.length * 8 + 44;
+                    const totalNeeded = Math.max(group.sections.length * COLLAPSED_COL_WIDTH, minLabelWidth);
+                    perSectionCollapsedWidth3 = Math.ceil(totalNeeded / group.sections.length);
+                  }
 
                   return group.sections.flatMap(({ section, index: sectionIndex }) => {
                     const isExpanded = expandedSections.has(section.id);
@@ -3507,7 +3527,7 @@ export function TypologySpreadsheet() {
                         <div 
                           key={`collapsed-filter-${section.id}`}
                           className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
-                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
+                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: allSectionsIndivCollapsed3 ? perSectionCollapsedWidth3 : COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                         />
                       )];
                     }
@@ -3614,6 +3634,14 @@ export function TypologySpreadsheet() {
                         />
                       )];
                     }
+                    const allSectionsIndivCollapsedRow = !anySectionExpanded && !isGroupCollapsed;
+                    const displayLabelRow = (group.label === "" || group.label === " ") ? "" : group.label;
+                    let perSectionCollapsedWidthRow = COLLAPSED_COL_WIDTH;
+                    if (allSectionsIndivCollapsedRow && displayLabelRow && group.sections.length > 0) {
+                      const minLabelWidth = displayLabelRow.length * 8 + 44;
+                      const totalNeeded = Math.max(group.sections.length * COLLAPSED_COL_WIDTH, minLabelWidth);
+                      perSectionCollapsedWidthRow = Math.ceil(totalNeeded / group.sections.length);
+                    }
 
                     return group.sections.flatMap(({ section, index: sectionIndex }) => {
                       const isSectionExpanded = expandedSections.has(section.id);
@@ -3625,7 +3653,7 @@ export function TypologySpreadsheet() {
                             className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
                             style={{ 
                               backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
-                              width: COLLAPSED_COL_WIDTH,
+                              width: allSectionsIndivCollapsedRow ? perSectionCollapsedWidthRow : COLLAPSED_COL_WIDTH,
                               ...(isFirstSection ? { left: 60 } : {})
                             }}
                           />
