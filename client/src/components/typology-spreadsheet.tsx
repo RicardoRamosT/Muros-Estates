@@ -3679,7 +3679,7 @@ export function TypologySpreadsheet() {
                           key={`group-collapsed-row-${row.id}-${group.label}`}
                           className="spreadsheet-cell h-full"
                           style={{ 
-                            backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                            backgroundColor: rowIndex % 2 === 0 ? "rgba(0,0,0,0.01)" : "rgba(0,0,0,0.03)", 
                             width: COLLAPSED_COL_WIDTH,
                           }}
                         />
@@ -3703,7 +3703,7 @@ export function TypologySpreadsheet() {
                             key={`collapsed-row-${row.id}-${section.id}`}
                             className="spreadsheet-cell h-full"
                             style={{ 
-                              backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                              backgroundColor: rowIndex % 2 === 0 ? "rgba(0,0,0,0.01)" : "rgba(0,0,0,0.03)", 
                               width: allSectionsIndivCollapsedRow ? perSectionCollapsedWidthRow : COLLAPSED_COL_WIDTH,
                             }}
                           />
@@ -3721,7 +3721,7 @@ export function TypologySpreadsheet() {
                               key={`${row.id}-${col.key}`}
                               className="spreadsheet-cell h-full"
                               style={{ 
-                                backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                                backgroundColor: rowIndex % 2 === 0 ? "rgba(0,0,0,0.01)" : "rgba(0,0,0,0.03)", 
                                 width: COLLAPSED_COL_WIDTH,
                               }}
                             />
