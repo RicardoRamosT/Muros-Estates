@@ -162,8 +162,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-100/30 dark:bg-gray-900/10",
     columns: [
-      { key: "city", label: "Ciudad", type: "select", options: CITIES, width: 80 },
-      { key: "zone", label: "Zona", type: "select", options: [], width: 100 },
+      { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true },
+      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
       { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
       { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
@@ -2436,6 +2436,33 @@ export function TypologySpreadsheet() {
     const updatedRow = { ...currentRow, ...(pending || {}), [field]: value };
     
     const autoPopulatedFields: Record<string, any> = {};
+
+    const autoFillCityZoneFromDevelopment = (devName: string) => {
+      if (!devName || !dbDevelopments) return;
+      const dev = dbDevelopments.find(d => d.name === devName);
+      if (dev) {
+        if (dev.city) {
+          autoPopulatedFields.city = dev.city;
+          (updatedRow as any).city = dev.city;
+          const selectedCity = catalogCities.find((c: any) => c.name === dev.city);
+          if (selectedCity) {
+            if (selectedCity.isaiPercent) {
+              autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
+              (updatedRow as any).isaPercent = selectedCity.isaiPercent;
+            }
+            if (selectedCity.notariaPercent) {
+              autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
+              (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
+            }
+          }
+        }
+        if (dev.zone) {
+          autoPopulatedFields.zone = dev.zone;
+          (updatedRow as any).zone = dev.zone;
+        }
+      }
+    };
+
     if (field === "developer" && dbDevelopers && dbDevelopments) {
       autoPopulatedFields.city = "";
       autoPopulatedFields.zone = "";
@@ -2448,40 +2475,16 @@ export function TypologySpreadsheet() {
       if (selectedDeveloper) {
         const developerDevelopments = dbDevelopments.filter(d => d.developerId === selectedDeveloper.id);
         
-        if (developerDevelopments.length > 0) {
-          const uniqueCities = Array.from(new Set(developerDevelopments.map(d => d.city).filter(Boolean)));
-          if (uniqueCities.length === 1) {
-            autoPopulatedFields.city = uniqueCities[0];
-            (updatedRow as any).city = uniqueCities[0];
-            
-            const selectedCity = catalogCities.find((c: any) => c.name === uniqueCities[0]);
-            if (selectedCity) {
-              if (selectedCity.isaiPercent) {
-                autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
-                (updatedRow as any).isaPercent = selectedCity.isaiPercent;
-              }
-              if (selectedCity.notariaPercent) {
-                autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
-                (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
-              }
-            }
-          }
-
-          const uniqueZones = Array.from(new Set(developerDevelopments.map(d => d.zone).filter(Boolean)));
-          if (uniqueZones.length === 1) {
-            autoPopulatedFields.zone = uniqueZones[0];
-            (updatedRow as any).zone = uniqueZones[0];
-          }
-
-          if (developerDevelopments.length === 1) {
-            autoPopulatedFields.development = developerDevelopments[0].name;
-            (updatedRow as any).development = developerDevelopments[0].name;
-            
-            const devTipos = (developerDevelopments[0] as any).tipos as string[] | null;
-            if (devTipos && devTipos.length > 0) {
-              autoPopulatedFields.tipoDesarrollo = devTipos;
-              (updatedRow as any).tipoDesarrollo = devTipos;
-            }
+        if (developerDevelopments.length === 1) {
+          autoPopulatedFields.development = developerDevelopments[0].name;
+          (updatedRow as any).development = developerDevelopments[0].name;
+          
+          autoFillCityZoneFromDevelopment(developerDevelopments[0].name);
+          
+          const devTipos = (developerDevelopments[0] as any).tipos as string[] | null;
+          if (devTipos && devTipos.length > 0) {
+            autoPopulatedFields.tipoDesarrollo = devTipos;
+            (updatedRow as any).tipoDesarrollo = devTipos;
           }
         }
 
@@ -2498,46 +2501,27 @@ export function TypologySpreadsheet() {
         ...prev,
         [rowId]: { 
           ...(prev[rowId] || {}), 
-          city: autoPopulatedFields.city ? "calculated" : "input",
-          zone: autoPopulatedFields.zone ? "calculated" : "input",
+          city: "calculated",
+          zone: "calculated",
           development: autoPopulatedFields.development ? "calculated" : "input"
         }
       }));
     }
     
-    if (field === "city") {
-      autoPopulatedFields.development = "";
+    if (field === "development" && dbDevelopments) {
+      autoPopulatedFields.city = "";
       autoPopulatedFields.zone = "";
-      (updatedRow as any).development = "";
+      (updatedRow as any).city = "";
       (updatedRow as any).zone = "";
-      const selectedCity = catalogCities.find((c: any) => c.name === value);
-      if (selectedCity) {
-        if (selectedCity.isaiPercent) {
-          autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
-          (updatedRow as any).isaPercent = selectedCity.isaiPercent;
-        }
-        if (selectedCity.notariaPercent) {
-          autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
-          (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
-        }
-      }
+      
+      autoFillCityZoneFromDevelopment(value as string);
+      
       setDynamicGray(prev => ({
         ...prev,
         [rowId]: { 
           ...(prev[rowId] || {}), 
-          city: "input",
-          zone: "input",
-          development: "input"
-        }
-      }));
-    }
-    
-    if (field === "zone") {
-      setDynamicGray(prev => ({
-        ...prev,
-        [rowId]: { 
-          ...(prev[rowId] || {}), 
-          zone: "input"
+          city: "calculated",
+          zone: "calculated"
         }
       }));
     }
@@ -2944,8 +2928,8 @@ export function TypologySpreadsheet() {
     if (merged.development && dbDevelopments.length > 0) {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev) {
-        if (!displayCity && dev.city) displayCity = dev.city;
-        if (!displayZone && dev.zone) displayZone = dev.zone;
+        if (dev.city) displayCity = dev.city;
+        if (dev.zone) displayZone = dev.zone;
         if (!displayNivelMantenimiento && (dev as any).nivel) displayNivelMantenimiento = (dev as any).nivel;
         if (dev.entregaProyectada) {
           const date = new Date(dev.entregaProyectada);
