@@ -1041,7 +1041,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
 
   const centerHoverZone = (fullLabel || !isAmountField) ? (
     <div 
-      className="absolute inset-x-7 inset-y-0 z-0 flex items-center justify-center cursor-default group/center"
+      className="absolute inset-0 z-0 flex items-center justify-center cursor-default group/center"
       onClick={(e) => e.stopPropagation()}
     >
       <Tooltip>
