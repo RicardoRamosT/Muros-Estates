@@ -3330,76 +3330,8 @@ export function TypologySpreadsheet() {
                       )];
                     }
 
-                    // Row 3: Filter/Sort icons and individual column collapse
                     return section.columns.map((col, colIndex) => {
-                      const isColCollapsed = collapsedColumns.has(col.key);
-                      const colW = getColWidth(col);
-                      const isFirstCol = colIndex === 0;
-                      return (
-                        <div
-                          key={`row3-${col.key}`}
-                          className={cn(
-                            "flex-shrink-0 h-full flex items-center text-white border-r border-white/10",
-                            isColCollapsed ? "justify-center" : "justify-between",
-                            isFirstCol && isFirstSection && "sticky z-30"
-                          )}
-                          style={{ 
-                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
-                            width: colW, 
-                            ...(isFirstCol && isFirstSection ? { left: 60 } : {})
-                          }}
-                        >
-                          {isColCollapsed ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => toggleColumn(col.key)}
-                                  className="flex items-center justify-center w-full h-full cursor-pointer hover:bg-white/10"
-                                  data-testid={`col-expand-${col.key}`}
-                                >
-                                  <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom" className="text-xs">
-                                Expandir {col.fullLabel || col.label}
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <div className="flex items-center justify-between w-full h-full px-1 overflow-hidden">
-                              <ColumnFilter 
-                                column={col}
-                                data={typologies}
-                                selectedValues={columnFilters[col.key] || new Set()}
-                                onFilterChange={(selected) => {
-                                  setColumnFilters(prev => ({ ...prev, [col.key]: selected }));
-                                }}
-                                sortDirection={columnSorts[col.key] || null}
-                                onSortChange={(dir) => {
-                                  setColumnSorts({ [col.key]: dir });
-                                }}
-                                sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
-                                availableValues={availableValuesMap[col.key]}
-                                rangeFilter={rangeFilters[col.key]}
-                                onRangeFilterChange={(range) => {
-                                  setRangeFilters(prev => ({ ...prev, [col.key]: range }));
-                                }}
-                                hideLabel
-                              />
-                              <span className="text-[10px] font-bold truncate uppercase opacity-50 flex-1 text-center px-1">
-                                {col.label}
-                              </span>
-                              <button
-                                onClick={() => toggleColumn(col.key)}
-                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10"
-                                style={{ width: 20 }}
-                                data-testid={`col-collapse-${col.key}`}
-                              >
-                                <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
+                      return renderStandardCol(col, colIndex === 0 && isFirstSection, true, sectionIndex);
                     });
                   });
                 });
