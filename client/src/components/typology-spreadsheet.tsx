@@ -3009,9 +3009,13 @@ export function TypologySpreadsheet() {
                   const isUnified = displayLabel === "Balcón" || displayLabel === "Terraza";
 
                   let totalWidth = 0;
-                  for (const { section } of group.sections) {
-                    const isExp = expandedSections.has(section.id);
-                    totalWidth += isExp ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
+                  if (!anyExpanded) {
+                    totalWidth = COLLAPSED_COL_WIDTH;
+                  } else {
+                    for (const { section } of group.sections) {
+                      const isExp = expandedSections.has(section.id);
+                      totalWidth += isExp ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
+                    }
                   }
                   
                   // Row 1 should only show toggle if it's the top-level parent and has no sub-sections,
@@ -3086,122 +3090,250 @@ export function TypologySpreadsheet() {
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
-              {SECTIONS.flatMap((section, sectionIndex) => {
-                const isExpanded = expandedSections.has(section.id);
-                const isFirstSection = sectionIndex === 0;
-                const isLastInParentGroup = !section.parentLabel || sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
-                if (!isExpanded || (section as any).hideInRow2) {
-                  if ((section as any).hideInRow2) return [];
-                  return [(
-                    <div 
-                      key={`collapsed-${section.id}`}
-                      className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => toggleSection(section.id)}
-                            className="flex items-center justify-center w-full h-full cursor-pointer"
-                            data-testid={`section-expand-${section.id}`}
-                          >
-                            <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">
-                          {section.label || section.subheader}
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  )];
-                }
+              {(() => {
+                const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
+                SECTIONS.forEach((section, sectionIndex) => {
+                  const groupLabel = section.parentLabel || section.label;
+                  const lastGroup = groups[groups.length - 1];
+                  if (lastGroup && lastGroup.label === groupLabel) {
+                    lastGroup.sections.push({ section, index: sectionIndex });
+                  } else {
+                    groups.push({ label: groupLabel, sections: [{ section, index: sectionIndex }] });
+                  }
+                });
 
-                // UNIFIED TITLES for Balcón and Terraza in Row 2
-                if (section.id === "distribucion") {
-                  const balconyCol = section.columns.find(c => c.key === "hasBalcony");
-                  const balconySizeCol = section.columns.find(c => c.key === "balconySize");
-                  const terraceCol = section.columns.find(c => c.key === "hasTerrace");
-                  const terraceSizeCol = section.columns.find(c => c.key === "terraceSize");
-                  
-                  const otherColsBefore = section.columns.filter(c => c.key === "bedrooms" || c.key === "bathrooms" || c.key === "areas");
-                  const otherColsAfter = section.columns.filter(c => c.key === "lockOff");
+                return groups.flatMap((group) => {
+                  const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                  if (!anyExpanded) {
+                    return [(
+                      <div 
+                        key={`group-collapsed-${group.label}`}
+                        className="flex-shrink-0 flex items-center justify-center text-xs h-full text-white"
+                        style={{ backgroundColor: getSectionGroupColor(SECTIONS, group.sections[0].index), width: COLLAPSED_COL_WIDTH }}
+                      />
+                    )];
+                  }
 
-                  return [
-                    ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false)),
-                    <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Balcón</span>
-                    </div>,
-                    <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Terraza</span>
-                    </div>,
-                    ...otherColsAfter.map(col => renderStandardCol(col, false, isLastInParentGroup))
-                  ];
-                }
+                  return group.sections.flatMap(({ section, index: sectionIndex }) => {
+                    const isExpanded = expandedSections.has(section.id);
+                    const isFirstSection = sectionIndex === 0;
+                    const isLastInParentGroup = !section.parentLabel || sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
+                    
+                    if (!isExpanded || (section as any).hideInRow2) {
+                      if ((section as any).hideInRow2) return [];
+                      return [(
+                        <div 
+                          key={`collapsed-${section.id}`}
+                          className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
+                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => toggleSection(section.id)}
+                                className="flex items-center justify-center w-full h-full cursor-pointer"
+                                data-testid={`section-expand-${section.id}`}
+                              >
+                                <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="text-xs">
+                              {section.label || section.subheader}
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )];
+                    }
 
-                if (section.id === "credito" || section.id === "mantenimiento" || section.id === "tasa_renta" || section.id === "meses") {
-                  return section.columns.map((col, idx) => {
-                    const isLastCol = idx === section.columns.length - 1;
-                    return renderStandardCol(col, idx === 0 && sectionIndex === 0, isLastCol && isLastInParentGroup);
+                    // UNIFIED TITLES for Balcón and Terraza in Row 2
+                    if (section.id === "distribucion") {
+                      const balconyCol = section.columns.find(c => c.key === "hasBalcony");
+                      const balconySizeCol = section.columns.find(c => c.key === "balconySize");
+                      const terraceCol = section.columns.find(c => c.key === "hasTerrace");
+                      const terraceSizeCol = section.columns.find(c => c.key === "terraceSize");
+                      
+                      const otherColsBefore = section.columns.filter(c => c.key === "bedrooms" || c.key === "bathrooms" || c.key === "areas");
+                      const otherColsAfter = section.columns.filter(c => c.key === "lockOff");
+
+                      return [
+                        ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex)),
+                        <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Balcón</span>
+                        </div>,
+                        <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Terraza</span>
+                        </div>,
+                        ...otherColsAfter.map(col => renderStandardCol(col, false, isLastInParentGroup, sectionIndex))
+                      ];
+                    }
+
+                    if (section.id === "credito" || section.id === "mantenimiento" || section.id === "tasa_renta" || section.id === "meses") {
+                      return section.columns.map((col, idx) => {
+                        const isLastCol = idx === section.columns.length - 1;
+                        return renderStandardCol(col, idx === 0 && sectionIndex === 0, isLastCol && isLastInParentGroup, sectionIndex);
+                      });
+                    }
+
+                    if (section.id === "impuestos") {
+                      const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
+                      const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
+                      return [
+                        <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Impuestos (ISAI)</span>
+                        </div>
+                      ];
+                    }
+
+                    if (section.id === "notaria") {
+                      const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent");
+                      const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount");
+                      return [
+                        <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Notaría</span>
+                        </div>
+                      ];
+                    }
+
+                    if (section.id === "gastos_extra") {
+                      const equipmentCol = section.columns.find(c => c.key === "equipmentCost");
+                      const furnitureCol = section.columns.find(c => c.key === "furnitureCost");
+                      const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts");
+                      return [
+                        <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Equipo</span>
+                        </div>,
+                        <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Muebles</span>
+                        </div>,
+                        <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Total</span>
+                        </div>
+                      ];
+                    }
+
+                    if (section.id === "lockoff") {
+                      const balconyCol = section.columns.find(c => c.key === "hasBalcony2");
+                      const balconySizeCol = section.columns.find(c => c.key === "balconySize2");
+                      const terraceCol = section.columns.find(c => c.key === "hasTerrace2");
+                      const terraceSizeCol = section.columns.find(c => c.key === "terraceSize2");
+                      
+                      const otherColsBefore = section.columns.filter(c => c.key === "bedrooms2" || c.key === "bathrooms2" || c.key === "areas2");
+
+                      return [
+                        ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex)),
+                        <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Balcón</span>
+                        </div>,
+                        <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
+                          <span className="text-xs font-medium text-center w-full">Terraza</span>
+                        </div>
+                      ];
+                    }
+
+                    if (section.id === "entrega") {
+                      return [(
+                        <div 
+                          key={`parent-${section.id}`}
+                          className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
+                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}) }}
+                        >
+                          <span className="text-xs font-medium text-center w-full">{section.subheader}</span>
+                        </div>
+                      )];
+                    }
+
+                    if (section.parentLabel && !section.subSections) {
+                      const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
+                      return [(
+                        <div
+                          key={`subsec-${section.id}`}
+                          className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
+                          style={{ 
+                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                            width: sectionWidth,
+                            ...(isFirstSection ? { left: 60 } : {}),
+                          }}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-between w-full h-full">
+                                <div className="pointer-events-none" style={{ width: 20 }} />
+                                <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
+                                <button
+                                  onClick={() => toggleSection(section.id)}
+                                  className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                  style={{ width: 20 }}
+                                  data-testid={`section-toggle-${section.id}`}
+                                >
+                                  <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                                </button>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="text-xs">
+                              Colapsar {section.label}
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )];
+                    }
+
+                    return section.columns.map((col, colIndex) => {
+                      const isColCollapsed = collapsedColumns.has(col.key);
+                      const colW = getColWidth(col);
+                      return (
+                        <div
+                          key={`name-${col.key}`}
+                          className={cn(
+                            "flex-shrink-0 h-full flex items-center text-white",
+                            isColCollapsed ? "justify-center" : "justify-between",
+                            isFirstSection && "sticky z-30"
+                          )}
+                          style={{ 
+                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                            width: colW, 
+                            ...(isFirstSection ? { left: 60 } : {})
+                          }}
+                        >
+                          {isColCollapsed ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => toggleColumn(col.key)}
+                                  className="flex items-center justify-center w-full h-full cursor-pointer"
+                                  data-testid={`col-expand-${col.key}`}
+                                >
+                                  <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="text-xs">
+                                {col.fullLabel || col.label}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <>
+                              <div className="flex-shrink-0" style={{ width: 20 }} />
+                              <TruncatedLabel 
+                                label={col.label} 
+                                fullLabel={col.fullLabel}
+                                columnKey={col.key}
+                              />
+                              <button
+                                onClick={() => toggleColumn(col.key)}
+                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                style={{ width: 20 }}
+                                data-testid={`col-collapse-${col.key}`}
+                              >
+                                <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      );
+                    });
                   });
-                }
+                });
 
-                if (section.id === "impuestos") {
-                  const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
-                  const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
-                  return [
-                    <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Impuestos (ISAI)</span>
-                    </div>
-                  ];
-                }
-
-                if (section.id === "notaria") {
-                  const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent");
-                  const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount");
-                  return [
-                    <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Notaría</span>
-                    </div>
-                  ];
-                }
-
-                if (section.id === "gastos_extra") {
-                  const equipmentCol = section.columns.find(c => c.key === "equipmentCost");
-                  const furnitureCol = section.columns.find(c => c.key === "furnitureCost");
-                  const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts");
-                  return [
-                    <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Equipo</span>
-                    </div>,
-                    <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Muebles</span>
-                    </div>,
-                    <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Total</span>
-                    </div>
-                  ];
-                }
-
-                if (section.id === "lockoff") {
-                  const balconyCol = section.columns.find(c => c.key === "hasBalcony2");
-                  const balconySizeCol = section.columns.find(c => c.key === "balconySize2");
-                  const terraceCol = section.columns.find(c => c.key === "hasTerrace2");
-                  const terraceSizeCol = section.columns.find(c => c.key === "terraceSize2");
-                  
-                  const otherColsBefore = section.columns.filter(c => c.key === "bedrooms2" || c.key === "bathrooms2" || c.key === "areas2");
-
-                  return [
-                    ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false)),
-                    <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Balcón</span>
-                    </div>,
-                    <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
-                      <span className="text-xs font-medium text-center w-full">Terraza</span>
-                    </div>
-                  ];
-                }
-
-                function renderStandardCol(col: ColumnDef, isSticky: boolean, _showBorder: boolean = true) {
+                function renderStandardCol(col: ColumnDef, isSticky: boolean, _showBorder: boolean = true, sectionIndex: number) {
                   const isColCollapsed = collapsedColumns.has(col.key);
                   const colW = getColWidth(col);
                   return (
@@ -3230,109 +3362,7 @@ export function TypologySpreadsheet() {
                     </div>
                   );
                 }
-
-                if (section.id === "entrega") {
-                  return [(
-                    <div 
-                      key={`parent-${section.id}`}
-                      className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}) }}
-                    >
-                      <span className="text-xs font-medium text-center w-full">{section.subheader}</span>
-                    </div>
-                  )];
-                }
-
-                if (section.parentLabel && !section.subSections) {
-                  const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
-                  const isLastInGroup = sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
-                  return [(
-                    <div
-                      key={`subsec-${section.id}`}
-                      className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
-                      style={{ 
-                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
-                        width: sectionWidth,
-                        ...(isFirstSection ? { left: 60 } : {}),
-                      }}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center justify-between w-full h-full">
-                            <div className="pointer-events-none" style={{ width: 20 }} />
-                            <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
-                            <button
-                              onClick={() => toggleSection(section.id)}
-                              className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
-                              style={{ width: 20 }}
-                              data-testid={`section-toggle-${section.id}`}
-                            >
-                              <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                            </button>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">
-                          Colapsar {section.label}
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  )];
-                }
-                return section.columns.map((col, colIndex) => {
-                  const isColCollapsed = collapsedColumns.has(col.key);
-                  const colW = getColWidth(col);
-                  const isLastCol = colIndex === section.columns.length - 1;
-                  return (
-                    <div
-                      key={`name-${col.key}`}
-                      className={cn(
-                        "flex-shrink-0 h-full flex items-center text-white",
-                        isColCollapsed ? "justify-center" : "justify-between",
-                        isFirstSection && "sticky z-30"
-                      )}
-                      style={{ 
-                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
-                        width: colW, 
-                        ...(isFirstSection ? { left: 60 } : {})
-                      }}
-                    >
-                      {isColCollapsed ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() => toggleColumn(col.key)}
-                              className="flex items-center justify-center w-full h-full cursor-pointer"
-                              data-testid={`col-expand-${col.key}`}
-                            >
-                              <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">
-                            {col.fullLabel || col.label}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <>
-                          <div className="flex-shrink-0" style={{ width: 20 }} />
-                          <TruncatedLabel 
-                            label={col.label} 
-                            fullLabel={col.fullLabel}
-                            columnKey={col.key}
-                          />
-                          <button
-                            onClick={() => toggleColumn(col.key)}
-                            className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
-                            style={{ width: 20 }}
-                            data-testid={`col-collapse-${col.key}`}
-                          >
-                            <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  );
-                });
-              })}
+              })()}
               <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -3362,64 +3392,94 @@ export function TypologySpreadsheet() {
                   sectionColor={getSectionColor(0)}
                 />
               </div>
-              {SECTIONS.flatMap((section, sectionIndex) => {
-                const isExpanded = expandedSections.has(section.id);
-                const isFirstSection = sectionIndex === 0;
-                const isLastInParentGroup3 = !section.parentLabel || sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
-                if (!isExpanded) {
-                  return [(
-                    <div 
-                      key={`collapsed-filter-${section.id}`}
-                      className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
-                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
-                    />
-                  )];
-                }
-                return section.columns.map((col, colIndex) => {
-                  const isColCollapsed = collapsedColumns.has(col.key);
-                  const colW = getColWidth(col);
-                  const isLastCol = colIndex === section.columns.length - 1;
-                  return (
-                    <div
-                      key={`filter-${col.key}`}
-                      className={cn(
-                        "flex-shrink-0 h-full overflow-hidden",
-                        isFirstSection && "sticky z-30"
-                      )}
-                      style={{ 
-                        backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
-                        width: colW, 
-                        ...(isFirstSection ? { left: 60 } : {})
-                      }}
-                    >
-                      {!isColCollapsed && (
-                        <ColumnFilter
-                          column={col}
-                          data={typologies}
-                          selectedValues={columnFilters[col.key] || new Set()}
-                          sortDirection={columnSorts[col.key] || null}
-                          onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
-                          onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
-                          sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
-                          availableValues={availableValuesMap[col.key]}
-                          rangeFilter={rangeFilters[col.key]}
-                          onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
-                          groupedOptions={
-                            col.key === "zone" ? zoneGroupedOptions :
-                            col.key === "development" ? developmentGroupedOptions :
-                            undefined
-                          }
-                          columnWidth={col.width}
-                          hideLabel={true}
-                          fullLabel={col.fullLabel || col.label}
-                          disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
-                          overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
-                        />
-                      )}
-                    </div>
-                  );
+              {(() => {
+                const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
+                SECTIONS.forEach((section, sectionIndex) => {
+                  const groupLabel = section.parentLabel || section.label;
+                  const lastGroup = groups[groups.length - 1];
+                  if (lastGroup && lastGroup.label === groupLabel) {
+                    lastGroup.sections.push({ section, index: sectionIndex });
+                  } else {
+                    groups.push({ label: groupLabel, sections: [{ section, index: sectionIndex }] });
+                  }
                 });
-              })}
+
+                return groups.flatMap((group) => {
+                  const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                  const isFirstSectionGlobal = group.sections[0].index === 0;
+
+                  if (!anyExpanded) {
+                    return [(
+                      <div 
+                        key={`group-collapsed-filter-${group.label}`}
+                        className={cn("flex-shrink-0 h-full", isFirstSectionGlobal && "sticky z-30")}
+                        style={{ 
+                          backgroundColor: getSectionGroupColor(SECTIONS, group.sections[0].index), 
+                          width: COLLAPSED_COL_WIDTH,
+                          ...(isFirstSectionGlobal ? { left: 60 } : {})
+                        }}
+                      />
+                    )];
+                  }
+
+                  return group.sections.flatMap(({ section, index: sectionIndex }) => {
+                    const isExpanded = expandedSections.has(section.id);
+                    const isFirstSection = sectionIndex === 0;
+                    if (!isExpanded) {
+                      return [(
+                        <div 
+                          key={`collapsed-filter-${section.id}`}
+                          className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
+                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
+                        />
+                      )];
+                    }
+                    return section.columns.map((col) => {
+                      const isColCollapsed = collapsedColumns.has(col.key);
+                      const colW = getColWidth(col);
+                      return (
+                        <div
+                          key={`filter-${col.key}`}
+                          className={cn(
+                            "flex-shrink-0 h-full overflow-hidden",
+                            isFirstSection && "sticky z-30"
+                          )}
+                          style={{ 
+                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
+                            width: colW, 
+                            ...(isFirstSection ? { left: 60 } : {})
+                          }}
+                        >
+                          {!isColCollapsed && (
+                            <ColumnFilter
+                              column={col}
+                              data={typologies}
+                              selectedValues={columnFilters[col.key] || new Set()}
+                              sortDirection={columnSorts[col.key] || null}
+                              onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
+                              onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
+                              sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
+                              availableValues={availableValuesMap[col.key]}
+                              rangeFilter={rangeFilters[col.key]}
+                              onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
+                              groupedOptions={
+                                col.key === "zone" ? zoneGroupedOptions :
+                                col.key === "development" ? developmentGroupedOptions :
+                                undefined
+                              }
+                              columnWidth={col.width}
+                              hideLabel={true}
+                              fullLabel={col.fullLabel || col.label}
+                              disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
+                              overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
+                            />
+                          )}
+                        </div>
+                      );
+                    });
+                  });
+                });
+              })()}
               <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 border-r" />
             </div>
           </div>
@@ -3446,142 +3506,178 @@ export function TypologySpreadsheet() {
                 </div>
                 
                 {/* Flat cell structure for perfect row alignment */}
-                {SECTIONS.flatMap((section, sectionIndex) => {
-                  const isExpanded = expandedSections.has(section.id);
-                  const isFirstSection = sectionIndex === 0;
-                  if (!isExpanded) {
-                    return [(
-                      <div 
-                        key={`collapsed-${section.id}`}
-                        className={cn(
-                          "spreadsheet-cell bg-white dark:bg-gray-900",
-                          isFirstSection && "sticky z-10"
-                        )}
-                        style={{ width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
-                      />
-                    )];
-                  }
-                  return section.columns.map((col, colIndex) => {
-                    const isColCollapsed = collapsedColumns.has(col.key);
-                    const isLastCol = colIndex === section.columns.length - 1;
-                    const isLastInSection = isLastCol && sectionIndex === SECTIONS.length - 1;
-                    const showBorder = !isLastInSection;
-                    const colW = getColWidth(col);
-
-                    if (isColCollapsed) {
-                      const collapsedCell = (
-                        <div
-                          key={col.key}
-                          className="spreadsheet-cell bg-white dark:bg-gray-900"
-                          style={{ width: COLLAPSED_COL_WIDTH }}
-                        />
-                      );
-                      if (isFirstSection) {
-                        return (
-                          <div key={`sticky-${col.key}`} className="sticky z-10" style={{ left: 60 }}>
-                            {collapsedCell}
-                          </div>
-                        );
-                      }
-                      return collapsedCell;
+                {(() => {
+                  const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
+                  SECTIONS.forEach((section, sectionIndex) => {
+                    const groupLabel = section.parentLabel || section.label;
+                    const lastGroup = groups[groups.length - 1];
+                    if (lastGroup && lastGroup.label === groupLabel) {
+                      lastGroup.sections.push({ section, index: sectionIndex });
+                    } else {
+                      groups.push({ label: groupLabel, sections: [{ section, index: sectionIndex }] });
                     }
-                    if (col.key === "createdDate") {
-                      return (
-                        <div
-                          key={col.key}
-                          className={cn(
-                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor
-                          )}
-                          style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
-                          data-testid={`cell-createdDate-${row.id}`}
-                        >
-                          {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
-                        </div>
-                      );
-                    }
-
-                    if (col.key === "createdTime") {
-                      return (
-                        <div
-                          key={col.key}
-                          className={cn(
-                            "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
-                            section.cellColor
-                          )}
-                          style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
-                          data-testid={`cell-createdTime-${row.id}`}
-                        >
-                          {formatTime(row.createdAt)}
-                        </div>
-                      );
-                    }
-
-                    let dynamicOpts: string[] | undefined;
-                    if (col.key === "developer") dynamicOpts = developerOptions;
-                    if (col.key === "development") dynamicOpts = developmentOptions;
-                    if (col.key === "nivelMantenimiento") dynamicOpts = catalogNivelMantenimiento.filter((n: any) => n.active !== false).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)).map((n: any) => n.name);
-                    
-                    const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
-                    let isConditionallyDisabled = false;
-                    if (conditionalField) {
-                      const deps = Array.isArray(conditionalField.dependsOn) 
-                        ? conditionalField.dependsOn 
-                        : [conditionalField.dependsOn];
-                      isConditionallyDisabled = deps.some(dep => {
-                        const val = mergedRow[dep];
-                        // Only disable if explicitly false. 
-                        // null/undefined/empty should probably not disable for checkboxes that haven't been touched.
-                        return val === false;
-                      });
-                    }
-                    
-                    const rowGrayState = dynamicGray[row.id];
-                    const isDynCalc = rowGrayState?.[col.key] === "calculated";
-                    
-                    const cell = (
-                      <EditableCell
-                        key={col.key}
-                        value={mergedRow[col.key]}
-                        column={col}
-                        rowId={row.id}
-                        city={mergedRow.city}
-                        developer={mergedRow.developer}
-                        onChange={(value) => handleCellChange(row.id, col.key, value)}
-                        disabled={isConditionallyDisabled}
-                        dynamicOptions={dynamicOpts}
-                        allDevelopments={dbDevelopments}
-                        allDevelopers={dbDevelopers}
-                        vistaOptions={vistaOptions}
-                        vistasByDevelopment={vistasByDevelopment}
-                        areaOptions={areaOptions}
-                        incluyeOptions={incluyeOptions}
-                        tipologiaOptions={tipologiaOptions}
-                        typesByDevelopment={typesByDevelopment}
-                        recamaraOptions={recamaraOptions}
-                        banoOptions={banoOptions}
-                        cajonOptions={cajonOptions}
-                        developerSelectOptions={developerOptions}
-                        zoneOptionsByCity={zoneOptionsByCity}
-                        isLastInSection={isLastInSection}
-                        row={mergedRow as Typology}
-                        sectionCellColor={section.cellColor}
-                        isDynamicCalculated={isDynCalc}
-                        filteredDevelopmentName={filteredDevelopmentName}
-                        linkedSizeValue={col.linkedSizeField ? mergedRow[col.linkedSizeField] : undefined}
-                        onLinkedSizeChange={col.linkedSizeField ? (val) => handleCellChange(row.id, col.linkedSizeField!, val) : undefined}
-                      />
-                    );
-                    if (isFirstSection) {
-                      return (
-                        <div key={`sticky-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 60 }}>
-                          {cell}
-                        </div>
-                      );
-                    }
-                    return cell;
                   });
-                })}
+
+                  return groups.flatMap((group) => {
+                    const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
+                    const isFirstSectionGlobal = group.sections[0].index === 0;
+
+                    if (!anyExpanded) {
+                      return [(
+                        <div 
+                          key={`group-collapsed-row-${row.id}-${group.label}`}
+                          className={cn("spreadsheet-cell h-full", isFirstSectionGlobal && "sticky z-10")}
+                          style={{ 
+                            backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                            width: COLLAPSED_COL_WIDTH,
+                            ...(isFirstSectionGlobal ? { left: 60 } : {})
+                          }}
+                        />
+                      )];
+                    }
+
+                    return group.sections.flatMap(({ section, index: sectionIndex }) => {
+                      const isExpanded = expandedSections.has(section.id);
+                      const isFirstSection = sectionIndex === 0;
+                      if (!isExpanded) {
+                        return [(
+                          <div 
+                            key={`collapsed-row-${row.id}-${section.id}`}
+                            className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
+                            style={{ 
+                              backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                              width: COLLAPSED_COL_WIDTH,
+                              ...(isFirstSection ? { left: 60 } : {})
+                            }}
+                          />
+                        )];
+                      }
+                      return section.columns.map((col, colIndex) => {
+                        const isColCollapsed = collapsedColumns.has(col.key);
+                        const isLastCol = colIndex === section.columns.length - 1;
+                        const isLastInSection = isLastCol && sectionIndex === SECTIONS.length - 1;
+
+                        if (isColCollapsed) {
+                          return (
+                            <div 
+                              key={`${row.id}-${col.key}`}
+                              className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
+                              style={{ 
+                                backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
+                                width: COLLAPSED_COL_WIDTH,
+                                ...(isFirstSection ? { left: 60 } : {})
+                              }}
+                            />
+                          );
+                        }
+
+                        if (col.key === "createdDate") {
+                          return (
+                            <div
+                              key={col.key}
+                              className={cn(
+                                "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
+                                section.cellColor
+                              )}
+                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
+                              data-testid={`cell-createdDate-${row.id}`}
+                            >
+                              {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
+                            </div>
+                          );
+                        }
+
+                        if (col.key === "createdTime") {
+                          return (
+                            <div
+                              key={col.key}
+                              className={cn(
+                                "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
+                                section.cellColor
+                              )}
+                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
+                              data-testid={`cell-createdTime-${row.id}`}
+                            >
+                              {formatTime(row.createdAt)}
+                            </div>
+                          );
+                        }
+
+                        let val = mergedRow[col.key as keyof Typology];
+                        let dynamicOpts: string[] | undefined;
+                        if (col.key === "developer") dynamicOpts = developerOptions;
+                        if (col.key === "development") dynamicOpts = developmentOptions;
+                        if (col.key === "nivelMantenimiento") dynamicOpts = catalogNivelMantenimiento.filter((n: any) => n.active !== false).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)).map((n: any) => n.name);
+                        if (col.key === "view") {
+                          const devVistas = vistasByDevelopment[mergedRow.development || ""] || [];
+                          dynamicOpts = devVistas.length > 0 ? devVistas : vistaOptions;
+                        }
+                        if (col.key === "developmentType") {
+                          const devTypes = typesByDevelopment[mergedRow.development || ""] || [];
+                          dynamicOpts = devTypes.length > 0 ? devTypes : tipologiaOptions;
+                        }
+
+                        const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
+                        let isConditionallyDisabled = false;
+                        if (conditionalField) {
+                          const deps = Array.isArray(conditionalField.dependsOn) 
+                            ? conditionalField.dependsOn 
+                            : [conditionalField.dependsOn];
+                          isConditionallyDisabled = deps.some(dep => {
+                            const val = mergedRow[dep as keyof Typology];
+                            return val === false;
+                          });
+                        }
+                        
+                        const rowGrayState = dynamicGray[row.id];
+                        const isDynCalc = rowGrayState?.[col.key] === "calculated";
+
+                        const cell = (
+                          <EditableCell
+                            key={`${row.id}-${col.key}`}
+                            value={val}
+                            column={col}
+                            rowId={row.id}
+                            city={mergedRow.city || undefined}
+                            developer={mergedRow.developer || undefined}
+                            onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
+                            disabled={isConditionallyDisabled || !canEdit}
+                            dynamicOptions={dynamicOpts}
+                            allDevelopments={dbDevelopments}
+                            allDevelopers={dbDevelopers}
+                            vistaOptions={vistaOptions}
+                            vistasByDevelopment={vistasByDevelopment}
+                            areaOptions={areaOptions}
+                            incluyeOptions={incluyeOptions}
+                            tipologiaOptions={tipologiaOptions}
+                            typesByDevelopment={typesByDevelopment}
+                            recamaraOptions={recamaraOptions}
+                            banoOptions={banoOptions}
+                            cajonOptions={cajonOptions}
+                            developerSelectOptions={developerOptions}
+                            zoneOptionsByCity={zoneOptionsByCity}
+                            isLastInSection={isLastInSection}
+                            row={mergedRow as Typology}
+                            sectionCellColor={section.cellColor}
+                            isDynamicCalculated={isDynCalc}
+                            filteredDevelopmentName={filteredDevelopmentName}
+                            linkedSizeValue={col.linkedSizeField ? mergedRow[col.linkedSizeField as keyof Typology] : undefined}
+                            onLinkedSizeChange={col.linkedSizeField ? (newVal) => handleCellChange(row.id, col.linkedSizeField!, newVal) : undefined}
+                          />
+                        );
+
+                        if (isFirstSection) {
+                          return (
+                            <div key={`sticky-${row.id}-${col.key}`} className="sticky z-10 bg-gray-50 dark:bg-gray-800" style={{ left: 60 }}>
+                              {cell}
+                            </div>
+                          );
+                        }
+                        return cell;
+                      });
+                    });
+                  });
+                })()}
                 
                 <div 
                   className="spreadsheet-cell w-24 flex-shrink-0 justify-center gap-0.5"
