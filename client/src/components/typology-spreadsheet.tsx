@@ -2510,16 +2510,25 @@ export function TypologySpreadsheet() {
     });
   }, [typologies]);
 
-  const hasScrolledToBottomRef = useRef(false);
+  const scrollToBottomPhaseRef = useRef<'idle' | 'loading_all' | 'done'>('idle');
   useEffect(() => {
-    if (isLoading || typologies.length === 0 || hasScrolledToBottomRef.current) return;
-    hasScrolledToBottomRef.current = true;
-    requestAnimationFrame(() => {
-      if (contentScrollRef.current) {
-        contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
-      }
-    });
+    if (isLoading || typologies.length === 0 || scrollToBottomPhaseRef.current !== 'idle') return;
+    scrollToBottomPhaseRef.current = 'loading_all';
+    setVisibleCount(typologies.length);
   }, [isLoading, typologies]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'loading_all') return;
+    if (visibleCount < typologies.length) return;
+    scrollToBottomPhaseRef.current = 'done';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (contentScrollRef.current) {
+          contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
+        }
+      });
+    });
+  }, [visibleCount, typologies.length]);
   
   const createMutation = useMutation({
     mutationFn: async (data: Partial<Typology>) => {
@@ -3082,6 +3091,7 @@ export function TypologySpreadsheet() {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'done') return;
     setVisibleCount(INITIAL_ROWS);
   }, [filteredAndSortedTypologies.length]);
 
