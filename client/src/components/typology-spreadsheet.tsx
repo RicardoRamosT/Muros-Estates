@@ -3118,7 +3118,7 @@ export function TypologySpreadsheet() {
                       )}
                       {showLabel && (
                         <TruncatedLabel 
-                          label={displayLabel} 
+                          label={displayLabel === "Generales" ? "" : displayLabel} 
                           columnKey={groupKey} 
                           uppercaseTooltip={true}
                         />
