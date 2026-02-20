@@ -157,7 +157,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "ubicacion",
-    label: "",
+    label: "General",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-gray-100 dark:bg-gray-900/30",
@@ -3118,7 +3118,7 @@ export function TypologySpreadsheet() {
                       )}
                       {showLabel && (
                         <TruncatedLabel 
-                          label={displayLabel === "Generales" ? "" : displayLabel} 
+                          label={displayLabel.toUpperCase()} 
                           columnKey={groupKey} 
                           uppercaseTooltip={true}
                         />
