@@ -1701,7 +1701,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__sin_asignar__" className="font-bold text-muted-foreground">Sin Asignar</SelectItem>
+            <SelectItem value="__sin_asignar__" className="text-muted-foreground italic">Sin Asignar</SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
@@ -2399,31 +2399,69 @@ export function TypologySpreadsheet() {
       }
     }
     
-    if (field === "developer" && dbDevelopers) {
+    if (field === "developer" && dbDevelopers && dbDevelopments) {
       const selectedDeveloper = dbDevelopers.find((d: any) => d.name === value);
       if (selectedDeveloper) {
-        if ((selectedDeveloper as any).ciudad) {
-          autoPopulatedFields.city = (selectedDeveloper as any).ciudad;
-          (updatedRow as any).city = (selectedDeveloper as any).ciudad;
-          const selectedCity = catalogCities.find((c: any) => c.name === (selectedDeveloper as any).ciudad);
-          if (selectedCity) {
-            if (selectedCity.isaiPercent) {
-              autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
-              (updatedRow as any).isaPercent = selectedCity.isaiPercent;
+        // Find all developments for this developer
+        const developerDevelopments = dbDevelopments.filter(d => d.developerId === selectedDeveloper.id);
+        
+        if (developerDevelopments.length > 0) {
+          // Unique cities
+          const uniqueCities = Array.from(new Set(developerDevelopments.map(d => d.city).filter(Boolean)));
+          if (uniqueCities.length === 1) {
+            autoPopulatedFields.city = uniqueCities[0];
+            (updatedRow as any).city = uniqueCities[0];
+            
+            const selectedCity = catalogCities.find((c: any) => c.name === uniqueCities[0]);
+            if (selectedCity) {
+              if (selectedCity.isaiPercent) {
+                autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
+                (updatedRow as any).isaPercent = selectedCity.isaiPercent;
+              }
+              if (selectedCity.notariaPercent) {
+                autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
+                (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
+              }
             }
-            if (selectedCity.notariaPercent) {
-              autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
-              (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
+          }
+
+          // Unique zones
+          const uniqueZones = Array.from(new Set(developerDevelopments.map(d => d.zone).filter(Boolean)));
+          if (uniqueZones.length === 1) {
+            autoPopulatedFields.zone = uniqueZones[0];
+            (updatedRow as any).zone = uniqueZones[0];
+          }
+
+          // Unique development
+          if (developerDevelopments.length === 1) {
+            autoPopulatedFields.development = developerDevelopments[0].name;
+            (updatedRow as any).development = developerDevelopments[0].name;
+            
+            const devTipos = (developerDevelopments[0] as any).tipos as string[] | null;
+            if (devTipos && devTipos.length > 0) {
+              autoPopulatedFields.tipoDesarrollo = devTipos;
+              (updatedRow as any).tipoDesarrollo = devTipos;
             }
           }
         }
-        if ((selectedDeveloper as any).zona) {
-          autoPopulatedFields.zone = (selectedDeveloper as any).zona;
-          (updatedRow as any).zone = (selectedDeveloper as any).zona;
+
+        // Keep existing logic for developer-specific types if not already set
+        if (!autoPopulatedFields.tipoDesarrollo) {
+          const devRecTipos = (selectedDeveloper as any).tipos as string[] | null;
+          if (devRecTipos && devRecTipos.length > 0) {
+            autoPopulatedFields.tipoDesarrollo = devRecTipos;
+            (updatedRow as any).tipoDesarrollo = devRecTipos;
+          }
         }
+
         setDynamicGray(prev => ({
           ...prev,
-          [rowId]: { ...(prev[rowId] || {}), city: "calculated", zone: "calculated" }
+          [rowId]: { 
+            ...(prev[rowId] || {}), 
+            city: autoPopulatedFields.city ? "calculated" : (prev[rowId]?.city || "input"),
+            zone: autoPopulatedFields.zone ? "calculated" : (prev[rowId]?.zone || "input"),
+            development: autoPopulatedFields.development ? "calculated" : (prev[rowId]?.development || "input")
+          }
         }));
       }
     }
