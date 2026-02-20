@@ -3022,7 +3022,7 @@ export function TypologySpreadsheet() {
                   // Actually, the issue is that Row 1 "plus" appears when Row 2 is collapsed.
                   // But Row 1 label "ENGANCHE" is still there.
                   
-                  const showRow1Toggle = !group.sections.some(s => s.section.parentLabel && !s.section.subSections);
+                  const showRow1Toggle = true;
 
                   return (
                     <div 
@@ -3050,8 +3050,9 @@ export function TypologySpreadsheet() {
                               onClick={() => {
                                 setExpandedSections(prev => {
                                   const n = new Set(prev);
+                                  const anyCurrentGroupExpanded = group.sections.some(s => prev.has(s.section.id));
                                   for (const { section } of group.sections) {
-                                    if (allExpanded) n.delete(section.id);
+                                    if (anyCurrentGroupExpanded) n.delete(section.id);
                                     else n.add(section.id);
                                   }
                                   return n;
@@ -3061,7 +3062,7 @@ export function TypologySpreadsheet() {
                               style={anyExpanded ? { width: 20 } : undefined}
                               data-testid={`section-toggle-${group.sections[0].section.id}`}
                             >
-                              {allExpanded ? (
+                              {anyExpanded ? (
                                 <Minus className="w-3 h-3" style={{ color: 'white' }} />
                               ) : (
                                 <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3069,7 +3070,7 @@ export function TypologySpreadsheet() {
                             </button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" className="text-xs">
-                            {allExpanded ? `Colapsar ${group.label}` : group.label}
+                            {anyExpanded ? `Colapsar ${group.label}` : group.label}
                           </TooltipContent>
                         </Tooltip>
                       )}
