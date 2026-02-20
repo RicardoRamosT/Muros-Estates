@@ -156,3 +156,11 @@ Located in `client/src/components/ui/formula-tooltip.tsx`:
 - Merged pre_credito section into Crédito Hipotecario (single section with all mortgage fields)
 - Added nivelMantenimiento dropdown to typologies (populated from catalog_nivel_mantenimiento)
 - Calculated fields from Nivel Mantenimiento catalog: Equipo = sizeFinal × equipo, Muebles = sizeFinal × muebles, maintenanceM2 = valor, maintenanceInitial = maintenanceM2 × sizeFinal
+- Row-level batch saving: changes accumulate locally and save on Guardar button click or row switch (auto-save)
+- Guardar button (blue, orange flash RGB 255,181,73 on save) positioned left of Nuevo button
+- Active row visual highlighting (blue ring/background)
+- 3-state Activo button: No-rojo (incomplete), No-amarillo (all fields filled, ready), Sí-verde (active/published)
+- isTypologyComplete validation: checks all editable fields filled, respects conditional dependencies, skips calculated/readonly
+- Auto-deactivation: if active row becomes incomplete via edit, active auto-resets to false
+- Balcón/Terraza "Sin Asignar" (S/A): third option (null in DB), white background, normal text; when selected, size field not required
+- New typology rows default to active=false (No rojo)
