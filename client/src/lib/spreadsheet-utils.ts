@@ -173,7 +173,7 @@ export const TYPOLOGY_FORMULAS: FormulaDefinition[] = [
   },
   { 
     field: "discountAmount", 
-    label: "Monto Descuento", 
+    label: "Descuento", 
     formula: "Precio × (% Descuento ÷ 100)",
     description: "Calculado desde el porcentaje de descuento, o ingresado manualmente"
   },
@@ -185,7 +185,7 @@ export const TYPOLOGY_FORMULAS: FormulaDefinition[] = [
   },
   { 
     field: "initialAmount", 
-    label: "Monto Inicial", 
+    label: "Inicial", 
     formula: "Precio Final × (% Inicial ÷ 100)",
     description: "Porcentaje inicial aplicado al precio final"
   },
@@ -212,6 +212,12 @@ export const TYPOLOGY_FORMULAS: FormulaDefinition[] = [
     label: "% Restante", 
     formula: "100 - % Inicial - % Durante Construcción",
     description: "Porcentaje restante después de inicial y construcción"
+  },
+  { 
+    field: "remainingAmount", 
+    label: "Al Escriturar", 
+    formula: "Precio Final × (% Restante ÷ 100)",
+    description: "Monto restante a pagar al momento de la escritura"
   },
   { 
     field: "totalPostDeliveryCosts", 

@@ -200,7 +200,7 @@ const SECTIONS: SectionDef[] = [
       { key: "price", label: "Precio", type: "decimal", width: 90, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 75, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 60, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
-      { key: "discountAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency" },
+      { key: "discountAmount", label: "$", type: "decimal", width: 70, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital Semilla", type: "boolean", width: 95, fullLabel: "Capital Semilla" },
@@ -307,7 +307,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "initialPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
-      { key: "initialAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial Monto" },
+      { key: "initialAmount", label: "$", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial" },
     ],
   },
   {
@@ -319,7 +319,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
-      { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo Monto" },
+      { key: "duringConstructionAmount", label: "$", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo" },
       { key: "paymentMonths", label: "M", type: "number", width: 60, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
     ],
@@ -333,7 +333,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
       { key: "remainingPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
-      { key: "remainingAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar Monto", calculated: true },
+      { key: "remainingAmount", label: "$", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar", calculated: true },
     ],
   },
   {
@@ -534,7 +534,7 @@ const SECTIONS: SectionDef[] = [
       { key: "appreciationMonths", label: "Meses", type: "number", width: 60 },
       { key: "appreciationYears", label: "Años", type: "number", width: 60 },
       { key: "appreciationTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
-      { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Monto Final" },
+      { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Valor Final" },
     ],
   },
   ];
