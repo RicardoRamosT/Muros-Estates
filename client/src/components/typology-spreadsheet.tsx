@@ -2509,6 +2509,17 @@ export function TypologySpreadsheet() {
       queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
     });
   }, [typologies]);
+
+  const hasScrolledToBottomRef = useRef(false);
+  useEffect(() => {
+    if (isLoading || typologies.length === 0 || hasScrolledToBottomRef.current) return;
+    hasScrolledToBottomRef.current = true;
+    requestAnimationFrame(() => {
+      if (contentScrollRef.current) {
+        contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
+      }
+    });
+  }, [isLoading, typologies]);
   
   const createMutation = useMutation({
     mutationFn: async (data: Partial<Typology>) => {
