@@ -1604,9 +1604,16 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
 
     if (column.key === "development" && allDevelopments) {
-      const devsToShow = city
-        ? allDevelopments.filter(d => d.city === city)
-        : allDevelopments;
+      let devsToShow = allDevelopments;
+      if (developer && allDevelopers) {
+        const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
+        if (devRecord) {
+          devsToShow = devsToShow.filter(d => d.developerId === devRecord.id);
+        }
+      }
+      if (city) {
+        devsToShow = devsToShow.filter(d => d.city === city);
+      }
       const devNames = devsToShow
         .map(d => d.name)
         .filter(Boolean)
