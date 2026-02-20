@@ -3051,13 +3051,11 @@ export function TypologySpreadsheet() {
                     if (!isExp) return true;
                     return section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
                   });
-
-                  const showExpanded = anyExpanded && !allColsInGroupCollapsed;
                   
                   return (
                     <div 
                       key={group.sections.map(s => s.section.id).join("-")} 
-                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
+                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", anyExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
@@ -3065,10 +3063,10 @@ export function TypologySpreadsheet() {
                         borderRight: 'none'
                       }}
                     >
-                      {showExpanded && (
+                      {anyExpanded && (
                         <div className="pointer-events-none" style={{ width: 20 }} />
                       )}
-                      {showExpanded && (
+                      {anyExpanded && (
                         <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
                           {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
                         </span>
@@ -3099,11 +3097,11 @@ export function TypologySpreadsheet() {
                                 });
                               }
                             }}
-                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !showExpanded && "w-full")}
-                            style={showExpanded ? { width: 20 } : undefined}
+                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
+                            style={anyExpanded ? { width: 20 } : undefined}
                             data-testid={`section-toggle-${group.sections[0].section.id}`}
                           >
-                            {showExpanded ? (
+                            {anyExpanded && !allColsInGroupCollapsed ? (
                               <Minus className="w-3 h-3" style={{ color: 'white' }} />
                             ) : (
                               <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3111,7 +3109,7 @@ export function TypologySpreadsheet() {
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
-                          {showExpanded ? `Colapsar ${group.label}` : group.label}
+                          {anyExpanded && !allColsInGroupCollapsed ? `Colapsar ${group.label}` : group.label}
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -3301,33 +3299,6 @@ export function TypologySpreadsheet() {
                       const allColsCollapsedInSection = section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
                       const sectionColKeys = section.columns.map(c => c.key);
 
-                      if (allColsCollapsedInSection) {
-                        return [(
-                          <div
-                            key={`subsec-${section.id}`}
-                            className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
-                            style={{ 
-                              backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
-                              width: sectionWidth,
-                              ...(isFirstSection ? { left: 60 } : {}),
-                            }}
-                          >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => toggleColumns(sectionColKeys)}
-                                  className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-white/10"
-                                  data-testid={`subsec-expand-${section.id}`}
-                                >
-                                  <Plus className="w-3 h-3 text-white" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom" className="text-xs">Expandir {section.label}</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        )];
-                      }
-
                       return [(
                         <div
                           key={`subsec-${section.id}`}
@@ -3344,17 +3315,27 @@ export function TypologySpreadsheet() {
                                 <div className="pointer-events-none" style={{ width: 20 }} />
                                 <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
                                 <button
-                                  onClick={() => toggleSection(section.id)}
+                                  onClick={() => {
+                                    if (allColsCollapsedInSection) {
+                                      toggleColumns(sectionColKeys);
+                                    } else {
+                                      toggleSection(section.id);
+                                    }
+                                  }}
                                   className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
                                   style={{ width: 20 }}
                                   data-testid={`section-toggle-${section.id}`}
                                 >
-                                  <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                                  {allColsCollapsedInSection ? (
+                                    <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                                  ) : (
+                                    <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                                  )}
                                 </button>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="bottom" className="text-xs">
-                              Colapsar {section.label}
+                              {allColsCollapsedInSection ? `Expandir ${section.label}` : `Colapsar ${section.label}`}
                             </TooltipContent>
                           </Tooltip>
                         </div>
