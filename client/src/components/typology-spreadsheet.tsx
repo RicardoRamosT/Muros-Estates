@@ -225,9 +225,9 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60 },
+      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize" },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60 },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize" },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85 },
     ],
@@ -242,9 +242,9 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60 },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize2" },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60 },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize2" },
       { key: "terraceSize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
     ],
     conditionalFields: [
@@ -670,6 +670,60 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     result.maintenanceM2 = maintenanceM2.toFixed(2);
   }
   return result;
+}
+
+function isTypologyComplete(row: Partial<Typology>): boolean {
+  const SKIP_FIELDS = new Set(["active", "createdDate", "createdTime", "city", "zone"]);
+  const BALCONY_TERRACE_FIELDS = new Set(["hasBalcony", "hasTerrace", "hasBalcony2", "hasTerrace2"]);
+  const BALCONY_SIZE_MAP: Record<string, string> = {
+    hasBalcony: "balconySize",
+    hasTerrace: "terraceSize",
+    hasBalcony2: "balconySize2",
+    hasTerrace2: "terraceSize2",
+  };
+
+  const conditionalDeps: Record<string, string | string[]> = {};
+  for (const section of SECTIONS) {
+    if (section.conditionalFields) {
+      for (const cf of section.conditionalFields) {
+        conditionalDeps[cf.field] = cf.dependsOn;
+      }
+    }
+  }
+
+  for (const section of SECTIONS) {
+    for (const col of section.columns) {
+      if (SKIP_FIELDS.has(col.key)) continue;
+      if (col.calculated) continue;
+
+      const dep = conditionalDeps[col.key];
+      if (dep) {
+        if (Array.isArray(dep)) {
+          const anyDisabled = dep.some(d => !row[d as keyof Typology]);
+          if (anyDisabled) continue;
+        } else {
+          if (!row[dep as keyof Typology]) continue;
+        }
+      }
+
+      const sizeFieldParent = Object.entries(BALCONY_SIZE_MAP).find(([_, size]) => size === col.key);
+      if (sizeFieldParent) {
+        const parentVal = row[sizeFieldParent[0] as keyof Typology];
+        if (parentVal === null || parentVal === undefined) continue;
+      }
+
+      const val = row[col.key as keyof Typology];
+
+      if (BALCONY_TERRACE_FIELDS.has(col.key)) {
+        continue;
+      }
+
+      if (val === null || val === undefined || val === "") return false;
+      if (typeof val === "number" && isNaN(val)) return false;
+    }
+  }
+
+  return true;
 }
 
 function formatValue(value: any, format?: string): string {
@@ -1407,9 +1461,10 @@ interface EditableCellProps {
   filteredDevelopmentName?: string | null;
   linkedSizeValue?: any;
   onLinkedSizeChange?: (value: any) => void;
+  isComplete?: boolean;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1484,6 +1539,55 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     );
   }
   
+  if (column.type === "boolean" && column.key === "active") {
+    const activeState = value === true ? "active" : (isComplete ? "ready" : "incomplete");
+
+    let bgColor: string;
+    let textColor: string;
+    let label: string;
+
+    switch (activeState) {
+      case "active":
+        bgColor = "#dcfce7";
+        textColor = "text-green-700 font-medium";
+        label = "Sí";
+        break;
+      case "ready":
+        bgColor = "#fef3c7";
+        textColor = "text-amber-700 font-medium";
+        label = "No";
+        break;
+      case "incomplete":
+      default:
+        bgColor = "#fee2e2";
+        textColor = "text-red-600 font-medium";
+        label = "No";
+        break;
+    }
+
+    return (
+      <div
+        className={cn("spreadsheet-cell px-0", cellBorderClass)}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: bgColor }}
+      >
+        <button
+          className={cn("h-6 w-full text-xs", textColor)}
+          onClick={() => {
+            if (activeState === "ready") {
+              onChange(true);
+            } else if (activeState === "active") {
+              onChange(false);
+            }
+          }}
+          disabled={activeState === "incomplete"}
+          data-testid={`active-${rowId}`}
+        >
+          {label}
+        </button>
+      </div>
+    );
+  }
+
   if (column.type === "boolean") {
     // Cell background: light green for Sí, light red for No
     const cellBgColor = value === true 
@@ -1499,42 +1603,51 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         : 'text-muted-foreground';
     if (column.linkedSizeField && onLinkedSizeChange) {
       const sizeVal = linkedSizeValue != null ? String(linkedSizeValue) : "";
+      const linkedBgColor = value === true ? '#dcfce7' : value === false ? '#fee2e2' : undefined;
+      const linkedTextClass = value === true ? 'text-green-700 font-medium' : value === false ? 'text-red-600 font-medium' : 'text-foreground';
+      const showSize = value === true || value === false;
       return (
         <div 
           className={cn("spreadsheet-cell px-0 flex items-stretch h-full", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
-          {/* Boolean Part (Sí/No) */}
           <div 
-            className={cn("flex items-center justify-center border-r border-gray-200 dark:border-gray-700", textColorClass)}
-            style={{ backgroundColor: cellBgColor, width: 44, flexShrink: 0 }}
+            className={cn("flex items-center justify-center border-r border-gray-200 dark:border-gray-700", linkedTextClass)}
+            style={{ backgroundColor: linkedBgColor, width: 44, flexShrink: 0 }}
           >
             <ExclusiveSelect
-              value={value === true ? "si" : value === false ? "no" : ""}
-              onValueChange={(val) => onChange(val === "si")}
+              value={value === true ? "si" : value === false ? "no" : "sa"}
+              onValueChange={(val) => {
+                if (val === "sa") onChange(null);
+                else onChange(val === "si");
+              }}
             >
-              <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-                <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+              <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 ${linkedTextClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
+                <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "S/A"}</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                 <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                <SelectItem value="sa" className="text-foreground">Sin Asignar</SelectItem>
               </SelectContent>
             </ExclusiveSelect>
           </div>
-          {/* Size Part (m²) */}
           <div className="flex-1 bg-white dark:bg-gray-900">
-            <input
-              type="text"
-              value={sizeVal}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9.]/g, "");
-                onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
-              }}
-              className="h-full w-full text-xs px-2 bg-transparent border-0 outline-none text-right"
-              placeholder="0.00"
-              data-testid={`input-${column.linkedSizeField}-${rowId}`}
-            />
+            {showSize ? (
+              <input
+                type="text"
+                value={sizeVal}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, "");
+                  onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
+                }}
+                className="h-full w-full text-xs px-2 bg-transparent border-0 outline-none text-right"
+                placeholder="0.00"
+                data-testid={`input-${column.linkedSizeField}-${rowId}`}
+              />
+            ) : (
+              <div className="h-full w-full bg-gray-200/60 dark:bg-gray-800/50" />
+            )}
           </div>
         </div>
       );
@@ -2679,6 +2792,14 @@ export function TypologySpreadsheet() {
       bidirectionalFields.remainingPercent = (updatedRow as any).remainingPercent;
     }
     
+    if (field !== "active") {
+      const mergedActive = fullUpdate.active !== undefined ? fullUpdate.active : currentRow.active;
+      if (mergedActive === true && !isTypologyComplete(fullUpdate)) {
+        (fullUpdate as any).active = false;
+        autoPopulatedFields.active = false;
+      }
+    }
+
     setPendingChanges(prev => {
       const next = new Map(prev);
       const existing = next.get(rowId) || {};
@@ -2747,6 +2868,7 @@ export function TypologySpreadsheet() {
         initialData[key] = globalDefaultsMap[key];
       }
     }
+    initialData.active = false;
     createMutation.mutate(initialData);
   };
   
@@ -3919,6 +4041,7 @@ export function TypologySpreadsheet() {
                             filteredDevelopmentName={filteredDevelopmentName}
                             linkedSizeValue={col.linkedSizeField ? mergedRow[col.linkedSizeField as keyof Typology] : undefined}
                             onLinkedSizeChange={col.linkedSizeField ? (newVal) => handleCellChange(row.id, col.linkedSizeField!, newVal) : undefined}
+                            isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>) : undefined}
                           />
                         );
 
