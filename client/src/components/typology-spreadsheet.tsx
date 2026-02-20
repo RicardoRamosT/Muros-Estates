@@ -47,7 +47,7 @@ import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
 type TypologyField = keyof Typology;
 
 interface ColumnDef {
-  key: TypologyField;
+  key: TypologyField | "createdDate" | "createdTime";
   label: string;
   type: "text" | "number" | "decimal" | "select" | "multiselect" | "boolean" | "date" | "development-type-select";
   options?: readonly string[];
@@ -70,6 +70,8 @@ interface SectionDef {
   columns: ColumnDef[];
   subheader?: string;
   conditionalFields?: { field: TypologyField; dependsOn: TypologyField | TypologyField[] }[];
+  subSections?: string[];
+  hideInRow2?: boolean;
 }
 
 // Extra width for sort icon per column header
@@ -851,7 +853,13 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
   
   const tooltipContent = uppercaseTooltip ? (fullLabel || label).toUpperCase() : (fullLabel || label);
 
-  if ((isTruncated || fullLabel) && !column.calculated) {
+  const isAmountField = columnKey.toLowerCase().includes("amount") || 
+                        columnKey.toLowerCase().includes("price") || 
+                        columnKey.toLowerCase().includes("payment") ||
+                        columnKey.toLowerCase().includes("total") ||
+                        columnKey.toLowerCase().includes("cost");
+
+  if ((isTruncated || fullLabel) && !isAmountField) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -2005,7 +2013,7 @@ export function TypologySpreadsheet() {
 
   const getDefaultsForRow = (row: Partial<Typology>) => {
     const cityName = row.city as string;
-    const cityDefaults = cityName ? cityDefaultsMap[cityName] : undefined;
+    const cityDefaults = cityName ? (cityDefaultsMap[cityName] as any) : undefined;
     return {
       ...globalDefaultsMap,
       ...(cityDefaults ? { isaPercent: cityDefaults.isaPercent, notaryPercent: cityDefaults.notariaPercent } : {}),
