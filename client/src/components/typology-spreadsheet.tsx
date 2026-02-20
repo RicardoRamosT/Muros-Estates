@@ -596,8 +596,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const isaAmount = finalPrice * (isaPercent / 100);
   const notaryAmount = finalPrice * (notaryPercent / 100);
   const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
-  const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
-  
+
   const mortgageAmount = parseFloat(row.mortgageAmount as string) || 0;
   const mortgageYears = (row.mortgageYears as number) || getDefault('mortgageYears', 15);
   const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || getDefault('mortgageInterestPercent', 10.5);
@@ -616,7 +615,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const maintenanceInitialCalc = maintenanceM2 * sizeFinal;
   const maintenanceInitial = maintenanceInitialCalc > 0 ? maintenanceInitialCalc : (parseFloat(row.maintenanceInitial as string) || 0);
   const maintenanceTotal = maintenanceInitial * 12;
-  
+
   const rentInitial = parseFloat(row.rentInitial as string) || 0;
   const rentRatePercent = parseFloat(row.rentRatePercent as string) || getDefault('rentRatePercent', 7.0);
   const rentMonths = (row.rentMonths as number) || getDefault('rentMonths', 11);
