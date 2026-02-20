@@ -2508,10 +2508,8 @@ export function TypologySpreadsheet() {
     if (field === "city") {
       autoPopulatedFields.development = "";
       autoPopulatedFields.zone = "";
-      autoPopulatedFields.developer = "";
       (updatedRow as any).development = "";
       (updatedRow as any).zone = "";
-      (updatedRow as any).developer = "";
       const selectedCity = catalogCities.find((c: any) => c.name === value);
       if (selectedCity) {
         if (selectedCity.isaiPercent) {
