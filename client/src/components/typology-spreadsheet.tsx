@@ -3250,19 +3250,13 @@ export function TypologySpreadsheet() {
                           >
                             <div className="flex items-center justify-center w-full h-full relative">
                               {isFirstCol && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span 
-                                      className="absolute left-1 text-[8px] font-bold truncate uppercase opacity-30 z-20 cursor-default" 
-                                      style={{ maxWidth: COLLAPSED_COL_WIDTH - 15 }}
-                                    >
-                                      {section.label}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="bottom" className="text-xs z-[200]">
-                                    {section.label.toUpperCase()}
-                                  </TooltipContent>
-                                </Tooltip>
+                                <span 
+                                  className="absolute left-1 top-0 bottom-0 flex items-center text-[8px] font-bold truncate uppercase opacity-30 z-20 cursor-default" 
+                                  style={{ maxWidth: COLLAPSED_COL_WIDTH - 15 }}
+                                  title={section.label.toUpperCase()}
+                                >
+                                  {section.label}
+                                </span>
                               )}
                               <button
                                 onClick={() => toggleColumn(col.key)}
