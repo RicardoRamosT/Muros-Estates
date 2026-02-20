@@ -3368,10 +3368,9 @@ export function TypologySpreadsheet() {
                             <>
                               <div className="flex items-center gap-1 px-1 overflow-hidden flex-1">
                                 <ColumnFilter 
-                                  columnKey={col.key}
-                                  label={col.fullLabel || col.label}
-                                  values={getUniqueValues(col.key)}
-                                  activeFilters={columnFilters[col.key] || new Set()}
+                                  column={col}
+                                  data={typologies}
+                                  selectedValues={columnFilters[col.key] || new Set()}
                                   onFilterChange={(selected) => {
                                     setColumnFilters(prev => ({ ...prev, [col.key]: selected }));
                                   }}
@@ -3379,10 +3378,13 @@ export function TypologySpreadsheet() {
                                   onSortChange={(dir) => {
                                     setColumnSorts({ [col.key]: dir });
                                   }}
+                                  sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
+                                  availableValues={availableValuesMap[col.key]}
                                   rangeFilter={rangeFilters[col.key]}
                                   onRangeFilterChange={(range) => {
                                     setRangeFilters(prev => ({ ...prev, [col.key]: range }));
                                   }}
+                                  hideLabel
                                 />
                                 <span className="text-[10px] font-bold truncate uppercase opacity-50">
                                   {col.label}
