@@ -3014,6 +3014,16 @@ export function TypologySpreadsheet() {
                     totalWidth += isExp ? section.columns.reduce((sum, col) => sum + getColWidth(col), 0) : COLLAPSED_COL_WIDTH;
                   }
                   
+                  // Row 1 should only show toggle if it's the top-level parent and has no sub-sections,
+                  // or if we want it to specifically control the entire group.
+                  // The user says: "al colapsar algo de la 2da fila, no deberia aparecer en la 1ra fila como +"
+                  // This means Row 1 toggle should probably only be visible if it's NOT a sub-sectioned group,
+                  // OR it should reflect the state of the first section only.
+                  // Actually, the issue is that Row 1 "plus" appears when Row 2 is collapsed.
+                  // But Row 1 label "ENGANCHE" is still there.
+                  
+                  const showRow1Toggle = !group.sections.some(s => s.section.parentLabel && !s.section.subSections);
+
                   return (
                     <div 
                       key={group.sections.map(s => s.section.id).join("-")} 
@@ -3033,34 +3043,36 @@ export function TypologySpreadsheet() {
                           {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
                         </span>
                       )}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => {
-                              setExpandedSections(prev => {
-                                const n = new Set(prev);
-                                for (const { section } of group.sections) {
-                                  if (allExpanded) n.delete(section.id);
-                                  else n.add(section.id);
-                                }
-                                return n;
-                              });
-                            }}
-                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
-                            style={anyExpanded ? { width: 20 } : undefined}
-                            data-testid={`section-toggle-${group.sections[0].section.id}`}
-                          >
-                            {allExpanded ? (
-                              <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                            ) : (
-                              <Plus className="w-3 h-3" style={{ color: 'white' }} />
-                            )}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">
-                          {allExpanded ? `Colapsar ${group.label}` : group.label}
-                        </TooltipContent>
-                      </Tooltip>
+                      {showRow1Toggle && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => {
+                                setExpandedSections(prev => {
+                                  const n = new Set(prev);
+                                  for (const { section } of group.sections) {
+                                    if (allExpanded) n.delete(section.id);
+                                    else n.add(section.id);
+                                  }
+                                  return n;
+                                });
+                              }}
+                              className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
+                              style={anyExpanded ? { width: 20 } : undefined}
+                              data-testid={`section-toggle-${group.sections[0].section.id}`}
+                            >
+                              {allExpanded ? (
+                                <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                              ) : (
+                                <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">
+                            {allExpanded ? `Colapsar ${group.label}` : group.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
                   );
                 });
