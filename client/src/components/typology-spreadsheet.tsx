@@ -171,7 +171,7 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "generales",
-    label: "DEPARTAMENTO",
+    label: "",
     parentLabel: "DEPARTAMENTO",
     headerColor: "",
     columnHeaderColor: "",
