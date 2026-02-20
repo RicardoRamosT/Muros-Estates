@@ -911,7 +911,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     }
     const values = new Set<string>();
     data.forEach(row => {
-      const val = row[column.key];
+      const val = row[column.key as keyof Typology];
       if (val !== null && val !== undefined && val !== "") {
         values.add(String(val));
       }
@@ -1048,7 +1048,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           <div className="w-full h-full" />
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {column.key.toLowerCase().includes("percent") ? "Porcentaje" : label.toUpperCase()}
+          {column.key.toLowerCase().includes("percent") ? "Porcentaje" : (fullLabel || column.label).toUpperCase()}
         </TooltipContent>
       </Tooltip>
     </div>
@@ -3779,7 +3779,7 @@ export function TypologySpreadsheet() {
                           dynamicOpts = devTypes.length > 0 ? devTypes : tipologiaOptions;
                         }
 
-                        const conditionalField = section.conditionalFields?.find(cf => cf.field === col.key);
+                        const conditionalField = section.conditionalFields?.find(cf => cf.field === (col.key as TypologyField));
                         let isConditionallyDisabled = false;
                         if (conditionalField) {
                           const deps = Array.isArray(conditionalField.dependsOn) 
