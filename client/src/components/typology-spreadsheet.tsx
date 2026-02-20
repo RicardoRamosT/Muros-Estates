@@ -3084,7 +3084,22 @@ export function TypologySpreadsheet() {
                       key={`collapsed-${section.id}`}
                       className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white", isFirstSection && "sticky z-30")}
                       style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
-                    />
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => toggleSection(section.id)}
+                            className="flex items-center justify-center w-full h-full cursor-pointer"
+                            data-testid={`section-expand-${section.id}`}
+                          >
+                            <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {section.label || section.subheader}
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   )];
                 }
 
@@ -3228,16 +3243,25 @@ export function TypologySpreadsheet() {
                         ...(isFirstSection ? { left: 60 } : {}),
                       }}
                     >
-                      <div className="pointer-events-none" style={{ width: 20 }} />
-                      <span className="text-xs font-medium flex-1 text-center pointer-events-none">{section.label}</span>
-                      <button
-                        onClick={() => toggleSection(section.id)}
-                        className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
-                        style={{ width: 20 }}
-                        data-testid={`section-toggle-${section.id}`}
-                      >
-                        <Minus className="w-3 h-3" style={{ color: 'white' }} />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-between w-full h-full">
+                            <div className="pointer-events-none" style={{ width: 20 }} />
+                            <span className="text-xs font-medium flex-1 text-center pointer-events-none truncate px-1">{section.label}</span>
+                            <button
+                              onClick={() => toggleSection(section.id)}
+                              className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                              style={{ width: 20 }}
+                              data-testid={`section-toggle-${section.id}`}
+                            >
+                              <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                            </button>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          Colapsar {section.label}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   )];
                 }
