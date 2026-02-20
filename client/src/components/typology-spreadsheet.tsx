@@ -3105,7 +3105,7 @@ export function TypologySpreadsheet() {
                   return (
                     <div 
                       key={groupKey} 
-                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showLabel ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
+                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showLabel ? "justify-between" : "justify-center", isFirstSection && columnKey === "basico" && "sticky z-30")}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
@@ -3252,7 +3252,7 @@ export function TypologySpreadsheet() {
                       return [(
                         <div 
                           key={`collapsed-${section.id}`}
-                          className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white border-r border-white/20", isFirstSection && "sticky z-30")}
+                          className={cn("flex-shrink-0 flex items-center justify-center text-xs h-full text-white border-r border-white/20", isFirstSection && section.id === "basico" && "sticky z-30")}
                           style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: allSectionsIndividuallyCollapsed ? perSectionCollapsedWidth : COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                         >
                           <Tooltip>
@@ -3287,7 +3287,7 @@ export function TypologySpreadsheet() {
                             key={`all-cols-collapsed-${section.id}-${col.key}`}
                             className={cn(
                               "flex-shrink-0 h-full flex items-center justify-center text-white border-r border-white/10",
-                              isFirstCol && isFirstSection && "sticky z-30"
+                              isFirstCol && isFirstSection && section.id === "basico" && "sticky z-30"
                             )}
                             style={{ 
                               backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
@@ -3394,7 +3394,7 @@ export function TypologySpreadsheet() {
                       return [(
                         <div
                           key={`subsec-${section.id}`}
-                          className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && "sticky z-30")}
+                          className={cn("flex-shrink-0 h-full flex items-center justify-between text-white", isFirstSection && section.id === "basico" && "sticky z-30")}
                           style={{ 
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                             width: sectionWidth,
@@ -3560,7 +3560,7 @@ export function TypologySpreadsheet() {
                     return [(
                       <div 
                         key={`group-collapsed-filter-${group.label}`}
-                        className={cn("flex-shrink-0 h-full", isFirstSectionGlobal && "sticky z-30")}
+                        className={cn("flex-shrink-0 h-full", isFirstSectionGlobal && rowIndex === 0 && "sticky z-30")}
                         style={{ 
                           backgroundColor: getSectionGroupColor(SECTIONS, group.sections[0].index), 
                           width: COLLAPSED_COL_WIDTH,
@@ -3585,7 +3585,7 @@ export function TypologySpreadsheet() {
                       return [(
                         <div 
                           key={`collapsed-filter-${section.id}`}
-                          className={cn("flex-shrink-0 h-full", isFirstSection && "sticky z-30")}
+                          className={cn("flex-shrink-0 h-full", isFirstSection && section.id === "basico" && "sticky z-30")}
                           style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: allSectionsIndivCollapsed3 ? perSectionCollapsedWidth3 : COLLAPSED_COL_WIDTH, ...(isFirstSection ? { left: 60 } : {}) }}
                         />
                       )];
@@ -3598,7 +3598,7 @@ export function TypologySpreadsheet() {
                           key={`filter-${col.key}`}
                           className={cn(
                             "flex-shrink-0 h-full overflow-hidden",
-                            isFirstSection && "sticky z-30"
+                            isFirstSection && section.id === "basico" && "sticky z-30"
                           )}
                           style={{ 
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
@@ -3684,7 +3684,7 @@ export function TypologySpreadsheet() {
                       return [(
                         <div 
                           key={`group-collapsed-row-${row.id}-${group.label}`}
-                          className={cn("spreadsheet-cell h-full", isFirstSectionGlobal && "sticky z-10")}
+                          className={cn("spreadsheet-cell h-full", isFirstSectionGlobal && rowIndex === 0 && "sticky z-10")}
                           style={{ 
                             backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
                             width: COLLAPSED_COL_WIDTH,
@@ -3709,7 +3709,7 @@ export function TypologySpreadsheet() {
                         return [(
                           <div 
                             key={`collapsed-row-${row.id}-${section.id}`}
-                            className={cn("spreadsheet-cell h-full", isFirstSection && "sticky z-10")}
+                            className={cn("spreadsheet-cell h-full", isFirstSection && section.id === "basico" && "sticky z-10")}
                             style={{ 
                               backgroundColor: rowIndex % 2 === 0 ? undefined : "rgba(0,0,0,0.02)", 
                               width: allSectionsIndivCollapsedRow ? perSectionCollapsedWidthRow : COLLAPSED_COL_WIDTH,
