@@ -1450,8 +1450,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.calculated && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
           column.calculated && "text-muted-foreground",
-          disabled && !column.calculated && "bg-gray-200 dark:bg-gray-700",
-          disabled && !column.calculated && "text-gray-400 dark:text-gray-500 cursor-not-allowed",
+          disabled && !column.calculated && "bg-gray-100/40 dark:bg-gray-800/20",
+          disabled && !column.calculated && "text-gray-300 dark:text-gray-600 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
@@ -1593,7 +1593,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1 bg-gray-50/30 dark:bg-gray-800/20", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         {disabled ? (
@@ -1753,7 +1753,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-gray-50/30 dark:bg-gray-800/20", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <ExclusiveSelect 
@@ -1805,7 +1805,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0) {
       return (
         <div 
-          className={cn("spreadsheet-cell px-1 bg-gray-100 dark:bg-gray-800/50", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1 bg-gray-50/30 dark:bg-gray-800/20", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           <span className="text-xs text-muted-foreground">Sin tipos</span>
@@ -1819,7 +1819,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-gray-50 dark:bg-gray-800/50", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1 bg-gray-50/30 dark:bg-gray-800/20", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         {disabled ? (
