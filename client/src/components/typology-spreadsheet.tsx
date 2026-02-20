@@ -139,7 +139,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-50 dark:bg-gray-900/20",
     columns: [
-      { key: "active", label: "Act.", type: "boolean", width: 40, hideLabel: true, fullLabel: "Activo" },
+      { key: "active", label: "Act.", type: "boolean", width: 60, hideLabel: true, fullLabel: "Activo" },
     ],
   },
   {
@@ -150,7 +150,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 40, calculated: true, hideLabel: true, fullLabel: "Hora", centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 60, calculated: true, hideLabel: true, fullLabel: "Hora", centerCells: true },
     ],
   },
   {
@@ -199,7 +199,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 90, format: "currency" },
       { key: "hasDiscount", label: "Bono", type: "boolean", width: 75, fullLabel: "Bono Descuento" },
-      { key: "discountPercent", label: "%", type: "decimal", width: 40, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
+      { key: "discountPercent", label: "%", type: "decimal", width: 60, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
       { key: "discountAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
@@ -222,9 +222,9 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 45 },
+      { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 45 },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60 },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85 },
     ],
@@ -239,9 +239,9 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 80 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
-      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 45 },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60 },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 45 },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60 },
       { key: "terraceSize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
     ],
     conditionalFields: [
@@ -306,7 +306,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "initialPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
+      { key: "initialPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Inicial Porcentaje" },
       { key: "initialAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Inicial Monto" },
     ],
   },
@@ -318,9 +318,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "duringConstructionPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
+      { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Plazo Porcentaje" },
       { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo Monto" },
-      { key: "paymentMonths", label: "M", type: "number", width: 35, hideLabel: true, fullLabel: "Meses", centerCells: true },
+      { key: "paymentMonths", label: "M", type: "number", width: 60, hideLabel: true, fullLabel: "Meses", centerCells: true },
       { key: "monthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
     ],
   },
@@ -332,7 +332,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "remainingPercent", label: "%", type: "decimal", width: 55, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
+      { key: "remainingPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
       { key: "remainingAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar Monto", calculated: true },
     ],
   },
@@ -378,7 +378,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "isaPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
+      { key: "isaPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
       { key: "isaAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "ISAI Monto" },
     ],
   },
@@ -390,7 +390,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "notaryPercent", label: "%", type: "decimal", width: 45, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
+      { key: "notaryPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
       { key: "notaryAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "Notaría Monto" },
     ],
   },
@@ -417,8 +417,8 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency" },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
-      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
-      { key: "mortgageYears", label: "Años", type: "number", width: 55 },
+      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
+      { key: "mortgageYears", label: "Años", type: "number", width: 60 },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
@@ -461,7 +461,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
+      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
     ],
   },
   {
@@ -509,7 +509,7 @@ const SECTIONS: SectionDef[] = [
       { key: "investmentTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
       { key: "investmentNet", label: "Neta", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Inversión Neta" },
       { key: "investmentMonthly", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
-      { key: "investmentRate", label: "Tasa", type: "decimal", width: 55, format: "percent", calculated: true, centerCells: true },
+      { key: "investmentRate", label: "Tasa", type: "decimal", width: 60, format: "percent", calculated: true, centerCells: true },
     ],
   },
   {
@@ -520,7 +520,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 55, format: "percent", centerCells: true },
+      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
     ],
   },
   {
@@ -530,9 +530,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "appreciationDays", label: "Días", type: "number", width: 45 },
-      { key: "appreciationMonths", label: "Meses", type: "number", width: 50 },
-      { key: "appreciationYears", label: "Años", type: "number", width: 45 },
+      { key: "appreciationDays", label: "Días", type: "number", width: 60 },
+      { key: "appreciationMonths", label: "Meses", type: "number", width: 60 },
+      { key: "appreciationYears", label: "Años", type: "number", width: 60 },
       { key: "appreciationTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
       { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Monto Final" },
     ],
@@ -1018,30 +1018,21 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     <div className={cn("w-full h-full relative flex items-center text-white", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex-shrink-0" style={{ height: '100%' }}>
-                <PopoverTrigger asChild>
-                  <button
-                    className={cn(
-                      "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
-                      hasActiveFilter && "bg-primary/10"
-                    )}
-                    style={{ width: 28 }}
-                    data-testid={`filter-trigger-${column.key}`}
-                  >
-                    <ChevronDown className={cn(
-                      "w-3 h-3 flex-shrink-0",
-                      hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white"
-                    )} />
-                  </button>
-                </PopoverTrigger>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              {fullLabel || column.label}
-            </TooltipContent>
-          </Tooltip>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
+                hasActiveFilter && "bg-primary/10"
+              )}
+              style={{ width: 28 }}
+              data-testid={`filter-trigger-${column.key}`}
+            >
+              <ChevronDown className={cn(
+                "w-3 h-3 flex-shrink-0",
+                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white"
+              )} />
+            </button>
+          </PopoverTrigger>
         ) : (
           <PopoverTrigger asChild>
             <button
@@ -1306,7 +1297,14 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       </PopoverContent>
       </Popover>
       {hideLabel ? (
-        <div className="flex-1" />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {fullLabel || column.label}
+          </TooltipContent>
+        </Tooltip>
       ) : (
         <TruncatedLabel 
           label={column.label} 
@@ -1314,40 +1312,18 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           columnKey={column.key}
         />
       )}
-      {hideLabel ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={handleSortClick}
-              className={cn(
-                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
-                isSorted && "bg-primary/10"
-              )}
-              style={{ width: 28 }}
-              title={undefined}
-              data-testid={`sort-toggle-${column.key}`}
-            >
-              <SortIcon />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            {fullLabel || column.label}
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <button
-          onClick={handleSortClick}
-          className={cn(
-            "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
-            isSorted && "bg-primary/10"
-          )}
-          style={{ width: 28 }}
-          title={undefined}
-          data-testid={`sort-toggle-${column.key}`}
-        >
-          <SortIcon />
-        </button>
-      )}
+      <button
+        onClick={handleSortClick}
+        className={cn(
+          "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
+          isSorted && "bg-primary/10"
+        )}
+        style={{ width: 28 }}
+        title={undefined}
+        data-testid={`sort-toggle-${column.key}`}
+      >
+        <SortIcon />
+      </button>
     </div>
   );
 }
