@@ -334,7 +334,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
     columns: [
-      { key: "remainingPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Al Escriturar Porcentaje" },
+      { key: "remainingPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "remainingAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar", calculated: true },
     ],
   },
@@ -380,7 +380,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "isaPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "ISAI Porcentaje" },
+      { key: "isaPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "isaAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "ISAI Monto" },
     ],
   },
@@ -392,7 +392,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
-      { key: "notaryPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Notaría Porcentaje" },
+      { key: "notaryPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "notaryAmount", label: "$", type: "decimal", width: 85, format: "currency", calculated: true, fullLabel: "Notaría Monto" },
     ],
   },
@@ -835,7 +835,7 @@ interface ColumnFilterProps {
   overrideUniqueValues?: string[];
 }
 
-function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip, ignoreFullLabel }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean; ignoreFullLabel?: boolean }) {
+function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean }) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
   
@@ -863,7 +863,8 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip, ignoreF
                         columnKey.toLowerCase().includes("during")) && 
                         !columnKey.toLowerCase().includes("percent");
 
-  if ((isTruncated || (fullLabel && !ignoreFullLabel)) && !isAmountField) {
+  if ((isTruncated || fullLabel) && !isAmountField) {
+    const isPercent = columnKey.toLowerCase().includes("percent") || label.toLowerCase() === "porcentaje";
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -876,7 +877,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip, ignoreF
           </span>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {columnKey.toLowerCase().includes("percent") || label.toLowerCase() === "porcentaje" ? "Porcentaje" : tooltipContent}
+          {isPercent ? "Porcentaje" : tooltipContent}
         </TooltipContent>
       </Tooltip>
     );
@@ -3398,7 +3399,7 @@ export function TypologySpreadsheet() {
                         >
                           <div className="flex items-center justify-between w-full h-full">
                             <div className="pointer-events-none" style={{ width: 20 }} />
-                            <TruncatedLabel label={section.label} columnKey={section.id} ignoreFullLabel={section.id.toLowerCase().includes("percent") || section.label.toLowerCase() === "porcentaje"} />
+                            <TruncatedLabel label={section.label} columnKey={section.id} />
                             {allColsCollapsedInSection ? (
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -3467,7 +3468,7 @@ export function TypologySpreadsheet() {
                       ) : (
                         <>
                           <div style={{ width: 20 }} />
-                          <TruncatedLabel label={col.label} fullLabel={col.fullLabel} columnKey={col.key} ignoreFullLabel={col.key.toLowerCase().includes("percent")} />
+                          <TruncatedLabel label={col.label} fullLabel={col.fullLabel} columnKey={col.key} />
                           <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center cursor-pointer"><Minus className="w-3 h-3 text-white" /></button>
                         </>
                       )}
@@ -3496,7 +3497,7 @@ export function TypologySpreadsheet() {
                   return (
                     <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW }}>
                       <div style={{ width: 20 }} />
-                      <TruncatedLabel label={label} columnKey={key} ignoreFullLabel={key.toLowerCase().includes("percent") || label.toLowerCase() === "porcentaje"} />
+                      <TruncatedLabel label={label} columnKey={key} />
                       <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
                         <Minus className="w-3 h-3 text-white" />
                       </button>
