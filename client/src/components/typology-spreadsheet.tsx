@@ -1039,7 +1039,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                         column.key.toLowerCase().includes("during")) && 
                         !column.key.toLowerCase().includes("percent");
 
-  const centerHoverZone = (!column.calculated && !isAmountField) ? (
+  const centerHoverZone = (fullLabel || !isAmountField) ? (
     <div 
       className="absolute inset-x-7 inset-y-0 z-0 flex items-center justify-center cursor-default group/center"
       onClick={(e) => e.stopPropagation()}
