@@ -2716,6 +2716,17 @@ export function TypologySpreadsheet() {
     }));
   }, []);
   
+  const getUniqueValues = useCallback((columnKey: string) => {
+    const values = new Set<string>();
+    typologies.forEach(t => {
+      const val = t[columnKey as keyof Typology];
+      if (val !== null && val !== undefined && val !== "") {
+        values.add(String(val));
+      }
+    });
+    return values;
+  }, [typologies]);
+
   const filteredAndSortedTypologies = useMemo(() => {
     let result = typologies.filter(t => {
       const passesCheckboxFilters = Object.entries(columnFilters).every(([key, values]) => {
