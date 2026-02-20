@@ -1589,11 +1589,39 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   
   if (column.type === "select") {
     let options: readonly string[] = dynamicOptions || column.options || [];
-    if (column.key === "zone" && city) {
-      if (zoneOptionsByCity && zoneOptionsByCity[city]?.length > 0) {
-        options = zoneOptionsByCity[city];
-      } else {
-        options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
+    if (column.key === "city" && developer && allDevelopments && allDevelopers) {
+      const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
+      if (devRecord) {
+        const developerDevs = allDevelopments.filter(d => d.developerId === devRecord.id);
+        const uniqueCities = Array.from(new Set(developerDevs.map(d => d.city).filter(Boolean)))
+          .sort((a, b) => a.localeCompare(b, 'es'));
+        if (uniqueCities.length > 0) {
+          options = uniqueCities;
+        }
+      }
+    }
+
+    if (column.key === "zone") {
+      let zonePool: string[] = [];
+      if (developer && allDevelopments && allDevelopers) {
+        const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
+        if (devRecord) {
+          let developerDevs = allDevelopments.filter(d => d.developerId === devRecord.id);
+          if (city) {
+            developerDevs = developerDevs.filter(d => d.city === city);
+          }
+          zonePool = Array.from(new Set(developerDevs.map(d => d.zone).filter(Boolean)))
+            .sort((a, b) => a.localeCompare(b, 'es'));
+        }
+      }
+      if (zonePool.length > 0) {
+        options = zonePool;
+      } else if (city) {
+        if (zoneOptionsByCity && zoneOptionsByCity[city]?.length > 0) {
+          options = zoneOptionsByCity[city];
+        } else {
+          options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
+        }
       }
     }
     
