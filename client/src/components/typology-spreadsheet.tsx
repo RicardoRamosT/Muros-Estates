@@ -171,7 +171,8 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "generales",
-    label: "Generales",
+    label: "DEPARTAMENTO",
+    parentLabel: "DEPARTAMENTO",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)] dark:bg-[rgb(50,35,10)]",
