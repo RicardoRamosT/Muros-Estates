@@ -3365,28 +3365,28 @@ export function TypologySpreadsheet() {
                               </TooltipContent>
                             </Tooltip>
                           ) : (
-                            <>
-                              <div className="flex items-center gap-1 px-1 overflow-hidden flex-1">
-                                <ColumnFilter 
-                                  column={col}
-                                  data={typologies}
-                                  selectedValues={columnFilters[col.key] || new Set()}
-                                  onFilterChange={(selected) => {
-                                    setColumnFilters(prev => ({ ...prev, [col.key]: selected }));
-                                  }}
-                                  sortDirection={columnSorts[col.key] || null}
-                                  onSortChange={(dir) => {
-                                    setColumnSorts({ [col.key]: dir });
-                                  }}
-                                  sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
-                                  availableValues={availableValuesMap[col.key]}
-                                  rangeFilter={rangeFilters[col.key]}
-                                  onRangeFilterChange={(range) => {
-                                    setRangeFilters(prev => ({ ...prev, [col.key]: range }));
-                                  }}
-                                  hideLabel
-                                />
-                                <span className="text-[10px] font-bold truncate uppercase opacity-50">
+                            <div className="flex items-center justify-between w-full h-full px-1 overflow-hidden">
+                              <ColumnFilter 
+                                column={col}
+                                data={typologies}
+                                selectedValues={columnFilters[col.key] || new Set()}
+                                onFilterChange={(selected) => {
+                                  setColumnFilters(prev => ({ ...prev, [col.key]: selected }));
+                                }}
+                                sortDirection={columnSorts[col.key] || null}
+                                onSortChange={(dir) => {
+                                  setColumnSorts({ [col.key]: dir });
+                                }}
+                                sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
+                                availableValues={availableValuesMap[col.key]}
+                                rangeFilter={rangeFilters[col.key]}
+                                onRangeFilterChange={(range) => {
+                                  setRangeFilters(prev => ({ ...prev, [col.key]: range }));
+                                }}
+                                hideLabel
+                              />
+                              <div className="flex-1 min-w-0 flex justify-center items-center">
+                                <span className="text-[10px] font-bold truncate uppercase opacity-50 px-1">
                                   {col.label}
                                 </span>
                               </div>
@@ -3398,7 +3398,7 @@ export function TypologySpreadsheet() {
                               >
                                 <Minus className="w-3 h-3" style={{ color: 'white' }} />
                               </button>
-                            </>
+                            </div>
                           )}
                         </div>
                       );
