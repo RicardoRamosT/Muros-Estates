@@ -2687,6 +2687,18 @@ export function TypologySpreadsheet() {
     });
   };
 
+  const toggleColumns = (columnKeys: string[]) => {
+    setCollapsedColumns(prev => {
+      const next = new Set(prev);
+      const allCollapsed = columnKeys.every(k => prev.has(k));
+      for (const k of columnKeys) {
+        if (allCollapsed) next.delete(k);
+        else next.add(k);
+      }
+      return next;
+    });
+  };
+
   const getColWidth = (col: ColumnDef) => {
     if (collapsedColumns.has(col.key)) return COLLAPSED_COL_WIDTH;
     return (col.width || 100) + SORT_ICON_WIDTH;
@@ -3029,16 +3041,23 @@ export function TypologySpreadsheet() {
                       if (!isExp) {
                         totalWidth += COLLAPSED_COL_WIDTH;
                       } else {
-                        // Width should be based on columns, even if collapsed individually in Row 3
                         totalWidth += section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
                       }
                     }
                   }
+
+                  const allColsInGroupCollapsed = anyExpanded && group.sections.every(({ section }) => {
+                    const isExp = expandedSections.has(section.id);
+                    if (!isExp) return true;
+                    return section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
+                  });
+
+                  const showExpanded = anyExpanded && !allColsInGroupCollapsed;
                   
                   return (
                     <div 
                       key={group.sections.map(s => s.section.id).join("-")} 
-                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", anyExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
+                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
@@ -3046,10 +3065,10 @@ export function TypologySpreadsheet() {
                         borderRight: 'none'
                       }}
                     >
-                      {anyExpanded && (
+                      {showExpanded && (
                         <div className="pointer-events-none" style={{ width: 20 }} />
                       )}
-                      {anyExpanded && (
+                      {showExpanded && (
                         <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
                           {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
                         </span>
@@ -3058,21 +3077,33 @@ export function TypologySpreadsheet() {
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => {
-                              setExpandedSections(prev => {
-                                const n = new Set(prev);
-                                const anyCurrentGroupExpanded = group.sections.some(s => prev.has(s.section.id));
-                                for (const { section } of group.sections) {
-                                  if (anyCurrentGroupExpanded) n.delete(section.id);
-                                  else n.add(section.id);
-                                }
-                                return n;
-                              });
+                              if (allColsInGroupCollapsed) {
+                                setCollapsedColumns(prev => {
+                                  const next = new Set(prev);
+                                  for (const { section } of group.sections) {
+                                    for (const col of section.columns) {
+                                      next.delete(col.key);
+                                    }
+                                  }
+                                  return next;
+                                });
+                              } else {
+                                setExpandedSections(prev => {
+                                  const n = new Set(prev);
+                                  const anyCurrentGroupExpanded = group.sections.some(s => prev.has(s.section.id));
+                                  for (const { section } of group.sections) {
+                                    if (anyCurrentGroupExpanded) n.delete(section.id);
+                                    else n.add(section.id);
+                                  }
+                                  return n;
+                                });
+                              }
                             }}
-                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
-                            style={anyExpanded ? { width: 20 } : undefined}
+                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !showExpanded && "w-full")}
+                            style={showExpanded ? { width: 20 } : undefined}
                             data-testid={`section-toggle-${group.sections[0].section.id}`}
                           >
-                            {anyExpanded ? (
+                            {showExpanded ? (
                               <Minus className="w-3 h-3" style={{ color: 'white' }} />
                             ) : (
                               <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3080,7 +3111,7 @@ export function TypologySpreadsheet() {
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
-                          {anyExpanded ? `Colapsar ${group.label}` : group.label}
+                          {showExpanded ? `Colapsar ${group.label}` : group.label}
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -3200,22 +3231,18 @@ export function TypologySpreadsheet() {
 
                     // UNIFIED TITLES for Balcón and Terraza in Row 2
                     if (section.id === "distribucion") {
-                      const balconyCol = section.columns.find(c => c.key === "hasBalcony");
-                      const balconySizeCol = section.columns.find(c => c.key === "balconySize");
-                      const terraceCol = section.columns.find(c => c.key === "hasTerrace");
-                      const terraceSizeCol = section.columns.find(c => c.key === "terraceSize");
+                      const balconyCol = section.columns.find(c => c.key === "hasBalcony")!;
+                      const balconySizeCol = section.columns.find(c => c.key === "balconySize")!;
+                      const terraceCol = section.columns.find(c => c.key === "hasTerrace")!;
+                      const terraceSizeCol = section.columns.find(c => c.key === "terraceSize")!;
                       
                       const otherColsBefore = section.columns.filter(c => c.key === "bedrooms" || c.key === "bathrooms" || c.key === "areas");
                       const otherColsAfter = section.columns.filter(c => c.key === "lockOff");
 
                       return [
                         ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex)),
-                        <div key="unified-balcon" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Balcón</span>
-                        </div>,
-                        <div key="unified-terraza" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Terraza</span>
-                        </div>,
+                        renderUnifiedCol("balcon", "Balcón", [balconyCol, balconySizeCol], sectionIndex),
+                        renderUnifiedCol("terraza", "Terraza", [terraceCol, terraceSizeCol], sectionIndex),
                         ...otherColsAfter.map(col => renderStandardCol(col, false, isLastInParentGroup, sectionIndex))
                       ];
                     }
@@ -3228,75 +3255,79 @@ export function TypologySpreadsheet() {
                     }
 
                     if (section.id === "impuestos") {
-                      const isaPercentCol = section.columns.find(c => c.key === "isaPercent");
-                      const isaAmountCol = section.columns.find(c => c.key === "isaAmount");
-                      return [
-                        <div key="unified-impuestos" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(isaPercentCol!) + getColWidth(isaAmountCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Impuestos (ISAI)</span>
-                        </div>
-                      ];
+                      const isaPercentCol = section.columns.find(c => c.key === "isaPercent")!;
+                      const isaAmountCol = section.columns.find(c => c.key === "isaAmount")!;
+                      return [renderUnifiedCol("impuestos", "Impuestos (ISAI)", [isaPercentCol, isaAmountCol], sectionIndex)];
                     }
 
                     if (section.id === "notaria") {
-                      const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent");
-                      const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount");
-                      return [
-                        <div key="unified-notaria" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(notaryPercentCol!) + getColWidth(notaryAmountCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Notaría</span>
-                        </div>
-                      ];
+                      const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent")!;
+                      const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount")!;
+                      return [renderUnifiedCol("notaria", "Notaría", [notaryPercentCol, notaryAmountCol], sectionIndex)];
                     }
 
                     if (section.id === "gastos_extra") {
-                      const equipmentCol = section.columns.find(c => c.key === "equipmentCost");
-                      const furnitureCol = section.columns.find(c => c.key === "furnitureCost");
-                      const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts");
+                      const equipmentCol = section.columns.find(c => c.key === "equipmentCost")!;
+                      const furnitureCol = section.columns.find(c => c.key === "furnitureCost")!;
+                      const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts")!;
                       return [
-                        <div key="unified-equipo" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(equipmentCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Equipo</span>
-                        </div>,
-                        <div key="unified-muebles" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(furnitureCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Muebles</span>
-                        </div>,
-                        <div key="unified-total-post" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(totalCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Total</span>
-                        </div>
+                        renderUnifiedCol("equipo", "Equipo", [equipmentCol], sectionIndex),
+                        renderUnifiedCol("muebles", "Muebles", [furnitureCol], sectionIndex),
+                        renderUnifiedCol("total-post", "Total", [totalCol], sectionIndex)
                       ];
                     }
 
                     if (section.id === "lockoff") {
-                      const balconyCol = section.columns.find(c => c.key === "hasBalcony2");
-                      const balconySizeCol = section.columns.find(c => c.key === "balconySize2");
-                      const terraceCol = section.columns.find(c => c.key === "hasTerrace2");
-                      const terraceSizeCol = section.columns.find(c => c.key === "terraceSize2");
+                      const balconyCol = section.columns.find(c => c.key === "hasBalcony2")!;
+                      const balconySizeCol = section.columns.find(c => c.key === "balconySize2")!;
+                      const terraceCol = section.columns.find(c => c.key === "hasTerrace2")!;
+                      const terraceSizeCol = section.columns.find(c => c.key === "terraceSize2")!;
                       
                       const otherColsBefore = section.columns.filter(c => c.key === "bedrooms2" || c.key === "bathrooms2" || c.key === "areas2");
 
                       return [
                         ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex)),
-                        <div key="unified-balcon2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(balconyCol!) + getColWidth(balconySizeCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Balcón</span>
-                        </div>,
-                        <div key="unified-terraza2" className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(terraceCol!) + getColWidth(terraceSizeCol!) }}>
-                          <span className="text-xs font-medium text-center w-full">Terraza</span>
-                        </div>
+                        renderUnifiedCol("balcon2", "Balcón", [balconyCol, balconySizeCol], sectionIndex),
+                        renderUnifiedCol("terraza2", "Terraza", [terraceCol, terraceSizeCol], sectionIndex)
                       ];
                     }
 
                     if (section.id === "entrega") {
-                      return [(
-                        <div 
-                          key={`parent-${section.id}`}
-                          className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
-                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: getColWidth(section.columns[0]), ...(isFirstSection ? { left: 60 } : {}) }}
-                        >
-                          <span className="text-xs font-medium text-center w-full">{section.subheader}</span>
-                        </div>
-                      )];
+                      return [renderStandardCol(section.columns[0], isFirstSection, false, sectionIndex)];
                     }
 
                     if (section.parentLabel && !section.subSections) {
                       const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
+                      const allColsCollapsedInSection = section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
+                      const sectionColKeys = section.columns.map(c => c.key);
+
+                      if (allColsCollapsedInSection) {
+                        return [(
+                          <div
+                            key={`subsec-${section.id}`}
+                            className={cn("flex-shrink-0 h-full flex items-center justify-center text-white", isFirstSection && "sticky z-30")}
+                            style={{ 
+                              backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                              width: sectionWidth,
+                              ...(isFirstSection ? { left: 60 } : {}),
+                            }}
+                          >
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => toggleColumns(sectionColKeys)}
+                                  className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-white/10"
+                                  data-testid={`subsec-expand-${section.id}`}
+                                >
+                                  <Plus className="w-3 h-3 text-white" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="text-xs">Expandir {section.label}</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        )];
+                      }
+
                       return [(
                         <div
                           key={`subsec-${section.id}`}
@@ -3362,6 +3393,35 @@ export function TypologySpreadsheet() {
                           <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center"><Minus className="w-3 h-3 text-white" /></button>
                         </>
                       )}
+                    </div>
+                  );
+                }
+
+                function renderUnifiedCol(key: string, label: string, cols: ColumnDef[], sectionIndex: number) {
+                  const colKeys = cols.map(c => c.key);
+                  const allCollapsed = colKeys.every(k => collapsedColumns.has(k));
+                  const totalW = cols.reduce((sum, c) => sum + getColWidth(c), 0);
+                  if (allCollapsed) {
+                    return (
+                      <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW }}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button onClick={() => toggleColumns(colKeys)} className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-white/10" data-testid={`unified-expand-${key}`}>
+                              <Plus className="w-3 h-3 text-white" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">Expandir {label}</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW }}>
+                      <div style={{ width: 20 }} />
+                      <span className="text-xs font-medium text-center flex-1 truncate px-1">{label}</span>
+                      <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
+                        <Minus className="w-3 h-3 text-white" />
+                      </button>
                     </div>
                   );
                 }
