@@ -1804,13 +1804,17 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value as string] : []);
     const selectedType = currentTypes.length > 0 ? currentTypes[0] : "";
     
-    if (availableTypes.length === 0) {
+    if (availableTypes.length === 0 || disabled) {
       return (
         <div 
           className={cn("spreadsheet-cell px-1 bg-gray-100/60 dark:bg-gray-800/40", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
-          <span className="text-xs text-muted-foreground">Sin tipos</span>
+          {selectedType ? (
+            <span className="text-xs text-muted-foreground px-1">{selectedType}</span>
+          ) : (
+            <span className="text-xs">&nbsp;</span>
+          )}
         </div>
       );
     }
@@ -1824,23 +1828,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn("spreadsheet-cell px-1 bg-gray-100/60 dark:bg-gray-800/40", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
-        {disabled ? (
-          <div className="flex items-center gap-1 px-1">
-            <span className={`text-xs truncate ${!selectedType ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-              {!selectedType ? "SIN ASIGNAR" : selectedType}
-            </span>
-            <Lock className="w-3 h-3 opacity-50 shrink-0" />
-          </div>
-        ) : (
-          <Popover>
+        <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                className={cn("h-6 w-full justify-between px-1 text-xs font-normal [&_svg]:h-3 [&_svg]:w-3", !selectedType ? 'text-red-500 font-medium' : '')}
+                className="h-6 w-full justify-between px-1 text-xs font-normal [&_svg]:h-3 [&_svg]:w-3"
                 data-testid={`select-${column.key}-${rowId}`}
               >
                 <span className="truncate text-left min-w-0 flex-1">
-                  {!selectedType ? "SIN ASIGNAR" : selectedType}
+                  {selectedType || ""}
                 </span>
                 <ChevronDown className="shrink-0 opacity-50" />
               </Button>
@@ -1864,7 +1860,6 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               </div>
             </PopoverContent>
           </Popover>
-        )}
       </div>
     );
   }
@@ -3813,7 +3808,7 @@ export function TypologySpreadsheet() {
                           });
                         }
 
-                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development"]);
+                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development", "tipoDesarrollo"]);
                         const hasDevelopment = !!(mergedRow.development);
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
