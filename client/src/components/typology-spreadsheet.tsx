@@ -186,7 +186,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
     columns: [
       { key: "size", label: "Unidad", type: "decimal", width: 85, format: "area" },
-      { key: "sizeFinal", label: "Total", type: "decimal", width: 100, format: "area" },
+      { key: "sizeFinal", label: "Total", type: "decimal", width: 100, format: "area", calculated: true },
     ],
   },
   {
@@ -588,12 +588,14 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const notaryPercent = parseFloat(row.notaryPercent as string) || notaryPercentDefault;
   const nivelKey = row.nivelMantenimiento as string;
   const nivelData = nivelKey && nivelMantenimientoLookup ? nivelMantenimientoLookup[nivelKey] : null;
-  const sizeFinal = parseFloat(row.sizeFinal as string) || size;
+  const storageSizeValue = row.hasStorage ? (parseFloat(row.storageSize as string) || 0) : 0;
+  const sizeFinal = size + storageSizeValue;
   const equipmentCost = nivelData ? sizeFinal * nivelData.equipo : (parseFloat(row.equipmentCost as string) || 0);
   const furnitureCost = nivelData ? sizeFinal * nivelData.muebles : (parseFloat(row.furnitureCost as string) || 0);
   const maintenanceM2FromNivel = nivelData ? nivelData.valor : 0;
   const isaAmount = finalPrice * (isaPercent / 100);
   const notaryAmount = finalPrice * (notaryPercent / 100);
+  const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
   const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
   
   const mortgageAmount = parseFloat(row.mortgageAmount as string) || 0;
@@ -640,6 +642,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     totalEnganche: totalEnganche.toFixed(2),
     remainingPercent: remainingPercent.toFixed(2),
     remainingAmount: (finalPrice * remainingPercent / 100).toFixed(2),
+    sizeFinal: sizeFinal.toFixed(2),
     isaPercent: row.isaPercent ?? isaPercent.toFixed(2),
     isaAmount: isaAmount.toFixed(2),
     notaryPercent: row.notaryPercent ?? notaryPercent.toFixed(2),
