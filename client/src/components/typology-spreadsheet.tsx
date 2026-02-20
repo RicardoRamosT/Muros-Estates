@@ -3053,7 +3053,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
+              <div className="w-[120px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -3109,7 +3109,7 @@ export function TypologySpreadsheet() {
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
-                        ...(isFirstSection ? { left: 60 } : {}),
+                        ...(isFirstSection ? { left: 120 } : {}),
                         borderRight: 'none'
                       }}
                     >
@@ -3206,10 +3206,10 @@ export function TypologySpreadsheet() {
             {/* Row 2: Section/column labels */}
             <div className="flex border-b spreadsheet-header-row2">
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
-                <span className="text-xs font-medium text-white">ID</span>
+                <span className="text-xs font-medium text-white">#</span>
               </div>
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-[60px] z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
-                <span className="text-xs font-medium text-white">Activo</span>
+                <span className="text-xs font-medium text-white">ID</span>
               </div>
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
@@ -3458,7 +3458,7 @@ export function TypologySpreadsheet() {
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: colW, 
-                        ...(isSticky ? { left: 60 } : {})
+                        ...(isSticky ? { left: 120 } : {})
                       }}
                     >
                       {isColCollapsed ? (
@@ -3529,7 +3529,8 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
+              <div className="w-[60px] flex-shrink-0 h-full sticky left-[60px] z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
                   data={typologies}
