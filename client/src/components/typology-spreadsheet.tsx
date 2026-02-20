@@ -3485,7 +3485,9 @@ export function TypologySpreadsheet() {
                         : [conditionalField.dependsOn];
                       isConditionallyDisabled = deps.some(dep => {
                         const val = mergedRow[dep];
-                        return val === false || val === null || val === undefined || val === "";
+                        // Only disable if explicitly false. 
+                        // null/undefined/empty should probably not disable for checkboxes that haven't been touched.
+                        return val === false;
                       });
                     }
                     
