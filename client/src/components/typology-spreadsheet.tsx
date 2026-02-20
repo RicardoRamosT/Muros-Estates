@@ -1540,7 +1540,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   }
   
   if (column.type === "boolean" && column.key === "active") {
-    const activeState = value === true ? "active" : (isComplete ? "ready" : "incomplete");
+    const activeState = (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
 
     let bgColor: string;
     let textColor: string;
@@ -2496,6 +2496,19 @@ export function TypologySpreadsheet() {
       }
     };
   }, []);
+
+  const hasAutoFixedRef = useRef(false);
+  useEffect(() => {
+    if (typologies.length === 0 || hasAutoFixedRef.current) return;
+    hasAutoFixedRef.current = true;
+    const incorrectRows = typologies.filter(t => t.active === true && !isTypologyComplete(t));
+    if (incorrectRows.length === 0) return;
+    Promise.all(
+      incorrectRows.map(row => apiRequest("PUT", `/api/typologies/${row.id}`, { active: false }).catch(() => {}))
+    ).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
+    });
+  }, [typologies]);
   
   const createMutation = useMutation({
     mutationFn: async (data: Partial<Typology>) => {
