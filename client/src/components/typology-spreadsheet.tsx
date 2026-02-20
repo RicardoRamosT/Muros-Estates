@@ -38,6 +38,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import type { Typology } from "@shared/schema";
 import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPERS, DEVELOPMENTS } from "@shared/constants";
 import { cn } from "@/lib/utils";
@@ -1859,6 +1860,8 @@ type DynamicGrayState = Record<string, Record<string, string>>;
 
 export function TypologySpreadsheet() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canEdit = user?.role === "Admin" || user?.role === "Actualizador";
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(SECTIONS.map(s => s.id))
   );
@@ -3641,7 +3644,7 @@ export function TypologySpreadsheet() {
                             city={mergedRow.city || undefined}
                             developer={mergedRow.developer || undefined}
                             onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
-                            disabled={isConditionallyDisabled || !canEdit}
+                            disabled={isConditionallyDisabled}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
                             allDevelopers={dbDevelopers}
