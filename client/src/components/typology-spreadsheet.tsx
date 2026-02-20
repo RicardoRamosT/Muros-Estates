@@ -1865,6 +1865,7 @@ export function TypologySpreadsheet() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(SECTIONS.map(s => s.id))
   );
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
@@ -3027,13 +3028,14 @@ export function TypologySpreadsheet() {
                 return groups.map((group) => {
                   const firstIndex = group.sections[0].index;
                   const isFirstSection = firstIndex === 0;
+                  const groupKey = group.sections.map(s => s.section.id).join("-");
+                  const isGroupCollapsed = collapsedGroups.has(groupKey);
                   const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
                   
-                  // Unified labels for grouped columns
                   const displayLabel = (group.label === "" || group.label === " ") ? "" : group.label;
 
                   let totalWidth = 0;
-                  if (!anyExpanded) {
+                  if (isGroupCollapsed) {
                     totalWidth = COLLAPSED_COL_WIDTH;
                   } else {
                     for (const { section } of group.sections) {
@@ -3046,16 +3048,19 @@ export function TypologySpreadsheet() {
                     }
                   }
 
-                  const allColsInGroupCollapsed = anyExpanded && group.sections.every(({ section }) => {
+                  const allColsInGroupCollapsed = !isGroupCollapsed && anyExpanded && group.sections.every(({ section }) => {
                     const isExp = expandedSections.has(section.id);
                     if (!isExp) return true;
                     return section.columns.length > 0 && section.columns.every(col => collapsedColumns.has(col.key));
                   });
+
+                  const showLabel = !isGroupCollapsed;
+                  const showMinus = !isGroupCollapsed && anyExpanded && !allColsInGroupCollapsed;
                   
                   return (
                     <div 
-                      key={group.sections.map(s => s.section.id).join("-")} 
-                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", anyExpanded ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
+                      key={groupKey} 
+                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showLabel ? "justify-between" : "justify-center", isFirstSection && "sticky z-30")}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
@@ -3063,10 +3068,10 @@ export function TypologySpreadsheet() {
                         borderRight: 'none'
                       }}
                     >
-                      {anyExpanded && (
+                      {showLabel && (
                         <div className="pointer-events-none" style={{ width: 20 }} />
                       )}
-                      {anyExpanded && (
+                      {showLabel && (
                         <span className="text-xs font-medium flex-1 text-center pointer-events-none uppercase">
                           {(displayLabel === "Entrega" || displayLabel === "Gastos Post-Entrega") ? "" : displayLabel}
                         </span>
@@ -3075,7 +3080,20 @@ export function TypologySpreadsheet() {
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => {
-                              if (allColsInGroupCollapsed) {
+                              if (isGroupCollapsed) {
+                                setCollapsedGroups(prev => {
+                                  const next = new Set(prev);
+                                  next.delete(groupKey);
+                                  return next;
+                                });
+                                setExpandedSections(prev => {
+                                  const n = new Set(prev);
+                                  for (const { section } of group.sections) {
+                                    n.add(section.id);
+                                  }
+                                  return n;
+                                });
+                              } else if (allColsInGroupCollapsed) {
                                 setCollapsedColumns(prev => {
                                   const next = new Set(prev);
                                   for (const { section } of group.sections) {
@@ -3085,23 +3103,34 @@ export function TypologySpreadsheet() {
                                   }
                                   return next;
                                 });
-                              } else {
+                              } else if (!anyExpanded) {
                                 setExpandedSections(prev => {
                                   const n = new Set(prev);
-                                  const anyCurrentGroupExpanded = group.sections.some(s => prev.has(s.section.id));
                                   for (const { section } of group.sections) {
-                                    if (anyCurrentGroupExpanded) n.delete(section.id);
-                                    else n.add(section.id);
+                                    n.add(section.id);
+                                  }
+                                  return n;
+                                });
+                              } else {
+                                setCollapsedGroups(prev => {
+                                  const next = new Set(prev);
+                                  next.add(groupKey);
+                                  return next;
+                                });
+                                setExpandedSections(prev => {
+                                  const n = new Set(prev);
+                                  for (const { section } of group.sections) {
+                                    n.delete(section.id);
                                   }
                                   return n;
                                 });
                               }
                             }}
-                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", !anyExpanded && "w-full")}
-                            style={anyExpanded ? { width: 20 } : undefined}
+                            className={cn("flex items-center justify-center h-full flex-shrink-0 cursor-pointer", isGroupCollapsed && "w-full")}
+                            style={!isGroupCollapsed ? { width: 20 } : undefined}
                             data-testid={`section-toggle-${group.sections[0].section.id}`}
                           >
-                            {anyExpanded && !allColsInGroupCollapsed ? (
+                            {showMinus ? (
                               <Minus className="w-3 h-3" style={{ color: 'white' }} />
                             ) : (
                               <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3109,7 +3138,7 @@ export function TypologySpreadsheet() {
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
-                          {anyExpanded && !allColsInGroupCollapsed ? `Colapsar ${group.label}` : group.label}
+                          {showMinus ? `Colapsar ${group.label}` : group.label}
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -3137,8 +3166,10 @@ export function TypologySpreadsheet() {
                 });
 
                 return groups.flatMap((group) => {
+                  const groupKey = group.sections.map(s => s.section.id).join("-");
+                  const isGroupCollapsed = collapsedGroups.has(groupKey);
                   const anySectionExpanded = group.sections.some(s => expandedSections.has(s.section.id));
-                  if (!anySectionExpanded) {
+                  if (isGroupCollapsed) {
                     return [(
                       <div 
                         key={`group-collapsed-${group.label}`}
@@ -3449,10 +3480,12 @@ export function TypologySpreadsheet() {
                 });
 
                 return groups.flatMap((group) => {
+                  const groupKey = group.sections.map(s => s.section.id).join("-");
+                  const isGroupCollapsed = collapsedGroups.has(groupKey);
                   const anyExpanded = group.sections.some(s => expandedSections.has(s.section.id));
                   const isFirstSectionGlobal = group.sections[0].index === 0;
 
-                  if (!anyExpanded) {
+                  if (isGroupCollapsed) {
                     return [(
                       <div 
                         key={`group-collapsed-filter-${group.label}`}
@@ -3563,10 +3596,12 @@ export function TypologySpreadsheet() {
                   });
 
                   return groups.flatMap((group) => {
+                    const groupKey = group.sections.map(s => s.section.id).join("-");
+                    const isGroupCollapsed = collapsedGroups.has(groupKey);
                     const anySectionExpanded = group.sections.some(s => expandedSections.has(s.section.id));
                     const isFirstSectionGlobal = group.sections[0].index === 0;
 
-                    if (!anySectionExpanded) {
+                    if (isGroupCollapsed) {
                       return [(
                         <div 
                           key={`group-collapsed-row-${row.id}-${group.label}`}
