@@ -876,7 +876,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
           </span>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {columnKey.toLowerCase().includes("percent") ? "PORCENTAJES" : tooltipContent}
+          {columnKey.toLowerCase().includes("percent") ? "Porcentaje" : tooltipContent}
         </TooltipContent>
       </Tooltip>
     );
@@ -1048,7 +1048,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           <div className="w-full h-full" />
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {column.key.toLowerCase().includes("percent") ? "PORCENTAJES" : (fullLabel || column.label).toUpperCase()}
+          {column.key.toLowerCase().includes("percent") ? "Porcentaje" : (fullLabel || column.label).toUpperCase()}
         </TooltipContent>
       </Tooltip>
     </div>
