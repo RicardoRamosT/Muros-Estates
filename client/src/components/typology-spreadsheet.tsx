@@ -3056,6 +3056,17 @@ export function TypologySpreadsheet() {
     return result;
   }, [typologies, columnFilters, columnSorts, rangeFilters]);
 
+  const stableRowNumberMap = useMemo(() => {
+    const sorted = [...typologies].sort((a, b) => {
+      const aDate = new Date(a.createdAt || 0).getTime();
+      const bDate = new Date(b.createdAt || 0).getTime();
+      return aDate - bDate;
+    });
+    const map = new Map<string, number>();
+    sorted.forEach((t, i) => map.set(t.id, i + 1));
+    return map;
+  }, [typologies]);
+
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
@@ -3902,7 +3913,7 @@ export function TypologySpreadsheet() {
                   style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
-                  {rowIndex + 1}
+                  {stableRowNumberMap.get(row.id) ?? rowIndex + 1}
                 </div>
                 
                 {/* Flat cell structure for perfect row alignment */}
