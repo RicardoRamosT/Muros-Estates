@@ -1589,84 +1589,38 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   }
 
   if (column.type === "boolean") {
-    // Cell background: light green for Sí, light red for No
+    const hasLinkedSize = !!column.linkedSizeField;
     const cellBgColor = value === true 
       ? '#dcfce7'  // green-100 
       : value === false 
         ? '#fee2e2'  // red-100
-        : undefined;
-    // Text color: dark green for Sí, dark red for No
+        : hasLinkedSize ? '#ffffff' : undefined;
     const textColorClass = value === true 
       ? 'text-green-700 font-medium' 
       : value === false 
         ? 'text-red-600 font-medium' 
-        : 'text-muted-foreground';
-    if (column.linkedSizeField && onLinkedSizeChange) {
-      const sizeVal = linkedSizeValue != null ? String(linkedSizeValue) : "";
-      const linkedBgColor = value === true ? '#dcfce7' : value === false ? '#fee2e2' : undefined;
-      const linkedTextClass = value === true ? 'text-green-700 font-medium' : value === false ? 'text-red-600 font-medium' : 'text-foreground';
-      const showSize = value === true || value === false;
-      return (
-        <div 
-          className={cn("spreadsheet-cell px-0 flex items-stretch h-full", cellBorderClass)}
-          style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
-        >
-          <div 
-            className={cn("flex items-center justify-center border-r border-gray-200 dark:border-gray-700", linkedTextClass)}
-            style={{ backgroundColor: linkedBgColor, width: 44, flexShrink: 0 }}
-          >
-            <ExclusiveSelect
-              value={value === true ? "si" : value === false ? "no" : "sa"}
-              onValueChange={(val) => {
-                if (val === "sa") onChange(null);
-                else onChange(val === "si");
-              }}
-            >
-              <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0 focus:ring-0 focus:ring-offset-0 ${linkedTextClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-                <span className="shrink-0">{value === true ? "Sí" : value === false ? "No" : "S/A"}</span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
-                <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
-                <SelectItem value="sa" className="text-foreground">Sin Asignar</SelectItem>
-              </SelectContent>
-            </ExclusiveSelect>
-          </div>
-          <div className="flex-1 bg-white dark:bg-gray-900">
-            {showSize ? (
-              <input
-                type="text"
-                value={sizeVal}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9.]/g, "");
-                  onLinkedSizeChange(raw === "" ? null : parseFloat(raw));
-                }}
-                className="h-full w-full text-xs px-2 bg-transparent border-0 outline-none text-right"
-                placeholder="0.00"
-                data-testid={`input-${column.linkedSizeField}-${rowId}`}
-              />
-            ) : (
-              <div className="h-full w-full bg-gray-200/60 dark:bg-gray-800/50" />
-            )}
-          </div>
-        </div>
-      );
-    }
+        : hasLinkedSize ? 'text-foreground font-medium' : 'text-muted-foreground';
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <ExclusiveSelect
-          value={value === true ? "si" : value === false ? "no" : ""}
-          onValueChange={(val) => onChange(val === "si")}
+          value={value === true ? "si" : value === false ? "no" : (hasLinkedSize ? "sa" : "")}
+          onValueChange={(val) => {
+            if (val === "sa") onChange(null);
+            else onChange(val === "si");
+          }}
         >
           <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : "-"}</span>
+            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (hasLinkedSize ? "S/A" : "-")}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+            {hasLinkedSize && (
+              <SelectItem value="sa" className="text-foreground">Sin Asignar</SelectItem>
+            )}
           </SelectContent>
         </ExclusiveSelect>
       </div>
