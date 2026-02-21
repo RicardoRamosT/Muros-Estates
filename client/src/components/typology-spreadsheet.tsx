@@ -1978,6 +1978,22 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         : <span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span>}
     </div>
   );
+}, (prevProps, nextProps) => {
+  if (prevProps.value !== nextProps.value) return false;
+  if (prevProps.disabled !== nextProps.disabled) return false;
+  if (prevProps.column !== nextProps.column) return false;
+  if (prevProps.rowId !== nextProps.rowId) return false;
+  if (prevProps.city !== nextProps.city) return false;
+  if (prevProps.developer !== nextProps.developer) return false;
+  if (prevProps.isLastInSection !== nextProps.isLastInSection) return false;
+  if (prevProps.sectionCellColor !== nextProps.sectionCellColor) return false;
+  if (prevProps.isDynamicCalculated !== nextProps.isDynamicCalculated) return false;
+  if (prevProps.filteredDevelopmentName !== nextProps.filteredDevelopmentName) return false;
+  if (prevProps.linkedSizeValue !== nextProps.linkedSizeValue) return false;
+  if (prevProps.isComplete !== nextProps.isComplete) return false;
+  if (prevProps.dynamicOptions !== nextProps.dynamicOptions) return false;
+  if (prevProps.row !== nextProps.row) return false;
+  return true;
 });
 
 type ColumnFilters = Record<string, Set<string>>;
@@ -2005,7 +2021,9 @@ export function TypologySpreadsheet() {
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
   const [rangeFilters, setRangeFilters] = useState<RangeFilters>({});
-  const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<Typology>>>(new Map());
+  const pendingChangesRef = useRef<Map<string, Partial<Typology>>>(new Map());
+  const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
+  const pendingChanges = pendingChangesRef.current;
   const [dynamicGray, setDynamicGray] = useState<DynamicGrayState>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
@@ -2778,15 +2796,12 @@ export function TypologySpreadsheet() {
       }
     }
 
-    setPendingChanges(prev => {
-      const next = new Map(prev);
-      const existing = next.get(rowId) || {};
-      next.set(rowId, { ...existing, [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields });
-      return next;
-    });
+    const existing = pendingChangesRef.current.get(rowId) || {};
+    pendingChangesRef.current.set(rowId, { ...existing, [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields });
+    setPendingChangesVersion(v => v + 1);
     
     if (activeEditingRowId && activeEditingRowId !== rowId) {
-      const prevChanges = pendingChanges.get(activeEditingRowId);
+      const prevChanges = pendingChangesRef.current.get(activeEditingRowId);
       if (prevChanges && Object.keys(prevChanges).length > 0) {
         saveRowByIdRef.current(activeEditingRowId);
       }
@@ -2794,7 +2809,7 @@ export function TypologySpreadsheet() {
     if (activeEditingRowId !== rowId) {
       setActiveEditingRowId(rowId);
     }
-  }, [typologies, dbDevelopments, dbDevelopers, catalogCities, pendingChanges, typesByDevelopment, activeEditingRowId]);
+  }, [typologies, dbDevelopments, dbDevelopers, catalogCities, typesByDevelopment, activeEditingRowId]);
   
   const saveRowById = useCallback(async (rowId: string) => {
     const changes = pendingChanges.get(rowId);
@@ -2804,11 +2819,8 @@ export function TypologySpreadsheet() {
     try {
       const res = await apiRequest("PUT", `/api/typologies/${rowId}`, changes);
       const updatedRow = await res.json();
-      setPendingChanges(prev => {
-        const next = new Map(prev);
-        next.delete(rowId);
-        return next;
-      });
+      pendingChangesRef.current.delete(rowId);
+      setPendingChangesVersion(v => v + 1);
       queryClient.setQueryData(["/api/typologies"], (old: any[] | undefined) => {
         if (!old) return old;
         return old.map(row => row.id === rowId ? { ...row, ...updatedRow } : row);
@@ -2840,6 +2852,20 @@ export function TypologySpreadsheet() {
   }, [activeEditingRowId, pendingChanges, saveRowById]);
 
   const hasPendingRowChanges = activeEditingRowId ? pendingChanges.has(activeEditingRowId) : false;
+
+  useEffect(() => {
+    const hasPending = pendingChanges.size > 0;
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasPending) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    if (hasPending) {
+      window.addEventListener("beforeunload", handler);
+    }
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [pendingChangesVersion]);
 
   const handleAddRow = () => {
     const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];
@@ -3124,8 +3150,18 @@ export function TypologySpreadsheet() {
     return map;
   }, [typologies, columnFilters]);
   
+  const mergedRowCacheRef = useRef<Map<string, { source: Typology; result: Typology }>>(new Map());
+  
   const getMergedRow = (row: Typology): Typology => {
     const pending = pendingChanges.get(row.id);
+    
+    if (!pending) {
+      const cached = mergedRowCacheRef.current.get(row.id);
+      if (cached && cached.source === row) {
+        return cached.result;
+      }
+    }
+    
     const merged = pending ? { ...row, ...pending } : row;
     
     let autoDeliveryDate: string | null = null;
@@ -3172,7 +3208,13 @@ export function TypologySpreadsheet() {
       }
     }
     
-    return { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate } as Typology;
+    const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate } as Typology;
+    
+    if (!pending) {
+      mergedRowCacheRef.current.set(row.id, { source: row, result });
+    }
+    
+    return result;
   };
   
   const activeFilterCount = Object.values(columnFilters).filter(v => v.size > 0).length;
