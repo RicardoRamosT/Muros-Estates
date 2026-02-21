@@ -205,6 +205,7 @@ const SECTIONS: SectionDef[] = [
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
       { field: "discountAmount", dependsOn: "hasDiscount" },
+      { field: "promoDescription", dependsOn: "hasPromo" },
     ],
   },
   {
@@ -668,7 +669,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   return result;
 }
 
-function isTypologyComplete(row: Partial<Typology>): boolean {
+const FIELD_CHECK_CONFIG = (() => {
   const SKIP_FIELDS = new Set(["active", "createdDate", "createdTime", "city", "zone"]);
   const BALCONY_TERRACE_FIELDS = new Set(["hasBalcony", "hasTerrace", "hasBalcony2", "hasTerrace2"]);
   const BALCONY_SIZE_MAP: Record<string, string> = {
@@ -677,7 +678,6 @@ function isTypologyComplete(row: Partial<Typology>): boolean {
     hasBalcony2: "balconySize2",
     hasTerrace2: "terraceSize2",
   };
-
   const conditionalDeps: Record<string, string | string[]> = {};
   for (const section of SECTIONS) {
     if (section.conditionalFields) {
@@ -686,44 +686,63 @@ function isTypologyComplete(row: Partial<Typology>): boolean {
       }
     }
   }
+  return { SKIP_FIELDS, BALCONY_TERRACE_FIELDS, BALCONY_SIZE_MAP, conditionalDeps };
+})();
 
-  for (const section of SECTIONS) {
-    for (const col of section.columns) {
-      if (SKIP_FIELDS.has(col.key)) continue;
-      if (col.calculated) continue;
+function isFieldEmpty(row: Partial<Typology>, col: ColumnDef, config: typeof FIELD_CHECK_CONFIG): boolean {
+  const { SKIP_FIELDS, BALCONY_TERRACE_FIELDS, BALCONY_SIZE_MAP, conditionalDeps } = config;
+  if (SKIP_FIELDS.has(col.key)) return false;
+  if (col.calculated) return false;
 
-      const dep = conditionalDeps[col.key];
-      if (dep) {
-        if (Array.isArray(dep)) {
-          const anyDisabled = dep.some(d => !row[d as keyof Typology]);
-          if (anyDisabled) continue;
-        } else {
-          if (!row[dep as keyof Typology]) continue;
-        }
-      }
-
-      const sizeFieldParent = Object.entries(BALCONY_SIZE_MAP).find(([_, size]) => size === col.key);
-      if (sizeFieldParent) {
-        const parentVal = row[sizeFieldParent[0] as keyof Typology];
-        if (parentVal === null || parentVal === undefined) continue;
-      }
-
-      const val = row[col.key as keyof Typology];
-
-      if (BALCONY_TERRACE_FIELDS.has(col.key)) {
-        continue;
-      }
-
-      if (col.allowUnassigned && (val === null || val === undefined || val === "")) {
-        continue;
-      }
-
-      if (val === null || val === undefined || val === "") return false;
-      if (typeof val === "number" && isNaN(val)) return false;
+  const dep = conditionalDeps[col.key];
+  if (dep) {
+    if (Array.isArray(dep)) {
+      const anyDisabled = dep.some(d => !row[d as keyof Typology]);
+      if (anyDisabled) return false;
+    } else {
+      if (!row[dep as keyof Typology]) return false;
     }
   }
 
+  const sizeFieldParent = Object.entries(BALCONY_SIZE_MAP).find(([_, size]) => size === col.key);
+  if (sizeFieldParent) {
+    const parentVal = row[sizeFieldParent[0] as keyof Typology];
+    if (parentVal === null || parentVal === undefined) return false;
+  }
+
+  if (BALCONY_TERRACE_FIELDS.has(col.key)) return false;
+
+  const val = row[col.key as keyof Typology];
+  if (col.allowUnassigned && (val === null || val === undefined || val === "")) return false;
+  if (val === null || val === undefined || val === "") return true;
+  if (typeof val === "number" && isNaN(val)) return true;
+  return false;
+}
+
+function isTypologyComplete(row: Partial<Typology>): boolean {
+  const config = FIELD_CHECK_CONFIG;
+  for (const section of SECTIONS) {
+    for (const col of section.columns) {
+      if (isFieldEmpty(row, col, config)) return false;
+    }
+  }
   return true;
+}
+
+function getMissingFields(row: Partial<Typology>): { section: string; field: string }[] {
+  const config = FIELD_CHECK_CONFIG;
+  const missing: { section: string; field: string }[] = [];
+  for (const section of SECTIONS) {
+    for (const col of section.columns) {
+      if (isFieldEmpty(row, col, config)) {
+        missing.push({
+          section: section.parentLabel || section.label || section.id,
+          field: col.fullLabel || col.label,
+        });
+      }
+    }
+  }
+  return missing;
 }
 
 function formatValue(value: any, format?: string): string {
@@ -1565,9 +1584,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         break;
     }
 
+    const computedMissing = activeState === "incomplete" && row ? getMissingFields(row as Partial<Typology>) : [];
+    const missingCount = computedMissing.length;
+    const tooltipContent = missingCount > 0
+      ? `Campos vacíos (${missingCount}):\n${computedMissing.map(f => `• ${f.section} → ${f.field}`).join('\n')}`
+      : undefined;
+
     return (
       <div
-        className={cn("spreadsheet-cell px-0", cellBorderClass)}
+        className={cn("spreadsheet-cell px-0 relative group", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: bgColor }}
       >
         <button
@@ -1584,6 +1609,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         >
           {label}
         </button>
+        {tooltipContent && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-[200] hidden group-hover:block bg-gray-900 text-white text-[10px] leading-tight rounded-md px-2.5 py-2 whitespace-pre-line shadow-lg min-w-[180px] max-w-[280px] max-h-[300px] overflow-y-auto pointer-events-none">
+            {tooltipContent}
+          </div>
+        )}
       </div>
     );
   }
