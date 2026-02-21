@@ -58,6 +58,7 @@ interface ColumnDef {
   fullLabel?: string;
   centerCells?: boolean;
   linkedSizeField?: TypologyField;
+  allowUnassigned?: boolean;
 }
 
 interface SectionDef {
@@ -220,7 +221,7 @@ const SECTIONS: SectionDef[] = [
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize" },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85 },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85, allowUnassigned: true },
     ],
   },
   {
@@ -255,7 +256,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true },
+      { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true, allowUnassigned: true },
       { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 85 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
@@ -270,7 +271,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(255,241,220)]/30 dark:bg-[rgb(60,40,10)]/30",
     columns: [
-      { key: "hasStorage", label: "Incluye", type: "boolean", width: 75 },
+      { key: "hasStorage", label: "Incluye", type: "boolean", width: 75, allowUnassigned: true },
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 85 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
@@ -706,6 +707,10 @@ function isTypologyComplete(row: Partial<Typology>): boolean {
       const val = row[col.key as keyof Typology];
 
       if (BALCONY_TERRACE_FIELDS.has(col.key)) {
+        continue;
+      }
+
+      if (col.allowUnassigned && (val === null || val === undefined || val === "")) {
         continue;
       }
 
@@ -1580,36 +1585,36 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   }
 
   if (column.type === "boolean") {
-    const hasLinkedSize = !!column.linkedSizeField;
+    const canBeUnassigned = !!column.linkedSizeField || !!column.allowUnassigned;
     const cellBgColor = value === true 
       ? '#dcfce7'  // green-100 
       : value === false 
         ? '#fee2e2'  // red-100
-        : hasLinkedSize ? '#ffffff' : undefined;
+        : canBeUnassigned ? '#ffffff' : undefined;
     const textColorClass = value === true 
       ? 'text-green-700 font-medium' 
       : value === false 
         ? 'text-red-600 font-medium' 
-        : hasLinkedSize ? 'text-foreground font-medium' : 'text-muted-foreground';
+        : canBeUnassigned ? 'text-foreground font-medium' : 'text-muted-foreground';
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <ExclusiveSelect
-          value={value === true ? "si" : value === false ? "no" : (hasLinkedSize ? "sa" : "")}
+          value={value === true ? "si" : value === false ? "no" : (canBeUnassigned ? "sa" : "")}
           onValueChange={(val) => {
             if (val === "sa") onChange(null);
             else onChange(val === "si");
           }}
         >
           <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (hasLinkedSize ? "S/A" : "-")}</span>
+            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (canBeUnassigned ? "S/A" : "-")}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
-            {hasLinkedSize && (
+            {canBeUnassigned && (
               <SelectItem value="sa" className="text-foreground">Sin Asignar</SelectItem>
             )}
           </SelectContent>
@@ -1825,24 +1830,24 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <ExclusiveSelect 
-          value={currentValue} 
+          value={currentValue || (column.allowUnassigned ? "__clear__" : "")} 
           onValueChange={(val) => {
             if (val === "__clear__") {
-              onChange("");
+              onChange(column.allowUnassigned ? null : "");
             } else {
               onChange(val);
             }
           }}
         >
           <SelectTrigger 
-            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!currentValue || /^\d+$/.test(currentValue)) ? "text-center" : "text-left")}
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!currentValue || /^\d+$/.test(currentValue)) ? "text-center" : "text-left", !currentValue && column.allowUnassigned && "font-medium")}
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <span className="truncate min-w-0 flex-1">{currentValue || ""}</span>
+            <span className="truncate min-w-0 flex-1">{currentValue || (column.allowUnassigned ? "S/A" : "")}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__clear__" className="text-muted-foreground italic">
-              <span className="opacity-50">—</span>
+            <SelectItem value="__clear__" className={column.allowUnassigned ? "text-foreground font-bold italic" : "text-muted-foreground italic"}>
+              {column.allowUnassigned ? "Sin Asignar" : <span className="opacity-50">—</span>}
             </SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
