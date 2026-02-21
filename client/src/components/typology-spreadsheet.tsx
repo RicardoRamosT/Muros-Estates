@@ -1830,19 +1830,24 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       }
     }
     
+    let preserveCatalogOrder = false;
+    
     // Use catalog options for bedrooms (recamaras)
     if ((column.key === "bedrooms" || column.key === "bedrooms2") && recamaraOptions && recamaraOptions.length > 0) {
       options = recamaraOptions;
+      preserveCatalogOrder = true;
     }
     
     // Use catalog options for bathrooms (baños)
     if ((column.key === "bathrooms" || column.key === "bathrooms2") && banoOptions && banoOptions.length > 0) {
       options = banoOptions;
+      preserveCatalogOrder = true;
     }
     
     // Use catalog options for parking included (cajones)
     if (column.key === "parkingIncluded" && cajonOptions && cajonOptions.length > 0) {
       options = cajonOptions;
+      preserveCatalogOrder = true;
     }
     
     // Generate level options from development's niveles
@@ -1856,10 +1861,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     // Ensure current value is always in options to prevent disappearing values
     const currentValue = value?.toString() || "";
-    const isNumericOptions = options.length > 0 && options.every(o => /^\d+$/.test(o));
-    let finalOptions = isNumericOptions 
-      ? [...options].sort((a, b) => parseInt(a) - parseInt(b))
-      : [...options].sort((a, b) => a.localeCompare(b, 'es'));
+    let finalOptions: string[];
+    if (preserveCatalogOrder) {
+      finalOptions = [...options];
+    } else {
+      const isNumericOptions = options.length > 0 && options.every(o => /^\d+$/.test(o));
+      finalOptions = isNumericOptions 
+        ? [...options].sort((a, b) => parseInt(a) - parseInt(b))
+        : [...options].sort((a, b) => a.localeCompare(b, 'es'));
+    }
     if (currentValue && !finalOptions.includes(currentValue)) {
       finalOptions = [currentValue, ...finalOptions];
     }
