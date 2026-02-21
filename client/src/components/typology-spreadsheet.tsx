@@ -223,6 +223,10 @@ const SECTIONS: SectionDef[] = [
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true },
       { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85, allowUnassigned: true },
     ],
+    conditionalFields: [
+      { field: "balconySize", dependsOn: "hasBalcony" },
+      { field: "terraceSize", dependsOn: "hasTerrace" },
+    ],
   },
   {
     id: "lockoff",
@@ -3994,7 +3998,7 @@ export function TypologySpreadsheet() {
                             : [conditionalField.dependsOn];
                           isConditionallyDisabled = deps.some(dep => {
                             const val = mergedRow[dep as keyof Typology];
-                            return val === false;
+                            return val === false || val === null || val === undefined;
                           });
                         }
 
