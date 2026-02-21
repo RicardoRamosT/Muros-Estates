@@ -135,22 +135,13 @@ function getSectionGroupColor(_sections: SectionDef[], index: number): string {
 
 const SECTIONS: SectionDef[] = [
   {
-    id: "basico",
-    label: "",
+    id: "registro",
+    label: "Registro",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-gray-50/30 dark:bg-gray-900/10",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 60, hideLabel: true, fullLabel: "Activo" },
-    ],
-  },
-  {
-    id: "fechahora",
-    label: "Fecha/Hora",
-    headerColor: "",
-    columnHeaderColor: "",
-    cellColor: "bg-[rgb(255,241,220)]/30 dark:bg-[rgb(60,40,10)]/30",
-    columns: [
       { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
       { key: "createdTime", label: "Hora", type: "text", width: 60, calculated: true, hideLabel: true, fullLabel: "Hora", centerCells: true },
     ],
