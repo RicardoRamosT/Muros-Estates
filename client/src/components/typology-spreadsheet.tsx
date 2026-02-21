@@ -2511,25 +2511,6 @@ export function TypologySpreadsheet() {
   }, [typologies]);
 
   const scrollToBottomPhaseRef = useRef<'idle' | 'loading_all' | 'done'>('idle');
-  useEffect(() => {
-    if (isLoading || typologies.length === 0 || scrollToBottomPhaseRef.current !== 'idle') return;
-    scrollToBottomPhaseRef.current = 'loading_all';
-    setVisibleCount(typologies.length);
-  }, [isLoading, typologies]);
-
-  useEffect(() => {
-    if (scrollToBottomPhaseRef.current !== 'loading_all') return;
-    if (visibleCount < typologies.length) return;
-    scrollToBottomPhaseRef.current = 'done';
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (contentScrollRef.current) {
-          contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
-        }
-      });
-    });
-  }, [visibleCount, typologies.length]);
-  
   const createMutation = useMutation({
     mutationFn: async (data: Partial<Typology>) => {
       const res = await apiRequest("POST", "/api/typologies", data);
@@ -3068,6 +3049,26 @@ export function TypologySpreadsheet() {
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
+
+  useEffect(() => {
+    if (isLoading || typologies.length === 0 || scrollToBottomPhaseRef.current !== 'idle') return;
+    scrollToBottomPhaseRef.current = 'loading_all';
+    setVisibleCount(typologies.length);
+  }, [isLoading, typologies]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'loading_all') return;
+    if (visibleCount < typologies.length) return;
+    scrollToBottomPhaseRef.current = 'done';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (contentScrollRef.current) {
+          contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
+        }
+      });
+    });
+  }, [visibleCount, typologies.length]);
+
   const [zoomLevel, setZoomLevel] = useState(100);
   const [showZoomPopup, setShowZoomPopup] = useState(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
