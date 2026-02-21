@@ -2803,13 +2803,16 @@ export function TypologySpreadsheet() {
     setIsSaving(true);
     try {
       const res = await apiRequest("PUT", `/api/typologies/${rowId}`, changes);
-      await res.json();
+      const updatedRow = await res.json();
       setPendingChanges(prev => {
         const next = new Map(prev);
         next.delete(rowId);
         return next;
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
+      queryClient.setQueryData(["/api/typologies"], (old: any[] | undefined) => {
+        if (!old) return old;
+        return old.map(row => row.id === rowId ? { ...row, ...updatedRow } : row);
+      });
       setSaveFlash(true);
       setTimeout(() => setSaveFlash(false), 1200);
     } catch (error) {
