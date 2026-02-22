@@ -1925,3 +1925,15 @@ export const catalogEtapaClientes = pgTable("catalog_etapa_clientes", {
 export const insertCatalogEtapaClientesSchema = createInsertSchema(catalogEtapaClientes).omit({ id: true, createdAt: true });
 export type InsertCatalogEtapaClientes = z.infer<typeof insertCatalogEtapaClientesSchema>;
 export type CatalogEtapaClientes = typeof catalogEtapaClientes.$inferSelect;
+
+export const catalogAvisos = pgTable("catalog_avisos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  field: text("field").notNull(),
+  minQuantity: integer("min_quantity").notNull().default(1),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertCatalogAvisoSchema = createInsertSchema(catalogAvisos).omit({ id: true, createdAt: true });
+export type InsertCatalogAviso = z.infer<typeof insertCatalogAvisoSchema>;
+export type CatalogAviso = typeof catalogAvisos.$inferSelect;

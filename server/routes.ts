@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema, insertCatalogAvisoSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -2717,6 +2717,35 @@ export async function registerRoutes(
   app.get("/api/role-permissions/:section", requireAuth, requireRole("admin"), async (req, res) => {
     const permissions = await storage.getRolePermissionsBySection(req.params.section as string);
     res.json(permissions);
+  });
+
+  app.get("/api/catalog/avisos", requireAuth, async (req, res) => {
+    const items = await storage.getCatalogAvisos();
+    res.json(items);
+  });
+
+  app.post("/api/catalog/avisos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const result = insertCatalogAvisoSchema.safeParse(req.body);
+    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+    const item = await storage.createCatalogAviso(result.data);
+    res.status(201).json(item);
+  });
+
+  app.put("/api/catalog/avisos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
+    const { name, field, minQuantity, active } = req.body;
+    const updateData: { name?: string; field?: string; minQuantity?: number; active?: boolean } = {};
+    if (typeof name === "string") updateData.name = name;
+    if (typeof field === "string") updateData.field = field;
+    if (typeof minQuantity === "number") updateData.minQuantity = minQuantity;
+    if (typeof active === "boolean") updateData.active = active;
+    const item = await storage.updateCatalogAviso(req.params.id as string, updateData);
+    if (!item) return res.status(404).json({ error: "No encontrado" });
+    res.json(item);
+  });
+
+  app.delete("/api/catalog/avisos/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCatalogAviso(req.params.id as string);
+    res.status(204).send();
   });
 
   app.post("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {

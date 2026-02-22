@@ -47,6 +47,7 @@ import {
   catalogTipoProveedor, type CatalogTipoProveedor, type InsertCatalogTipoProveedor,
   catalogIncluye, type CatalogIncluye, type InsertCatalogIncluye,
   catalogSiNo, type CatalogSiNo, type InsertCatalogSiNo,
+  catalogAvisos, type CatalogAviso, type InsertCatalogAviso,
   globalSettings, type GlobalSetting,
 } from "@shared/schema";
 import { db } from "./db";
@@ -238,6 +239,11 @@ export interface IStorage {
   createCatalogSiNo(item: InsertCatalogSiNo): Promise<CatalogSiNo>;
   updateCatalogSiNo(id: string, item: Partial<InsertCatalogSiNo>): Promise<CatalogSiNo | undefined>;
   deleteCatalogSiNo(id: string): Promise<boolean>;
+
+  getCatalogAvisos(): Promise<CatalogAviso[]>;
+  createCatalogAviso(item: InsertCatalogAviso): Promise<CatalogAviso>;
+  updateCatalogAviso(id: string, item: Partial<InsertCatalogAviso>): Promise<CatalogAviso | undefined>;
+  deleteCatalogAviso(id: string): Promise<boolean>;
 
   getGlobalSettings(): Promise<GlobalSetting[]>;
   getGlobalSetting(key: string): Promise<GlobalSetting | undefined>;
@@ -1331,6 +1337,22 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCatalogSiNo(id: string): Promise<boolean> {
     await db.delete(catalogSiNo).where(eq(catalogSiNo.id, id));
+    return true;
+  }
+
+  async getCatalogAvisos(): Promise<CatalogAviso[]> {
+    return db.select().from(catalogAvisos).orderBy(catalogAvisos.name);
+  }
+  async createCatalogAviso(item: InsertCatalogAviso): Promise<CatalogAviso> {
+    const [created] = await db.insert(catalogAvisos).values(item as any).returning();
+    return created;
+  }
+  async updateCatalogAviso(id: string, item: Partial<InsertCatalogAviso>): Promise<CatalogAviso | undefined> {
+    const [updated] = await db.update(catalogAvisos).set(item as any).where(eq(catalogAvisos.id, id)).returning();
+    return updated || undefined;
+  }
+  async deleteCatalogAviso(id: string): Promise<boolean> {
+    await db.delete(catalogAvisos).where(eq(catalogAvisos.id, id));
     return true;
   }
 
