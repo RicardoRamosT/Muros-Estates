@@ -3654,9 +3654,10 @@ export function TypologySpreadsheet() {
                     perSectionCollapsedWidth = Math.ceil(totalNeeded / group.sections.length);
                   }
 
-                  return group.sections.flatMap(({ section, index: sectionIndex }) => {
+                  return group.sections.flatMap(({ section, index: sectionIndex }, groupSectionIdx) => {
                     const isSectionExpanded = expandedSections.has(section.id);
                     const isFirstSection = sectionIndex === 0;
+                    const isFirstInGroup = groupSectionIdx === 0;
                     const isLastInParentGroup = !section.parentLabel || sectionIndex === SECTIONS.length - 1 || SECTIONS[sectionIndex + 1]?.parentLabel !== section.parentLabel;
                     
                     if (!isSectionExpanded || (section as any).hideInRow2) {
@@ -3766,20 +3767,20 @@ export function TypologySpreadsheet() {
                     if (section.id === "credito" || section.id === "mantenimiento" || section.id === "tasa_renta" || section.id === "meses") {
                       return section.columns.map((col, idx) => {
                         const isLastCol = idx === section.columns.length - 1;
-                        return renderStandardCol(col, idx === 0 && sectionIndex === 0, isLastCol && isLastInParentGroup, sectionIndex, idx === 0);
+                        return renderStandardCol(col, idx === 0 && sectionIndex === 0, isLastCol && isLastInParentGroup, sectionIndex, idx === 0 && isFirstInGroup);
                       });
                     }
 
                     if (section.id === "impuestos") {
                       const isaPercentCol = section.columns.find(c => c.key === "isaPercent")!;
                       const isaAmountCol = section.columns.find(c => c.key === "isaAmount")!;
-                      return [renderUnifiedCol("impuestos", "Impuestos", [isaPercentCol, isaAmountCol], sectionIndex)];
+                      return [renderUnifiedCol("impuestos", "Impuestos", [isaPercentCol, isaAmountCol], sectionIndex, isFirstInGroup)];
                     }
 
                     if (section.id === "notaria") {
                       const notaryPercentCol = section.columns.find(c => c.key === "notaryPercent")!;
                       const notaryAmountCol = section.columns.find(c => c.key === "notaryAmount")!;
-                      return [renderUnifiedCol("notaria", "Notaría", [notaryPercentCol, notaryAmountCol], sectionIndex)];
+                      return [renderUnifiedCol("notaria", "Notaría", [notaryPercentCol, notaryAmountCol], sectionIndex, isFirstInGroup)];
                     }
 
                     if (section.id === "gastos_extra") {
@@ -3787,7 +3788,7 @@ export function TypologySpreadsheet() {
                       const furnitureCol = section.columns.find(c => c.key === "furnitureCost")!;
                       const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts")!;
                       return [
-                        renderUnifiedCol("equipo", "Equipo", [equipmentCol], sectionIndex, true),
+                        renderUnifiedCol("equipo", "Equipo", [equipmentCol], sectionIndex, isFirstInGroup),
                         renderUnifiedCol("muebles", "Muebles", [furnitureCol], sectionIndex, false),
                         renderUnifiedCol("total-post", "Total", [totalCol], sectionIndex, false)
                       ];
@@ -3809,7 +3810,7 @@ export function TypologySpreadsheet() {
                     }
 
                     if (section.id === "entrega") {
-                      return [renderStandardCol(section.columns[0], isFirstSection, false, sectionIndex)];
+                      return [renderStandardCol(section.columns[0], isFirstSection, false, sectionIndex, isFirstInGroup)];
                     }
 
                     if (section.parentLabel && !section.subSections && section.id !== "generales") {
@@ -3825,6 +3826,7 @@ export function TypologySpreadsheet() {
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                             width: sectionWidth,
                             borderBottom: '1px solid rgba(255,255,255,0.15)',
+                            borderLeft: !isFirstInGroup ? '1px solid rgba(255,255,255,0.15)' : undefined,
                           }}
                         >
                           <div className="flex items-center justify-between w-full h-full">
@@ -3862,7 +3864,7 @@ export function TypologySpreadsheet() {
                     }
 
                     return section.columns.map((col, colIndex) => {
-                      return renderStandardCol(col, colIndex === 0 && isFirstSection, true, sectionIndex, colIndex === 0);
+                      return renderStandardCol(col, colIndex === 0 && isFirstSection, true, sectionIndex, colIndex === 0 && isFirstInGroup);
                     });
                   });
                 });
@@ -3935,18 +3937,10 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="w-24 h-full flex-shrink-0 flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-xs font-medium flex items-center gap-1">
-                      <Images className="w-3 h-3" />
-                      Medios
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Subir fotos/videos a Documentos &gt; Desarrolladores &gt; Productos</p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className="w-24 h-full flex-shrink-0 flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <div style={{ width: 20 }} />
+                <TruncatedLabel label="Medios" columnKey="medios" />
+                <div style={{ width: 20 }} />
               </div>
             </div>
 
