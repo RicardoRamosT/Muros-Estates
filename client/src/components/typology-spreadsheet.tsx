@@ -1952,7 +1952,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0 || disabled) {
       return (
         <div 
-          className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           {selectedType ? (
@@ -1970,7 +1970,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Popover>
