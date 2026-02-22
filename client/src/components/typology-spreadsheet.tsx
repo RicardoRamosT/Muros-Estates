@@ -3464,7 +3464,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid hsl(var(--border))' }} />
+              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -3522,7 +3522,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
                         borderRight: 'none',
-                        borderBottom: hasMergeHeaders ? 'none' : '1px solid hsl(var(--border))',
+                        borderBottom: 'none',
                       }}
                     >
                       {showLabel && (
@@ -3616,7 +3616,7 @@ export function TypologySpreadsheet() {
             </div>
             
             {/* Row 2: Section/column labels */}
-            <div className="flex border-b spreadsheet-header-row2">
+            <div className="flex spreadsheet-header-row2">
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
@@ -3755,17 +3755,17 @@ export function TypologySpreadsheet() {
                       const otherColsAfter = section.columns.filter(c => c.key === "lockOff");
 
                       return [
-                        ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex)),
-                        renderUnifiedCol("balcon", "Balcón", [balconyCol, balconySizeCol], sectionIndex),
-                        renderUnifiedCol("terraza", "Terraza", [terraceCol, terraceSizeCol], sectionIndex),
-                        ...otherColsAfter.map(col => renderStandardCol(col, false, isLastInParentGroup, sectionIndex))
+                        ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex, idx === 0)),
+                        renderUnifiedCol("balcon", "Balcón", [balconyCol, balconySizeCol], sectionIndex, false),
+                        renderUnifiedCol("terraza", "Terraza", [terraceCol, terraceSizeCol], sectionIndex, false),
+                        ...otherColsAfter.map(col => renderStandardCol(col, false, isLastInParentGroup, sectionIndex, false))
                       ];
                     }
 
                     if (section.id === "credito" || section.id === "mantenimiento" || section.id === "tasa_renta" || section.id === "meses") {
                       return section.columns.map((col, idx) => {
                         const isLastCol = idx === section.columns.length - 1;
-                        return renderStandardCol(col, idx === 0 && sectionIndex === 0, isLastCol && isLastInParentGroup, sectionIndex);
+                        return renderStandardCol(col, idx === 0 && sectionIndex === 0, isLastCol && isLastInParentGroup, sectionIndex, idx === 0);
                       });
                     }
 
@@ -3786,9 +3786,9 @@ export function TypologySpreadsheet() {
                       const furnitureCol = section.columns.find(c => c.key === "furnitureCost")!;
                       const totalCol = section.columns.find(c => c.key === "totalPostDeliveryCosts")!;
                       return [
-                        renderUnifiedCol("equipo", "Equipo", [equipmentCol], sectionIndex),
-                        renderUnifiedCol("muebles", "Muebles", [furnitureCol], sectionIndex),
-                        renderUnifiedCol("total-post", "Total", [totalCol], sectionIndex)
+                        renderUnifiedCol("equipo", "Equipo", [equipmentCol], sectionIndex, true),
+                        renderUnifiedCol("muebles", "Muebles", [furnitureCol], sectionIndex, false),
+                        renderUnifiedCol("total-post", "Total", [totalCol], sectionIndex, false)
                       ];
                     }
 
@@ -3801,9 +3801,9 @@ export function TypologySpreadsheet() {
                       const otherColsBefore = section.columns.filter(c => c.key === "bedrooms2" || c.key === "bathrooms2" || c.key === "areas2");
 
                       return [
-                        ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex)),
-                        renderUnifiedCol("balcon2", "Balcón", [balconyCol, balconySizeCol], sectionIndex),
-                        renderUnifiedCol("terraza2", "Terraza", [terraceCol, terraceSizeCol], sectionIndex)
+                        ...otherColsBefore.map((col, idx) => renderStandardCol(col, idx === 0 && sectionIndex === 0, false, sectionIndex, idx === 0)),
+                        renderUnifiedCol("balcon2", "Balcón", [balconyCol, balconySizeCol], sectionIndex, false),
+                        renderUnifiedCol("terraza2", "Terraza", [terraceCol, terraceSizeCol], sectionIndex, false)
                       ];
                     }
 
@@ -3860,12 +3860,12 @@ export function TypologySpreadsheet() {
                     }
 
                     return section.columns.map((col, colIndex) => {
-                      return renderStandardCol(col, colIndex === 0 && isFirstSection, true, sectionIndex);
+                      return renderStandardCol(col, colIndex === 0 && isFirstSection, true, sectionIndex, colIndex === 0);
                     });
                   });
                 });
 
-                function renderStandardCol(col: ColumnDef, _isSticky: boolean, _showBorder: boolean = true, sectionIndex: number) {
+                function renderStandardCol(col: ColumnDef, _isSticky: boolean, _showBorder: boolean = true, sectionIndex: number, isFirstInSection: boolean = true) {
                   const isColCollapsed = collapsedColumns.has(col.key);
                   const colW = getColWidth(col);
                   return (
@@ -3877,7 +3877,8 @@ export function TypologySpreadsheet() {
                       )}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
-                        width: colW, 
+                        width: colW,
+                        borderLeft: !isFirstInSection && !isColCollapsed ? '1px solid rgba(255,255,255,0.15)' : undefined,
                       }}
                     >
                       {isColCollapsed ? (
@@ -3902,7 +3903,7 @@ export function TypologySpreadsheet() {
                   );
                 }
 
-                function renderUnifiedCol(key: string, label: string, cols: ColumnDef[], sectionIndex: number) {
+                function renderUnifiedCol(key: string, label: string, cols: ColumnDef[], sectionIndex: number, isFirstInSection: boolean = true) {
                   const colKeys = cols.map(c => c.key);
                   const allCollapsed = colKeys.every(k => collapsedColumns.has(k));
                   const totalW = cols.reduce((sum, c) => sum + getColWidth(c), 0);
@@ -3921,7 +3922,7 @@ export function TypologySpreadsheet() {
                     );
                   }
                   return (
-                    <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW }}>
+                    <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW, borderLeft: !isFirstInSection ? '1px solid rgba(255,255,255,0.15)' : undefined }}>
                       <div style={{ width: 20 }} />
                       <TruncatedLabel label={label} columnKey={key} />
                       <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
@@ -4023,7 +4024,8 @@ export function TypologySpreadsheet() {
                           )}
                           style={{ 
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
-                            width: colW, 
+                            width: colW,
+                            borderLeft: !isFirstColInRow3 && !isColCollapsed ? '1px solid rgba(255,255,255,0.15)' : undefined,
                           }}
                         >
                           {!isColCollapsed && (
