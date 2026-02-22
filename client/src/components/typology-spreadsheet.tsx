@@ -1852,7 +1852,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         ? [...options].sort((a, b) => parseInt(a) - parseInt(b))
         : [...options].sort((a, b) => a.localeCompare(b, 'es'));
     }
-    if (currentValue && !finalOptions.includes(currentValue)) {
+    const entityLinkedFields = ["developer", "development", "city", "zone"];
+    if (currentValue && !finalOptions.includes(currentValue) && !entityLinkedFields.includes(column.key)) {
       finalOptions = [currentValue, ...finalOptions];
     }
     
@@ -1875,7 +1876,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!currentValue || /^\d+$/.test(currentValue)) ? "text-center" : "text-left", !currentValue && column.allowUnassigned && "font-medium")}
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <span className="truncate min-w-0 flex-1">{currentValue || (column.allowUnassigned ? "S/A" : "")}</span>
+            <span className={cn("truncate min-w-0 flex-1", currentValue && !finalOptions.includes(currentValue) && entityLinkedFields.includes(column.key) && "text-red-400 line-through")}>{currentValue || (column.allowUnassigned ? "S/A" : "")}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "text-foreground font-bold italic" : "text-muted-foreground italic"}>
