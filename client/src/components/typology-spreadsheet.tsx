@@ -2996,6 +2996,14 @@ export function TypologySpreadsheet() {
     await saveRowById(activeEditingRowId);
   }, [activeEditingRowId, saveRowById]);
 
+  const saveAllPendingRows = useCallback(async () => {
+    const rowIds = Array.from(pendingChangesRef.current.keys());
+    if (rowIds.length === 0) return;
+    for (const rowId of rowIds) {
+      await saveRowById(rowId);
+    }
+  }, [saveRowById]);
+
   const handleRowClick = useCallback(async (rowId: string) => {
     if (activeEditingRowId && activeEditingRowId !== rowId) {
       const changes = pendingChanges.get(activeEditingRowId);
@@ -3441,10 +3449,10 @@ export function TypologySpreadsheet() {
           <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
           <Button 
             onClick={async () => {
-              await saveActiveRow();
+              await saveAllPendingRows();
             }}
             size="sm"
-            disabled={!hasPendingRowChanges || isSaving}
+            disabled={pendingChanges.size === 0 || isSaving}
             className={cn(
               "transition-all duration-300",
               saveFlash 
@@ -3459,7 +3467,7 @@ export function TypologySpreadsheet() {
             ) : (
               <Save className="w-4 h-4 mr-1" />
             )}
-            Guardar
+            Guardar{pendingChanges.size > 1 ? ` (${pendingChanges.size})` : ""}
           </Button>
           <Button 
             onClick={handleAddRow} 
