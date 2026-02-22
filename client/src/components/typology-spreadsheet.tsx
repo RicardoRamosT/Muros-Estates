@@ -3464,7 +3464,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
+              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -3522,7 +3522,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
                         borderRight: 'none',
-                        borderBottom: 'none',
+                        borderBottom: hasMergeHeaders ? 'none' : '1px solid rgba(255,255,255,0.15)',
                       }}
                     >
                       {showLabel && (
@@ -3612,12 +3612,12 @@ export function TypologySpreadsheet() {
                   );
                 });
               })()}
-              <div className="w-24 flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }} />
+              <div className="w-24 flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
             </div>
             
             {/* Row 2: Section/column labels */}
             <div className="flex spreadsheet-header-row2">
-              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {(() => {
@@ -3665,7 +3665,7 @@ export function TypologySpreadsheet() {
                         <div 
                           key={`collapsed-${section.id}`}
                           className="flex-shrink-0 flex items-center justify-center text-xs h-full text-white border-r border-white/20"
-                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: allSectionsIndividuallyCollapsed ? perSectionCollapsedWidth : COLLAPSED_COL_WIDTH }}
+                          style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: allSectionsIndividuallyCollapsed ? perSectionCollapsedWidth : COLLAPSED_COL_WIDTH, borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -3703,6 +3703,7 @@ export function TypologySpreadsheet() {
                             style={{ 
                               backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                               width: COLLAPSED_COL_WIDTH,
+                              borderBottom: '1px solid rgba(255,255,255,0.15)',
                             }}
                           >
                             <div className="flex items-center justify-center w-full h-full relative">
@@ -3823,6 +3824,7 @@ export function TypologySpreadsheet() {
                           style={{ 
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                             width: sectionWidth,
+                            borderBottom: '1px solid rgba(255,255,255,0.15)',
                           }}
                         >
                           <div className="flex items-center justify-between w-full h-full">
@@ -3879,6 +3881,7 @@ export function TypologySpreadsheet() {
                         backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                         width: colW,
                         borderLeft: !isFirstInSection && !isColCollapsed ? '1px solid rgba(255,255,255,0.15)' : undefined,
+                        borderBottom: '1px solid rgba(255,255,255,0.15)',
                       }}
                     >
                       {isColCollapsed ? (
@@ -3909,7 +3912,7 @@ export function TypologySpreadsheet() {
                   const totalW = cols.reduce((sum, c) => sum + getColWidth(c), 0);
                   if (allCollapsed) {
                     return (
-                      <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW }}>
+                      <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button onClick={() => toggleColumns(colKeys)} className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-white/10" data-testid={`unified-expand-${key}`}>
@@ -3922,7 +3925,7 @@ export function TypologySpreadsheet() {
                     );
                   }
                   return (
-                    <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW, borderLeft: !isFirstInSection ? '1px solid rgba(255,255,255,0.15)' : undefined }}>
+                    <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW, borderLeft: !isFirstInSection ? '1px solid rgba(255,255,255,0.15)' : undefined, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                       <div style={{ width: 20 }} />
                       <TruncatedLabel label={label} columnKey={key} />
                       <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
@@ -3932,7 +3935,7 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="w-24 h-full flex-shrink-0 flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }}>
+              <div className="w-24 h-full flex-shrink-0 flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="text-xs font-medium flex items-center gap-1">
