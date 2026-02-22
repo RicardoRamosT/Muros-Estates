@@ -1690,7 +1690,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-gray-100/60 dark:bg-gray-800/40", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", disabled ? "bg-gray-200 dark:bg-gray-700" : "bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         {disabled ? (
@@ -1860,7 +1860,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-gray-100/60 dark:bg-gray-800/40", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <ExclusiveSelect 
@@ -1914,7 +1914,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0 || disabled) {
       return (
         <div 
-          className={cn("spreadsheet-cell px-1 bg-gray-100/60 dark:bg-gray-800/40", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1 bg-gray-200 dark:bg-gray-700", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           {selectedType ? (
@@ -1932,7 +1932,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-gray-100/60 dark:bg-gray-800/40", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Popover>
