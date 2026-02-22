@@ -21,8 +21,8 @@ import {
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import type { Development, Developer, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
-import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPMENT_TYPES } from "@shared/constants";
+import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
+import { DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
 
@@ -162,6 +162,22 @@ export function DevelopmentsSpreadsheet() {
     queryKey: ["/api/developers"],
   });
 
+  const { data: catalogCities = [] } = useQuery<CatalogCity[]>({
+    queryKey: ["/api/catalog/cities"],
+  });
+
+  const { data: catalogZones = [] } = useQuery<CatalogZone[]>({
+    queryKey: ["/api/catalog/zones"],
+  });
+
+  const cityNames = useMemo(() =>
+    catalogCities
+      .filter(c => c.active !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map(c => c.name),
+    [catalogCities]
+  );
+
   const { data: amenities = [] } = useQuery<CatalogAmenity[]>({
     queryKey: ["/api/catalog/amenities"],
   });
@@ -299,11 +315,15 @@ export function DevelopmentsSpreadsheet() {
     return dev?.name || "Desconocido";
   }, [developers]);
 
-  const getZonesForCity = (city: string | null): readonly string[] => {
-    if (city === "Monterrey") return ZONES_MONTERREY;
-    if (city === "CDMX") return ZONES_CDMX;
-    return [];
-  };
+  const getZonesForCity = useCallback((city: string | null): string[] => {
+    if (!city) return [];
+    const cityObj = catalogCities.find(c => c.name === city);
+    if (!cityObj) return [];
+    return catalogZones
+      .filter(z => z.cityId === cityObj.id && z.active !== false)
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+      .map(z => z.name);
+  }, [catalogCities, catalogZones]);
 
   const visibleColumns = useMemo(() => {
     let cols = columns.filter(col => {
@@ -753,7 +773,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__unassigned__">Sin asignar</SelectItem>
-                            {CITIES.map(c => (
+                            {cityNames.map(c => (
                               <SelectItem key={c} value={c}>{c}</SelectItem>
                             ))}
                           </SelectContent>
