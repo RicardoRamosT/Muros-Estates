@@ -1952,7 +1952,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0 || disabled) {
       return (
         <div 
-          className={cn("spreadsheet-cell px-1 bg-gray-200 dark:bg-gray-700", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           {selectedType ? (
