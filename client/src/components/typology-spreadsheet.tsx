@@ -1413,13 +1413,13 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       </PopoverContent>
       </Popover>
       {hideLabel ? (
-        (!isAmountField) ? (
+        fullLabel ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              {fullLabel || column.label}
+              {fullLabel}
             </TooltipContent>
           </Tooltip>
         ) : (
