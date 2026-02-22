@@ -1898,8 +1898,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "-" : "")}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__clear__" className={column.allowUnassigned ? "text-black font-[900] italic" : "text-muted-foreground italic"}>
-              {column.allowUnassigned ? <span className="text-black font-[900] text-lg opacity-100">-</span> : <span className="opacity-50">—</span>}
+            <SelectItem value="__clear__" className={column.allowUnassigned ? "text-black font-normal italic" : "text-muted-foreground italic"}>
+              {column.allowUnassigned ? "-" : <span className="opacity-50">—</span>}
             </SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
@@ -3263,7 +3263,7 @@ export function TypologySpreadsheet() {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev?.entregaProyectada) {
         maintenanceStartDate = autoDeliveryDate;
-        const mortgageYrs = (calculated as any).mortgageYears || (merged as any).mortgageYears || defaults?.['mortgageYears'] || 15;
+        const mortgageYrs = (calculated.mortgageYears as number) || (merged.mortgageYears as number) || defaults?.['mortgageYears'] || 15;
         const deliveryDateObj = new Date(dev.entregaProyectada);
         const endDateObj = new Date(deliveryDateObj);
         endDateObj.setFullYear(endDateObj.getFullYear() + mortgageYrs);
@@ -4094,7 +4094,7 @@ export function TypologySpreadsheet() {
                           const devVistas = vistasByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devVistas.length > 0 ? devVistas : vistaOptions;
                         }
-                        if (col.key === "tipoDesarrollo") {
+                        if (col.key === "developmentType") {
                           const devTypes = typesByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devTypes.length > 0 ? devTypes : tipologiaOptions;
                         }
@@ -4129,8 +4129,6 @@ export function TypologySpreadsheet() {
                         const rowGrayState = dynamicGray[row.id];
                         const isDynCalc = rowGrayState?.[col.key] === "calculated";
 
-                        const isCalculatedCell = col.calculated || isDynCalc;
-                        
                         const cell = (
                           <EditableCell
                             key={`${row.id}-${col.key}`}
@@ -4139,7 +4137,7 @@ export function TypologySpreadsheet() {
                             rowId={row.id}
                             city={mergedRow.city || undefined}
                             developer={mergedRow.developer || undefined}
-                            onChange={(newVal) => handleCellChange(row.id, col.key as TypologyField, newVal)}
+                            onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
                             disabled={isConditionallyDisabled || isLockedByFlow}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
