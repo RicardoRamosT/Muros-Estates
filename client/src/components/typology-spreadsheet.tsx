@@ -1660,13 +1660,13 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           }}
         >
           <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (canBeUnassigned ? "S/A" : "-")}</span>
+            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (canBeUnassigned ? "-" : "-")}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
             {canBeUnassigned && (
-              <SelectItem value="sa" className="text-foreground">Sin Asignar</SelectItem>
+              <SelectItem value="sa" className="font-normal text-black italic">-</SelectItem>
             )}
           </SelectContent>
         </ExclusiveSelect>
@@ -1895,11 +1895,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!displayValue || /^\d+$/.test(displayValue)) ? "text-center" : "text-left", !displayValue && column.allowUnassigned && "font-medium")}
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "S/A" : "")}</span>
+            <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "-" : "")}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__clear__" className={column.allowUnassigned ? "text-foreground font-bold italic" : "text-muted-foreground italic"}>
-              {column.allowUnassigned ? "Sin Asignar" : <span className="opacity-50">—</span>}
+            <SelectItem value="__clear__" className={column.allowUnassigned ? "text-black font-normal italic" : "text-muted-foreground italic"}>
+              {column.allowUnassigned ? "-" : <span className="opacity-50">—</span>}
             </SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>

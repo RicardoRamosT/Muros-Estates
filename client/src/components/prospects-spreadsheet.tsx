@@ -866,7 +866,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectValue placeholder="Seleccionar" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
-                                <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                                <SelectItem value="__unassigned__" className="font-normal text-black italic">-</SelectItem>
                                 {Object.entries(developerGroups).map(([devName, devDevelopments]) => (
                                   <SelectGroup key={devName}>
                                     <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
@@ -898,7 +898,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              <SelectItem value="__unassigned__" className="font-normal text-black italic">-</SelectItem>
                               {options.map(opt => (
                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                               ))}
@@ -942,7 +942,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                              <SelectItem value="__unassigned__" className="font-normal text-black italic">-</SelectItem>
                               {filteredTypologies.length > 0 ? (
                                 (() => {
                                   const groupedByDev: Record<string, typeof filteredTypologies> = {};
@@ -1006,17 +1006,17 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <SelectTrigger 
                               className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
                             >
-                              <SelectValue placeholder="Sin asignar" />
+                              <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__" className="text-red-600 font-medium">Sin asignar</SelectItem>
+                              <SelectItem value="__unassigned__" className="font-normal text-black italic">-</SelectItem>
                               <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                               <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
                           <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
-                            <span>{displayValue || 'Sin asignar'}</span>
+                            <span>{displayValue || '-'}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -1049,7 +1049,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
                               <SelectItem value="__unassigned__" className={isComoPaga ? 'text-red-500 font-medium' : ''}>
-                                {isComoPaga ? 'SIN ASIGNAR' : 'Sin asignar'}
+                                {isComoPaga ? '-' : '-'}
                               </SelectItem>
                               {options.map(opt => (
                                 <SelectItem 
