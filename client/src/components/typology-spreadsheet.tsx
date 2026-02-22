@@ -1109,17 +1109,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
     );
   };
 
-  const isAmountField = (column.key.toLowerCase().includes("amount") || 
-                        column.key.toLowerCase().includes("price") || 
-                        column.key.toLowerCase().includes("payment") ||
-                        column.key.toLowerCase().includes("total") ||
-                        column.key.toLowerCase().includes("cost") ||
-                        column.key.toLowerCase().includes("remaining") ||
-                        column.key.toLowerCase().includes("initial") ||
-                        column.key.toLowerCase().includes("during")) && 
-                        !column.key.toLowerCase().includes("percent");
-
-  const centerHoverZone = (fullLabel || !isAmountField) ? (
+  const centerHoverZone = fullLabel ? (
     <div 
       className="absolute inset-0 z-0 flex items-center justify-center cursor-default group/center"
       onClick={(e) => e.stopPropagation()}
@@ -1129,24 +1119,15 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
           <div className="w-full h-full" />
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          {column.key.toLowerCase().includes("percent") ? "Porcentaje" : (fullLabel || column.label).toUpperCase()}
+          {fullLabel.toUpperCase()}
         </TooltipContent>
       </Tooltip>
     </div>
   ) : (
     <div 
-      className="absolute inset-0 z-0 flex items-center justify-center cursor-default group/center"
+      className="absolute inset-0 z-0 flex items-center justify-center cursor-default"
       onClick={(e) => e.stopPropagation()}
-    >
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <div className="w-full h-full" />
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
-          {(fullLabel || column.label).toUpperCase()}
-        </TooltipContent>
-      </Tooltip>
-    </div>
+    />
   );
 
   return (
@@ -3936,7 +3917,7 @@ export function TypologySpreadsheet() {
                               }
                               columnWidth={col.width}
                               hideLabel={true}
-                              fullLabel={col.fullLabel || col.label}
+                              fullLabel={col.hideLabel ? (col.fullLabel || col.label) : undefined}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
                             />
