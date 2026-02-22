@@ -866,7 +866,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectValue placeholder="Seleccionar" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
-                                <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                                <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                                 {Object.entries(developerGroups).map(([devName, devDevelopments]) => (
                                   <SelectGroup key={devName}>
                                     <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
@@ -898,7 +898,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                               {options.map(opt => (
                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                               ))}
@@ -942,7 +942,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                               {filteredTypologies.length > 0 ? (
                                 (() => {
                                   const groupedByDev: Record<string, typeof filteredTypologies> = {};
@@ -1009,7 +1009,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                               <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                               <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>

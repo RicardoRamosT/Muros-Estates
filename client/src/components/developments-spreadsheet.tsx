@@ -710,7 +710,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {EMPRESA_TIPO_OPTIONS.map(t => (
                               <SelectItem key={t} value={t}>{t}</SelectItem>
                             ))}
@@ -744,7 +744,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {filteredDevs.map(d => (
                               <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                             ))}
@@ -772,7 +772,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Ciudad" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {cityNames.map(c => (
                               <SelectItem key={c} value={c}>{c}</SelectItem>
                             ))}
@@ -801,7 +801,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Zona" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {zones.map(z => (
                               <SelectItem key={z} value={z}>{z}</SelectItem>
                             ))}
@@ -890,7 +890,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Nivel" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {nivelOptions.map(n => (
                               <SelectItem key={n} value={n}>{n}</SelectItem>
                             ))}
@@ -1280,7 +1280,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Contrato" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {tiposContrato.filter(t => t.active !== false).map(t => (
                               <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
                             ))}
@@ -1308,7 +1308,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Cesión" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {cesionDerechosList.filter(c => c.active !== false).map(c => (
                               <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                             ))}
@@ -1336,7 +1336,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectValue placeholder="Presentación" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__unassigned__" className="font-normal !text-black">-</SelectItem>
+                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
                             {presentaciones.filter(p => p.active !== false).map(p => (
                               <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                             ))}
