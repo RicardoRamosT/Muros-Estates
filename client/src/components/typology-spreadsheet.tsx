@@ -357,7 +357,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     mergeHeaders: true,
     columns: [
-      { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
+      { key: "deliveryDate", label: "Entrega", type: "text", width: 100, calculated: true },
     ],
   },
   {
