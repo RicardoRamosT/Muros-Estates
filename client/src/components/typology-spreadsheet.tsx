@@ -4080,11 +4080,20 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10"
+                  className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative"
                   style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
                   {stableRowNumberMap.get(row.id) ?? rowIndex + 1}
+                  <span
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: isTypologyComplete(mergedRow as Partial<Typology>, validEntities)
+                        ? (mergedRow.active === true ? "#22c55e" : "#f59e0b")
+                        : "#ef4444"
+                    }}
+                    data-testid={`status-dot-${row.id}`}
+                  />
                 </div>
                 
                 {/* Flat cell structure for perfect row alignment */}
