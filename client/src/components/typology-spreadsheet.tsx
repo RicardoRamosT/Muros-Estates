@@ -787,7 +787,7 @@ function FormattedCellValue({ value, format }: { value: any; format?: string }) 
     const formatted = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(num);
     return (
       <span className="flex w-full justify-between items-center gap-0.5">
-        <span className="text-muted-foreground/70 shrink-0">$</span>
+        <span className="shrink-0">$</span>
         <span className="tabular-nums">{formatted}</span>
       </span>
     );
@@ -1540,7 +1540,6 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.calculated && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
-          column.calculated && "text-muted-foreground",
           disabled && !column.calculated && "bg-gray-200/60 dark:bg-gray-800/50",
           disabled && !column.calculated && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
@@ -1559,7 +1558,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs cursor-pointer text-muted-foreground", cellBorderClass,
+          "spreadsheet-cell px-2 text-xs cursor-pointer", cellBorderClass,
           "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
@@ -4058,7 +4057,7 @@ export function TypologySpreadsheet() {
                             <div
                               key={col.key}
                               className={cn(
-                                "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
+                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center",
                                 section.cellColor
                               )}
                               style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
@@ -4074,7 +4073,7 @@ export function TypologySpreadsheet() {
                             <div
                               key={col.key}
                               className={cn(
-                                "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
+                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center",
                                 section.cellColor
                               )}
                               style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
