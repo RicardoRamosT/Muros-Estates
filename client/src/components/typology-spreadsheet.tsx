@@ -73,6 +73,7 @@ interface SectionDef {
   conditionalFields?: { field: TypologyField; dependsOn: TypologyField | TypologyField[] }[];
   subSections?: string[];
   hideInRow2?: boolean;
+  mergeHeaders?: boolean;
 }
 
 // Extra width for sort icon per column header
@@ -290,12 +291,13 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "queIncluye",
-    label: "Que Incluye",
+    label: "Equipo",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "",
+    mergeHeaders: true,
     columns: [
-      { key: "queIncluye", label: "Que Incluye", type: "multiselect", width: 120 },
+      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 120 },
     ],
   },
   {
@@ -349,12 +351,11 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "entrega",
-    label: "",
-    parentLabel: "Entrega",
-    subheader: "Entrega",
+    label: "Entrega",
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
+    mergeHeaders: true,
     columns: [
       { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
     ],
@@ -3196,6 +3197,7 @@ export function TypologySpreadsheet() {
   const zoomIn = () => handleZoomChange(zoomLevel + 5);
   const zoomOut = () => handleZoomChange(zoomLevel - 5);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const mediaInputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
   useEffect(() => {
     if (scrollToBottomPhaseRef.current !== 'done') return;
@@ -3410,8 +3412,8 @@ export function TypologySpreadsheet() {
           {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
-            <div className="flex border-b spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }} />
+            <div className="flex spreadsheet-header-row1">
+              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid hsl(var(--border))' }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -3460,6 +3462,7 @@ export function TypologySpreadsheet() {
                   const allSectionsIndivCollapsedR1 = !anyExpanded && !isGroupCollapsed;
                   const showMinus = !isGroupCollapsed && (allSectionsIndivCollapsedR1 || (anyExpanded && !allColsInGroupCollapsed));
                   
+                  const hasMergeHeaders = group.sections.some(s => s.section.mergeHeaders);
                   return (
                     <div 
                       key={groupKey} 
@@ -3467,7 +3470,8 @@ export function TypologySpreadsheet() {
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
-                        borderRight: 'none'
+                        borderRight: 'none',
+                        borderBottom: hasMergeHeaders ? 'none' : '1px solid hsl(var(--border))',
                       }}
                     >
                       {showLabel && (
@@ -3557,7 +3561,7 @@ export function TypologySpreadsheet() {
                   );
                 });
               })()}
-              <div className="w-24 flex-shrink-0 bg-muted/50" />
+              <div className="w-24 flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }} />
             </div>
             
             {/* Row 2: Section/column labels */}
@@ -3672,6 +3676,21 @@ export function TypologySpreadsheet() {
                           </div>
                         );
                       });
+                    }
+
+                    if (section.mergeHeaders) {
+                      const sectionWidth = section.columns.reduce((sum, col) => sum + getColWidth(col), 0);
+                      return [(
+                        <div
+                          key={`merged-${section.id}`}
+                          className="flex-shrink-0 text-white"
+                          style={{ 
+                            backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
+                            width: sectionWidth,
+                            height: '100%',
+                          }}
+                        />
+                      )];
                     }
 
                     // UNIFIED TITLES for Balcón and Terraza in Row 2
@@ -3861,10 +3880,10 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center border-r">
+              <div className="w-24 h-full flex-shrink-0 flex items-center justify-center text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    <span className="text-xs font-medium flex items-center gap-1">
                       <Images className="w-3 h-3" />
                       Medios
                     </span>
@@ -3986,7 +4005,7 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="w-24 h-full flex-shrink-0 bg-slate-100 dark:bg-slate-900/30 border-r" />
+              <div className="w-24 h-full flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }} />
             </div>
           </div>
           
@@ -4215,29 +4234,42 @@ export function TypologySpreadsheet() {
                 >
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*,video/*"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => {
-                            const files = e.target.files;
-                            if (files) {
-                              Array.from(files).forEach(file => {
-                                uploadMediaMutation.mutate({ typologyId: row.id, file });
-                              });
-                            }
-                            e.target.value = "";
-                          }}
-                          data-testid={`input-media-${row.id}`}
-                        />
-                      </label>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        onClick={() => {
+                          mediaInputRefs.current.get(row.id)?.click();
+                        }}
+                        data-testid={`button-upload-media-${row.id}`}
+                      >
+                        <Plus className="w-3.5 h-3.5 text-muted-foreground" />
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Subir fotos/videos</p>
                     </TooltipContent>
                   </Tooltip>
+                  <input
+                    ref={(el) => {
+                      if (el) mediaInputRefs.current.set(row.id, el);
+                      else mediaInputRefs.current.delete(row.id);
+                    }}
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files) {
+                        Array.from(files).forEach(file => {
+                          uploadMediaMutation.mutate({ typologyId: row.id, file });
+                        });
+                      }
+                      e.target.value = "";
+                    }}
+                    data-testid={`input-media-${row.id}`}
+                  />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -4250,13 +4282,10 @@ export function TypologySpreadsheet() {
                         }}
                         data-testid={`button-view-media-${row.id}`}
                       >
-                        {getTypologyDocCount(row.id) > 0 ? (
-                          <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 min-w-5">
-                            {getTypologyDocCount(row.id)}
-                          </Badge>
-                        ) : (
-                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                        {getTypologyDocCount(row.id) > 0 && (
+                          <span className="text-xs font-medium mr-0.5">{getTypologyDocCount(row.id)}</span>
                         )}
+                        <Eye className="w-3.5 h-3.5 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
