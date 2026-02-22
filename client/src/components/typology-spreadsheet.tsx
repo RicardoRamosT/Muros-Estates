@@ -154,8 +154,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-100/30 dark:bg-gray-900/10",
     columns: [
-      { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true },
-      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
+      { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true, cellColor: "text-black !opacity-100" },
+      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true, cellColor: "text-black !opacity-100" },
       { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
       { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
@@ -4058,7 +4058,7 @@ export function TypologySpreadsheet() {
                             <div
                               key={col.key}
                               className={cn(
-                                "spreadsheet-cell px-2 text-xs text-black font-medium truncate justify-center text-center",
+                                "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
                                 section.cellColor
                               )}
                               style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
@@ -4074,7 +4074,7 @@ export function TypologySpreadsheet() {
                             <div
                               key={col.key}
                               className={cn(
-                                "spreadsheet-cell px-2 text-xs text-black font-medium truncate justify-center text-center",
+                                "spreadsheet-cell px-2 text-xs text-muted-foreground truncate justify-center text-center",
                                 section.cellColor
                               )}
                               style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
