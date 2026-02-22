@@ -2973,6 +2973,11 @@ export function TypologySpreadsheet() {
     }
     initialData.active = false;
     initialData.queIncluye = "Sin Equipo";
+    initialData.hasBalcony = null;
+    initialData.hasTerrace = null;
+    initialData.hasBalcony2 = null;
+    initialData.hasTerrace2 = null;
+    initialData.lockOff = null;
     createMutation.mutate(initialData);
   };
   

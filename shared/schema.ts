@@ -981,20 +981,20 @@ export const typologies = pgTable("typologies", {
   promoDescription: text("promo_description"), // Descripción de promo
   
   // 20-34: DISTRIBUCIÓN
-  lockOff: boolean("lock_off").default(false), // LockOff
+  lockOff: boolean("lock_off"), // LockOff
   bedrooms: text("bedrooms"), // REC (text to support values like "1 + Flex")
   bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }), // Baños
   areas: text("areas"), // Áreas (text for area type selection)
-  hasBalcony: boolean("has_balcony").default(false), // Balcón Sí/No
+  hasBalcony: boolean("has_balcony"), // Balcón Sí/No
   balconySize: decimal("balcony_size", { precision: 5, scale: 2 }), // Balcón Tamaño
-  hasTerrace: boolean("has_terrace").default(false), // Terraza Sí/No
+  hasTerrace: boolean("has_terrace"), // Terraza Sí/No
   terraceSize: decimal("terrace_size", { precision: 5, scale: 2 }), // Terraza Tamaño
   bedrooms2: text("bedrooms_2"), // REC (2) (text to support values like "1 + Flex")
   bathrooms2: decimal("bathrooms_2", { precision: 3, scale: 1 }), // Baños (2)
   areas2: text("areas_2"), // Áreas (2) (text for area type selection)
-  hasBalcony2: boolean("has_balcony_2").default(false), // Balcón (2) Sí/No
+  hasBalcony2: boolean("has_balcony_2"), // Balcón (2) Sí/No
   balconySize2: decimal("balcony_size_2", { precision: 5, scale: 2 }), // Balcón (2) Tamaño
-  hasTerrace2: boolean("has_terrace_2").default(false), // Terraza (2) Sí/No
+  hasTerrace2: boolean("has_terrace_2"), // Terraza (2) Sí/No
   terraceSize2: decimal("terrace_size_2", { precision: 5, scale: 2 }), // Terraza (2) Tamaño
   
   // 35-37: CAJONES
