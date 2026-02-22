@@ -866,7 +866,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectValue placeholder="Seleccionar" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
-                                <SelectItem value="__unassigned__" className="font-normal text-black italic">-</SelectItem>
+                                <SelectItem value="__unassigned__" className="font-bold text-black italic">-</SelectItem>
                                 {Object.entries(developerGroups).map(([devName, devDevelopments]) => (
                                   <SelectGroup key={devName}>
                                     <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
@@ -1006,7 +1006,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <SelectTrigger 
                               className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
                             >
-                              <SelectValue placeholder="-" />
+                              <SelectValue placeholder={<span className="font-bold text-black">-</span>} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__unassigned__" className="font-normal text-black italic">-</SelectItem>
@@ -1016,7 +1016,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           </Select>
                         ) : (
                           <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
-                            <span>{displayValue || '-'}</span>
+                            <span>{displayValue || <span className="font-bold text-black">-</span>}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -1049,7 +1049,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
                               <SelectItem value="__unassigned__" className={isComoPaga ? 'text-red-500 font-medium' : ''}>
-                                {isComoPaga ? '-' : '-'}
+                                {isComoPaga ? <span className="font-bold text-black">-</span> : <span className="font-bold text-black">-</span>}
                               </SelectItem>
                               {options.map(opt => (
                                 <SelectItem 
