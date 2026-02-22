@@ -439,14 +439,25 @@ function ZonesMini() {
 
   const { data: cities = [] } = useQuery<CatalogCity[]>({ queryKey: ["/api/catalog/cities"] });
   const { data: rawZones = [], isLoading } = useQuery<CatalogZone[]>({ queryKey: ["/api/catalog/zones"] });
-  const zones = [...rawZones].sort((a, b) => a.name.localeCompare(b.name, "es"));
+  const zones = [...rawZones].sort((a, b) => {
+    if (!a.name && b.name) return 1;
+    if (a.name && !b.name) return -1;
+    if (!a.name && !b.name) return 0;
+    return a.name.localeCompare(b.name, "es");
+  });
 
   const createMutation = useMutation({
     mutationFn: () => {
       const nextOrder = rawZones.length > 0 ? Math.max(...rawZones.map(z => z.order ?? 0)) + 1 : 1;
-      return apiRequest("POST", "/api/catalog/zones", { name: "Nueva Zona", active: true, order: nextOrder, cityId: cities[0]?.id });
+      return apiRequest("POST", "/api/catalog/zones", { name: "", active: true, order: nextOrder, cityId: null });
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] }); toast({ title: "Zona creada" }); },
+    onSuccess: async (res) => {
+      const newZone = await res.json();
+      await queryClient.invalidateQueries({ queryKey: ["/api/catalog/zones"] });
+      setEditingId(newZone.id);
+      setEditValue("");
+      toast({ title: "Zona creada" });
+    },
   });
 
   const updateMutation = useMutation({
