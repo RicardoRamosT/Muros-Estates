@@ -137,6 +137,7 @@ export interface IStorage {
   createDevelopmentEntity(development: InsertDevelopment): Promise<Development>;
   updateDevelopmentEntity(id: string, development: Partial<InsertDevelopment>): Promise<Development | undefined>;
   deleteDevelopmentEntity(id: string): Promise<boolean>;
+  clearTypologyFieldByValue(field: "developer" | "development", value: string): Promise<void>;
   
   // Catalogs
   getCatalogCities(): Promise<CatalogCity[]>;
@@ -632,6 +633,12 @@ export class DatabaseStorage implements IStorage {
   async deleteDevelopmentEntity(id: string): Promise<boolean> {
     await db.delete(developments).where(eq(developments.id, id));
     return true;
+  }
+
+  async clearTypologyFieldByValue(field: "developer" | "development", value: string): Promise<void> {
+    await db.update(typologies)
+      .set({ [field]: null } as any)
+      .where(eq(typologies[field], value));
   }
   
   // Catalog Cities

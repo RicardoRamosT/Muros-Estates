@@ -1104,9 +1104,16 @@ export async function registerRoutes(
   app.delete("/api/developers/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const id = req.params.id as string;
+      const dev = await storage.getDeveloper(id);
+      if (!dev) {
+        return res.status(404).json({ error: "Desarrollador no encontrado" });
+      }
       const deleted = await storage.deleteDeveloper(id);
       if (!deleted) {
         return res.status(404).json({ error: "Desarrollador no encontrado" });
+      }
+      if (dev.name) {
+        await storage.clearTypologyFieldByValue("developer", dev.name);
       }
       res.status(204).send();
     } catch (error) {
@@ -1196,9 +1203,16 @@ export async function registerRoutes(
   app.delete("/api/developments-entity/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const id = req.params.id as string;
+      const dev = await storage.getDevelopmentEntity(id);
+      if (!dev) {
+        return res.status(404).json({ error: "Desarrollo no encontrado" });
+      }
       const deleted = await storage.deleteDevelopmentEntity(id);
       if (!deleted) {
         return res.status(404).json({ error: "Desarrollo no encontrado" });
+      }
+      if (dev.name) {
+        await storage.clearTypologyFieldByValue("development", dev.name);
       }
       res.status(204).send();
     } catch (error) {
