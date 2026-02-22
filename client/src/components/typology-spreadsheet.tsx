@@ -2862,9 +2862,26 @@ export function TypologySpreadsheet() {
     const changes = pendingChanges.get(rowId);
     if (!changes || Object.keys(changes).length === 0) return;
     
+    const currentRow = typologies.find(t => t.id === rowId);
+    const normalizedChanges = { ...changes };
+    if (currentRow && validEntities) {
+      const entityChecks: { field: keyof typeof normalizedChanges; list: string[] }[] = [
+        { field: "developer", list: validEntities.developers },
+        { field: "development", list: validEntities.developments },
+      ];
+      for (const { field, list } of entityChecks) {
+        if (!(field in normalizedChanges)) {
+          const val = currentRow[field as keyof typeof currentRow];
+          if (typeof val === "string" && val && !list.includes(val)) {
+            (normalizedChanges as any)[field] = null;
+          }
+        }
+      }
+    }
+
     setIsSaving(true);
     try {
-      const res = await apiRequest("PUT", `/api/typologies/${rowId}`, changes);
+      const res = await apiRequest("PUT", `/api/typologies/${rowId}`, normalizedChanges);
       const updatedRow = await res.json();
       pendingChangesRef.current.delete(rowId);
       setPendingChangesVersion(v => v + 1);
@@ -2879,7 +2896,7 @@ export function TypologySpreadsheet() {
     } finally {
       setIsSaving(false);
     }
-  }, [pendingChanges, toast]);
+  }, [pendingChanges, typologies, validEntities, toast]);
 
   saveRowByIdRef.current = saveRowById;
 
