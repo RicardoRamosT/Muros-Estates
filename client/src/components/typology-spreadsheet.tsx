@@ -163,7 +163,7 @@ const SECTIONS: SectionDef[] = [
     label: "General",
     headerColor: "",
     columnHeaderColor: "",
-    cellColor: "bg-gray-100/30 dark:bg-gray-900/10",
+    cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true },
       { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
@@ -1952,7 +1952,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0 || disabled) {
       return (
         <div 
-          className={cn("spreadsheet-cell px-1", sectionCellColor || "bg-white dark:bg-gray-900", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
         >
           {selectedType ? (
@@ -1970,7 +1970,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", sectionCellColor || "bg-white dark:bg-gray-900", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <Popover>
