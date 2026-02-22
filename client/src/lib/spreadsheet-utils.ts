@@ -68,6 +68,7 @@ export function getCellTypeFromColumnType(columnType?: string): CellType {
     case "zone-select":
     case "type-select":
     case "developer-select":
+    case "development-type-select":
       return "dropdown";
     
     case "boolean":
