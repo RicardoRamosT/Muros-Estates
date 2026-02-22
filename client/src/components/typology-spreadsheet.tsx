@@ -39,7 +39,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import type { Typology } from "@shared/schema";
+import type { Typology, CatalogAviso } from "@shared/schema";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 import { cn } from "@/lib/utils";
 import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
@@ -2088,6 +2098,8 @@ export function TypologySpreadsheet() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveFlash, setSaveFlash] = useState(false);
   const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
+  const [avisoWarning, setAvisoWarning] = useState<{ messages: string[]; rowId: string } | null>(null);
+  const avisoResolveRef = useRef<((proceed: boolean) => void) | null>(null);
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -2098,6 +2110,10 @@ export function TypologySpreadsheet() {
   
   const { data: documents = [] } = useQuery<any[]>({
     queryKey: ["/api/documents"],
+  });
+
+  const { data: avisos = [] } = useQuery<CatalogAviso[]>({
+    queryKey: ["/api/catalog/avisos"],
   });
   
   const { data: dbDevelopers = [] } = useQuery<any[]>({
@@ -2891,7 +2907,26 @@ export function TypologySpreadsheet() {
     }
   }, [typologies, dbDevelopments, dbDevelopers, catalogCities, typesByDevelopment, activeEditingRowId]);
   
-  const saveRowById = useCallback(async (rowId: string) => {
+  const checkAvisoWarnings = useCallback((rowId: string): string[] => {
+    const currentRow = typologies.find(t => t.id === rowId);
+    if (!currentRow) return [];
+    const changes = pendingChanges.get(rowId) || {};
+    const mergedRow = { ...currentRow, ...changes };
+    if (!isTypologyComplete(mergedRow as Partial<Typology>, validEntities)) return [];
+    const activeAvisos = avisos.filter(a => a.active);
+    const warnings: string[] = [];
+    for (const aviso of activeAvisos) {
+      if (aviso.field === "media") {
+        const mediaCount = getTypologyDocCount(rowId);
+        if (mediaCount < aviso.minQuantity) {
+          warnings.push(`Hay menos de ${aviso.minQuantity} cantidad de ${aviso.name.toLowerCase()} (actualmente ${mediaCount})`);
+        }
+      }
+    }
+    return warnings;
+  }, [typologies, pendingChanges, avisos, validEntities, getTypologyDocCount]);
+
+  const executeSave = useCallback(async (rowId: string) => {
     const changes = pendingChanges.get(rowId);
     if (!changes || Object.keys(changes).length === 0) return;
     
@@ -2930,6 +2965,22 @@ export function TypologySpreadsheet() {
       setIsSaving(false);
     }
   }, [pendingChanges, typologies, validEntities, toast]);
+
+  const saveRowById = useCallback(async (rowId: string) => {
+    const changes = pendingChanges.get(rowId);
+    if (!changes || Object.keys(changes).length === 0) return;
+
+    const warnings = checkAvisoWarnings(rowId);
+    if (warnings.length > 0) {
+      const proceed = await new Promise<boolean>((resolve) => {
+        avisoResolveRef.current = resolve;
+        setAvisoWarning({ messages: warnings, rowId });
+      });
+      if (!proceed) return;
+    }
+
+    await executeSave(rowId);
+  }, [pendingChanges, checkAvisoWarnings, executeSave]);
 
   saveRowByIdRef.current = saveRowById;
 
@@ -4401,6 +4452,47 @@ export function TypologySpreadsheet() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!avisoWarning} onOpenChange={(open) => {
+        if (!open) {
+          avisoResolveRef.current?.(false);
+          avisoResolveRef.current = null;
+          setAvisoWarning(null);
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              Aviso
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {avisoWarning?.messages.map((msg, i) => (
+                  <p key={i} className="text-sm">{msg}</p>
+                ))}
+                <p className="text-sm font-medium mt-2">¿Deseas guardar de todos modos?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              avisoResolveRef.current?.(false);
+              avisoResolveRef.current = null;
+              setAvisoWarning(null);
+            }} data-testid="aviso-cancel">
+              No
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              avisoResolveRef.current?.(true);
+              avisoResolveRef.current = null;
+              setAvisoWarning(null);
+            }} data-testid="aviso-confirm">
+              Sí
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
