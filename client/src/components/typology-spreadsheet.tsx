@@ -670,8 +670,8 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
 }
 
 const FIELD_CHECK_CONFIG = (() => {
-  const SKIP_FIELDS = new Set(["active", "createdDate", "createdTime", "city", "zone"]);
-  const BALCONY_TERRACE_FIELDS = new Set(["hasBalcony", "hasTerrace", "hasBalcony2", "hasTerrace2"]);
+  const SKIP_FIELDS = new Set(["active", "createdDate", "createdTime", "city", "zone", "queIncluye"]);
+  const BALCONY_TERRACE_FIELDS = new Set(["hasBalcony", "hasTerrace", "hasBalcony2", "hasTerrace2", "lockOff"]);
   const BALCONY_SIZE_MAP: Record<string, string> = {
     hasBalcony: "balconySize",
     hasTerrace: "terraceSize",
@@ -720,7 +720,10 @@ function isFieldEmpty(row: Partial<Typology>, col: ColumnDef, config: typeof FIE
     if (parentVal === null || parentVal === undefined) return false;
   }
 
-  if (BALCONY_TERRACE_FIELDS.has(col.key)) return false;
+  if (BALCONY_TERRACE_FIELDS.has(col.key)) {
+    const val = row[col.key as keyof Typology];
+    return val === null || val === undefined;
+  }
 
   const val = row[col.key as keyof Typology];
   if (col.allowUnassigned && (val === null || val === undefined || val === "")) return false;
@@ -1640,7 +1643,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           }}
         >
           <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent px-0 !justify-center gap-0.5 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (canBeUnassigned ? "-" : "-")}</span>
+            <span className="shrink-0 text-left" style={{ width: '2.5ch' }}>{value === true ? "Sí" : value === false ? "No" : (canBeUnassigned ? "" : "-")}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
@@ -1654,25 +1657,34 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     );
   }
   
-  // Multi-select with checkboxes (for areas)
   if (column.type === "multiselect") {
-    const baseOptions: string[] = column.key === "queIncluye"
+    const isQueIncluye = column.key === "queIncluye";
+    const SIN_EQUIPO = "Sin Equipo";
+    const baseOptions: string[] = isQueIncluye
       ? (incluyeOptions && incluyeOptions.length > 0 ? [...incluyeOptions] : [])
       : areaOptions && areaOptions.length > 0 
         ? [...areaOptions] 
         : (column.options ? [...column.options] : []);
     
-    // Parse current value - stored as comma-separated string, use Set to avoid duplicates
     const currentValuesSet = new Set(
       value ? String(value).split(",").map(v => v.trim()).filter(Boolean) : []
     );
     const currentValues = Array.from(currentValuesSet);
     
-    // Ensure current values are in options (in case they were saved before options changed)
     const allOptions = Array.from(new Set([...baseOptions, ...currentValues]));
+    const equipmentOptions = isQueIncluye ? allOptions.filter(o => o !== SIN_EQUIPO) : allOptions;
     
     const handleToggle = (opt: string) => {
+      if (isQueIncluye && opt === SIN_EQUIPO) {
+        if (currentValues.includes(SIN_EQUIPO)) {
+          onChange("");
+        } else {
+          onChange(SIN_EQUIPO);
+        }
+        return;
+      }
       const newSet = new Set(currentValues);
+      if (isQueIncluye) newSet.delete(SIN_EQUIPO);
       if (newSet.has(opt)) {
         newSet.delete(opt);
       } else {
@@ -1681,9 +1693,12 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       onChange(Array.from(newSet).join(", "));
     };
     
-    const displayValue = currentValues.length > 0 
-      ? `${currentValues.length} seleccionados`
-      : "";
+    const isSinEquipo = isQueIncluye && currentValues.length === 1 && currentValues[0] === SIN_EQUIPO;
+    const displayValue = isSinEquipo 
+      ? SIN_EQUIPO
+      : currentValues.length > 0 
+        ? `${currentValues.length} seleccionados`
+        : "";
     
     return (
       <div 
@@ -1709,7 +1724,21 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
               <div className="space-y-1 max-h-60 overflow-y-auto">
-                {allOptions.map((opt) => (
+                {isQueIncluye && (
+                  <>
+                    <label
+                      className="flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-accent cursor-pointer font-medium"
+                    >
+                      <Checkbox
+                        checked={currentValues.includes(SIN_EQUIPO)}
+                        onCheckedChange={() => handleToggle(SIN_EQUIPO)}
+                      />
+                      <span>{SIN_EQUIPO}</span>
+                    </label>
+                    <div className="border-t my-1" />
+                  </>
+                )}
+                {(isQueIncluye ? equipmentOptions : allOptions).map((opt) => (
                   <label
                     key={opt}
                     className="flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-accent cursor-pointer"
@@ -2943,6 +2972,7 @@ export function TypologySpreadsheet() {
       }
     }
     initialData.active = false;
+    initialData.queIncluye = "Sin Equipo";
     createMutation.mutate(initialData);
   };
   
