@@ -2622,6 +2622,29 @@ export function TypologySpreadsheet() {
             autoPopulatedFields.type = availableTypes[0];
             (updatedRow as any).type = availableTypes[0];
           }
+        } else if (developerDevelopments.length > 1) {
+          const uniqueCities = Array.from(new Set(developerDevelopments.map(d => d.city).filter(Boolean)));
+          const uniqueZones = Array.from(new Set(developerDevelopments.map(d => d.zone).filter(Boolean)));
+
+          if (uniqueCities.length === 1) {
+            autoPopulatedFields.city = uniqueCities[0];
+            (updatedRow as any).city = uniqueCities[0];
+            const selectedCity = catalogCities.find((c: any) => c.name === uniqueCities[0]);
+            if (selectedCity) {
+              if (selectedCity.isaiPercent) {
+                autoPopulatedFields.isaPercent = selectedCity.isaiPercent;
+                (updatedRow as any).isaPercent = selectedCity.isaiPercent;
+              }
+              if (selectedCity.notariaPercent) {
+                autoPopulatedFields.notaryPercent = selectedCity.notariaPercent;
+                (updatedRow as any).notaryPercent = selectedCity.notariaPercent;
+              }
+            }
+          }
+          if (uniqueZones.length === 1) {
+            autoPopulatedFields.zone = uniqueZones[0];
+            (updatedRow as any).zone = uniqueZones[0];
+          }
         }
 
         if (!autoPopulatedFields.tipoDesarrollo) {
