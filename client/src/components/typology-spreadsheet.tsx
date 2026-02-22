@@ -1857,13 +1857,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       finalOptions = [currentValue, ...finalOptions];
     }
     
+    const displayValue = (entityLinkedFields.includes(column.key) && currentValue && !finalOptions.includes(currentValue)) ? "" : currentValue;
+    
     return (
       <div 
         className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       >
         <ExclusiveSelect 
-          value={currentValue || (column.allowUnassigned ? "__clear__" : "")} 
+          value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
           onValueChange={(val) => {
             if (val === "__clear__") {
               onChange(column.allowUnassigned ? null : "");
@@ -1873,10 +1875,10 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           }}
         >
           <SelectTrigger 
-            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!currentValue || /^\d+$/.test(currentValue)) ? "text-center" : "text-left", !currentValue && column.allowUnassigned && "font-medium")}
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!displayValue || /^\d+$/.test(displayValue)) ? "text-center" : "text-left", !displayValue && column.allowUnassigned && "font-medium")}
             data-testid={`select-${column.key}-${rowId}`}
           >
-            <span className={cn("truncate min-w-0 flex-1", currentValue && !finalOptions.includes(currentValue) && entityLinkedFields.includes(column.key) && "text-red-400 line-through")}>{currentValue || (column.allowUnassigned ? "S/A" : "")}</span>
+            <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "S/A" : "")}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "text-foreground font-bold italic" : "text-muted-foreground italic"}>
