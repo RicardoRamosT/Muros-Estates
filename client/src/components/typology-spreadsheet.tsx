@@ -3015,6 +3015,7 @@ export function TypologySpreadsheet() {
   }, [activeEditingRowId, pendingChanges, saveRowById]);
 
   const hasPendingRowChanges = activeEditingRowId ? pendingChanges.has(activeEditingRowId) : false;
+  const pendingRowCount = useMemo(() => Array.from(pendingChanges.values()).filter(c => c && Object.keys(c).length > 0).length, [pendingChanges]);
 
   useEffect(() => {
     const hasPending = pendingChanges.size > 0;
@@ -3452,7 +3453,7 @@ export function TypologySpreadsheet() {
               await saveAllPendingRows();
             }}
             size="sm"
-            disabled={pendingChanges.size === 0 || isSaving}
+            disabled={pendingRowCount === 0 || isSaving}
             className={cn(
               "transition-all duration-300",
               saveFlash 
@@ -3467,7 +3468,7 @@ export function TypologySpreadsheet() {
             ) : (
               <Save className="w-4 h-4 mr-1" />
             )}
-            Guardar{pendingChanges.size > 1 ? ` (${pendingChanges.size})` : ""}
+            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
           </Button>
           <Button 
             onClick={handleAddRow} 
