@@ -1666,7 +1666,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
             {canBeUnassigned && (
-              <SelectItem value="sa" className="font-normal text-black italic">-</SelectItem>
+              <SelectItem value="sa" className="font-normal !text-black">-</SelectItem>
             )}
           </SelectContent>
         </ExclusiveSelect>
@@ -1898,7 +1898,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "-" : "")}</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__clear__" className={column.allowUnassigned ? "text-black font-normal italic" : "text-muted-foreground italic"}>
+            <SelectItem value="__clear__" className={column.allowUnassigned ? "!text-black font-normal" : "text-muted-foreground italic"}>
               {column.allowUnassigned ? "-" : <span className="opacity-50">—</span>}
             </SelectItem>
             {finalOptions.map((opt) => (
