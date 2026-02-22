@@ -1719,7 +1719,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                 data-testid={`multiselect-${column.key}-${rowId}`}
               >
                 <span className="truncate">{displayValue}</span>
-                <ChevronDown className="ml-auto h-3 w-3 shrink-0" />
+                <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
@@ -1972,7 +1972,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                 <span className="truncate text-left min-w-0 flex-1">
                   {selectedType || ""}
                 </span>
-                <ChevronDown className="shrink-0" />
+                <ChevronDown className="shrink-0 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-1" align="start">
