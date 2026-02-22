@@ -1534,7 +1534,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn(
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          column.calculated && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
+          column.calculated && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
           disabled && !column.calculated && "bg-gray-200/60 dark:bg-gray-800/50",
           disabled && !column.calculated && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
