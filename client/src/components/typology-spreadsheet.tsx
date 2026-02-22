@@ -40,7 +40,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import type { Typology } from "@shared/schema";
-import { CITIES, ZONES_MONTERREY, ZONES_CDMX, DEVELOPERS, DEVELOPMENTS } from "@shared/constants";
+
 import { cn } from "@/lib/utils";
 import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
 
@@ -157,7 +157,7 @@ const SECTIONS: SectionDef[] = [
       { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true },
       { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
       { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
-      { key: "development", label: "Desarrollo", type: "select", options: DEVELOPMENTS, width: 110 },
+      { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
     ],
   },
@@ -1764,8 +1764,6 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       } else if (city) {
         if (zoneOptionsByCity && zoneOptionsByCity[city]?.length > 0) {
           options = zoneOptionsByCity[city];
-        } else {
-          options = city === "Monterrey" ? ZONES_MONTERREY : city === "CDMX" ? ZONES_CDMX : [];
         }
       }
     }
@@ -2251,17 +2249,11 @@ export function TypologySpreadsheet() {
   }, [catalogCajones]);
   
   const developerOptions = useMemo(() => {
-    const dbNames = dbDevelopers.map(d => d.name).filter(Boolean);
-    const constantNames = [...DEVELOPERS];
-    const allNames = Array.from(new Set([...dbNames, ...constantNames]));
-    return allNames.sort();
+    return dbDevelopers.map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopers]);
   
   const developmentOptions = useMemo(() => {
-    const dbNames = dbDevelopments.map(d => d.name).filter(Boolean);
-    const constantNames = [...DEVELOPMENTS];
-    const allNames = Array.from(new Set([...dbNames, ...constantNames]));
-    return allNames.sort();
+    return dbDevelopments.map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopments]);
   
   const zoneOptionsByCity = useMemo(() => {
