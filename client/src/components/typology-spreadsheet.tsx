@@ -689,7 +689,17 @@ const FIELD_CHECK_CONFIG = (() => {
   return { SKIP_FIELDS, BALCONY_TERRACE_FIELDS, BALCONY_SIZE_MAP, conditionalDeps };
 })();
 
-function isFieldEmpty(row: Partial<Typology>, col: ColumnDef, config: typeof FIELD_CHECK_CONFIG): boolean {
+interface ValidEntities {
+  developers: string[];
+  developments: string[];
+}
+
+const ENTITY_LINKED_FIELDS: Record<string, keyof ValidEntities | null> = {
+  developer: "developers",
+  development: "developments",
+};
+
+function isFieldEmpty(row: Partial<Typology>, col: ColumnDef, config: typeof FIELD_CHECK_CONFIG, validEntities?: ValidEntities): boolean {
   const { SKIP_FIELDS, BALCONY_TERRACE_FIELDS, BALCONY_SIZE_MAP, conditionalDeps } = config;
   if (SKIP_FIELDS.has(col.key)) return false;
   if (col.calculated) return false;
@@ -716,25 +726,31 @@ function isFieldEmpty(row: Partial<Typology>, col: ColumnDef, config: typeof FIE
   if (col.allowUnassigned && (val === null || val === undefined || val === "")) return false;
   if (val === null || val === undefined || val === "") return true;
   if (typeof val === "number" && isNaN(val)) return true;
+
+  const entityKey = ENTITY_LINKED_FIELDS[col.key];
+  if (entityKey && validEntities && typeof val === "string") {
+    if (!validEntities[entityKey].includes(val)) return true;
+  }
+
   return false;
 }
 
-function isTypologyComplete(row: Partial<Typology>): boolean {
+function isTypologyComplete(row: Partial<Typology>, validEntities?: ValidEntities): boolean {
   const config = FIELD_CHECK_CONFIG;
   for (const section of SECTIONS) {
     for (const col of section.columns) {
-      if (isFieldEmpty(row, col, config)) return false;
+      if (isFieldEmpty(row, col, config, validEntities)) return false;
     }
   }
   return true;
 }
 
-function getMissingFields(row: Partial<Typology>): { section: string; field: string }[] {
+function getMissingFields(row: Partial<Typology>, validEntities?: ValidEntities): { section: string; field: string }[] {
   const config = FIELD_CHECK_CONFIG;
   const missing: { section: string; field: string }[] = [];
   for (const section of SECTIONS) {
     for (const col of section.columns) {
-      if (isFieldEmpty(row, col, config)) {
+      if (isFieldEmpty(row, col, config, validEntities)) {
         missing.push({
           section: section.parentLabel || section.label || section.id,
           field: col.fullLabel || col.label,
@@ -1481,9 +1497,10 @@ interface EditableCellProps {
   linkedSizeValue?: any;
   onLinkedSizeChange?: (value: any) => void;
   isComplete?: boolean;
+  validEntities?: ValidEntities;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1584,7 +1601,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         break;
     }
 
-    const computedMissing = activeState === "incomplete" && row ? getMissingFields(row as Partial<Typology>) : [];
+    const computedMissing = activeState === "incomplete" && row ? getMissingFields(row as Partial<Typology>, validEntities) : [];
     const missingCount = computedMissing.length;
     const tooltipContent = missingCount > 0
       ? `Campos vacíos (${missingCount}):\n${computedMissing.map(f => `• ${f.section} → ${f.field}`).join('\n')}`
@@ -2258,6 +2275,11 @@ export function TypologySpreadsheet() {
   const developmentOptions = useMemo(() => {
     return dbDevelopments.map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopments]);
+
+  const validEntities = useMemo<ValidEntities>(() => ({
+    developers: dbDevelopers.map(d => d.name).filter(Boolean),
+    developments: dbDevelopments.map(d => d.name).filter(Boolean),
+  }), [dbDevelopers, dbDevelopments]);
   
   const zoneOptionsByCity = useMemo(() => {
     const cityMap: Record<string, string[]> = {};
@@ -2508,14 +2530,14 @@ export function TypologySpreadsheet() {
   useEffect(() => {
     if (typologies.length === 0 || hasAutoFixedRef.current) return;
     hasAutoFixedRef.current = true;
-    const incorrectRows = typologies.filter(t => t.active === true && !isTypologyComplete(t));
+    const incorrectRows = typologies.filter(t => t.active === true && !isTypologyComplete(t, validEntities));
     if (incorrectRows.length === 0) return;
     Promise.all(
       incorrectRows.map(row => apiRequest("PUT", `/api/typologies/${row.id}`, { active: false }).catch(() => {}))
     ).then(() => {
       queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
     });
-  }, [typologies]);
+  }, [typologies, validEntities]);
 
   const scrollToBottomPhaseRef = useRef<'idle' | 'loading_all' | 'done'>('idle');
   const createMutation = useMutation({
@@ -2815,7 +2837,7 @@ export function TypologySpreadsheet() {
     
     if (field !== "active") {
       const mergedActive = fullUpdate.active !== undefined ? fullUpdate.active : currentRow.active;
-      if (mergedActive === true && !isTypologyComplete(fullUpdate)) {
+      if (mergedActive === true && !isTypologyComplete(fullUpdate, validEntities)) {
         (fullUpdate as any).active = false;
         autoPopulatedFields.active = false;
       }
@@ -4121,7 +4143,8 @@ export function TypologySpreadsheet() {
                             filteredDevelopmentName={filteredDevelopmentName}
                             linkedSizeValue={col.linkedSizeField ? mergedRow[col.linkedSizeField as keyof Typology] : undefined}
                             onLinkedSizeChange={col.linkedSizeField ? (newVal) => handleCellChange(row.id, col.linkedSizeField!, newVal) : undefined}
-                            isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>) : undefined}
+                            isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
+                            validEntities={col.key === "active" ? validEntities : undefined}
                           />
                         );
 
