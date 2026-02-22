@@ -4085,7 +4085,7 @@ export function TypologySpreadsheet() {
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
-                  className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative"
+                  className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative cursor-default"
                   style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
@@ -4180,7 +4180,7 @@ export function TypologySpreadsheet() {
                             <div
                               key={col.key}
                               className={cn(
-                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center",
+                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
                                 section.cellColor
                               )}
                               style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
@@ -4196,7 +4196,7 @@ export function TypologySpreadsheet() {
                             <div
                               key={col.key}
                               className={cn(
-                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center",
+                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
                                 section.cellColor
                               )}
                               style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
