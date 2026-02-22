@@ -154,8 +154,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-100/30 dark:bg-gray-900/10",
     columns: [
-      { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true, cellColor: "text-black !opacity-100" },
-      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true, cellColor: "text-black !opacity-100" },
+      { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true },
+      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
       { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
       { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 110 },
       { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
@@ -3263,7 +3263,7 @@ export function TypologySpreadsheet() {
       const dev = dbDevelopments.find(d => d.name === merged.development);
       if (dev?.entregaProyectada) {
         maintenanceStartDate = autoDeliveryDate;
-        const mortgageYrs = (calculated.mortgageYears as number) || (merged.mortgageYears as number) || defaults?.['mortgageYears'] || 15;
+        const mortgageYrs = (calculated as any).mortgageYears || (merged as any).mortgageYears || defaults?.['mortgageYears'] || 15;
         const deliveryDateObj = new Date(dev.entregaProyectada);
         const endDateObj = new Date(deliveryDateObj);
         endDateObj.setFullYear(endDateObj.getFullYear() + mortgageYrs);
@@ -4094,7 +4094,7 @@ export function TypologySpreadsheet() {
                           const devVistas = vistasByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devVistas.length > 0 ? devVistas : vistaOptions;
                         }
-                        if (col.key === "developmentType") {
+                        if (col.key === "tipoDesarrollo") {
                           const devTypes = typesByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devTypes.length > 0 ? devTypes : tipologiaOptions;
                         }
@@ -4139,7 +4139,7 @@ export function TypologySpreadsheet() {
                             rowId={row.id}
                             city={mergedRow.city || undefined}
                             developer={mergedRow.developer || undefined}
-                            onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
+                            onChange={(newVal) => handleCellChange(row.id, col.key as TypologyField, newVal)}
                             disabled={isConditionallyDisabled || isLockedByFlow}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
@@ -4157,7 +4157,7 @@ export function TypologySpreadsheet() {
                             zoneOptionsByCity={zoneOptionsByCity}
                             isLastInSection={isLastInSection}
                             row={mergedRow as Typology}
-                            sectionCellColor={cn(section.cellColor, isCalculatedCell && "text-black font-medium")}
+                            sectionCellColor={section.cellColor}
                             isDynamicCalculated={isDynCalc}
                             filteredDevelopmentName={filteredDevelopmentName}
                             linkedSizeValue={col.linkedSizeField ? mergedRow[col.linkedSizeField as keyof Typology] : undefined}
