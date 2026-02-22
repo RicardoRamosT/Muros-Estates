@@ -762,33 +762,17 @@ const AVISO_FIELDS = [
 ];
 
 function AvisosMini() {
-  const { toast } = useToast();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
   const { data: items = [], isLoading } = useQuery<CatalogAviso[]>({ queryKey: ["/api/catalog/avisos"] });
-
-  const createMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/catalog/avisos", { name: "Nuevo Aviso", field: "media", minQuantity: 1, active: true }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/avisos"] }); toast({ title: "Aviso creado" }); },
-  });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<CatalogAviso> }) => apiRequest("PUT", `/api/catalog/avisos/${id}`, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/avisos"] }),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/avisos/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/catalog/avisos"] }); toast({ title: "Eliminado" }); setDeleteId(null); },
-  });
-
   return (
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-avisos">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Avisos">Avisos</span>
-        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending} data-testid="button-add-avisos">
-          <Plus className="w-3 h-3" />
-        </Button>
       </div>
       <div className="overflow-auto" style={{ height: BODY_HEIGHT_WITH_HEADER }}>
         {isLoading ? (
@@ -802,36 +786,18 @@ function AvisosMini() {
                 <th className={TH}>Nombre</th>
                 <th className={TH}>Campo</th>
                 <th className={TH}>Mín.</th>
-                <th className={TH} style={{ width: 24 }}></th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} className="group border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                  <td className="px-1.5 py-0.5">
-                    <Input
-                      value={item.name}
-                      onChange={(e) => updateMutation.mutate({ id: item.id, data: { name: e.target.value } })}
-                      className="h-5 text-xs border-0 p-0 focus-visible:ring-0"
-                      data-testid={`input-aviso-name-${item.id}`}
-                    />
+                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700" style={{ height: `${ROW_HEIGHT}px` }}>
+                  <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700">
+                    <span className="text-xs">{item.name}</span>
                   </td>
-                  <td className="px-1.5 py-0.5">
-                    <Select
-                      value={item.field}
-                      onValueChange={(val) => updateMutation.mutate({ id: item.id, data: { field: val } })}
-                    >
-                      <SelectTrigger className="h-5 text-xs border-0 p-0 px-1 focus:ring-0" data-testid={`select-aviso-field-${item.id}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AVISO_FIELDS.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700 text-center">
+                    <span className="text-xs">{AVISO_FIELDS.find(f => f.value === item.field)?.label ?? item.field}</span>
                   </td>
-                  <td className="px-1.5 py-0.5 w-14">
+                  <td className="px-1.5 py-0.5 text-center">
                     <Input
                       type="number"
                       min={1}
@@ -841,22 +807,12 @@ function AvisosMini() {
                       data-testid={`input-aviso-min-${item.id}`}
                     />
                   </td>
-                  <td className="w-6 text-center">
-                    <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-red-50 hover:text-red-500" onClick={() => setDeleteId(item.id)} data-testid={`button-delete-aviso-${item.id}`}>
-                      <Trash2 className="w-2.5 h-2.5 text-red-500/40" />
-                    </Button>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar aviso</AlertDialogTitle><AlertDialogDescription>¿Estás seguro de eliminar este aviso?</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Eliminar</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
