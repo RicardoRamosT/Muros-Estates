@@ -3015,7 +3015,7 @@ export function TypologySpreadsheet() {
   }, [activeEditingRowId, pendingChanges, saveRowById]);
 
   const hasPendingRowChanges = activeEditingRowId ? pendingChanges.has(activeEditingRowId) : false;
-  const pendingRowCount = useMemo(() => Array.from(pendingChanges.values()).filter(c => c && Object.keys(c).length > 0).length, [pendingChanges]);
+  const pendingRowCount = useMemo(() => Array.from(pendingChangesRef.current.values()).filter(c => c && Object.keys(c).length > 0).length, [pendingChangesVersion]);
 
   useEffect(() => {
     const hasPending = pendingChanges.size > 0;
