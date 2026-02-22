@@ -3612,7 +3612,34 @@ export function TypologySpreadsheet() {
                   );
                 });
               })()}
-              <div className="w-24 flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
+              {collapsedColumns.has("medios") ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setCollapsedColumns(prev => { const n = new Set(prev); n.delete("medios"); return n; })}
+                      className="flex-shrink-0 flex items-center justify-center h-full cursor-pointer"
+                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), width: COLLAPSED_COL_WIDTH }}
+                      data-testid="section-toggle-medios"
+                    >
+                      <Plus className="w-3 h-3" style={{ color: 'white' }} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">MEDIOS</TooltipContent>
+                </Tooltip>
+              ) : (
+                <div className="w-24 flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }}>
+                  <div className="pointer-events-none" style={{ width: 20 }} />
+                  <TruncatedLabel label="MEDIOS" columnKey="medios" uppercaseTooltip={true} />
+                  <button
+                    onClick={() => setCollapsedColumns(prev => { const n = new Set(prev); n.add("medios"); return n; })}
+                    className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                    style={{ width: 20 }}
+                    data-testid="section-toggle-medios"
+                  >
+                    <Minus className="w-3 h-3" style={{ color: 'white' }} />
+                  </button>
+                </div>
+              )}
             </div>
             
             {/* Row 2: Section/column labels */}
@@ -3937,11 +3964,7 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="w-24 h-full flex-shrink-0 flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-                <div style={{ width: 20 }} />
-                <TruncatedLabel label="Medios" columnKey="medios" />
-                <div style={{ width: 20 }} />
-              </div>
+              <div className="h-full flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
             </div>
 
             {/* Row 3: Filter and sort controls */}
@@ -4055,7 +4078,25 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="w-24 h-full flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }} />
+              <div className="h-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
+                {!collapsedColumns.has("medios") && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex items-center gap-0 cursor-default" style={{ width: 16, height: 14 }}>
+                        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                          <path d="M4 12.5L4 1.5M4 1.5L1.5 4.5M4 1.5L6.5 4.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                          <path d="M4 1.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      <p>Subir fotos/videos a Documentos &gt; Desarrolladores &gt; Productos</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           </div>
           
@@ -4287,71 +4328,75 @@ export function TypologySpreadsheet() {
                   });
                 })()}
                 
-                <div 
-                  className="spreadsheet-cell w-24 flex-shrink-0 justify-center gap-0.5"
-                  data-testid={`cell-media-${row.id}`}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => {
-                          mediaInputRefs.current.get(row.id)?.click();
-                        }}
-                        data-testid={`button-upload-media-${row.id}`}
-                      >
-                        <Plus className="w-3.5 h-3.5 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Subir fotos/videos</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <input
-                    ref={(el) => {
-                      if (el) mediaInputRefs.current.set(row.id, el);
-                      else mediaInputRefs.current.delete(row.id);
-                    }}
-                    type="file"
-                    accept="image/*,video/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      const files = e.target.files;
-                      if (files) {
-                        Array.from(files).forEach(file => {
-                          uploadMediaMutation.mutate({ typologyId: row.id, file });
-                        });
-                      }
-                      e.target.value = "";
-                    }}
-                    data-testid={`input-media-${row.id}`}
-                  />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => {
-                          setSelectedTypologyForMedia(row.id);
-                          setMediaDialogOpen(true);
-                        }}
-                        data-testid={`button-view-media-${row.id}`}
-                      >
-                        {getTypologyDocCount(row.id) > 0 && (
-                          <span className="text-xs font-medium mr-0.5">{getTypologyDocCount(row.id)}</span>
-                        )}
-                        <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{getTypologyDocCount(row.id) > 0 ? `Ver/editar ${getTypologyDocCount(row.id)} medios` : "Ver medios"}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+                {collapsedColumns.has("medios") ? (
+                  <div className="spreadsheet-cell flex-shrink-0" style={{ width: COLLAPSED_COL_WIDTH }} data-testid={`cell-media-collapsed-${row.id}`} />
+                ) : (
+                  <div 
+                    className="spreadsheet-cell w-24 flex-shrink-0 justify-center gap-0.5"
+                    data-testid={`cell-media-${row.id}`}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            mediaInputRefs.current.get(row.id)?.click();
+                          }}
+                          data-testid={`button-upload-media-${row.id}`}
+                        >
+                          <Plus className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Subir fotos/videos</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <input
+                      ref={(el) => {
+                        if (el) mediaInputRefs.current.set(row.id, el);
+                        else mediaInputRefs.current.delete(row.id);
+                      }}
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          Array.from(files).forEach(file => {
+                            uploadMediaMutation.mutate({ typologyId: row.id, file });
+                          });
+                        }
+                        e.target.value = "";
+                      }}
+                      data-testid={`input-media-${row.id}`}
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            setSelectedTypologyForMedia(row.id);
+                            setMediaDialogOpen(true);
+                          }}
+                          data-testid={`button-view-media-${row.id}`}
+                        >
+                          {getTypologyDocCount(row.id) > 0 && (
+                            <span className="text-xs font-medium mr-0.5">{getTypologyDocCount(row.id)}</span>
+                          )}
+                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{getTypologyDocCount(row.id) > 0 ? `Ver/editar ${getTypologyDocCount(row.id)} medios` : "Ver medios"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
               </div>
             );
           })}
