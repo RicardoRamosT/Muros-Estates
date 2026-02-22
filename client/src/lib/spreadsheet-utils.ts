@@ -40,7 +40,7 @@ export function getCellStyle(config: CellStyleConfig): string {
     
     case "dropdown":
     case "checkbox":
-      return cn(baseStyles, "bg-gray-100 dark:bg-gray-800 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700");
+      return cn(baseStyles, "bg-white dark:bg-gray-900 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800");
     
     case "calculated":
       return cn(baseStyles, "bg-teal-50 dark:bg-teal-900/20 text-muted-foreground cursor-default font-medium");
