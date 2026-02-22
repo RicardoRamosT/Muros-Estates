@@ -2406,6 +2406,13 @@ export function TypologySpreadsheet() {
   const getTypologyDocCount = useCallback((typologyId: string) => {
     return documents.filter(d => d.typologyId === typologyId && d.rootCategory === "desarrolladores").length;
   }, [documents]);
+
+  const typologiesWithMediaCount = useMemo(() => {
+    return typologies.map(t => ({
+      ...t,
+      mediaCount: String(getTypologyDocCount(t.id)),
+    }));
+  }, [typologies, getTypologyDocCount]);
   
   const uploadMediaMutation = useMutation({
     mutationFn: async ({ typologyId, file }: { typologyId: string; file: File }) => {
@@ -3124,7 +3131,12 @@ export function TypologySpreadsheet() {
     let result = typologies.filter(t => {
       const passesCheckboxFilters = Object.entries(columnFilters).every(([key, values]) => {
         if (values.size === 0) return true;
-        const fieldValue = String(t[key as keyof Typology] ?? "");
+        let fieldValue: string;
+        if (key === "mediaCount") {
+          fieldValue = String(getTypologyDocCount(t.id));
+        } else {
+          fieldValue = String(t[key as keyof Typology] ?? "");
+        }
         return values.has(fieldValue);
       });
       
@@ -3146,11 +3158,17 @@ export function TypologySpreadsheet() {
     if (sortEntries.length > 0) {
       const [sortKey, sortDir] = sortEntries[0];
       const column = SECTIONS.flatMap(s => s.columns).find(c => c.key === sortKey);
-      const isNumeric = column?.type === "number" || column?.type === "decimal";
+      const isNumeric = column?.type === "number" || column?.type === "decimal" || sortKey === "mediaCount";
       
       result = [...result].sort((a, b) => {
-        const aVal = a[sortKey as keyof Typology];
-        const bVal = b[sortKey as keyof Typology];
+        let aVal: any, bVal: any;
+        if (sortKey === "mediaCount") {
+          aVal = getTypologyDocCount(a.id);
+          bVal = getTypologyDocCount(b.id);
+        } else {
+          aVal = a[sortKey as keyof Typology];
+          bVal = b[sortKey as keyof Typology];
+        }
         
         const aStr = String(aVal ?? "").trim();
         const bStr = String(bVal ?? "").trim();
@@ -3191,7 +3209,7 @@ export function TypologySpreadsheet() {
     }
     
     return result;
-  }, [typologies, columnFilters, columnSorts, rangeFilters]);
+  }, [typologies, columnFilters, columnSorts, rangeFilters, getTypologyDocCount]);
 
   const stableRowNumberMap = useMemo(() => {
     const sorted = [...typologies].sort((a, b) => {
@@ -4078,23 +4096,19 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="h-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
+              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
                 {!collapsedColumns.has("medios") && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="flex items-center gap-0 cursor-default" style={{ width: 16, height: 14 }}>
-                        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                          <path d="M4 12.5L4 1.5M4 1.5L1.5 4.5M4 1.5L6.5 4.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                          <path d="M4 1.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="text-xs">
-                      <p>Subir fotos/videos a Documentos &gt; Desarrolladores &gt; Productos</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <ColumnFilter
+                    column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 96 }}
+                    data={typologiesWithMediaCount as any}
+                    selectedValues={columnFilters["mediaCount"] || new Set()}
+                    sortDirection={columnSorts["mediaCount"] || null}
+                    onFilterChange={(values) => handleColumnFilterChange("mediaCount", values)}
+                    onSortChange={(dir) => handleColumnSortChange("mediaCount", dir)}
+                    sectionColor={getSectionGroupColor(SECTIONS, SECTIONS.length)}
+                    hideLabel={true}
+                    columnWidth={96}
+                  />
                 )}
               </div>
             </div>
