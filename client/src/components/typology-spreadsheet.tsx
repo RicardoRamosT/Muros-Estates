@@ -213,7 +213,7 @@ const SECTIONS: SectionDef[] = [
     label: "Distribución",
     headerColor: "",
     columnHeaderColor: "",
-    cellColor: "bg-[rgb(255,241,220)]/30 dark:bg-[rgb(60,40,10)]/30",
+    cellColor: "",
     columns: [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
       { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
