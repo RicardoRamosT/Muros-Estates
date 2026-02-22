@@ -866,7 +866,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectValue placeholder="Seleccionar" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
-                                <SelectItem value="__unassigned__" className="font-[900] text-black text-lg italic">-</SelectItem>
+                                <SelectItem value="__unassigned__" className="font-[900] text-black text-lg italic opacity-100">-</SelectItem>
                                 {Object.entries(developerGroups).map(([devName, devDevelopments]) => (
                                   <SelectGroup key={devName}>
                                     <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
