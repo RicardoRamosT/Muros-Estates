@@ -1919,7 +1919,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "" : "text-muted-foreground italic"} style={column.allowUnassigned ? { color: '#000' } : undefined}>
-              {column.allowUnassigned ? "—" : <span className="opacity-50">—</span>}
+              {column.allowUnassigned ? "—" : "—"}
             </SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
