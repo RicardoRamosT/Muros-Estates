@@ -1838,14 +1838,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     if (column.key === "type") {
       const rowDev = row?.development;
-      if (rowDev) {
-        if (typesByDevelopment && typesByDevelopment[rowDev]?.length > 0) {
-          options = typesByDevelopment[rowDev];
-        } else if (tipologiaOptions && tipologiaOptions.length > 0) {
-          options = tipologiaOptions;
-        } else {
-          options = [];
-        }
+      if (rowDev && typesByDevelopment && typesByDevelopment[rowDev]?.length > 0) {
+        options = typesByDevelopment[rowDev];
       } else {
         options = [];
       }
