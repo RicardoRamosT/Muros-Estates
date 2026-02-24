@@ -1838,8 +1838,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     if (column.key === "type") {
       const rowDev = row?.development;
-      if (rowDev && typesByDevelopment && typesByDevelopment[rowDev]?.length > 0) {
-        options = typesByDevelopment[rowDev];
+      if (rowDev) {
+        if (typesByDevelopment && typesByDevelopment[rowDev]?.length > 0) {
+          options = typesByDevelopment[rowDev];
+        } else if (tipologiaOptions && tipologiaOptions.length > 0) {
+          options = tipologiaOptions;
+        } else {
+          options = [];
+        }
       } else {
         options = [];
       }
@@ -2265,18 +2271,15 @@ export function TypologySpreadsheet() {
 
   const typesByDevelopment = useMemo(() => {
     const map: Record<string, string[]> = {};
-    typologies.forEach((t) => {
-      const dev = t.development;
-      if (!dev) return;
-      if (!map[dev]) map[dev] = [];
-      const typeVal = t.type?.toString();
-      if (typeVal && !map[dev].includes(typeVal)) {
-        map[dev].push(typeVal);
+    dbDevelopments.forEach((dev) => {
+      if (!dev.name) return;
+      const tipList = (dev as any).tipologiasList as string[] | null;
+      if (tipList && tipList.length > 0) {
+        map[dev.name] = [...tipList].sort((a, b) => a.localeCompare(b, 'es'));
       }
     });
-    Object.keys(map).forEach((key) => map[key].sort());
     return map;
-  }, [typologies]);
+  }, [dbDevelopments]);
   
   const recamaraOptions = useMemo(() => {
     return catalogRecamaras.map(r => r.name).filter(Boolean);
