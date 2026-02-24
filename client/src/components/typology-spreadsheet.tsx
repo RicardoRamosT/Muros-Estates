@@ -1771,20 +1771,22 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   
   if (column.type === "select") {
     let options: readonly string[] = dynamicOptions || column.options || [];
-    if (column.key === "city" && developer && allDevelopments && allDevelopers) {
-      const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
-      if (devRecord) {
-        const developerDevs = allDevelopments.filter(d => d.developerId === devRecord.id);
-        const uniqueCities = Array.from(new Set(developerDevs.map(d => d.city).filter(Boolean)))
-          .sort((a, b) => a.localeCompare(b, 'es'));
-        if (uniqueCities.length > 0) {
-          options = uniqueCities;
+    if (column.key === "city") {
+      if (developer && allDevelopments && allDevelopers) {
+        const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
+        if (devRecord) {
+          const developerDevs = allDevelopments.filter(d => d.developerId === devRecord.id);
+          options = Array.from(new Set(developerDevs.map(d => d.city).filter(Boolean)))
+            .sort((a, b) => a.localeCompare(b, 'es'));
+        } else {
+          options = [];
         }
+      } else {
+        options = [];
       }
     }
 
     if (column.key === "zone") {
-      let zonePool: string[] = [];
       if (developer && allDevelopments && allDevelopers) {
         const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
         if (devRecord) {
@@ -1792,16 +1794,13 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           if (city) {
             developerDevs = developerDevs.filter(d => d.city === city);
           }
-          zonePool = Array.from(new Set(developerDevs.map(d => d.zone).filter(Boolean)))
+          options = Array.from(new Set(developerDevs.map(d => d.zone).filter(Boolean)))
             .sort((a, b) => a.localeCompare(b, 'es'));
+        } else {
+          options = [];
         }
-      }
-      if (zonePool.length > 0) {
-        options = zonePool;
-      } else if (city) {
-        if (zoneOptionsByCity && zoneOptionsByCity[city]?.length > 0) {
-          options = zoneOptionsByCity[city];
-        }
+      } else {
+        options = [];
       }
     }
     
@@ -1812,22 +1811,19 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
 
     if (column.key === "development" && allDevelopments) {
-      let devsToShow = allDevelopments;
       if (developer && allDevelopers) {
         const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
         if (devRecord) {
-          devsToShow = devsToShow.filter(d => d.developerId === devRecord.id);
+          options = allDevelopments
+            .filter(d => d.developerId === devRecord.id)
+            .map(d => d.name)
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'es'));
+        } else {
+          options = [];
         }
-      }
-      if (city) {
-        devsToShow = devsToShow.filter(d => d.city === city);
-      }
-      const devNames = devsToShow
-        .map(d => d.name)
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, 'es'));
-      if (devNames.length > 0) {
-        options = devNames;
+      } else {
+        options = [];
       }
     }
     
@@ -1835,8 +1831,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       const rowDevName = row?.development;
       if (rowDevName && vistasByDevelopment && vistasByDevelopment[rowDevName]?.length > 0) {
         options = vistasByDevelopment[rowDevName];
-      } else if (vistaOptions && vistaOptions.length > 0) {
-        options = vistaOptions;
+      } else {
+        options = [];
       }
     }
     
@@ -1844,8 +1840,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       const rowDev = row?.development;
       if (rowDev && typesByDevelopment && typesByDevelopment[rowDev]?.length > 0) {
         options = typesByDevelopment[rowDev];
-      } else if (tipologiaOptions && tipologiaOptions.length > 0) {
-        options = tipologiaOptions;
+      } else {
+        options = [];
       }
     }
     
