@@ -952,6 +952,8 @@ interface ColumnFilterProps {
   disabledMessage?: string;
   overrideUniqueValues?: string[];
   hasParentGroup?: boolean;
+  dotColorMap?: Record<string, string>;
+  labelMap?: Record<string, string>;
 }
 
 function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean }) {
@@ -1013,7 +1015,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
   );
 }
 
-function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel, disabledMessage, overrideUniqueValues, hasParentGroup }: ColumnFilterProps) {
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel, disabledMessage, overrideUniqueValues, hasParentGroup, dotColorMap, labelMap }: ColumnFilterProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [localMin, setLocalMin] = useState(rangeFilter?.min || "");
@@ -1398,8 +1400,9 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                     
                     {filteredValues.map((value) => {
                       const isChecked = selectedValues.size === 0 || selectedValues.has(value);
-                      const displayValue = column.format ? formatValue(value, column.format) : value;
+                      const displayValue = labelMap?.[value] ?? (column.format ? formatValue(value, column.format) : value);
                       const isAvailable = !availableValues || availableValues.has(value);
+                      const dotColor = dotColorMap?.[value];
                       
                       return (
                         <label
@@ -1418,10 +1421,13 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                             data-testid={`filter-value-${column.key}-${value}`}
                           />
                           <span className={cn(
-                            "text-xs truncate",
+                            "flex items-center gap-1.5 text-xs truncate",
                             !isAvailable && "text-muted-foreground line-through"
                           )}>
-                            {displayValue}
+                            {dotColor && (
+                              <span style={{ color: dotColor }} className="text-[8px] leading-none flex-shrink-0">●</span>
+                            )}
+                            <span style={dotColor ? { color: dotColor, fontWeight: 500 } : undefined}>{displayValue}</span>
                           </span>
                         </label>
                       );
@@ -1595,27 +1601,38 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   }
   
   if (column.type === "boolean" && column.key === "active") {
-    const activeState = (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
+    const isDisabled = value === null || value === undefined;
+    const activeState = isDisabled ? "disabled" : (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
 
     let bgColor: string;
-    let textColor: string;
+    let dotColor: string;
+    let textColorStyle: React.CSSProperties;
     let label: string;
 
     switch (activeState) {
       case "active":
         bgColor = "#dcfce7";
-        textColor = "text-green-700 font-medium";
+        dotColor = "#15803d";
+        textColorStyle = { color: "#15803d", fontWeight: 500 };
         label = "Sí";
         break;
       case "ready":
         bgColor = "#fef3c7";
-        textColor = "text-amber-700 font-medium";
+        dotColor = "#b45309";
+        textColorStyle = { color: "#b45309", fontWeight: 500 };
         label = "No";
+        break;
+      case "disabled":
+        bgColor = "#9ca3af";
+        dotColor = "#1f2937";
+        textColorStyle = { color: "#1f2937", fontWeight: 500 };
+        label = "Deshabilitado";
         break;
       case "incomplete":
       default:
         bgColor = "#fee2e2";
-        textColor = "text-red-600 font-medium";
+        dotColor = "#dc2626";
+        textColorStyle = { color: "#dc2626", fontWeight: 500 };
         label = "No";
         break;
     }
@@ -1631,20 +1648,47 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn("spreadsheet-cell px-0 relative group", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: bgColor }}
       >
-        <button
-          className={cn("h-6 w-full text-xs", textColor)}
-          onClick={() => {
-            if (activeState === "ready") {
-              onChange(true);
-            } else if (activeState === "active") {
+        <ExclusiveSelect
+          value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
+          onValueChange={(val) => {
+            if (val === "disabled") {
+              onChange(null);
+            } else if (val === "active") {
+              if (isComplete) onChange(true);
+            } else {
               onChange(false);
             }
           }}
-          disabled={activeState === "incomplete"}
-          data-testid={`active-${rowId}`}
         >
-          {label}
-        </button>
+          <SelectTrigger
+            className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0"
+            style={textColorStyle}
+            data-testid={`active-${rowId}`}
+          >
+            <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
+            <span className="truncate">{label}</span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active" disabled={!isComplete} className="text-xs">
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
+                <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
+              </span>
+            </SelectItem>
+            <SelectItem value="no" className="text-xs">
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: isComplete ? "#b45309" : "#dc2626" }} className="text-[8px] leading-none">●</span>
+                <span style={{ color: isComplete ? "#b45309" : "#dc2626", fontWeight: 500 }}>No</span>
+              </span>
+            </SelectItem>
+            <SelectItem value="disabled" className="text-xs">
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: "#1f2937" }} className="text-[8px] leading-none">●</span>
+                <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </ExclusiveSelect>
         {tooltipContent && (
           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-[200] hidden group-hover:block bg-gray-900 text-white text-[10px] leading-tight rounded-md px-2.5 py-2 whitespace-pre-line shadow-lg min-w-[180px] max-w-[280px] max-h-[300px] overflow-y-auto pointer-events-none">
             {tooltipContent}
@@ -2611,7 +2655,7 @@ export function TypologySpreadsheet() {
   useEffect(() => {
     if (typologies.length === 0 || hasAutoFixedRef.current) return;
     hasAutoFixedRef.current = true;
-    const incorrectRows = typologies.filter(t => t.active === true && !isTypologyComplete(t, validEntities));
+    const incorrectRows = typologies.filter(t => t.active === true && t.active !== null && !isTypologyComplete(t, validEntities));
     if (incorrectRows.length === 0) return;
     Promise.all(
       incorrectRows.map(row => apiRequest("PUT", `/api/typologies/${row.id}`, { active: false }).catch(() => {}))
@@ -3191,6 +3235,8 @@ export function TypologySpreadsheet() {
         let fieldValue: string;
         if (key === "mediaCount") {
           fieldValue = String(getTypologyDocCount(t.id));
+        } else if (key === "active") {
+          fieldValue = t.active === null || t.active === undefined ? "null" : String(t.active);
         } else {
           fieldValue = String(t[key as keyof Typology] ?? "");
         }
@@ -4160,7 +4206,9 @@ export function TypologySpreadsheet() {
                               hideLabel={true}
                               fullLabel={col.hideLabel ? (col.fullLabel || col.label) : (section.parentLabel ? (col.fullLabel || col.label) : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
-                              overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
+                              overrideUniqueValues={col.key === "active" ? ["true", "false", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
+                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false": "#dc2626", "null": "#1f2937" } : undefined}
+                              labelMap={col.key === "active" ? { "true": "Sí", "false": "No", "null": "Deshabilitado" } : undefined}
                               hasParentGroup={!!section.parentLabel}
                             />
                           )}
