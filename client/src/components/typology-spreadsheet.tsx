@@ -4142,7 +4142,7 @@ export function TypologySpreadsheet() {
                               }
                               columnWidth={col.width}
                               hideLabel={true}
-                              fullLabel={col.hideLabel ? (col.fullLabel || col.label) : undefined}
+                              fullLabel={col.hideLabel ? (col.fullLabel || col.label) : (section.parentLabel ? (col.fullLabel || col.label) : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
                               hasParentGroup={!!section.parentLabel}
