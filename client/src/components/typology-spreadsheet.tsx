@@ -2193,8 +2193,6 @@ export function TypologySpreadsheet() {
   const pendingChangesRef = useRef<Map<string, Partial<Typology>>>(new Map());
   const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
   const pendingChanges = pendingChangesRef.current;
-  const typologiesRef = useRef(typologies);
-  useEffect(() => { typologiesRef.current = typologies; }, [typologies]);
   const [dynamicGray, setDynamicGray] = useState<DynamicGrayState>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
@@ -2210,6 +2208,8 @@ export function TypologySpreadsheet() {
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
   });
+  const typologiesRef = useRef(typologies);
+  useEffect(() => { typologiesRef.current = typologies; }, [typologies]);
   
   const { data: documents = [] } = useQuery<any[]>({
     queryKey: ["/api/documents"],
