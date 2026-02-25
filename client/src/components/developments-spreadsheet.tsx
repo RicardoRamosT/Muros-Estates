@@ -343,6 +343,11 @@ export function DevelopmentsSpreadsheet() {
     return cols;
   }, [canView, hasFullAccess, fechaHoraExpanded]);
 
+  const developerOrderMap = useMemo(() => {
+    const sorted = [...developers].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    return Object.fromEntries(sorted.map((d, i) => [String(d.id), i]));
+  }, [developers]);
+
   const {
     sortConfig,
     filterConfigs,
@@ -353,7 +358,7 @@ export function DevelopmentsSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(developments, visibleColumns);
+  } = useColumnFilters(developments, visibleColumns, { developerId: developerOrderMap });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
