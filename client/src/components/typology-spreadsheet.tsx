@@ -951,6 +951,7 @@ interface ColumnFilterProps {
   fullLabel?: string;
   disabledMessage?: string;
   overrideUniqueValues?: string[];
+  hasParentGroup?: boolean;
 }
 
 function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean }) {
@@ -1012,7 +1013,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
   );
 }
 
-function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel, disabledMessage, overrideUniqueValues }: ColumnFilterProps) {
+function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterChange, onSortChange, sectionColor, availableValues, rangeFilter, onRangeFilterChange, groupedOptions, columnWidth, hideLabel, fullLabel, disabledMessage, overrideUniqueValues, hasParentGroup }: ColumnFilterProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [localMin, setLocalMin] = useState(rangeFilter?.min || "");
@@ -1454,14 +1455,14 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         fullLabel ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+              <div className={cn("flex-1 h-full cursor-default", hasParentGroup && "hover:bg-white/10")} style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               {fullLabel}
             </TooltipContent>
           </Tooltip>
         ) : (
-          <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+          <div className={cn("flex-1 h-full cursor-default", hasParentGroup && "hover:bg-white/10")} style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
         )
       ) : (
         <TruncatedLabel 
@@ -4144,6 +4145,7 @@ export function TypologySpreadsheet() {
                               fullLabel={col.hideLabel ? (col.fullLabel || col.label) : undefined}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "view" ? vistaFilterState.overrideValues : undefined}
+                              hasParentGroup={!!section.parentLabel}
                             />
                           )}
                         </div>
