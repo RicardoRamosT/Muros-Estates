@@ -1524,13 +1524,17 @@ interface EditableCellProps {
   onLinkedSizeChange?: (value: any) => void;
   isComplete?: boolean;
   validEntities?: ValidEntities;
+  isRowDisabled?: boolean;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const cellBorderClass = "";
+  const rowDisabledStyle: React.CSSProperties | undefined = (isRowDisabled && column.key !== "active")
+    ? { backgroundColor: '#9ca3af' }
+    : undefined;
   
   useEffect(() => {
     setLocalValue(value);
@@ -1565,12 +1569,12 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn(
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          column.calculated && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
-          disabled && !column.calculated && "bg-gray-200/60 dark:bg-gray-800/50",
+          column.calculated && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
+          disabled && !column.calculated && !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50",
           disabled && !column.calculated && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         data-testid={`cell-${column.key}-disabled`}
       >
         {(column.format === "currency" || column.format === "area") 
@@ -1585,11 +1589,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       <div 
         className={cn(
           "spreadsheet-cell px-2 text-xs cursor-pointer", cellBorderClass,
-          "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
+          !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         onClick={() => setIsEditing(true)}
         data-testid={`cell-${column.key}-${rowId}`}
       >
@@ -1713,7 +1717,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: rowDisabledStyle ? '#9ca3af' : cellBgColor }}
       >
         <ExclusiveSelect
           value={value === true ? "si" : value === false ? "no" : (canBeUnassigned ? "sa" : "")}
@@ -1782,8 +1786,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", disabled ? "bg-gray-200 dark:bg-gray-700" : "bg-white dark:bg-gray-900", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (disabled ? "bg-gray-200 dark:bg-gray-700" : "bg-white dark:bg-gray-900"), cellBorderClass)}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
         {disabled ? (
           <div className="flex items-center gap-1 px-1">
@@ -1963,8 +1967,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
         <ExclusiveSelect 
           value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
@@ -2017,8 +2021,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0 || disabled) {
       return (
         <div 
-          className={cn("spreadsheet-cell px-1 bg-gray-200/60 dark:bg-gray-800/50 text-gray-350 dark:text-gray-500 cursor-not-allowed", cellBorderClass)}
-          style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+          className={cn("spreadsheet-cell px-1 text-gray-350 dark:text-gray-500 cursor-not-allowed", !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50", cellBorderClass)}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         >
           {selectedType ? (
             <span className="text-xs text-muted-foreground px-1">{selectedType}</span>
@@ -2035,8 +2039,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
         <Popover>
             <PopoverTrigger asChild>
@@ -2078,8 +2082,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (column.type === "date") {
       return (
         <div
-          className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
-          style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+          className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", cellBorderClass)}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         >
           <input
             ref={inputRef}
@@ -2105,8 +2109,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
     return (
       <div 
-        className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", cellBorderClass)}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
         <Input
           ref={inputRef}
@@ -2126,10 +2130,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   return (
     <div
       className={cn(
-        "spreadsheet-cell px-2 text-xs cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 overflow-hidden", cellBorderClass,
+        "spreadsheet-cell px-2 text-xs cursor-pointer overflow-hidden", cellBorderClass,
+        !rowDisabledStyle && "bg-white dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30",
         column.centerCells && "justify-center text-center"
       )}
-      style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+      style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       onClick={() => setIsEditing(true)}
       title={column.type === "date" ? formatDateDisplay(value) : formatValue(value, column.format)}
       data-testid={`cell-${column.key}-${rowId}`}
@@ -2156,6 +2161,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   if (prevProps.isComplete !== nextProps.isComplete) return false;
   if (prevProps.dynamicOptions !== nextProps.dynamicOptions) return false;
   if (prevProps.row !== nextProps.row) return false;
+  if (prevProps.isRowDisabled !== nextProps.isRowDisabled) return false;
   return true;
 });
 
@@ -3408,16 +3414,23 @@ export function TypologySpreadsheet() {
         if (key === col.key) return;
         if (values.size === 0) return;
         filteredData = filteredData.filter((row) => {
-          const fieldValue = String(row[key as keyof Typology] ?? "");
+          const fieldValue = key === "active"
+            ? (row.active === null || row.active === undefined ? "null" : String(row.active))
+            : String(row[key as keyof Typology] ?? "");
           return values.has(fieldValue);
         });
       });
       
       const availableValues = new Set<string>();
       filteredData.forEach((row) => {
-        const val = row[col.key as keyof Typology];
-        if (val !== null && val !== undefined && val !== "") {
-          availableValues.add(String(val));
+        if (col.key === "active") {
+          const activeVal = row.active;
+          availableValues.add(activeVal === null || activeVal === undefined ? "null" : String(activeVal));
+        } else {
+          const val = row[col.key as keyof Typology];
+          if (val !== null && val !== undefined && val !== "") {
+            availableValues.add(String(val));
+          }
         }
       });
       map[col.key] = availableValues;
@@ -4242,31 +4255,36 @@ export function TypologySpreadsheet() {
             const isActiveRow = activeEditingRowId === row.id;
             const hasRowPending = pendingChanges.has(row.id);
             
+            const isRowDisabled = mergedRow.active === null;
             return (
               <div
                 key={row.id}
                 className={cn(
                   "flex border-b cursor-pointer",
-                  isActiveRow 
-                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
-                    : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  isRowDisabled
+                    ? ""
+                    : isActiveRow 
+                      ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
+                      : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
-                style={{ height: '32px', maxHeight: '32px' }}
+                style={{ height: '32px', maxHeight: '32px', ...(isRowDisabled ? { backgroundColor: '#9ca3af' } : {}) }}
                 onClick={() => handleRowClick(row.id)}
                 data-testid={`row-typology-${row.id}`}
               >
                 <div 
                   className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative cursor-default"
-                  style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
+                  style={{ backgroundColor: isRowDisabled ? '#9ca3af' : getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
                   {stableRowNumberMap.get(row.id) ?? rowIndex + 1}
                   <span
                     className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
                     style={{
-                      backgroundColor: isTypologyComplete(mergedRow as Partial<Typology>, validEntities)
-                        ? (mergedRow.active === true ? "#22c55e" : "#f59e0b")
-                        : "#ef4444"
+                      backgroundColor: mergedRow.active === null
+                        ? "#6b7280"
+                        : isTypologyComplete(mergedRow as Partial<Typology>, validEntities)
+                          ? (mergedRow.active === true ? "#22c55e" : "#f59e0b")
+                          : "#ef4444"
                     }}
                     data-testid={`status-dot-${row.id}`}
                   />
@@ -4455,6 +4473,7 @@ export function TypologySpreadsheet() {
                             onLinkedSizeChange={col.linkedSizeField ? (newVal) => handleCellChange(row.id, col.linkedSizeField!, newVal) : undefined}
                             isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
                             validEntities={col.key === "active" ? validEntities : undefined}
+                            isRowDisabled={isRowDisabled}
                           />
                         );
 
