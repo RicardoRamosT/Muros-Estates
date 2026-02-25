@@ -214,6 +214,8 @@ const SECTIONS: SectionDef[] = [
       { key: "promoDescription", label: "Descripción", type: "text", width: 110, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
+      { field: "discountPercent", dependsOn: "hasDiscount" },
+      { field: "discountAmount", dependsOn: "hasDiscount" },
       { field: "promoDescription", dependsOn: "hasPromo" },
     ],
   },
@@ -2963,6 +2965,16 @@ export function TypologySpreadsheet() {
         clearedFields[depField] = null;
       });
     }
+
+    // When hasDiscount toggles to false, preserve current % and Monto values explicitly
+    // so disabled cells receive non-null `value` prop and display correctly
+    const preservedFields: Record<string, any> = {};
+    if (field === "hasDiscount" && value === false) {
+      const pct = (updatedRow as any).discountPercent;
+      const amt = (updatedRow as any).discountAmount;
+      if (pct !== null && pct !== undefined) preservedFields.discountPercent = pct;
+      if (amt !== null && amt !== undefined) preservedFields.discountAmount = amt;
+    }
     
     // Include bidirectional fields if they were calculated
     const bidirectionalFields: Record<string, any> = {};
@@ -2998,7 +3010,7 @@ export function TypologySpreadsheet() {
     }
 
     const existing = pendingChangesRef.current.get(rowId) || {};
-    pendingChangesRef.current.set(rowId, { ...existing, [field]: value, ...clearedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields });
+    pendingChangesRef.current.set(rowId, { ...existing, [field]: value, ...clearedFields, ...preservedFields, ...bidirectionalFields, ...calculatedFields, ...autoPopulatedFields });
     setPendingChangesVersion(v => v + 1);
     
     if (activeEditingRowId && activeEditingRowId !== rowId) {
