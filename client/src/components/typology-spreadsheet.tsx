@@ -3938,7 +3938,7 @@ export function TypologySpreadsheet() {
                                 <TooltipTrigger asChild>
                                   <button
                                     onClick={() => toggleColumns(sectionColKeys)}
-                                    className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                    className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10"
                                     style={{ width: 20 }}
                                     data-testid={`section-toggle-${section.id}`}
                                   >
@@ -3952,7 +3952,7 @@ export function TypologySpreadsheet() {
                             ) : (
                               <button
                                 onClick={() => toggleSection(section.id)}
-                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer"
+                                className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10"
                                 style={{ width: 20 }}
                                 data-testid={`section-toggle-${section.id}`}
                               >
@@ -3990,7 +3990,7 @@ export function TypologySpreadsheet() {
                       {isColCollapsed ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button onClick={() => toggleColumn(col.key)} className="w-full h-full flex items-center justify-center cursor-pointer">
+                            <button onClick={() => toggleColumn(col.key)} className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-white/10">
                               <Plus className="w-3 h-3 text-white" />
                             </button>
                           </TooltipTrigger>
@@ -4002,7 +4002,7 @@ export function TypologySpreadsheet() {
                         <>
                           <div style={{ width: 20 }} />
                           <TruncatedLabel label={col.label} fullLabel={col.fullLabel} columnKey={col.key} />
-                          <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center cursor-pointer"><Minus className="w-3 h-3 text-white" /></button>
+                          <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center cursor-pointer hover:bg-white/10"><Minus className="w-3 h-3 text-white" /></button>
                         </>
                       )}
                     </div>
