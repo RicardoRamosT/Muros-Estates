@@ -2874,7 +2874,6 @@ export function TypologySpreadsheet() {
       hasParkingOptional: ["parkingOptionalPrice"],
       hasStorage: ["storageSize"],
       hasStorageOptional: ["storageSize2", "storagePrice"],
-      hasDiscount: ["discountPercent", "discountAmount"],
     };
     
     // When boolean toggles to false, don't clear dependent field values
