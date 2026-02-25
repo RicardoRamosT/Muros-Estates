@@ -1795,7 +1795,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <Lock className="w-3 h-3 opacity-50 shrink-0" />
           </div>
         ) : (
-          <Popover>
+          <Popover modal>
             <PopoverTrigger asChild>
               <button
                 type="button"
