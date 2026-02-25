@@ -460,7 +460,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "rentInitial", label: "Inicial", type: "decimal", width: 75, format: "currency" },
-      { key: "rentStartDate", label: "Fecha", type: "date", width: 85 },
+      { key: "rentStartDate", label: "Fecha", type: "date", width: 85, calculated: true },
     ],
   },
   {
@@ -484,7 +484,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "rentFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
-      { key: "rentEndDate", label: "Fecha", type: "date", width: 85 },
+      { key: "rentEndDate", label: "Fecha", type: "date", width: 85, calculated: true },
     ],
   },
   {
@@ -3437,8 +3437,24 @@ export function TypologySpreadsheet() {
         maintenanceEndDate = `${months[endDateObj.getMonth()]}/${endDateObj.getFullYear().toString().slice(-2)}`;
       }
     }
+
+    let rentStartDateCalc: string | null = null;
+    let rentEndDateCalc: string | null = null;
+    if (merged.development && dbDevelopments.length > 0) {
+      const dev = dbDevelopments.find(d => d.name === merged.development);
+      if (dev?.entregaProyectada) {
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const startObj = new Date(dev.entregaProyectada);
+        startObj.setMonth(startObj.getMonth() + 2);
+        rentStartDateCalc = `${months[startObj.getMonth()]}/${startObj.getFullYear().toString().slice(-2)}`;
+        const mortgageYrs = (calculated.mortgageYears as number) || (merged.mortgageYears as number) || defaults?.['mortgageYears'] || 15;
+        const endObj = new Date(startObj);
+        endObj.setFullYear(endObj.getFullYear() + mortgageYrs);
+        rentEndDateCalc = `${months[endObj.getMonth()]}/${endObj.getFullYear().toString().slice(-2)}`;
+      }
+    }
     
-    const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate } as Typology;
+    const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate, rentStartDate: rentStartDateCalc, rentEndDate: rentEndDateCalc } as Typology;
     
     if (!pending) {
       mergedRowCacheRef.current.set(row.id, { source: row, result });
