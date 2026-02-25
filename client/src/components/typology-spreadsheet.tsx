@@ -154,8 +154,8 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-gray-50/30 dark:bg-gray-900/10",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 60 },
-      { key: "createdDate", label: "Fecha", type: "text", width: 75, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 60, calculated: true, centerCells: true },
+      { key: "createdDate", label: "Fecha", type: "text", width: 65, calculated: true, centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 55, calculated: true, centerCells: true },
     ],
   },
   {
@@ -165,11 +165,11 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "city", label: "Ciudad", type: "text", width: 80, calculated: true },
-      { key: "zone", label: "Zona", type: "text", width: 100, calculated: true },
-      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 140 },
-      { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 110 },
-      { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 100 },
+      { key: "city", label: "Ciudad", type: "text", width: 72, calculated: true },
+      { key: "zone", label: "Zona", type: "text", width: 62, calculated: true },
+      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 125 },
+      { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 100 },
+      { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 62 },
     ],
   },
   {
@@ -181,7 +181,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
-      { key: "view", label: "Vista", type: "select", options: [], width: 80 },
+      { key: "view", label: "Vista", type: "select", options: [], width: 66 },
       { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 60, centerCells: true },
     ],
   },
@@ -211,7 +211,7 @@ const SECTIONS: SectionDef[] = [
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital Semilla", type: "boolean", width: 95, fullLabel: "Capital Semilla" },
       { key: "hasPromo", label: "Promo", type: "boolean", width: 62, fullLabel: "Promo" },
-      { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
+      { key: "promoDescription", label: "Descripción", type: "text", width: 110, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
@@ -226,9 +226,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "",
     columns: [
-      { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
-      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 80 },
-      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 70 },
+      { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
+      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 66 },
+      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 66 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize", hideLabel: true, fullLabel: "Balcón" },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize", hideLabel: true, fullLabel: "Terraza" },
@@ -247,9 +247,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "",
     columns: [
-      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 100 },
-      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 80 },
-      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 70 },
+      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
+      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 66 },
+      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 66 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize2", hideLabel: true, fullLabel: "Balcón" },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
       { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize2", hideLabel: true, fullLabel: "Terraza" },
@@ -307,7 +307,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "",
     mergeHeaders: true,
     columns: [
-      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 120 },
+      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 72 },
     ],
   },
   {
@@ -367,7 +367,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     mergeHeaders: true,
     columns: [
-      { key: "deliveryDate", label: "Entrega", type: "text", width: 100, calculated: true },
+      { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
     ],
   },
   {
@@ -1801,6 +1801,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                 type="button"
                 className="flex items-center justify-between w-full h-6 text-xs px-1 cursor-pointer bg-transparent border-0 focus:ring-0 focus:outline-none text-left"
                 data-testid={`multiselect-${column.key}-${rowId}`}
+                title={displayValue}
               >
                 <span className="truncate">{displayValue}</span>
                 <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
@@ -1983,6 +1984,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           <SelectTrigger 
             className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!displayValue || /^\d+$/.test(displayValue)) ? "text-center" : "text-left", !displayValue && column.allowUnassigned && "font-medium")}
             data-testid={`select-${column.key}-${rowId}`}
+            title={displayValue || ""}
           >
             <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "-" : "")}</span>
           </SelectTrigger>
@@ -2048,6 +2050,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                 variant="ghost"
                 className="h-6 w-full justify-between px-1 text-xs font-normal [&_svg]:h-3 [&_svg]:w-3"
                 data-testid={`select-${column.key}-${rowId}`}
+                title={selectedType}
               >
                 <span className="truncate text-left min-w-0 flex-1">
                   {selectedType || ""}
