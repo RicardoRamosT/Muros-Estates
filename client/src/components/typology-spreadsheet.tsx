@@ -4207,7 +4207,7 @@ export function TypologySpreadsheet() {
                               onFilterChange={(values) => handleColumnFilterChange(col.key, values)}
                               onSortChange={(dir) => handleColumnSortChange(col.key, dir)}
                               sectionColor={getSectionGroupColor(SECTIONS, sectionIndex)}
-                              availableValues={availableValuesMap[col.key]}
+                              availableValues={col.key === "active" ? undefined : availableValuesMap[col.key]}
                               rangeFilter={rangeFilters[col.key]}
                               onRangeFilterChange={(range) => handleRangeFilterChange(col.key, range)}
                               groupedOptions={
