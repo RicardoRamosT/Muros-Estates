@@ -777,8 +777,9 @@ function getMissingFields(row: Partial<Typology>, validEntities?: ValidEntities)
 
 function formatValue(value: any, format?: string): string {
   if (value === null || value === undefined || value === "") return "";
-  const num = parseFloat(value);
-  if (isNaN(num)) return value;
+  const strValue = String(value).trim();
+  const num = parseFloat(strValue);
+  if (isNaN(num) || strValue !== String(num)) return strValue;
   
   switch (format) {
     case "currency":
