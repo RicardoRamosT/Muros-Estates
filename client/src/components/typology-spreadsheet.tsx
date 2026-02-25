@@ -2208,8 +2208,6 @@ export function TypologySpreadsheet() {
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
   });
-  const typologiesRef = useRef(typologies);
-  useEffect(() => { typologiesRef.current = typologies; }, [typologies]);
   
   const { data: documents = [] } = useQuery<any[]>({
     queryKey: ["/api/documents"],
@@ -3140,12 +3138,10 @@ export function TypologySpreadsheet() {
       if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
       for (const [rowId, changes] of pending.entries()) {
         if (!changes || Object.keys(changes).length === 0) continue;
-        const currentRow = typologiesRef.current.find(t => t.id === rowId);
-        const payload = currentRow ? { ...currentRow, ...changes } : changes;
         fetch(`/api/typologies/${rowId}`, {
           method: "PUT",
           headers,
-          body: JSON.stringify(payload),
+          body: JSON.stringify(changes),
           keepalive: true,
         });
       }
