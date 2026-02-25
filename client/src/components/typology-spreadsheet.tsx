@@ -2193,6 +2193,8 @@ export function TypologySpreadsheet() {
   const pendingChangesRef = useRef<Map<string, Partial<Typology>>>(new Map());
   const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
   const pendingChanges = pendingChangesRef.current;
+  const typologiesRef = useRef(typologies);
+  useEffect(() => { typologiesRef.current = typologies; }, [typologies]);
   const [dynamicGray, setDynamicGray] = useState<DynamicGrayState>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
@@ -3128,6 +3130,27 @@ export function TypologySpreadsheet() {
     }
     return () => window.removeEventListener("beforeunload", handler);
   }, [pendingChangesVersion]);
+
+  useEffect(() => {
+    return () => {
+      const pending = pendingChangesRef.current;
+      if (pending.size === 0) return;
+      const sessionId = localStorage.getItem("muros_session");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+      for (const [rowId, changes] of pending.entries()) {
+        if (!changes || Object.keys(changes).length === 0) continue;
+        const currentRow = typologiesRef.current.find(t => t.id === rowId);
+        const payload = currentRow ? { ...currentRow, ...changes } : changes;
+        fetch(`/api/typologies/${rowId}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(payload),
+          keepalive: true,
+        });
+      }
+    };
+  }, []);
 
   const handleAddRow = () => {
     const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];
