@@ -3136,15 +3136,15 @@ export function TypologySpreadsheet() {
       const sessionId = localStorage.getItem("muros_session");
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
-      for (const [rowId, changes] of pending.entries()) {
-        if (!changes || Object.keys(changes).length === 0) continue;
+      pending.forEach((changes, rowId) => {
+        if (!changes || Object.keys(changes).length === 0) return;
         fetch(`/api/typologies/${rowId}`, {
           method: "PUT",
           headers,
           body: JSON.stringify(changes),
           keepalive: true,
         });
-      }
+      });
     };
   }, []);
 
