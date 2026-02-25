@@ -204,13 +204,13 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "price", label: "Precio", type: "decimal", width: 90, format: "currency" },
-      { key: "hasDiscount", label: "Bono", type: "boolean", width: 75, fullLabel: "Bono Descuento" },
+      { key: "hasDiscount", label: "Bono", type: "boolean", width: 55, fullLabel: "Bono Descuento" },
       { key: "discountPercent", label: "%", type: "decimal", width: 60, format: "percent", hideLabel: true, fullLabel: "Porcentaje", centerCells: true },
       { key: "discountAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency" },
       { key: "finalPrice", label: "Final", type: "decimal", width: 100, format: "currency", calculated: true },
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital Semilla", type: "boolean", width: 95, fullLabel: "Capital Semilla" },
-      { key: "hasPromo", label: "Promo", type: "boolean", width: 70, fullLabel: "Promo" },
+      { key: "hasPromo", label: "Promo", type: "boolean", width: 62, fullLabel: "Promo" },
       { key: "promoDescription", label: "Descripción", type: "text", width: 130, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
@@ -233,7 +233,7 @@ const SECTIONS: SectionDef[] = [
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize", hideLabel: true, fullLabel: "Terraza" },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Terraza m²" },
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 85, allowUnassigned: true },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 78, allowUnassigned: true },
     ],
     conditionalFields: [
       { field: "balconySize", dependsOn: "hasBalcony" },
@@ -273,7 +273,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true, allowUnassigned: true },
-      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 85 },
+      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 80 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
     conditionalFields: [
@@ -289,7 +289,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "hasStorage", label: "Incluye", type: "boolean", width: 75, allowUnassigned: true },
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
-      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 85 },
+      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 80 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
@@ -496,7 +496,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "rentMonths", label: "Meses", type: "number", width: 65 },
+      { key: "rentMonths", label: "Meses", type: "number", width: 60 },
     ],
   },
   {
