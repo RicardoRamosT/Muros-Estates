@@ -793,6 +793,29 @@ function formatValue(value: any, format?: string): string {
   }
 }
 
+function toDateInputValue(str: any): string {
+  if (!str) return "";
+  const s = String(str).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const parts = s.split('/');
+  if (parts.length === 3) {
+    const [day, month, year] = parts;
+    const fullYear = year.length === 2 ? `20${year}` : year;
+    return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  return "";
+}
+
+function formatDateDisplay(str: any): string {
+  if (!str) return "";
+  const s = String(str).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [year, month, day] = s.split('-');
+    return `${day}/${month}/${year.slice(2)}`;
+  }
+  return s;
+}
+
 function FormattedCellValue({ value, format }: { value: any; format?: string }) {
   if (value === null || value === undefined || value === "") return null;
   const num = parseFloat(value);
@@ -2007,6 +2030,34 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   }
   
   if (isEditing) {
+    if (column.type === "date") {
+      return (
+        <div
+          className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
+        >
+          <input
+            ref={inputRef}
+            type="date"
+            value={toDateInputValue(localValue)}
+            onChange={(e) => {
+              setLocalValue(e.target.value);
+              if (e.target.value) {
+                onChange(e.target.value);
+                setIsEditing(false);
+              }
+            }}
+            onBlur={() => {
+              setIsEditing(false);
+              if (localValue !== value) onChange(localValue);
+            }}
+            onKeyDown={handleKeyDown}
+            className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none p-0 bg-transparent cursor-pointer"
+            data-testid={`input-${column.key}-${rowId}`}
+          />
+        </div>
+      );
+    }
     return (
       <div 
         className={cn("spreadsheet-cell px-1 bg-white dark:bg-gray-900", cellBorderClass)}
@@ -2035,12 +2086,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       )}
       style={{ width: (column.width || 100) + SORT_ICON_WIDTH }}
       onClick={() => setIsEditing(true)}
-      title={formatValue(value, column.format)}
+      title={column.type === "date" ? formatDateDisplay(value) : formatValue(value, column.format)}
       data-testid={`cell-${column.key}-${rowId}`}
     >
-      {(column.format === "currency" || column.format === "area")
-        ? <FormattedCellValue value={value} format={column.format} />
-        : <span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span>}
+      {column.type === "date"
+        ? <span className="truncate min-w-0">{formatDateDisplay(value) || ""}</span>
+        : (column.format === "currency" || column.format === "area")
+          ? <FormattedCellValue value={value} format={column.format} />
+          : <span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span>}
     </div>
   );
 }, (prevProps, nextProps) => {
