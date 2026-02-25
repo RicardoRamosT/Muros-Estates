@@ -841,16 +841,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     let options: { value: string; label: string }[] = [];
                     
                     if (col.key === 'ciudad') {
-                      options = cities.map(c => ({ value: c.name, label: c.name }));
+                      options = cities.filter(c => c.name?.trim()).map(c => ({ value: c.name, label: c.name }));
                     } else if (col.key === 'zona') {
-                      options = zones.map(z => ({ value: z.name, label: z.name }));
+                      options = zones.filter(z => z.name?.trim()).map(z => ({ value: z.name, label: z.name }));
                     } else if (col.key === 'desarrollador') {
-                      options = developers.map(d => ({ value: d.name, label: d.name }));
+                      options = developers.filter(d => d.name?.trim()).map(d => ({ value: d.name, label: d.name }));
                     } else if (col.key === 'desarrollo') {
                       const developerGroups: Record<string, { id: string; name: string }[]> = {};
-                      developments.forEach(d => {
+                      developments.filter(d => d.name?.trim()).forEach(d => {
                         const dev = developers.find(dev => dev.id === d.developerId);
-                        const devName = dev?.name || 'Sin Desarrollador';
+                        const devName = dev?.name?.trim() ? dev.name : 'Sin Desarrollador';
                         if (!developerGroups[devName]) developerGroups[devName] = [];
                         developerGroups[devName].push({ id: d.id, name: d.name });
                       });
