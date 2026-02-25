@@ -214,8 +214,6 @@ const SECTIONS: SectionDef[] = [
       { key: "promoDescription", label: "Descripción", type: "text", width: 110, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
-      { field: "discountPercent", dependsOn: "hasDiscount" },
-      { field: "discountAmount", dependsOn: "hasDiscount" },
       { field: "promoDescription", dependsOn: "hasPromo" },
     ],
   },
