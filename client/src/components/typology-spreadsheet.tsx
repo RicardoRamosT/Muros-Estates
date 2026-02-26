@@ -1534,7 +1534,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   const inputRef = useRef<HTMLInputElement>(null);
   const cellBorderClass = "";
   const rowDisabledStyle: React.CSSProperties | undefined = (isRowDisabled && column.key !== "active" && column.key !== "id")
-    ? { backgroundColor: '#9ca3af' }
+    ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const }
     : undefined;
   
   useEffect(() => {
