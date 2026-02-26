@@ -4371,7 +4371,7 @@ export function TypologySpreadsheet() {
               >
                 <div 
                   className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative cursor-default"
-                  style={{ backgroundColor: isRowDisabled ? '#9ca3af' : getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
+                  style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
                   {stableRowNumberMap.get(row.id) ?? rowIndex + 1}
