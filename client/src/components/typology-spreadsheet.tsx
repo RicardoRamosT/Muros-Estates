@@ -4468,9 +4468,9 @@ export function TypologySpreadsheet() {
                               key={col.key}
                               className={cn(
                                 "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
-                                section.cellColor
+                                !isRowDisabled && section.cellColor
                               )}
-                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH }}
+                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH, ...(isRowDisabled ? { backgroundColor: '#9ca3af' } : {}) }}
                               data-testid={`cell-createdDate-${row.id}`}
                             >
                               {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
@@ -4484,9 +4484,9 @@ export function TypologySpreadsheet() {
                               key={col.key}
                               className={cn(
                                 "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
-                                section.cellColor
+                                !isRowDisabled && section.cellColor
                               )}
-                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH }}
+                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH, ...(isRowDisabled ? { backgroundColor: '#9ca3af' } : {}) }}
                               data-testid={`cell-createdTime-${row.id}`}
                             >
                               {formatTime(row.createdAt)}
