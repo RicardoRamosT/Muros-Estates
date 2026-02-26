@@ -1452,14 +1452,14 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
         fullLabel ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={cn("flex-1 h-full cursor-default", hasParentGroup && "hover:bg-white/10")} style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+              <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               {fullLabel}
             </TooltipContent>
           </Tooltip>
         ) : (
-          <div className={cn("flex-1 h-full cursor-default", hasParentGroup && "hover:bg-white/10")} style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
+          <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} data-testid={`header-hover-${column.key}`} />
         )
       ) : (
         <TruncatedLabel 
