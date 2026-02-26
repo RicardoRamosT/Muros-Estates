@@ -307,7 +307,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "",
     mergeHeaders: true,
     columns: [
-      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 66 },
+      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 72 },
     ],
   },
   {
