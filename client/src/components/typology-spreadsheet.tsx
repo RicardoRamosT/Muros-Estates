@@ -1534,7 +1534,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   const inputRef = useRef<HTMLInputElement>(null);
   const cellBorderClass = "";
   const rowDisabledStyle: React.CSSProperties | undefined = (isRowDisabled && column.key !== "active" && column.key !== "id")
-    ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const }
+    ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default' }
     : undefined;
   
   useEffect(() => {
@@ -4358,14 +4358,14 @@ export function TypologySpreadsheet() {
               <div
                 key={row.id}
                 className={cn(
-                  "flex border-b cursor-pointer",
+                  "flex border-b",
                   isRowDisabled
-                    ? ""
+                    ? "cursor-default"
                     : isActiveRow 
-                      ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
-                      : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+                      ? "cursor-pointer ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
+                      : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
                 )}
-                style={{ height: '32px', maxHeight: '32px', ...(isRowDisabled ? { backgroundColor: '#9ca3af' } : {}) }}
+                style={{ height: '32px', maxHeight: '32px', ...(isRowDisabled ? { backgroundColor: '#9ca3af', cursor: 'default' } : {}) }}
                 onClick={() => handleRowClick(row.id)}
                 data-testid={`row-typology-${row.id}`}
               >
