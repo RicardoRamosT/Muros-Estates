@@ -154,8 +154,8 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-gray-50/30 dark:bg-gray-900/10",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 60 },
-      { key: "createdDate", label: "Fecha", type: "text", width: 60, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 55, calculated: true, centerCells: true },
+      { key: "createdDate", label: "Fecha", type: "text", width: 54, calculated: true, centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 48, calculated: true, centerCells: true },
     ],
   },
   {
