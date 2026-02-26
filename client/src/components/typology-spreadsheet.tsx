@@ -154,7 +154,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-gray-50/30 dark:bg-gray-900/10",
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 60 },
-      { key: "createdDate", label: "Fecha", type: "text", width: 65, calculated: true, centerCells: true },
+      { key: "createdDate", label: "Fecha", type: "text", width: 60, calculated: true, centerCells: true },
       { key: "createdTime", label: "Hora", type: "text", width: 55, calculated: true, centerCells: true },
     ],
   },
@@ -165,11 +165,11 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "city", label: "Ciudad", type: "text", width: 72, calculated: true },
-      { key: "zone", label: "Zona", type: "text", width: 62, calculated: true },
-      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 125 },
-      { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 100 },
-      { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 62 },
+      { key: "city", label: "Ciudad", type: "text", width: 66, calculated: true },
+      { key: "zone", label: "Zona", type: "text", width: 56, calculated: true },
+      { key: "developer", label: "Desarrollador", type: "select", options: [], width: 108 },
+      { key: "development", label: "Desarrollo", type: "select", options: [] as string[], width: 88 },
+      { key: "tipoDesarrollo", label: "Tipo", type: "development-type-select", width: 52 },
     ],
   },
   {
@@ -180,9 +180,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "type", label: "Tipología", type: "select", options: [], width: 90 },
-      { key: "view", label: "Vista", type: "select", options: [], width: 66 },
-      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 60, centerCells: true },
+      { key: "type", label: "Tipología", type: "select", options: [], width: 82 },
+      { key: "view", label: "Vista", type: "select", options: [], width: 58 },
+      { key: "level", label: "Nivel", type: "select", options: [] as string[], width: 56, centerCells: true },
     ],
   },
   {
@@ -211,7 +211,7 @@ const SECTIONS: SectionDef[] = [
       { key: "pricePerM2", label: "m²", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Precio por m²" },
       { key: "hasSeedCapital", label: "Capital Semilla", type: "boolean", width: 95, fullLabel: "Capital Semilla" },
       { key: "hasPromo", label: "Promo", type: "boolean", width: 62, fullLabel: "Promo" },
-      { key: "promoDescription", label: "Descripción", type: "text", width: 110, fullLabel: "Descripción Promo" },
+      { key: "promoDescription", label: "Descripción", type: "text", width: 98, fullLabel: "Descripción Promo" },
     ],
     conditionalFields: [
       { field: "discountPercent", dependsOn: "hasDiscount" },
@@ -227,13 +227,13 @@ const SECTIONS: SectionDef[] = [
     cellColor: "",
     columns: [
       { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
-      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 66 },
-      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 66 },
+      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 62 },
+      { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 62 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize", hideLabel: true, fullLabel: "Balcón" },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
       { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize", hideLabel: true, fullLabel: "Terraza" },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Terraza m²" },
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 78, allowUnassigned: true },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 74, allowUnassigned: true },
     ],
     conditionalFields: [
       { field: "balconySize", dependsOn: "hasBalcony" },
@@ -248,8 +248,8 @@ const SECTIONS: SectionDef[] = [
     cellColor: "",
     columns: [
       { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
-      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 66 },
-      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 66 },
+      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 62 },
+      { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 62 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize2", hideLabel: true, fullLabel: "Balcón" },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
       { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize2", hideLabel: true, fullLabel: "Terraza" },
@@ -273,7 +273,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "parkingIncluded", label: "Incluye", type: "select", options: [] as string[], width: 75, centerCells: true, allowUnassigned: true },
-      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 80 },
+      { key: "hasParkingOptional", label: "Opcional", type: "boolean", width: 76 },
       { key: "parkingOptionalPrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
     conditionalFields: [
@@ -289,7 +289,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "hasStorage", label: "Incluye", type: "boolean", width: 75, allowUnassigned: true },
       { key: "storageSize", label: "Tamaño", type: "decimal", width: 75, format: "area" },
-      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 80 },
+      { key: "hasStorageOptional", label: "Opcional", type: "boolean", width: 76 },
       { key: "storageSize2", label: "Tamaño", type: "decimal", width: 75, format: "area" },
       { key: "storagePrice", label: "Precio", type: "decimal", width: 70, format: "currency" },
     ],
@@ -307,7 +307,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "",
     mergeHeaders: true,
     columns: [
-      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 72 },
+      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 66 },
     ],
   },
   {
@@ -367,7 +367,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     mergeHeaders: true,
     columns: [
-      { key: "deliveryDate", label: "Entrega", type: "text", width: 80, calculated: true },
+      { key: "deliveryDate", label: "Entrega", type: "text", width: 72, calculated: true },
     ],
   },
   {
@@ -429,7 +429,7 @@ const SECTIONS: SectionDef[] = [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency" },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
-      { key: "mortgageYears", label: "Años", type: "number", width: 60 },
+      { key: "mortgageYears", label: "Años", type: "number", width: 56 },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
@@ -531,9 +531,9 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
-      { key: "appreciationDays", label: "Días", type: "number", width: 60 },
+      { key: "appreciationDays", label: "Días", type: "number", width: 54 },
       { key: "appreciationMonths", label: "Meses", type: "number", width: 60 },
-      { key: "appreciationYears", label: "Años", type: "number", width: 60 },
+      { key: "appreciationYears", label: "Años", type: "number", width: 56 },
       { key: "appreciationTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
       { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Valor Final" },
     ],
@@ -3861,7 +3861,7 @@ export function TypologySpreadsheet() {
                   <TooltipContent side="bottom" className="text-xs">MEDIOS</TooltipContent>
                 </Tooltip>
               ) : (
-                <div className="w-24 flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: SECTION_COLOR_LIGHT }}>
+                <div className="flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: 78 }}>
                   <div className="pointer-events-none" style={{ width: 20 }} />
                   <TruncatedLabel label="MEDIOS" columnKey="medios" uppercaseTooltip={true} />
                   <button
@@ -4198,7 +4198,7 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="h-full flex-shrink-0" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
+              <div className="h-full flex-shrink-0" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 78 }} />
             </div>
 
             {/* Row 3: Filter and sort controls */}
@@ -4315,10 +4315,10 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
+              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 78 }}>
                 {!collapsedColumns.has("medios") && (
                   <ColumnFilter
-                    column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 96 }}
+                    column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 78 }}
                     data={typologiesWithMediaCount as any}
                     selectedValues={columnFilters["mediaCount"] || new Set()}
                     sortDirection={columnSorts["mediaCount"] || null}
@@ -4572,7 +4572,8 @@ export function TypologySpreadsheet() {
                   <div className="spreadsheet-cell flex-shrink-0" style={{ width: COLLAPSED_COL_WIDTH }} data-testid={`cell-media-collapsed-${row.id}`} />
                 ) : (
                   <div 
-                    className="spreadsheet-cell w-24 flex-shrink-0 justify-center gap-0.5"
+                    className="spreadsheet-cell flex-shrink-0 justify-center gap-0.5"
+                    style={{ width: 78 }}
                     data-testid={`cell-media-${row.id}`}
                   >
                     <Tooltip>
