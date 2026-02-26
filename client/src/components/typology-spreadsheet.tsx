@@ -307,7 +307,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "",
     mergeHeaders: true,
     columns: [
-      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 72 },
+      { key: "queIncluye", label: "Equipo", type: "multiselect", width: 78 },
     ],
   },
   {
@@ -367,7 +367,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     mergeHeaders: true,
     columns: [
-      { key: "deliveryDate", label: "Entrega", type: "text", width: 72, calculated: true },
+      { key: "deliveryDate", label: "Entrega", type: "text", width: 84, calculated: true },
     ],
   },
   {
@@ -3861,7 +3861,7 @@ export function TypologySpreadsheet() {
                   <TooltipContent side="bottom" className="text-xs">MEDIOS</TooltipContent>
                 </Tooltip>
               ) : (
-                <div className="flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: 78 }}>
+                <div className="flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: 96 }}>
                   <div className="pointer-events-none" style={{ width: 20 }} />
                   <TruncatedLabel label="MEDIOS" columnKey="medios" uppercaseTooltip={true} />
                   <button
@@ -4198,7 +4198,7 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="h-full flex-shrink-0" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 78 }} />
+              <div className="h-full flex-shrink-0" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
             </div>
 
             {/* Row 3: Filter and sort controls */}
@@ -4315,10 +4315,10 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 78 }}>
+              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
                 {!collapsedColumns.has("medios") && (
                   <ColumnFilter
-                    column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 78 }}
+                    column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 96 }}
                     data={typologiesWithMediaCount as any}
                     selectedValues={columnFilters["mediaCount"] || new Set()}
                     sortDirection={columnSorts["mediaCount"] || null}
@@ -4573,7 +4573,7 @@ export function TypologySpreadsheet() {
                 ) : (
                   <div 
                     className="spreadsheet-cell flex-shrink-0 justify-center gap-0.5"
-                    style={{ width: 78 }}
+                    style={{ width: 96 }}
                     data-testid={`cell-media-${row.id}`}
                   >
                     <Tooltip>
