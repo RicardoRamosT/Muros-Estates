@@ -1172,35 +1172,26 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   );
 
   return (
-    <div className={cn("w-full h-full relative flex items-center text-white", hasActiveFilter && "!bg-amber-200 dark:!bg-amber-500/40 !text-amber-900 dark:!text-amber-100")} style={!hasActiveFilter ? { backgroundColor: sectionColor || undefined } : undefined}>
+    <div className="w-full h-full relative flex items-center text-white" style={{ backgroundColor: sectionColor || undefined }}>
       <Popover open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <PopoverTrigger asChild>
             <button
-              className={cn(
-                "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 z-10",
-                hasActiveFilter && "bg-primary/10"
-              )}
-              style={{ width: 28 }}
+              className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 z-10"
+              style={{ width: 28, ...(hasActiveFilter ? { backgroundColor: '#f4b942' } : {}) }}
               data-testid={`filter-trigger-${column.key}`}
             >
-              <ChevronDown className={cn(
-                "w-3 h-3 flex-shrink-0",
-                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white"
-              )} />
+              <ChevronDown className="w-3 h-3 flex-shrink-0 text-white" />
             </button>
           </PopoverTrigger>
         ) : (
           <PopoverTrigger asChild>
             <button
               className="flex items-center justify-center h-full text-xs font-medium cursor-pointer rounded flex-shrink-0 z-10"
-              style={{ width: 28 }}
+              style={{ width: 28, ...(hasActiveFilter ? { backgroundColor: '#f4b942' } : {}) }}
               data-testid={`filter-trigger-${column.key}`}
             >
-              <ChevronDown className={cn(
-                "w-3 h-3 flex-shrink-0",
-                hasActiveFilter ? "text-amber-700 dark:text-amber-300" : "text-white"
-              )} />
+              <ChevronDown className="w-3 h-3 flex-shrink-0 text-white" />
             </button>
           </PopoverTrigger>
         )}
@@ -1479,11 +1470,8 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
       )}
       <button
         onClick={handleSortClick}
-        className={cn(
-          "flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0",
-          isSorted && "bg-primary/10"
-        )}
-        style={{ width: 28 }}
+        className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0"
+        style={{ width: 28, ...(isSorted ? { backgroundColor: '#f4b942' } : {}) }}
         title={undefined}
         data-testid={`sort-toggle-${column.key}`}
       >
