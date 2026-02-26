@@ -1029,7 +1029,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   
   const uniqueValues = useMemo(() => {
     if (overrideUniqueValues) {
-      return overrideUniqueValues.sort((a, b) => a.localeCompare(b, "es"));
+      return overrideUniqueValues;
     }
     const values = new Set<string>();
     data.forEach(row => {
@@ -3340,7 +3340,13 @@ export function TypologySpreadsheet() {
         if (key === "mediaCount") {
           fieldValue = String(getTypologyDocCount(t.id));
         } else if (key === "active") {
-          fieldValue = t.active === null || t.active === undefined ? "null" : String(t.active);
+          if (t.active === null || t.active === undefined) {
+            fieldValue = "null";
+          } else if (t.active === true) {
+            fieldValue = "true";
+          } else {
+            fieldValue = isTypologyComplete(t, validEntities) ? "false_ready" : "false_red";
+          }
         } else {
           fieldValue = String(t[key as keyof Typology] ?? "");
         }
@@ -4317,9 +4323,9 @@ export function TypologySpreadsheet() {
                               hideLabel={true}
                               fullLabel={col.hideLabel ? (col.fullLabel || col.label) : (section.parentLabel ? (col.fullLabel || col.label) : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
-                              overrideUniqueValues={col.key === "active" ? ["true", "false", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
-                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false": "#f97316", "null": "#1f2937" } : undefined}
-                              labelMap={col.key === "active" ? { "true": "Sí", "false": "No", "null": "Deshabilitado" } : undefined}
+                              overrideUniqueValues={col.key === "active" ? ["true", "false_ready", "false_red", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
+                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#f97316", "false_red": "#dc2626", "null": "#1f2937" } : undefined}
+                              labelMap={col.key === "active" ? { "true": "Sí", "false_ready": "No Naranja", "false_red": "No Rojo", "null": "Deshabilitado" } : undefined}
                               hasParentGroup={!!section.parentLabel}
                             />
                           )}
