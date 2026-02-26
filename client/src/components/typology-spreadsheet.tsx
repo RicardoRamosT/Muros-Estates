@@ -1918,6 +1918,17 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       } else {
         options = [];
       }
+      const currentTipoDesarrollo = Array.isArray(row?.tipoDesarrollo)
+        ? (row?.tipoDesarrollo as string[])[0]
+        : (row?.tipoDesarrollo as string | null | undefined);
+      if (currentTipoDesarrollo && tipologiasConfigByDevelopment && rowDev) {
+        const devConfig = tipologiasConfigByDevelopment[rowDev];
+        if (devConfig) {
+          options = options.filter(tipologia =>
+            ((devConfig[tipologia] || []) as string[]).includes(currentTipoDesarrollo)
+          );
+        }
+      }
     }
     
     let preserveCatalogOrder = false;
@@ -2025,9 +2036,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (currentTipologia && tipologiasConfigByDevelopment && developmentName) {
       const devConfig = tipologiasConfigByDevelopment[developmentName];
       if (devConfig) {
-        availableTypes = availableTypes.filter(tipo =>
-          ((devConfig[tipo] || []) as string[]).includes(currentTipologia)
-        );
+        const validTipos = (devConfig[currentTipologia] || []) as string[];
+        availableTypes = availableTypes.filter(tipo => validTipos.includes(tipo));
       }
     }
 
@@ -2883,7 +2893,9 @@ export function TypologySpreadsheet() {
       const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
       const tipoVal = Array.isArray(value) ? (value as string[])[0] : (value as string | null);
       if (tipoVal && devConfig) {
-        const tipologiasForTipo = (devConfig[tipoVal] || []) as string[];
+        const tipologiasForTipo = Object.entries(devConfig)
+          .filter(([, tipos]) => (tipos as string[]).includes(tipoVal))
+          .map(([tipologia]) => tipologia);
         if (tipologiasForTipo.length === 1) {
           autoPopulatedFields.type = tipologiasForTipo[0];
           (updatedRow as any).type = tipologiasForTipo[0];
@@ -2901,12 +2913,10 @@ export function TypologySpreadsheet() {
       const devName = (updatedRow as any).development as string | null;
       const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
       if (devConfig) {
-        const tiposConEstaTipologia = Object.entries(devConfig)
-          .filter(([, tipologias]) => (tipologias as string[]).includes(value as string))
-          .map(([tipo]) => tipo);
-        if (tiposConEstaTipologia.length === 1) {
-          autoPopulatedFields.tipoDesarrollo = [tiposConEstaTipologia[0]];
-          (updatedRow as any).tipoDesarrollo = [tiposConEstaTipologia[0]];
+        const tiposForTipologia = (devConfig[value as string] || []) as string[];
+        if (tiposForTipologia.length === 1) {
+          autoPopulatedFields.tipoDesarrollo = [tiposForTipologia[0]];
+          (updatedRow as any).tipoDesarrollo = [tiposForTipologia[0]];
         } else {
           autoPopulatedFields.tipoDesarrollo = null;
           (updatedRow as any).tipoDesarrollo = null;
