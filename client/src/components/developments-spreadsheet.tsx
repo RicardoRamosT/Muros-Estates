@@ -35,7 +35,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'multiselect-tipologias' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -93,7 +93,7 @@ const columns: ColumnDef[] = [
   { key: 'zone2', label: 'Zona 2', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
   { key: 'zone3', label: 'Zona 3', group: 'location', type: 'zone-select', width: '95px', cellType: 'dropdown' },
   { key: 'tipos', label: 'Tipos', group: 'structure', type: 'multiselect-tipos', width: '110px', cellType: 'dropdown' },
-  { key: 'tipologiasList', label: 'Tipologías', group: 'structure', type: 'multiselect-creatable', width: '110px', cellType: 'dropdown' },
+  { key: 'tipologiasList', label: 'Tipologías', group: 'structure', type: 'multiselect-tipologias', width: '110px', cellType: 'dropdown' },
   { key: 'nivel', label: 'Nivel', group: 'structure', type: 'nivel-select', width: '75px', cellType: 'dropdown' },
   { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '60px', cellType: 'dropdown' },
   { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '65px', cellType: 'dropdown' },
@@ -142,6 +142,142 @@ const columns: ColumnDef[] = [
   { key: 'ventaFolder', label: 'Venta', group: 'noheader4', type: 'folder-link', folderSection: 'venta', width: '70px' },
   { key: 'actions', label: '', group: 'actions', type: 'actions', width: '50px' },
 ];
+
+function TipologiasListCell({
+  dev,
+  tipos,
+  updateMutation,
+  fieldCanEdit,
+}: {
+  dev: Development;
+  tipos: string[];
+  updateMutation: any;
+  fieldCanEdit: boolean;
+}) {
+  const [newName, setNewName] = useState("");
+  const [newTipos, setNewTipos] = useState<string[]>([]);
+
+  const arrValue: string[] = Array.isArray(dev.tipologiasList) ? (dev.tipologiasList as string[]) : [];
+  const config: Record<string, string[]> = ((dev as any).tipologiasConfig as Record<string, string[]>) || {};
+
+  const handleAdd = () => {
+    const val = newName.trim();
+    if (!val || arrValue.includes(val)) return;
+    const newArr = [...arrValue, val];
+    const newConfig = { ...config, [val]: newTipos };
+    updateMutation.mutate({ id: dev.id, data: { tipologiasList: newArr, tipologiasConfig: newConfig } });
+    setNewName("");
+    setNewTipos([]);
+  };
+
+  const handleRemove = (item: string) => {
+    const newArr = arrValue.filter(v => v !== item);
+    const newConfig = { ...config };
+    delete newConfig[item];
+    updateMutation.mutate({ id: dev.id, data: { tipologiasList: newArr, tipologiasConfig: newConfig } });
+  };
+
+  const handleToggleTipo = (item: string, tipo: string) => {
+    const currentTipos = config[item] || [];
+    const newTiposForItem = currentTipos.includes(tipo)
+      ? currentTipos.filter(t => t !== tipo)
+      : [...currentTipos, tipo];
+    const newConfig = { ...config, [item]: newTiposForItem };
+    updateMutation.mutate({ id: dev.id, data: { tipologiasConfig: newConfig } });
+  };
+
+  const displayText = arrValue.length > 0 ? arrValue.join(', ') : "";
+
+  if (!fieldCanEdit) {
+    return (
+      <div className="flex items-center gap-1 px-2">
+        <span className="text-xs text-muted-foreground truncate">{displayText}</span>
+        <Lock className="w-3 h-3 opacity-50 shrink-0" />
+      </div>
+    );
+  }
+
+  return (
+    <Popover modal>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal" title={displayText}>
+          <span className="truncate">{displayText}</span>
+          <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-2" align="start">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1 pb-2 border-b border-gray-200">
+            <Input
+              placeholder="Agregar tipología..."
+              className="h-7 text-xs"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
+              autoFocus
+            />
+            {tipos.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {tipos.map(tipo => (
+                  <label key={tipo} className="flex items-center gap-1 cursor-pointer">
+                    <Checkbox
+                      checked={newTipos.includes(tipo)}
+                      onCheckedChange={() =>
+                        setNewTipos(p => p.includes(tipo) ? p.filter(t => t !== tipo) : [...p, tipo])
+                      }
+                      className="w-3 h-3"
+                    />
+                    <span className="text-xs">{tipo}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <Button
+              size="sm"
+              className="h-6 text-xs self-start px-2"
+              onClick={handleAdd}
+              disabled={!newName.trim()}
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Agregar
+            </Button>
+          </div>
+          {arrValue.length > 0 && (
+            <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+              {arrValue.map(item => {
+                const itemTipos = config[item] || [];
+                return (
+                  <div key={item} className="flex flex-col gap-0.5 px-1.5 py-1 rounded bg-muted/40">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium flex-1 truncate">{item}</span>
+                      <button onClick={() => handleRemove(item)} className="shrink-0 cursor-pointer" data-testid={`tipologias-remove-${dev.id}-${item}`}>
+                        <X className="w-3 h-3 text-muted-foreground hover:text-red-500" />
+                      </button>
+                    </div>
+                    {tipos.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pl-0.5">
+                        {tipos.map(tipo => (
+                          <label key={tipo} className="flex items-center gap-1 cursor-pointer">
+                            <Checkbox
+                              checked={itemTipos.includes(tipo)}
+                              onCheckedChange={() => handleToggleTipo(item, tipo)}
+                              className="w-3 h-3"
+                            />
+                            <span className="text-[10px] text-muted-foreground">{tipo}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function DevelopmentsSpreadsheet() {
   const { toast } = useToast();
@@ -997,6 +1133,23 @@ export function DevelopmentsSpreadsheet() {
                           <Lock className="w-3 h-3 opacity-50 shrink-0" />
                         </div>
                       )}
+                    </div>
+                  );
+                }
+
+                if (col.type === 'multiselect-tipologias') {
+                  const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
+                  const devTipos: string[] = ((dev.tipos as string[] | null) && (dev.tipos as string[]).length > 0)
+                    ? (dev.tipos as string[])
+                    : developerTipos;
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <TipologiasListCell
+                        dev={dev}
+                        tipos={devTipos}
+                        updateMutation={updateMutation}
+                        fieldCanEdit={fieldCanEdit}
+                      />
                     </div>
                   );
                 }

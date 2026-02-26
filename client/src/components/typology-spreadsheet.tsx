@@ -2382,6 +2382,16 @@ export function TypologySpreadsheet() {
     });
     return map;
   }, [dbDevelopments]);
+
+  const tipologiasConfigByDevelopment = useMemo(() => {
+    const map: Record<string, Record<string, string[]>> = {};
+    dbDevelopments.forEach((dev) => {
+      if (!dev.name) return;
+      const cfg = (dev as any).tipologiasConfig as Record<string, string[]> | null;
+      if (cfg) map[dev.name] = cfg;
+    });
+    return map;
+  }, [dbDevelopments]);
   
   const recamaraOptions = useMemo(() => {
     return catalogRecamaras.map(r => r.name).filter(Boolean);
@@ -2866,6 +2876,20 @@ export function TypologySpreadsheet() {
       }
     }
     
+    if (field === "tipologia" && value) {
+      const devName = (updatedRow as any).development as string | null;
+      if (devName && tipologiasConfigByDevelopment[devName]) {
+        const tiposForTipologia = tipologiasConfigByDevelopment[devName][value as string];
+        if (tiposForTipologia && tiposForTipologia.length === 1) {
+          autoPopulatedFields.tipoDesarrollo = tiposForTipologia;
+          (updatedRow as any).tipoDesarrollo = tiposForTipologia;
+        } else if (tiposForTipologia && tiposForTipologia.length > 1) {
+          autoPopulatedFields.tipoDesarrollo = null;
+          (updatedRow as any).tipoDesarrollo = null;
+        }
+      }
+    }
+
     const dependentFieldsToClear: Record<string, string[]> = {
       hasBalcony: ["balconySize"],
       hasTerrace: ["terraceSize"],
@@ -3022,7 +3046,7 @@ export function TypologySpreadsheet() {
     if (activeEditingRowId !== rowId) {
       setActiveEditingRowId(rowId);
     }
-  }, [typologies, dbDevelopments, dbDevelopers, catalogCities, typesByDevelopment, activeEditingRowId]);
+  }, [typologies, dbDevelopments, dbDevelopers, catalogCities, typesByDevelopment, tipologiasConfigByDevelopment, activeEditingRowId]);
   
   const checkAvisoWarnings = useCallback((rowId: string): string[] => {
     const currentRow = typologies.find(t => t.id === rowId);
@@ -3257,9 +3281,14 @@ export function TypologySpreadsheet() {
   const getUniqueValues = useCallback((columnKey: string) => {
     const values = new Set<string>();
     typologies.forEach(t => {
-      const val = t[columnKey as keyof Typology];
-      if (val !== null && val !== undefined && val !== "") {
-        values.add(String(val));
+      if (columnKey === "tipoDesarrollo") {
+        const arr = Array.isArray(t.tipoDesarrollo) ? (t.tipoDesarrollo as string[]) : (t.tipoDesarrollo ? [String(t.tipoDesarrollo)] : []);
+        arr.forEach(v => { if (v) values.add(v); });
+      } else {
+        const val = t[columnKey as keyof Typology];
+        if (val !== null && val !== undefined && val !== "") {
+          values.add(String(val));
+        }
       }
     });
     return values;
@@ -3269,6 +3298,10 @@ export function TypologySpreadsheet() {
     let result = typologies.filter(t => {
       const passesCheckboxFilters = Object.entries(columnFilters).every(([key, values]) => {
         if (values.size === 0) return true;
+        if (key === "tipoDesarrollo") {
+          const arr = Array.isArray(t.tipoDesarrollo) ? (t.tipoDesarrollo as string[]) : (t.tipoDesarrollo ? [String(t.tipoDesarrollo)] : []);
+          return arr.some(v => values.has(v));
+        }
         let fieldValue: string;
         if (key === "mediaCount") {
           fieldValue = String(getTypologyDocCount(t.id));

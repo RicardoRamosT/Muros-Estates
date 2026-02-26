@@ -687,6 +687,7 @@ export const developments = pgTable("developments", {
   torres: integer("torres"), // Número de torres
   niveles: integer("niveles"), // Número de niveles
   tipologiasList: text("tipologias_list").array(), // Listado libre de tipologías del desarrollo
+  tipologiasConfig: jsonb("tipologias_config").$type<Record<string, string[]>>(), // Tipos asignados por nombre de tipología: { "A1": ["Residencial"], "B2": ["Comercial"] }
   vistas: text("vistas").array(), // Vistas disponibles del desarrollo
   amenities: text("amenities").array(), // Lista de amenidades
   efficiency: text("efficiency").array(), // Características de eficiencia
