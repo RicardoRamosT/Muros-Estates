@@ -3712,7 +3712,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
+              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -3892,7 +3892,7 @@ export function TypologySpreadsheet() {
             
             {/* Row 2: Section/column labels */}
             <div className="flex spreadsheet-header-row2">
-              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+              <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
               {(() => {
@@ -4217,7 +4217,7 @@ export function TypologySpreadsheet() {
 
             {/* Row 3: Filter and sort controls */}
             <div className="flex border-b spreadsheet-header-row3">
-              <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
+              <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
                   data={typologies}
@@ -4226,7 +4226,7 @@ export function TypologySpreadsheet() {
                   sortDirection={columnSorts["id"] || null}
                   onSortChange={(dir) => setColumnSorts(prev => ({ ...prev, id: dir }))}
                   hideLabel
-                  sectionColor={getSectionColor(0)}
+                  sectionColor={SECTION_COLOR_LIGHT}
                 />
               </div>
               {(() => {
@@ -4371,7 +4371,7 @@ export function TypologySpreadsheet() {
               >
                 <div 
                   className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative cursor-default"
-                  style={{ backgroundColor: getSectionColor(0), borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
+                  style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                   data-testid={`cell-index-${row.id}`}
                 >
                   {stableRowNumberMap.get(row.id) ?? rowIndex + 1}
