@@ -1623,8 +1623,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         break;
       case "ready":
         bgColor = "#fff7ed";
-        dotColor = "#ea580c";
-        textColorStyle = { color: "#ea580c", fontWeight: 500 };
+        dotColor = "#f97316";
+        textColorStyle = { color: "#f97316", fontWeight: 500 };
         label = "No";
         break;
       case "disabled":
@@ -1682,8 +1682,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             </SelectItem>
             <SelectItem value="no" className="text-xs">
               <span className="flex items-center gap-1.5">
-                <span style={{ color: isComplete ? "#ea580c" : "#dc2626" }} className="text-[8px] leading-none">●</span>
-                <span style={{ color: isComplete ? "#ea580c" : "#dc2626", fontWeight: 500 }}>No</span>
+                <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
+                <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
               </span>
             </SelectItem>
             <SelectItem value="disabled" className="text-xs">
@@ -4318,7 +4318,7 @@ export function TypologySpreadsheet() {
                               fullLabel={col.hideLabel ? (col.fullLabel || col.label) : (section.parentLabel ? (col.fullLabel || col.label) : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
-                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false": "#ea580c", "null": "#1f2937" } : undefined}
+                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false": "#f97316", "null": "#1f2937" } : undefined}
                               labelMap={col.key === "active" ? { "true": "Sí", "false": "No", "null": "Deshabilitado" } : undefined}
                               hasParentGroup={!!section.parentLabel}
                             />
@@ -4381,7 +4381,7 @@ export function TypologySpreadsheet() {
                       backgroundColor: mergedRow.active === null
                         ? "#6b7280"
                         : isTypologyComplete(mergedRow as Partial<Typology>, validEntities)
-                          ? (mergedRow.active === true ? "#15803d" : "#ea580c")
+                          ? (mergedRow.active === true ? "#15803d" : "#f97316")
                           : "#ef4444"
                     }}
                     data-testid={`status-dot-${row.id}`}
