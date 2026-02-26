@@ -1617,7 +1617,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     switch (activeState) {
       case "active":
         bgColor = "#15803d";
-        dotColor = "#dcfce7";
+        dotColor = "#4ade80";
         textColorStyle = { color: "#ffffff", fontWeight: 600 };
         label = "Sí";
         break;
@@ -4381,7 +4381,7 @@ export function TypologySpreadsheet() {
                       backgroundColor: mergedRow.active === null
                         ? "#6b7280"
                         : isTypologyComplete(mergedRow as Partial<Typology>, validEntities)
-                          ? (mergedRow.active === true ? "#22c55e" : "#f59e0b")
+                          ? (mergedRow.active === true ? "#15803d" : "#f59e0b")
                           : "#ef4444"
                     }}
                     data-testid={`status-dot-${row.id}`}
