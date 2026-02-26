@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
-  Loader2, RefreshCw, AlertCircle,
+  Loader2, AlertCircle,
   Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
 } from "lucide-react";
 import {
@@ -3631,14 +3631,6 @@ export function TypologySpreadsheet() {
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Tipologías</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => refetch()}
-            data-testid="button-refresh"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </Button>
           {(activeFilterCount > 0 || activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)) && (
             <Button
               variant="ghost"
