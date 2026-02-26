@@ -1616,9 +1616,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
 
     switch (activeState) {
       case "active":
-        bgColor = "#15803d";
-        dotColor = "#4ade80";
-        textColorStyle = { color: "#ffffff", fontWeight: 600 };
+        bgColor = "#dcfce7";
+        dotColor = "#15803d";
+        textColorStyle = { color: "#15803d", fontWeight: 600 };
         label = "Sí";
         break;
       case "ready":
@@ -1628,10 +1628,10 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         label = "No";
         break;
       case "disabled":
-        bgColor = "rgba(21, 128, 61, 0.22)";
-        dotColor = "rgba(21, 128, 61, 0.55)";
-        textColorStyle = { color: "rgba(21, 128, 61, 0.65)", fontWeight: 500 };
-        label = "Sí";
+        bgColor = "#9ca3af";
+        dotColor = "#1f2937";
+        textColorStyle = { color: "#1f2937", fontWeight: 500 };
+        label = "Deshabilitado";
         break;
       case "incomplete":
       default:
