@@ -1682,8 +1682,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             </SelectItem>
             <SelectItem value="no" className="text-xs">
               <span className="flex items-center gap-1.5">
-                <span style={{ color: isComplete ? "#b45309" : "#dc2626" }} className="text-[8px] leading-none">●</span>
-                <span style={{ color: isComplete ? "#b45309" : "#dc2626", fontWeight: 500 }}>No</span>
+                <span style={{ color: isComplete ? "#ea580c" : "#dc2626" }} className="text-[8px] leading-none">●</span>
+                <span style={{ color: isComplete ? "#ea580c" : "#dc2626", fontWeight: 500 }}>No</span>
               </span>
             </SelectItem>
             <SelectItem value="disabled" className="text-xs">
