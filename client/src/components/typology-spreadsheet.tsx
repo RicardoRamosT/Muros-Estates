@@ -155,7 +155,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "active", label: "Act.", type: "boolean", width: 60 },
       { key: "createdDate", label: "Fecha", type: "text", width: 58, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 46, calculated: true, centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 52, calculated: true, centerCells: true },
     ],
   },
   {
