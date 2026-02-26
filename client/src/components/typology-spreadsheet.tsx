@@ -1622,9 +1622,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         label = "Sí";
         break;
       case "ready":
-        bgColor = "#fef3c7";
-        dotColor = "#b45309";
-        textColorStyle = { color: "#b45309", fontWeight: 500 };
+        bgColor = "#fff7ed";
+        dotColor = "#ea580c";
+        textColorStyle = { color: "#ea580c", fontWeight: 500 };
         label = "No";
         break;
       case "disabled":
@@ -4318,7 +4318,7 @@ export function TypologySpreadsheet() {
                               fullLabel={col.hideLabel ? (col.fullLabel || col.label) : (section.parentLabel ? (col.fullLabel || col.label) : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
-                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false": "#dc2626", "null": "#1f2937" } : undefined}
+                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false": "#ea580c", "null": "#1f2937" } : undefined}
                               labelMap={col.key === "active" ? { "true": "Sí", "false": "No", "null": "Deshabilitado" } : undefined}
                               hasParentGroup={!!section.parentLabel}
                             />
@@ -4381,7 +4381,7 @@ export function TypologySpreadsheet() {
                       backgroundColor: mergedRow.active === null
                         ? "#6b7280"
                         : isTypologyComplete(mergedRow as Partial<Typology>, validEntities)
-                          ? (mergedRow.active === true ? "#15803d" : "#f59e0b")
+                          ? (mergedRow.active === true ? "#15803d" : "#ea580c")
                           : "#ef4444"
                     }}
                     data-testid={`status-dot-${row.id}`}
