@@ -111,8 +111,8 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
   return <Select {...props} open={open} onOpenChange={handleOpenChange}>{children}</Select>;
 }
 
-const SECTION_COLOR_DARK = "rgb(13,149,225)";
-const SECTION_COLOR_LIGHT = "rgb(11,120,180)";
+const SECTION_COLOR_DARK = "rgb(11,120,180)";
+const SECTION_COLOR_LIGHT = "rgb(13,149,225)";
 const SECTION_BORDER_COLOR = "rgb(121,135,203)";
 
 
