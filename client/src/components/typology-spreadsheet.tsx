@@ -1515,6 +1515,7 @@ interface EditableCellProps {
   cajonOptions?: string[];
   developerSelectOptions?: string[];
   zoneOptionsByCity?: Record<string, string[]>;
+  tipologiasConfigByDevelopment?: Record<string, Record<string, string[]>>;
   isLastInSection?: boolean;
   row?: Typology;
   sectionCellColor?: string;
@@ -1527,7 +1528,7 @@ interface EditableCellProps {
   isRowDisabled?: boolean;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, tipologiasConfigByDevelopment, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -2019,7 +2020,17 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value as string] : []);
     const selectedType = currentTypes.length > 0 ? currentTypes[0] : "";
-    
+
+    const currentTipologia = row?.type;
+    if (currentTipologia && tipologiasConfigByDevelopment && developmentName) {
+      const devConfig = tipologiasConfigByDevelopment[developmentName];
+      if (devConfig) {
+        availableTypes = availableTypes.filter(tipo =>
+          ((devConfig[tipo] || []) as string[]).includes(currentTipologia)
+        );
+      }
+    }
+
     if (availableTypes.length === 0 || disabled) {
       return (
         <div 
@@ -2781,11 +2792,8 @@ export function TypologySpreadsheet() {
             (updatedRow as any).tipoDesarrollo = null;
           }
 
-          const availableTypes = typesByDevelopment[autoDevName] || [];
-          if (availableTypes.length === 1) {
-            autoPopulatedFields.type = availableTypes[0];
-            (updatedRow as any).type = availableTypes[0];
-          }
+          autoPopulatedFields.type = null;
+          (updatedRow as any).type = null;
         } else if (developerDevelopments.length > 1) {
           const uniqueCities = Array.from(new Set(developerDevelopments.map(d => d.city).filter(Boolean)));
           const uniqueZones = Array.from(new Set(developerDevelopments.map(d => d.zone).filter(Boolean)));
@@ -2860,14 +2868,8 @@ export function TypologySpreadsheet() {
           (updatedRow as any).tipoDesarrollo = null;
         }
 
-        const availableTypes = typesByDevelopment[devName] || [];
-        if (availableTypes.length === 1) {
-          autoPopulatedFields.type = availableTypes[0];
-          (updatedRow as any).type = availableTypes[0];
-        } else {
-          autoPopulatedFields.type = null;
-          (updatedRow as any).type = null;
-        }
+        autoPopulatedFields.type = null;
+        (updatedRow as any).type = null;
       } else {
         autoPopulatedFields.type = null;
         (updatedRow as any).type = null;
@@ -2875,15 +2877,37 @@ export function TypologySpreadsheet() {
         (updatedRow as any).tipoDesarrollo = null;
       }
     }
-    
+
+    if (field === "tipoDesarrollo") {
+      const devName = (updatedRow as any).development as string | null;
+      const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
+      const tipoVal = Array.isArray(value) ? (value as string[])[0] : (value as string | null);
+      if (tipoVal && devConfig) {
+        const tipologiasForTipo = (devConfig[tipoVal] || []) as string[];
+        if (tipologiasForTipo.length === 1) {
+          autoPopulatedFields.type = tipologiasForTipo[0];
+          (updatedRow as any).type = tipologiasForTipo[0];
+        } else {
+          autoPopulatedFields.type = null;
+          (updatedRow as any).type = null;
+        }
+      } else {
+        autoPopulatedFields.type = null;
+        (updatedRow as any).type = null;
+      }
+    }
+
     if (field === "tipologia" && value) {
       const devName = (updatedRow as any).development as string | null;
-      if (devName && tipologiasConfigByDevelopment[devName]) {
-        const tiposForTipologia = tipologiasConfigByDevelopment[devName][value as string];
-        if (tiposForTipologia && tiposForTipologia.length === 1) {
-          autoPopulatedFields.tipoDesarrollo = tiposForTipologia;
-          (updatedRow as any).tipoDesarrollo = tiposForTipologia;
-        } else if (tiposForTipologia && tiposForTipologia.length > 1) {
+      const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
+      if (devConfig) {
+        const tiposConEstaTipologia = Object.entries(devConfig)
+          .filter(([, tipologias]) => (tipologias as string[]).includes(value as string))
+          .map(([tipo]) => tipo);
+        if (tiposConEstaTipologia.length === 1) {
+          autoPopulatedFields.tipoDesarrollo = [tiposConEstaTipologia[0]];
+          (updatedRow as any).tipoDesarrollo = [tiposConEstaTipologia[0]];
+        } else {
           autoPopulatedFields.tipoDesarrollo = null;
           (updatedRow as any).tipoDesarrollo = null;
         }
@@ -4523,6 +4547,7 @@ export function TypologySpreadsheet() {
                             incluyeOptions={incluyeOptions}
                             tipologiaOptions={tipologiaOptions}
                             typesByDevelopment={typesByDevelopment}
+                            tipologiasConfigByDevelopment={tipologiasConfigByDevelopment}
                             recamaraOptions={recamaraOptions}
                             banoOptions={banoOptions}
                             cajonOptions={cajonOptions}
