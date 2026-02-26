@@ -3866,7 +3866,7 @@ export function TypologySpreadsheet() {
                     <button
                       onClick={() => setCollapsedColumns(prev => { const n = new Set(prev); n.delete("medios"); return n; })}
                       className="flex-shrink-0 flex items-center justify-center h-full cursor-pointer"
-                      style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), width: COLLAPSED_COL_WIDTH }}
+                      style={{ backgroundColor: SECTION_COLOR_LIGHT, width: COLLAPSED_COL_WIDTH }}
                       data-testid="section-toggle-medios"
                     >
                       <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3875,7 +3875,7 @@ export function TypologySpreadsheet() {
                   <TooltipContent side="bottom" className="text-xs">MEDIOS</TooltipContent>
                 </Tooltip>
               ) : (
-                <div className="w-24 flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length) }}>
+                <div className="w-24 flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: SECTION_COLOR_LIGHT }}>
                   <div className="pointer-events-none" style={{ width: 20 }} />
                   <TruncatedLabel label="MEDIOS" columnKey="medios" uppercaseTooltip={true} />
                   <button
@@ -4212,7 +4212,7 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="h-full flex-shrink-0" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
+              <div className="h-full flex-shrink-0" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
             </div>
 
             {/* Row 3: Filter and sort controls */}
@@ -4329,7 +4329,7 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: getSectionGroupColor(SECTIONS, SECTIONS.length), width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
+              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
                 {!collapsedColumns.has("medios") && (
                   <ColumnFilter
                     column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 96 }}
@@ -4338,7 +4338,7 @@ export function TypologySpreadsheet() {
                     sortDirection={columnSorts["mediaCount"] || null}
                     onFilterChange={(values) => handleColumnFilterChange("mediaCount", values)}
                     onSortChange={(dir) => handleColumnSortChange("mediaCount", dir)}
-                    sectionColor={getSectionGroupColor(SECTIONS, SECTIONS.length)}
+                    sectionColor={SECTION_COLOR_LIGHT}
                     hideLabel={true}
                     columnWidth={96}
                   />
