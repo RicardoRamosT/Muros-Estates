@@ -959,7 +959,7 @@ interface ColumnFilterProps {
   labelMap?: Record<string, string>;
 }
 
-function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean }) {
+function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip, allowTruncationTooltip }: { label: string; fullLabel?: string; columnKey: string; uppercaseTooltip?: boolean; allowTruncationTooltip?: boolean }) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
   
@@ -987,7 +987,7 @@ function TruncatedLabel({ label, fullLabel, columnKey, uppercaseTooltip }: { lab
                         columnKey.toLowerCase().includes("during")) && 
                         !columnKey.toLowerCase().includes("percent");
 
-  if ((isTruncated || fullLabel) && !isAmountField) {
+  if (((allowTruncationTooltip && isTruncated) || fullLabel) && !isAmountField) {
     const isPercent = columnKey.toLowerCase().includes("percent") || label.toLowerCase() === "porcentaje";
     return (
       <Tooltip>
@@ -3780,6 +3780,7 @@ export function TypologySpreadsheet() {
                           label={displayLabel.toUpperCase()} 
                           columnKey={groupKey} 
                           uppercaseTooltip={true}
+                          allowTruncationTooltip={true}
                         />
                       )}
                       {isGroupCollapsed ? (
@@ -4203,7 +4204,7 @@ export function TypologySpreadsheet() {
                   return (
                     <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW, borderLeft: !isFirstInSection ? '1px solid rgba(255,255,255,0.15)' : undefined, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                       <div style={{ width: 20 }} />
-                      <TruncatedLabel label={label} columnKey={key} />
+                      <TruncatedLabel label={label} columnKey={key} allowTruncationTooltip={true} />
                       <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
                         <Minus className="w-3 h-3 text-white" />
                       </button>
