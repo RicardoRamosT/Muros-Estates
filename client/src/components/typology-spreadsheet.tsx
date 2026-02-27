@@ -428,11 +428,11 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency", calculated: true },
-      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 84, calculated: true },
+      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 54, calculated: true },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 56, calculated: true },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
-      { key: "mortgageEndDate", label: "Termina", type: "date", width: 84, calculated: true },
+      { key: "mortgageEndDate", label: "Termina", type: "date", width: 54, calculated: true },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
     ],
   },
