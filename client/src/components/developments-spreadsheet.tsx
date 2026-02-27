@@ -1150,7 +1150,7 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'single-tipologia') {
-                  const cellDeveloperTipos = getTypeFromDeveloper(dev.developerId) || [];
+                  const cellDeveloperTipos = (dev.tipos as string[] | null) || [];
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                       <SingleTipologiaCell
