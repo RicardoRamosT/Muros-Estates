@@ -156,25 +156,26 @@ function SingleTipologiaCell({
   const [open, setOpen] = useState(false);
 
   const arrValue: string[] = Array.isArray(dev.tipologiasList) ? (dev.tipologiasList as string[]) : [];
-  const currentValue = arrValue.length > 0 ? arrValue[0] : "";
+  const displayLabel = arrValue.length === 0 ? "" : arrValue.length <= 2 ? arrValue.join(", ") : `${arrValue[0]}, +${arrValue.length - 1}`;
 
-  const handleSelect = (val: string) => {
-    updateMutation.mutate({ id: dev.id, data: { tipologiasList: val ? [val] : [] } });
-    setOpen(false);
+  const handleToggle = (val: string) => {
+    const next = arrValue.includes(val)
+      ? arrValue.filter(v => v !== val)
+      : [...arrValue, val];
+    updateMutation.mutate({ id: dev.id, data: { tipologiasList: next } });
   };
 
   const handleAddNew = () => {
     const val = newName.trim();
-    if (!val) return;
-    updateMutation.mutate({ id: dev.id, data: { tipologiasList: [val] } });
+    if (!val || arrValue.includes(val)) return;
+    updateMutation.mutate({ id: dev.id, data: { tipologiasList: [...arrValue, val] } });
     setNewName("");
-    setOpen(false);
   };
 
   if (!fieldCanEdit) {
     return (
       <div className="flex items-center gap-1 px-2">
-        <span className="text-xs text-muted-foreground truncate">{currentValue}</span>
+        <span className="text-xs text-muted-foreground truncate">{displayLabel}</span>
         <Lock className="w-3 h-3 opacity-50 shrink-0" />
       </div>
     );
@@ -183,41 +184,40 @@ function SingleTipologiaCell({
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal" title={currentValue}>
-          <span className="truncate">{currentValue || <span className="text-muted-foreground">—</span>}</span>
+        <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal" title={arrValue.join(", ")}>
+          <span className="truncate">{displayLabel || <span className="text-muted-foreground">—</span>}</span>
           <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="start">
         <div className="flex flex-col gap-1.5">
-          <div className="flex gap-1">
+          {arrValue.length > 0 && (
+            <div className="flex flex-col gap-0.5">
+              {arrValue.map(item => (
+                <button
+                  key={item}
+                  className="w-full text-left text-xs px-2 py-1 rounded hover:bg-muted flex items-center justify-between gap-1 bg-muted/40"
+                  onClick={() => handleToggle(item)}
+                  data-testid={`tipologia-option-${dev.id}-${item}`}
+                >
+                  <span className="truncate">{item}</span>
+                  <Check className="w-3 h-3 shrink-0 text-primary" />
+                </button>
+              ))}
+            </div>
+          )}
+          <div className={cn("flex gap-1", arrValue.length > 0 && "border-t pt-1.5")}>
             <Input
               placeholder="Nueva tipología..."
               className="h-7 text-xs flex-1"
               value={newName}
               onChange={e => setNewName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleAddNew(); }}
-              autoFocus
             />
-            <Button size="sm" className="h-7 px-2 text-xs" onClick={handleAddNew} disabled={!newName.trim()}>
+            <Button size="sm" className="h-7 px-2 text-xs" onClick={handleAddNew} disabled={!newName.trim() || arrValue.includes(newName.trim())}>
               <Plus className="w-3 h-3" />
             </Button>
           </div>
-          {arrValue.length > 0 && (
-            <div className="border-t pt-1.5 mt-0.5">
-              {arrValue.map(item => (
-                <button
-                  key={item}
-                  className={cn("w-full text-left text-xs px-2 py-1 rounded hover:bg-muted flex items-center justify-between gap-1", item === currentValue && "bg-muted/60")}
-                  onClick={() => handleSelect(item)}
-                  data-testid={`tipologia-option-${dev.id}-${item}`}
-                >
-                  <span className="truncate">{item}</span>
-                  {item === currentValue && <Check className="w-3 h-3 shrink-0 text-primary" />}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </PopoverContent>
     </Popover>
