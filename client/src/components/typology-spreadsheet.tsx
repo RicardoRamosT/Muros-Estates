@@ -634,7 +634,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   
   const appreciationRate = parseFloat(row.appreciationRate as string) || getDefault('appreciationRate', 7.0);
   
-  let appreciationTotalText = "";
+  let appreciationTotalText = entregaDate ? "Concluida" : "";
   const now = new Date();
   if (entregaDate && entregaDate > now) {
     const totalMonthsDiff =
