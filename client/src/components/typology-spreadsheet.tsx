@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
   Loader2, AlertCircle,
-  Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock
+  Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock, Maximize2
 } from "lucide-react";
 import {
   DndContext,
@@ -428,11 +428,11 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency", calculated: true },
-      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
+      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 84, calculated: true },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
-      { key: "mortgageYears", label: "Años", type: "number", width: 56 },
+      { key: "mortgageYears", label: "Años", type: "number", width: 56, calculated: true },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
-      { key: "mortgageEndDate", label: "Termina", type: "date", width: 85 },
+      { key: "mortgageEndDate", label: "Termina", type: "date", width: 84, calculated: true },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
     ],
   },
@@ -532,10 +532,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
-      { key: "appreciationDays", label: "Días", type: "number", width: 54 },
-      { key: "appreciationMonths", label: "Meses", type: "number", width: 60 },
-      { key: "appreciationYears", label: "Años", type: "number", width: 56 },
-      { key: "appreciationTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
+      { key: "appreciationTotal", label: "Falta", type: "text", width: 130, calculated: true },
       { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Valor Final" },
     ],
   },
@@ -543,7 +540,7 @@ const SECTIONS: SectionDef[] = [
 
 buildGroupColorCache(SECTIONS);
 
-function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>, nivelMantenimientoLookup?: Record<string, { valor: number; equipo: number; muebles: number }>): Partial<Typology> {
+function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>, nivelMantenimientoLookup?: Record<string, { valor: number; equipo: number; muebles: number }>, entregaDate?: Date): Partial<Typology> {
   const getDefault = (key: string, fallback: number): number => globalDefaults?.[key] ?? fallback;
   const price = parseFloat(row.price as string) || 0;
   const size = parseFloat(row.size as string) || 0;
@@ -636,10 +633,28 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const investmentRate = investmentTotal > 0 ? (investmentNet / investmentTotal) * 100 : 0;
   
   const appreciationRate = parseFloat(row.appreciationRate as string) || getDefault('appreciationRate', 7.0);
-  const appreciationDays = (row.appreciationDays as number) || 0;
-  const appreciationMonths = (row.appreciationMonths as number) || 0;
-  const appreciationYears = (row.appreciationYears as number) || 0;
-  const totalYearsForAppreciation = appreciationDays / 365 + appreciationMonths / 12 + appreciationYears;
+  
+  let appreciationTotalText = "";
+  const now = new Date();
+  if (entregaDate && entregaDate > now) {
+    const totalMonthsDiff =
+      (entregaDate.getFullYear() - now.getFullYear()) * 12 +
+      (entregaDate.getMonth() - now.getMonth()) +
+      (entregaDate.getDate() >= now.getDate() ? 0 : -1);
+    const años = Math.floor(totalMonthsDiff / 12);
+    const meses = Math.round(totalMonthsDiff % 12);
+    if (años > 0 && meses > 0) {
+      appreciationTotalText = `${años} año${años !== 1 ? 's' : ''} y ${meses} mes${meses !== 1 ? 'es' : ''}`;
+    } else if (años > 0) {
+      appreciationTotalText = `${años} año${años !== 1 ? 's' : ''}`;
+    } else {
+      appreciationTotalText = `${meses} mes${meses !== 1 ? 'es' : ''}`;
+    }
+  }
+
+  const totalYearsForAppreciation = entregaDate && entregaDate > now
+    ? ((entregaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+    : 0;
   const appreciationTotal = finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice;
   const finalValue = finalPrice + appreciationTotal;
   
@@ -660,7 +675,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     furnitureCost: furnitureCost.toFixed(2),
     totalPostDeliveryCosts: totalPostDeliveryCosts.toFixed(2),
     mortgageInterestPercent: row.mortgageInterestPercent ?? mortgageInterestPercent.toFixed(2),
-    mortgageYears: row.mortgageYears ?? mortgageYears,
+    mortgageYears: mortgageYears,
     mortgageMonthlyPayment: mortgageMonthlyPayment.toFixed(2),
     mortgageTotal: mortgageTotal.toFixed(2),
     maintenanceInitial: maintenanceInitialCalc > 0 ? maintenanceInitialCalc.toFixed(2) : (row.maintenanceInitial ?? "0"),
@@ -673,7 +688,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     investmentMonthly: investmentMonthly.toFixed(2),
     investmentRate: investmentRate.toFixed(2),
     appreciationRate: row.appreciationRate ?? appreciationRate.toFixed(2),
-    appreciationTotal: appreciationTotal.toFixed(2),
+    appreciationTotal: appreciationTotalText as any,
     finalValue: finalValue.toFixed(2),
   };
   if (nivelData) {
@@ -1023,7 +1038,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
   const [open, setOpen] = useState(false);
   const [localMin, setLocalMin] = useState(rangeFilter?.min || "");
   const [localMax, setLocalMax] = useState(rangeFilter?.max || "");
-  const isRangeColumn = column.key === "size";
+  const isRangeColumn = column.key === "size" || column.format === "currency" || column.format === "area" || (column.type === "decimal" && column.format !== "percent");
   
   useEffect(() => {
     setLocalMin(rangeFilter?.min || "");
@@ -1517,15 +1532,16 @@ interface EditableCellProps {
   isComplete?: boolean;
   validEntities?: ValidEntities;
   isRowDisabled?: boolean;
+  devWarning?: string;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, tipologiasConfigByDevelopment, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, tipologiasConfigByDevelopment, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled, devWarning }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const cellBorderClass = "";
   const rowDisabledStyle: React.CSSProperties | undefined = (isRowDisabled && column.key !== "active" && column.key !== "id")
-    ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default' }
+    ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
     : undefined;
   
   useEffect(() => {
@@ -2044,6 +2060,39 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
 
     if (availableTypes.length === 0 || disabled) {
+      if (devWarning) {
+        return (
+          <Popover>
+            <PopoverTrigger asChild>
+              <div 
+                className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
+                style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
+                title="Desarrollo incompleto"
+              >
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5 px-1">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  <span className="truncate">Incompleto</span>
+                </span>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3 z-[200]" side="bottom" align="start">
+              <p className="text-xs font-semibold text-amber-700 mb-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Desarrollo incompleto
+              </p>
+              <p className="text-xs text-muted-foreground mb-2">Faltan campos en el Desarrollo seleccionado:</p>
+              <div className="text-xs space-y-0.5">
+                {devWarning.split('\n').map((line, i) => (
+                  <div key={i} className="flex items-start gap-1">
+                    <span className="text-amber-500 shrink-0">•</span>
+                    <span>{line}</span>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        );
+      }
       return (
         <div 
           className={cn("spreadsheet-cell px-1 text-gray-350 dark:text-gray-500 cursor-not-allowed", !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50", cellBorderClass)}
@@ -2117,10 +2166,6 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             value={toDateInputValue(localValue)}
             onChange={(e) => {
               setLocalValue(e.target.value);
-              if (e.target.value) {
-                onChange(e.target.value);
-                setIsEditing(false);
-              }
             }}
             onBlur={() => {
               setIsEditing(false);
@@ -2911,7 +2956,7 @@ export function TypologySpreadsheet() {
       }
     }
 
-    if (field === "tipologia" && value) {
+    if ((field as string) === "tipologia" && value) {
       const devName = (updatedRow as any).development as string | null;
       const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
       if (devConfig) {
@@ -2936,8 +2981,21 @@ export function TypologySpreadsheet() {
       hasStorageOptional: ["storageSize2", "storagePrice"],
     };
     
-    // When boolean toggles to false, don't clear dependent field values
-    // They stay in DB but the cell is visually disabled and hidden from Landing
+    // When boolean toggles to false/null, clear all dependent field values
+    const clearedFields: Record<string, any> = {};
+    if (value === false || value === null) {
+      const fieldStr = field as string;
+      for (const section of SECTIONS) {
+        if (!section.conditionalFields) continue;
+        for (const cf of section.conditionalFields) {
+          const deps = Array.isArray(cf.dependsOn) ? cf.dependsOn : [cf.dependsOn];
+          if (deps.includes(fieldStr as TypologyField)) {
+            clearedFields[cf.field] = null;
+            (updatedRow as any)[cf.field] = null;
+          }
+        }
+      }
+    }
     
     // Bidirectional calculation for discount: if user edits %, calculate Monto and vice versa
     const price = parseFloat(updatedRow.price as string) || 0;
@@ -3019,7 +3077,6 @@ export function TypologySpreadsheet() {
     }
     const fullUpdate = { ...updatedRow, ...calculatedFields };
     
-    const clearedFields: Record<string, null> = {};
     if (dependentFieldsToClear[field] && value === false) {
       dependentFieldsToClear[field].forEach(depField => {
         clearedFields[depField] = null;
@@ -3221,7 +3278,7 @@ export function TypologySpreadsheet() {
   }, []);
 
   const handleAddRow = () => {
-    const globalKeys = ["mortgageInterestPercent", "mortgageYears", "rentRatePercent", "rentMonths", "appreciationRate"];
+    const globalKeys = ["mortgageInterestPercent", "rentRatePercent", "rentMonths", "appreciationRate"];
     const initialData: Record<string, any> = {};
     for (const key of globalKeys) {
       if (globalDefaultsMap[key] !== undefined) {
@@ -3585,40 +3642,47 @@ export function TypologySpreadsheet() {
     
     const mergedWithInherited = { ...merged, nivelMantenimiento: displayNivelMantenimiento } as Typology;
     const defaults = getDefaultsForRow(mergedWithInherited);
-    const calculated = calculateFields(mergedWithInherited, defaults, nivelMantenimientoLookup);
     
+    let devEntregaDate: Date | undefined;
+    if (merged.development && dbDevelopments.length > 0) {
+      const devForEntrega = dbDevelopments.find(d => d.name === merged.development);
+      if (devForEntrega?.entregaProyectada) {
+        devEntregaDate = new Date(devForEntrega.entregaProyectada);
+      }
+    }
+    
+    const calculated = calculateFields(mergedWithInherited, defaults, nivelMantenimientoLookup, devEntregaDate);
+    
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    let mortgageStartDate: string | null = null;
+    let mortgageEndDate: string | null = null;
     let maintenanceStartDate: string | null = null;
     let maintenanceEndDate: string | null = null;
-    if (autoDeliveryDate && merged.development && dbDevelopments.length > 0) {
-      const dev = dbDevelopments.find(d => d.name === merged.development);
-      if (dev?.entregaProyectada) {
-        maintenanceStartDate = autoDeliveryDate;
-        const mortgageYrs = (calculated.mortgageYears as number) || (merged.mortgageYears as number) || defaults?.['mortgageYears'] || 15;
-        const deliveryDateObj = new Date(dev.entregaProyectada);
-        const endDateObj = new Date(deliveryDateObj);
-        endDateObj.setFullYear(endDateObj.getFullYear() + mortgageYrs);
-        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        maintenanceEndDate = `${months[endDateObj.getMonth()]}/${endDateObj.getFullYear().toString().slice(-2)}`;
-      }
+    if (autoDeliveryDate && devEntregaDate) {
+      maintenanceStartDate = autoDeliveryDate;
+      mortgageStartDate = autoDeliveryDate;
+      const mortgageYrs = (calculated.mortgageYears as number) || (defaults as any)?.['mortgageYears'] || 15;
+      const endDateObj = new Date(devEntregaDate);
+      endDateObj.setFullYear(endDateObj.getFullYear() + mortgageYrs);
+      const endStr = `${months[endDateObj.getMonth()]}/${endDateObj.getFullYear().toString().slice(-2)}`;
+      maintenanceEndDate = endStr;
+      mortgageEndDate = endStr;
     }
 
     let rentStartDateCalc: string | null = null;
     let rentEndDateCalc: string | null = null;
-    if (merged.development && dbDevelopments.length > 0) {
-      const dev = dbDevelopments.find(d => d.name === merged.development);
-      if (dev?.entregaProyectada) {
-        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const startObj = new Date(dev.entregaProyectada);
-        startObj.setMonth(startObj.getMonth() + 2);
-        rentStartDateCalc = `${months[startObj.getMonth()]}/${startObj.getFullYear().toString().slice(-2)}`;
-        const mortgageYrs = (calculated.mortgageYears as number) || (merged.mortgageYears as number) || defaults?.['mortgageYears'] || 15;
-        const endObj = new Date(startObj);
-        endObj.setFullYear(endObj.getFullYear() + mortgageYrs);
-        rentEndDateCalc = `${months[endObj.getMonth()]}/${endObj.getFullYear().toString().slice(-2)}`;
-      }
+    if (devEntregaDate) {
+      const mortgageYrs = (calculated.mortgageYears as number) || (defaults as any)?.['mortgageYears'] || 15;
+      const startObj = new Date(devEntregaDate);
+      startObj.setMonth(startObj.getMonth() + 2);
+      rentStartDateCalc = `${months[startObj.getMonth()]}/${startObj.getFullYear().toString().slice(-2)}`;
+      const endObj = new Date(startObj);
+      endObj.setFullYear(endObj.getFullYear() + mortgageYrs);
+      rentEndDateCalc = `${months[endObj.getMonth()]}/${endObj.getFullYear().toString().slice(-2)}`;
     }
     
-    const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, maintenanceStartDate, maintenanceEndDate, rentStartDate: rentStartDateCalc, rentEndDate: rentEndDateCalc } as Typology;
+    const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, mortgageStartDate, mortgageEndDate, maintenanceStartDate, maintenanceEndDate, rentStartDate: rentStartDateCalc, rentEndDate: rentEndDateCalc } as Typology;
     
     if (!pending) {
       mergedRowCacheRef.current.set(row.id, { source: row, result });
@@ -3661,6 +3725,22 @@ export function TypologySpreadsheet() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCollapsedGroups(new Set());
+                setCollapsedColumns(new Set());
+                setExpandedSections(new Set(SECTIONS.map(s => s.id)));
+              }}
+              title="Descolapsar todo"
+              data-testid="button-expand-all"
+            >
+              <Maximize2 className="w-3 h-3 mr-1" />
+              Descolapsar
+            </Button>
+          )}
           {isSaving && (
             <Badge variant="secondary" className="animate-pulse">
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -3710,7 +3790,7 @@ export function TypologySpreadsheet() {
           {/* Header: Three-row structure for consistent alignment */}
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
-            <div className="flex spreadsheet-header-row1">
+            <div className="flex w-max spreadsheet-header-row1">
               <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
@@ -3891,7 +3971,7 @@ export function TypologySpreadsheet() {
             </div>
             
             {/* Row 2: Section/column labels */}
-            <div className="flex spreadsheet-header-row2">
+            <div className="flex w-max spreadsheet-header-row2">
               <div className="w-[60px] h-full flex-shrink-0 flex items-center justify-center sticky left-0 z-30" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                 <span className="text-xs font-medium text-white">ID</span>
               </div>
@@ -4216,7 +4296,7 @@ export function TypologySpreadsheet() {
             </div>
 
             {/* Row 3: Filter and sort controls */}
-            <div className="flex border-b spreadsheet-header-row3">
+            <div className="flex w-max border-b spreadsheet-header-row3">
               <div className="w-[60px] flex-shrink-0 h-full sticky left-0 z-30 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}>
                 <ColumnFilter
                   column={{ key: "id" as any, label: "ID", type: "number", width: 25 }}
@@ -4358,7 +4438,7 @@ export function TypologySpreadsheet() {
               <div
                 key={row.id}
                 className={cn(
-                  "flex border-b",
+                  "flex w-max border-b",
                   isRowDisabled
                     ? "cursor-default"
                     : isActiveRow 
@@ -4503,7 +4583,7 @@ export function TypologySpreadsheet() {
                           const devVistas = vistasByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devVistas.length > 0 ? devVistas : vistaOptions;
                         }
-                        if (col.key === "developmentType") {
+                        if ((col.key as string) === "developmentType") {
                           const devTypes = typesByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devTypes.length > 0 ? devTypes : tipologiaOptions;
                         }
@@ -4522,11 +4602,26 @@ export function TypologySpreadsheet() {
 
                         const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development", "tipoDesarrollo"]);
                         const hasDevelopment = !!(mergedRow.development);
+                        
+                        const selectedDev = hasDevelopment ? dbDevelopments.find(d => d.name === mergedRow.development) : null;
+                        const devMissingFieldsList: string[] = [];
+                        if (selectedDev) {
+                          if (!selectedDev.city) devMissingFieldsList.push("Ciudad");
+                          if (!selectedDev.zone) devMissingFieldsList.push("Zona");
+                          if (!selectedDev.entregaProyectada) devMissingFieldsList.push("Fecha de Entrega");
+                          const tipList = (selectedDev as any).tipologiasList as string[] | null;
+                          if (!tipList || tipList.length === 0) devMissingFieldsList.push("Tipologías");
+                        }
+                        const devWarningText = devMissingFieldsList.length > 0 ? devMissingFieldsList.join('\n') : undefined;
+                        const isDevIncomplete = devMissingFieldsList.length > 0;
+                        
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
                         let isLockedByFlow = false;
                         if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
                           if (!hasDevelopment) {
+                            isLockedByFlow = true;
+                          } else if (isDevIncomplete && col.key === "tipoDesarrollo") {
                             isLockedByFlow = true;
                           } else if (!hasTipoDesarrollo && col.key !== "tipoDesarrollo") {
                             isLockedByFlow = true;
@@ -4575,6 +4670,7 @@ export function TypologySpreadsheet() {
                             isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
                             validEntities={col.key === "active" ? validEntities : undefined}
                             isRowDisabled={isRowDisabled}
+                            devWarning={col.key === "tipoDesarrollo" ? devWarningText : undefined}
                           />
                         );
 
