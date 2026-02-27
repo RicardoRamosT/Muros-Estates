@@ -339,13 +339,13 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "enganche_total",
-    label: "Total Enganche",
+    label: "Total",
     mergeHeaders: true,
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "totalEnganche", label: "Total Enganche", type: "decimal", width: 110, format: "currency", calculated: true },
+      { key: "totalEnganche", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
@@ -1709,11 +1709,12 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         ? 'text-red-600 font-medium' 
         : canBeUnassigned ? 'text-foreground font-medium' : 'text-muted-foreground';
     if (rowDisabledStyle) {
+      const label = value === true ? "Sí" : value === false ? "No" : "";
       return (
         <div
-          className={cn("spreadsheet-cell px-0", cellBorderClass)}
-          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: '#9ca3af', pointerEvents: 'none', cursor: 'default' }}
-        />
+          className={cn("spreadsheet-cell px-0 justify-center text-xs font-medium", cellBorderClass)}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: '#9ca3af', color: 'black', pointerEvents: 'none', cursor: 'default' }}
+        >{label}</div>
       );
     }
     return (
