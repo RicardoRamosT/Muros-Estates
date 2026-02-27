@@ -340,11 +340,12 @@ const SECTIONS: SectionDef[] = [
   {
     id: "enganche_total",
     label: "Total Enganche",
+    mergeHeaders: true,
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "totalEnganche", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
+      { key: "totalEnganche", label: "Total Enganche", type: "decimal", width: 110, format: "currency", calculated: true },
     ],
   },
   {
@@ -1582,13 +1583,12 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs cursor-pointer", cellBorderClass,
+          "spreadsheet-cell px-2 text-xs cursor-default", cellBorderClass,
           !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.centerCells && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
-        onClick={() => setIsEditing(true)}
         data-testid={`cell-${column.key}-${rowId}`}
       >
         {(column.format === "currency" || column.format === "area")
@@ -1708,10 +1708,18 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       : value === false 
         ? 'text-red-600 font-medium' 
         : canBeUnassigned ? 'text-foreground font-medium' : 'text-muted-foreground';
+    if (rowDisabledStyle) {
+      return (
+        <div
+          className={cn("spreadsheet-cell px-0", cellBorderClass)}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: '#9ca3af', pointerEvents: 'none', cursor: 'default' }}
+        />
+      );
+    }
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: rowDisabledStyle ? '#9ca3af' : cellBgColor, ...(rowDisabledStyle ? { pointerEvents: 'none', cursor: 'default' } : {}) }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: cellBgColor }}
       >
         <ExclusiveSelect
           value={value === true ? "si" : value === false ? "no" : (canBeUnassigned ? "sa" : "")}
@@ -1991,7 +1999,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             data-testid={`select-${column.key}-${rowId}`}
             title={displayValue || ""}
           >
-            <span className="truncate min-w-0 flex-1">{displayValue || (column.allowUnassigned ? "-" : "")}</span>
+            <span className="truncate min-w-0 flex-1">{displayValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "" : "text-muted-foreground italic"} style={column.allowUnassigned ? { color: '#000' } : undefined}>
