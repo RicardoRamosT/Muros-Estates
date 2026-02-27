@@ -69,6 +69,7 @@ interface ColumnDef {
   centerCells?: boolean;
   linkedSizeField?: TypologyField;
   allowUnassigned?: boolean;
+  noUnassignedBool?: boolean;
 }
 
 interface SectionDef {
@@ -231,9 +232,9 @@ const SECTIONS: SectionDef[] = [
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 62 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize", hideLabel: true, fullLabel: "Balcón" },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
-      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize", hideLabel: true, fullLabel: "Terraza" },
+      { key: "hasTerrace", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize", hideLabel: true, fullLabel: "Terraza", noUnassignedBool: true },
       { key: "terraceSize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Terraza m²" },
-      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 74, allowUnassigned: true },
+      { key: "lockOff", label: "Lock-Off", type: "boolean", width: 74 },
     ],
     conditionalFields: [
       { field: "balconySize", dependsOn: "hasBalcony" },
@@ -250,9 +251,9 @@ const SECTIONS: SectionDef[] = [
       { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
       { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 62 },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 62 },
-      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize2", hideLabel: true, fullLabel: "Balcón" },
+      { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize2", hideLabel: true, fullLabel: "Balcón", noUnassignedBool: true },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
-      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize2", hideLabel: true, fullLabel: "Terraza" },
+      { key: "hasTerrace2", label: "Terraza", type: "boolean", width: 60, linkedSizeField: "terraceSize2", hideLabel: true, fullLabel: "Terraza", noUnassignedBool: true },
       { key: "terraceSize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Terraza m²" },
     ],
     conditionalFields: [
@@ -337,6 +338,16 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
+    id: "enganche_total",
+    label: "Total Enganche",
+    headerColor: "",
+    columnHeaderColor: "",
+    cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
+    columns: [
+      { key: "totalEnganche", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
+    ],
+  },
+  {
     id: "enganche_escritura",
     label: "Al Escriturar",
     parentLabel: "Pago Final",
@@ -346,17 +357,6 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "remainingPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "remainingAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Al Escriturar", calculated: true },
-    ],
-  },
-  {
-    id: "enganche_total",
-    label: "Total",
-    parentLabel: "Pago Final",
-    headerColor: "",
-    columnHeaderColor: "",
-    cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
-    columns: [
-      { key: "totalEnganche", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
@@ -426,7 +426,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency" },
+      { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency", calculated: true },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 85 },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 56 },
@@ -647,6 +647,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     pricePerM2: pricePerM2.toFixed(2),
     monthlyPayment: monthlyPayment.toFixed(2),
     totalEnganche: totalEnganche.toFixed(2),
+    mortgageAmount: (finalPrice - totalEnganche).toFixed(2),
     remainingPercent: remainingPercent.toFixed(2),
     remainingAmount: (finalPrice * remainingPercent / 100).toFixed(2),
     sizeFinal: sizeFinal.toFixed(2),
@@ -779,7 +780,8 @@ function formatValue(value: any, format?: string): string {
   if (value === null || value === undefined || value === "") return "";
   const strValue = String(value).trim();
   const num = parseFloat(strValue);
-  if (isNaN(num) || strValue !== String(num)) return strValue;
+  if (isNaN(num)) return strValue;
+  if (/[a-zA-Z%,\s]/.test(strValue)) return strValue;
   
   switch (format) {
     case "currency":
@@ -1553,6 +1555,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   };
   
   if (column.calculated || disabled) {
+    const isBooleanDisabled = column.type === "boolean" && disabled && !column.calculated;
     return (
       <div 
         className={cn(
@@ -1560,15 +1563,17 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           column.calculated && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
           disabled && !column.calculated && !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50",
-          disabled && !column.calculated && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
+          disabled && !column.calculated && !isBooleanDisabled && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...(isBooleanDisabled ? { color: 'black' } : {}) }}
         data-testid={`cell-${column.key}-disabled`}
       >
-        {(column.format === "currency" || column.format === "area") 
-          ? <FormattedCellValue value={value} format={column.format} />
-          : (formatValue(value, column.format) || "")}
+        {isBooleanDisabled
+          ? ""
+          : (column.format === "currency" || column.format === "area") 
+            ? <FormattedCellValue value={value} format={column.format} />
+            : (formatValue(value, column.format) || "")}
       </div>
     );
   }
@@ -1692,7 +1697,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   }
 
   if (column.type === "boolean") {
-    const canBeUnassigned = !!column.linkedSizeField || !!column.allowUnassigned;
+    const canBeUnassigned = (!!column.linkedSizeField && !column.noUnassignedBool) || !!column.allowUnassigned;
     const cellBgColor = value === true 
       ? '#dcfce7'  // green-100 
       : value === false 
@@ -1706,7 +1711,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     return (
       <div 
         className={cn("spreadsheet-cell px-0", cellBorderClass)}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: rowDisabledStyle ? '#9ca3af' : cellBgColor }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: rowDisabledStyle ? '#9ca3af' : cellBgColor, ...(rowDisabledStyle ? { pointerEvents: 'none', cursor: 'default' } : {}) }}
       >
         <ExclusiveSelect
           value={value === true ? "si" : value === false ? "no" : (canBeUnassigned ? "sa" : "")}
@@ -3215,7 +3220,6 @@ export function TypologySpreadsheet() {
       }
     }
     initialData.active = false;
-    initialData.queIncluye = "Sin Equipo";
     initialData.hasBalcony = null;
     initialData.hasTerrace = null;
     initialData.hasBalcony2 = null;
@@ -4301,7 +4305,7 @@ export function TypologySpreadsheet() {
                               }
                               columnWidth={col.width}
                               hideLabel={true}
-                              fullLabel={col.hideLabel ? (col.fullLabel || col.label) : undefined}
+                              fullLabel={col.fullLabel || col.label}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false_ready", "false_red", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
                               dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#f97316", "false_red": "#dc2626", "null": "#1f2937" } : undefined}
@@ -4522,7 +4526,9 @@ export function TypologySpreadsheet() {
                         }
                         
                         const rowGrayState = dynamicGray[row.id];
-                        const isDynCalc = rowGrayState?.[col.key] === "calculated";
+                        const isDynCalc = col.key === "maintenanceM2"
+                          ? !!(mergedRow.nivelMantenimiento && nivelMantenimientoLookup?.[mergedRow.nivelMantenimiento as string])
+                          : rowGrayState?.[col.key] === "calculated";
 
                         const cell = (
                           <EditableCell
