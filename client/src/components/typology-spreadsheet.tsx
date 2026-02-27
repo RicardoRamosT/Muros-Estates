@@ -1571,6 +1571,40 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
   };
   
+  if (devWarning) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div
+            className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
+            style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
+            title="Desarrollo incompleto"
+          >
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5 px-1">
+              <AlertCircle className="w-3 h-3 shrink-0" />
+              <span className="truncate">Incompleto</span>
+            </span>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3 z-[200]" side="bottom" align="start">
+          <p className="text-xs font-semibold text-amber-700 mb-1.5 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            Desarrollo incompleto
+          </p>
+          <p className="text-xs text-muted-foreground mb-2">Faltan campos en el Desarrollo seleccionado:</p>
+          <div className="text-xs space-y-0.5">
+            {devWarning.split('\n').map((line, i) => (
+              <div key={i} className="flex items-start gap-1">
+                <span className="text-amber-500 shrink-0">•</span>
+                <span>{line}</span>
+              </div>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   if (column.calculated || disabled) {
     const isBooleanDisabled = column.type === "boolean" && disabled && !column.calculated;
     return (
@@ -4618,14 +4652,14 @@ export function TypologySpreadsheet() {
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
                         let isLockedByFlow = false;
-                        if (col.key === "tipoDesarrollo") {
+                        if ((col.key as string) === "tipoDesarrollo") {
                           if (!hasDevelopment || isDevIncomplete) {
                             isLockedByFlow = true;
                           }
                         } else if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
                           if (!hasDevelopment) {
                             isLockedByFlow = true;
-                          } else if (!hasTipoDesarrollo && col.key !== "tipoDesarrollo") {
+                          } else if (!hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
                           } else if (!hasType && col.key !== "type") {
                             isLockedByFlow = true;
