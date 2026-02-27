@@ -4498,20 +4498,30 @@ export function TypologySpreadsheet() {
                     : null;
                   return (
                     <div 
-                      className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative cursor-default group"
+                      className="spreadsheet-cell w-[60px] flex-shrink-0 justify-center text-xs text-white sticky left-0 z-10 relative cursor-default"
                       style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}` }}
                       data-testid={`cell-index-${row.id}`}
                     >
                       {stableRowNumberMap.get(row.id) ?? rowIndex + 1}
-                      <span
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-                        style={{ backgroundColor: dotColor }}
-                        data-testid={`status-dot-${row.id}`}
-                      />
-                      {dotTooltip && (
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 z-[300] hidden group-hover:block bg-gray-900 text-white text-[10px] leading-tight rounded-md px-2.5 py-2 whitespace-pre-line shadow-lg min-w-[200px] max-w-[320px] max-h-[300px] overflow-y-auto pointer-events-none">
-                          {dotTooltip}
-                        </div>
+                      {dotTooltip ? (
+                        <Tooltip delayDuration={200}>
+                          <TooltipTrigger asChild>
+                            <span
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                              style={{ backgroundColor: dotColor }}
+                              data-testid={`status-dot-${row.id}`}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="text-[10px] leading-tight whitespace-pre-line max-w-[300px] max-h-[280px] overflow-y-auto z-[400]">
+                            {dotTooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                          style={{ backgroundColor: dotColor }}
+                          data-testid={`status-dot-${row.id}`}
+                        />
                       )}
                     </div>
                   );
