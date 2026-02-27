@@ -913,8 +913,9 @@ export function DevelopmentsSpreadsheet() {
                     }, 0);
                   }
                   
-                  const displayValue = selectedTipos.length > 0 
-                    ? `${selectedTipos.length} seleccionados`
+                  const effectiveCount = selectedTipos.filter((t: string) => developerTipos.includes(t)).length;
+                  const displayValue = effectiveCount > 0 
+                    ? `${effectiveCount} seleccionados`
                     : developerTipos.length > 0 ? 'Seleccionar' : 'Sin tipos';
                   
                   return (
@@ -927,8 +928,8 @@ export function DevelopmentsSpreadsheet() {
                               size="sm"
                               className="w-full justify-between text-xs font-normal"
                             >
-                              <span className={selectedTipos.length === 0 ? 'text-red-500 font-medium' : ''}>
-                                {selectedTipos.length === 0 ? 'SIN ASIGNAR' : displayValue}
+                              <span className={effectiveCount === 0 ? 'text-red-500 font-medium' : ''}>
+                                {effectiveCount === 0 ? 'SIN ASIGNAR' : displayValue}
                               </span>
                               <ChevronDown className="w-3 h-3 opacity-50" />
                             </Button>
