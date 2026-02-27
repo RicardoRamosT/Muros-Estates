@@ -4600,7 +4600,7 @@ export function TypologySpreadsheet() {
                           });
                         }
 
-                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development", "tipoDesarrollo"]);
+                        const ALWAYS_UNLOCKED = new Set(["active", "createdDate", "createdTime", "city", "zone", "developer", "development"]);
                         const hasDevelopment = !!(mergedRow.development);
                         
                         const selectedDev = hasDevelopment ? dbDevelopments.find(d => d.name === mergedRow.development) : null;
@@ -4618,10 +4618,12 @@ export function TypologySpreadsheet() {
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
                         let isLockedByFlow = false;
-                        if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
-                          if (!hasDevelopment) {
+                        if (col.key === "tipoDesarrollo") {
+                          if (!hasDevelopment || isDevIncomplete) {
                             isLockedByFlow = true;
-                          } else if (isDevIncomplete && col.key === "tipoDesarrollo") {
+                          }
+                        } else if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
+                          if (!hasDevelopment) {
                             isLockedByFlow = true;
                           } else if (!hasTipoDesarrollo && col.key !== "tipoDesarrollo") {
                             isLockedByFlow = true;
