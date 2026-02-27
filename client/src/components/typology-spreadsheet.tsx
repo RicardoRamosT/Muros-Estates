@@ -4676,11 +4676,12 @@ export function TypologySpreadsheet() {
                         
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
+                        const devHasTipos = !!(selectedDev && (selectedDev as any).tipos && ((selectedDev as any).tipos as string[]).length > 0);
                         let isLockedByFlow = false;
                         if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
                           if (!hasDevelopment || isDevIncomplete) {
                             isLockedByFlow = true;
-                          } else if (!hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
+                          } else if (devHasTipos && !hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
                           } else if (!hasType && col.key !== "type") {
                             isLockedByFlow = true;
