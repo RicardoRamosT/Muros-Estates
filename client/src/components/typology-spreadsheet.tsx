@@ -1571,7 +1571,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
   };
   
-  if (devWarning) {
+  if (devWarning && disabled) {
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -2032,9 +2032,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (devWarning ? "bg-amber-50 dark:bg-amber-950/30" : isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
+        title={devWarning ? `Desarrollo incompleto:\n${devWarning.split('\n').map(l => '• ' + l).join('\n')}` : undefined}
       >
+        {devWarning && <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mr-0.5" />}
         <ExclusiveSelect 
           value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
           onValueChange={(val) => {
@@ -4652,12 +4654,8 @@ export function TypologySpreadsheet() {
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
                         let isLockedByFlow = false;
-                        if ((col.key as string) === "tipoDesarrollo") {
+                        if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
                           if (!hasDevelopment || isDevIncomplete) {
-                            isLockedByFlow = true;
-                          }
-                        } else if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
-                          if (!hasDevelopment) {
                             isLockedByFlow = true;
                           } else if (!hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
@@ -4706,7 +4704,7 @@ export function TypologySpreadsheet() {
                             isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
                             validEntities={col.key === "active" ? validEntities : undefined}
                             isRowDisabled={isRowDisabled}
-                            devWarning={col.key === "tipoDesarrollo" ? devWarningText : undefined}
+                            devWarning={col.key === "development" ? devWarningText : undefined}
                           />
                         );
 
