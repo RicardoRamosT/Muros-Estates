@@ -446,9 +446,9 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "currency" },
       { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 75, format: "currency", calculated: true },
-      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 85, calculated: true },
+      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 54, calculated: true },
       { key: "maintenanceFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
-      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 85, calculated: true },
+      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 54, calculated: true },
       { key: "maintenanceTotal", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
@@ -461,7 +461,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "rentInitial", label: "Inicial", type: "decimal", width: 75, format: "currency" },
-      { key: "rentStartDate", label: "Fecha", type: "date", width: 85, calculated: true },
+      { key: "rentStartDate", label: "Fecha", type: "date", width: 54, calculated: true },
     ],
   },
   {
@@ -485,7 +485,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "rentFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
-      { key: "rentEndDate", label: "Fecha", type: "date", width: 85, calculated: true },
+      { key: "rentEndDate", label: "Fecha", type: "date", width: 54, calculated: true },
     ],
   },
   {
