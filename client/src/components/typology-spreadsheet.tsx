@@ -339,13 +339,13 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "enganche_total",
-    label: "Total",
+    label: "Total Enganche",
     mergeHeaders: true,
     headerColor: "",
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "totalEnganche", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
+      { key: "totalEnganche", label: "Total Enganche", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
   {
