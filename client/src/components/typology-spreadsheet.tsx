@@ -4314,7 +4314,7 @@ export function TypologySpreadsheet() {
                               }
                               columnWidth={col.width}
                               hideLabel={true}
-                              fullLabel={col.fullLabel || col.label}
+                              fullLabel={col.fullLabel || (col.hideLabel ? col.label : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false_ready", "false_red", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
                               dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#f97316", "false_red": "#dc2626", "null": "#1f2937" } : undefined}
