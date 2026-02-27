@@ -604,7 +604,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
 
   const mortgageAmount = parseFloat(row.mortgageAmount as string) || 0;
-  const mortgageYears = (row.mortgageYears as number) || getDefault('mortgageYears', 15);
+  const mortgageYears = getDefault('mortgageYears', 15);
   const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || getDefault('mortgageInterestPercent', 10.5);
   const monthlyRate = mortgageInterestPercent / 100 / 12;
   const numPayments = mortgageYears * 12;
@@ -3637,14 +3637,14 @@ export function TypologySpreadsheet() {
     return map;
   }, [typologies, columnFilters]);
   
-  const mergedRowCacheRef = useRef<Map<string, { source: Typology; result: Typology }>>(new Map());
+  const mergedRowCacheRef = useRef<Map<string, { source: Typology; defaults: Record<string, number>; result: Typology }>>(new Map());
   
   const getMergedRow = (row: Typology): Typology => {
     const pending = pendingChanges.get(row.id);
     
     if (!pending) {
       const cached = mergedRowCacheRef.current.get(row.id);
-      if (cached && cached.source === row) {
+      if (cached && cached.source === row && cached.defaults === globalDefaultsMap) {
         return cached.result;
       }
     }
@@ -3721,7 +3721,7 @@ export function TypologySpreadsheet() {
     const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, mortgageStartDate, mortgageEndDate, maintenanceStartDate, maintenanceEndDate, rentStartDate: rentStartDateCalc, rentEndDate: rentEndDateCalc } as Typology;
     
     if (!pending) {
-      mergedRowCacheRef.current.set(row.id, { source: row, result });
+      mergedRowCacheRef.current.set(row.id, { source: row, defaults: globalDefaultsMap, result });
     }
     
     return result;
