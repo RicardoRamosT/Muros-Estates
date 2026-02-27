@@ -147,22 +147,37 @@ function SingleTipologiaCell({
   dev,
   updateMutation,
   fieldCanEdit,
+  developerTipos,
 }: {
   dev: Development;
   updateMutation: any;
   fieldCanEdit: boolean;
+  developerTipos: string[];
 }) {
   const [newName, setNewName] = useState("");
   const [open, setOpen] = useState(false);
+  const [openTipoFor, setOpenTipoFor] = useState<string | null>(null);
 
   const arrValue: string[] = Array.isArray(dev.tipologiasList) ? (dev.tipologiasList as string[]) : [];
+  const tipologiasConfig: Record<string, string[]> = (dev.tipologiasConfig as Record<string, string[]>) || {};
   const displayLabel = arrValue.length === 0 ? "" : arrValue.length <= 2 ? arrValue.join(", ") : `${arrValue[0]}, +${arrValue.length - 1}`;
 
   const handleToggle = (val: string) => {
     const next = arrValue.includes(val)
       ? arrValue.filter(v => v !== val)
       : [...arrValue, val];
-    updateMutation.mutate({ id: dev.id, data: { tipologiasList: next } });
+    const newConfig = { ...tipologiasConfig };
+    if (!next.includes(val)) delete newConfig[val];
+    updateMutation.mutate({ id: dev.id, data: { tipologiasList: next, tipologiasConfig: newConfig } });
+  };
+
+  const handleSetTipo = (tipologia: string, tipo: string) => {
+    const current = tipologiasConfig[tipologia] || [];
+    const next = current.includes(tipo)
+      ? current.filter(t => t !== tipo)
+      : [...current, tipo];
+    const newConfig = { ...tipologiasConfig, [tipologia]: next };
+    updateMutation.mutate({ id: dev.id, data: { tipologiasConfig: newConfig } });
   };
 
   const handleAddNew = () => {
@@ -189,21 +204,72 @@ function SingleTipologiaCell({
           <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-2" align="start">
+      <PopoverContent className={cn("p-2", developerTipos.length > 0 ? "w-72" : "w-56")} align="start">
         <div className="flex flex-col gap-1.5">
           {arrValue.length > 0 && (
             <div className="flex flex-col gap-0.5">
-              {arrValue.map(item => (
-                <button
-                  key={item}
-                  className="w-full text-left text-xs px-2 py-1 rounded hover:bg-muted flex items-center justify-between gap-1 bg-muted/40"
-                  onClick={() => handleToggle(item)}
-                  data-testid={`tipologia-option-${dev.id}-${item}`}
-                >
-                  <span className="truncate">{item}</span>
-                  <Check className="w-3 h-3 shrink-0 text-primary" />
-                </button>
-              ))}
+              {arrValue.map(item => {
+                const assignedTipos = tipologiasConfig[item] || [];
+                return (
+                  <div key={item} className="flex items-center gap-1 bg-muted/40 rounded px-1.5 py-1">
+                    <button
+                      className="flex-1 text-left text-xs truncate hover:text-foreground"
+                      onClick={() => handleToggle(item)}
+                      data-testid={`tipologia-option-${dev.id}-${item}`}
+                      title="Clic para quitar"
+                    >
+                      <span className="truncate">{item}</span>
+                    </button>
+                    {developerTipos.length > 0 && (
+                      <Popover open={openTipoFor === item} onOpenChange={v => setOpenTipoFor(v ? item : null)} modal>
+                        <PopoverTrigger asChild>
+                          <button
+                            className={cn(
+                              "shrink-0 flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border transition-colors",
+                              assignedTipos.length > 0
+                                ? "bg-primary/10 text-primary border-primary/30"
+                                : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                            )}
+                            onClick={e => e.stopPropagation()}
+                            data-testid={`tipo-trigger-${dev.id}-${item}`}
+                          >
+                            <span className="max-w-[80px] truncate">
+                              {assignedTipos.length === 0 ? "Tipo" : assignedTipos.join(", ")}
+                            </span>
+                            <ChevronDown className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-40 p-1.5 z-[300]" side="right" align="start">
+                          <p className="text-[10px] text-muted-foreground px-1 mb-1">Tipo para "{item}"</p>
+                          <div className="flex flex-col gap-0.5">
+                            {developerTipos.map(tipo => (
+                              <button
+                                key={tipo}
+                                className={cn(
+                                  "w-full text-left text-xs px-2 py-1 rounded flex items-center justify-between gap-1",
+                                  assignedTipos.includes(tipo) ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                                )}
+                                onClick={e => { e.stopPropagation(); handleSetTipo(item, tipo); }}
+                                data-testid={`tipo-option-${dev.id}-${item}-${tipo}`}
+                              >
+                                <span>{tipo}</span>
+                                {assignedTipos.includes(tipo) && <Check className="w-3 h-3 shrink-0" />}
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                    <button
+                      className="shrink-0 text-muted-foreground hover:text-destructive transition-colors ml-0.5"
+                      onClick={() => handleToggle(item)}
+                      title="Quitar tipología"
+                    >
+                      <Check className="w-3 h-3 text-primary" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
           <div className={cn("flex gap-1", arrValue.length > 0 && "border-t pt-1.5")}>
@@ -1084,12 +1150,14 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'single-tipologia') {
+                  const cellDeveloperTipos = getTypeFromDeveloper(dev.developerId) || [];
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                       <SingleTipologiaCell
                         dev={dev}
                         updateMutation={updateMutation}
                         fieldCanEdit={fieldCanEdit}
+                        developerTipos={cellDeveloperTipos}
                       />
                     </div>
                   );
