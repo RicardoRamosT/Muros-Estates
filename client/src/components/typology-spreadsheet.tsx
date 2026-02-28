@@ -1690,7 +1690,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         label = "Sí";
         break;
       case "ready":
-        bgColor = "#FEE3D0";
+        bgColor = "#FDCDB0";
         dotColor = "#F16100";
         textColorStyle = { color: "#C04D00", fontWeight: 600 };
         label = "No";
