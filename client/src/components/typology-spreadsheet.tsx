@@ -2351,7 +2351,10 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
     : sectionGroups;
 
   const scrollTo = (offset: number) => {
-    scrollRef.current?.scrollTo({ left: offset, behavior: 'smooth' });
+    const container = scrollRef.current;
+    if (!container) return;
+    const centeredLeft = Math.max(0, offset - container.clientWidth / 2);
+    container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
     setOpen(false);
     setQuery("");
   };
