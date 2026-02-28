@@ -3906,9 +3906,9 @@ export function TypologySpreadsheet() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
-          <div className="relative">
+          <div className="relative rounded-md overflow-hidden p-[2px]">
             {pendingRowCount > 0 && !isSaving && (
-              <span className="absolute -inset-0.5 rounded-md animate-pulse bg-primary/30 pointer-events-none" />
+              <span className="save-electric-border" />
             )}
             <Button 
               onClick={async () => {
@@ -3917,7 +3917,7 @@ export function TypologySpreadsheet() {
               size="sm"
               disabled={pendingRowCount === 0 || isSaving}
               className={cn(
-                "relative transition-all duration-300",
+                "relative z-10 transition-all duration-300",
                 saveFlash 
                   ? "text-white shadow-lg scale-105" 
                   : "text-white"

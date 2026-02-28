@@ -406,3 +406,27 @@
     scrollbar-color: hsl(var(--muted-foreground) / 0.4) hsl(var(--muted));
   }
 }
+
+@keyframes electric-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.save-electric-border {
+  position: absolute;
+  inset: -100%;
+  width: 300%;
+  height: 300%;
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 105deg,
+    #60a5fa 140deg,
+    #ffffff 175deg,
+    #60a5fa 210deg,
+    transparent 245deg,
+    transparent 360deg
+  );
+  animation: electric-spin 1s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
