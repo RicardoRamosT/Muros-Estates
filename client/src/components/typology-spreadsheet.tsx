@@ -114,7 +114,7 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
 
 const SECTION_COLOR_DARK = "rgb(11,120,180)";
 const SECTION_COLOR_LIGHT = "rgb(13,149,225)";
-const MEDIOS_COLOR = "rgb(30, 64, 175)";
+const MEDIOS_COLOR = "rgb(11,120,180)";
 const SECTION_BORDER_COLOR = "rgb(121,135,203)";
 
 
