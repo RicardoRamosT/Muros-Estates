@@ -3872,6 +3872,22 @@ export function TypologySpreadsheet() {
           <Layers className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Tipologías</h1>
           <SectionSearchButton scrollRef={contentScrollRef} />
+          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCollapsedGroups(new Set());
+                setCollapsedColumns(new Set());
+                setExpandedSections(new Set(SECTIONS.map(s => s.id)));
+              }}
+              title="Descolapsar todo"
+              data-testid="button-expand-all"
+            >
+              <Maximize2 className="w-3 h-3 mr-1" />
+              Descolapsar
+            </Button>
+          )}
           {(activeFilterCount > 0 || activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)) && (
             <Button
               variant="ghost"
@@ -3889,22 +3905,6 @@ export function TypologySpreadsheet() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCollapsedGroups(new Set());
-                setCollapsedColumns(new Set());
-                setExpandedSections(new Set(SECTIONS.map(s => s.id)));
-              }}
-              title="Descolapsar todo"
-              data-testid="button-expand-all"
-            >
-              <Maximize2 className="w-3 h-3 mr-1" />
-              Descolapsar
-            </Button>
-          )}
           <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
           <div className="relative">
             {pendingRowCount > 0 && !isSaving && (
