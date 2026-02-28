@@ -2334,14 +2334,18 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
   const [query, setQuery] = useState("");
 
   const sectionGroups = useMemo(() => {
-    const result: { label: string; offset: number }[] = [];
+    const result: { label: string; offset: number; width: number }[] = [];
     let offset = 0;
     SECTIONS.forEach(section => {
       const label = section.parentLabel || section.label;
-      if (!result.find(g => g.label === label)) {
-        result.push({ label, offset });
+      const secWidth = section.columns.reduce((acc, col) => acc + (col.width || 100) + SORT_ICON_WIDTH, 0);
+      const existing = result.find(g => g.label === label);
+      if (!existing) {
+        result.push({ label, offset, width: secWidth });
+      } else {
+        existing.width += secWidth;
       }
-      offset += section.columns.reduce((acc, col) => acc + (col.width || 100) + SORT_ICON_WIDTH, 0);
+      offset += secWidth;
     });
     return result;
   }, []);
@@ -2350,10 +2354,11 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
     ? sectionGroups.filter(g => g.label.toLowerCase().includes(query.toLowerCase()))
     : sectionGroups;
 
-  const scrollTo = (offset: number) => {
+  const scrollTo = (group: { label: string; offset: number; width: number }) => {
     const container = scrollRef.current;
     if (!container) return;
-    const centeredLeft = Math.max(0, offset - container.clientWidth / 2);
+    const freeSpace = container.clientWidth - group.width;
+    const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
     container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
     setOpen(false);
     setQuery("");
@@ -2384,7 +2389,7 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
             <button
               key={g.label}
               className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent"
-              onClick={() => scrollTo(g.offset)}
+              onClick={() => scrollTo(g)}
             >
               {g.label}
             </button>
