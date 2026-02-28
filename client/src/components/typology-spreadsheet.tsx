@@ -2036,7 +2036,6 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         title={devWarning ? `Desarrollo incompleto:\n${devWarning.split('\n').map(l => '• ' + l).join('\n')}` : undefined}
       >
-        {devWarning && <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mr-0.5" />}
         <ExclusiveSelect 
           value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
           onValueChange={(val) => {
@@ -2052,7 +2051,10 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             data-testid={`select-${column.key}-${rowId}`}
             title={displayValue || ""}
           >
-            <span className="truncate min-w-0 flex-1">{displayValue || ""}</span>
+            <span className="truncate min-w-0 flex-1 flex items-center gap-0.5">
+              {devWarning && <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />}
+              {displayValue || ""}
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "" : "text-muted-foreground italic"} style={column.allowUnassigned ? { color: '#000' } : undefined}>
