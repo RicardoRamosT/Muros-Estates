@@ -2073,7 +2073,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (rowDisabledStyle) {
       return (
         <div
-          className={cn("spreadsheet-cell px-1", cellBorderClass, column.centerCells ? "!justify-center gap-1" : "")}
+          className={cn("spreadsheet-cell text-xs px-1", cellBorderClass, column.centerCells ? "!justify-center gap-1" : "")}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         >
           <span className={cn("truncate min-w-0", !column.centerCells && "flex-1")}>{displayValue || ""}</span>
