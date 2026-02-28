@@ -2051,9 +2051,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         >
           <SelectTrigger 
             className={cn(
-              "h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3",
+              "h-6 w-full min-w-0 text-xs border-0 focus:ring-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0",
               devWarning !== undefined
-                ? "pl-1 pr-0 text-center"
+                ? "pl-1 pr-0"
                 : cn("px-1", column.centerCells && (!displayValue || /^\d+$/.test(displayValue)) ? "text-center" : "text-left"),
               !displayValue && column.allowUnassigned && "font-medium"
             )}
