@@ -2335,7 +2335,7 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
 
   const sectionGroups = useMemo(() => {
     const result: { label: string; offset: number }[] = [];
-    let offset = 60;
+    let offset = 0;
     SECTIONS.forEach(section => {
       const label = section.parentLabel || section.label;
       if (!result.find(g => g.label === label)) {
