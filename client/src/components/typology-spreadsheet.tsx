@@ -655,8 +655,11 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
         appreciationTotalText = `${años}a - ${meses}m`;
       } else if (años > 0) {
         appreciationTotalText = `${años}a`;
-      } else {
+      } else if (meses > 0) {
         appreciationTotalText = `${meses}m`;
+      } else {
+        const daysLeft = Math.ceil((entregaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        appreciationTotalText = daysLeft > 0 ? `${daysLeft}d` : "Lista";
       }
     } else {
       appreciationTotalText = "Lista";
