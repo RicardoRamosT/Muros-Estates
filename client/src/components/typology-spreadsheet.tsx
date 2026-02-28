@@ -2144,7 +2144,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     let availableTypes: string[] = [];
     if (selectedDevelopment?.tipos && (selectedDevelopment.tipos as string[]).length > 0) {
-      availableTypes = selectedDevelopment.tipos as string[];
+      let devTypes = selectedDevelopment.tipos as string[];
+      if (selectedDevelopment.developerId && allDevelopers) {
+        const developer = allDevelopers.find((d: any) => d.id === selectedDevelopment.developerId);
+        if (developer?.tipos && (developer.tipos as string[]).length > 0) {
+          const developerTipos = developer.tipos as string[];
+          devTypes = devTypes.filter(t => developerTipos.includes(t));
+        }
+      }
+      availableTypes = devTypes;
     }
     
     const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value as string] : []);

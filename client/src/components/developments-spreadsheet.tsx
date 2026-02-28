@@ -495,6 +495,17 @@ export function DevelopmentsSpreadsheet() {
     return Object.fromEntries(sorted.map((d, i) => [String(d.id), i]));
   }, [developers]);
 
+  const developmentsForFilter = useMemo(() => {
+    return developments.map(dev => {
+      const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
+      const selectedTipos = (dev.tipos as string[] | null) || [];
+      return {
+        ...dev,
+        tipos: selectedTipos.filter(t => developerTipos.includes(t)),
+      };
+    });
+  }, [developments, getTypeFromDeveloper]);
+
   const {
     sortConfig,
     filterConfigs,
@@ -505,7 +516,7 @@ export function DevelopmentsSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(developments, visibleColumns, { developerId: developerOrderMap });
+  } = useColumnFilters(developmentsForFilter, visibleColumns, { developerId: developerOrderMap });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
