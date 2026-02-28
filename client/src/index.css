@@ -408,11 +408,11 @@
 }
 
 @keyframes electric-travel {
-  0%   { box-shadow: 0 -4px 12px 3px #93c5fd; }
-  25%  { box-shadow: 4px 0  12px 3px #93c5fd; }
-  50%  { box-shadow: 0  4px 12px 3px #93c5fd; }
-  75%  { box-shadow: -4px 0 12px 3px #93c5fd; }
-  100% { box-shadow: 0 -4px 12px 3px #93c5fd; }
+  0%   { box-shadow: 0 -3px 6px 1px #93c5fd; }
+  25%  { box-shadow: 3px 0  6px 1px #93c5fd; }
+  50%  { box-shadow: 0  3px 6px 1px #93c5fd; }
+  75%  { box-shadow: -3px 0 6px 1px #93c5fd; }
+  100% { box-shadow: 0 -3px 6px 1px #93c5fd; }
 }
 
 .save-electric-btn {
