@@ -419,11 +419,11 @@
   height: 300%;
   background: conic-gradient(
     transparent 0deg,
-    transparent 105deg,
-    #60a5fa 140deg,
-    #ffffff 175deg,
-    #60a5fa 210deg,
-    transparent 245deg,
+    transparent 158deg,
+    #93c5fd 168deg,
+    #ffffff 180deg,
+    #93c5fd 192deg,
+    transparent 202deg,
     transparent 360deg
   );
   animation: electric-spin 1s linear infinite;
