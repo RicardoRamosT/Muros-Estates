@@ -4798,7 +4798,7 @@ export function TypologySpreadsheet() {
                             isLockedByFlow = true;
                           } else if (devHasTipos && !hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
-                          } else if (!hasType && col.key !== "type") {
+                          } else if (!hasType && col.key !== "type" && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
                           }
                         }
