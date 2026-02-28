@@ -1635,13 +1635,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     return (
       <div 
         className={cn(
-          "spreadsheet-cell px-2 text-xs", cellBorderClass,
+          "spreadsheet-cell text-xs", cellBorderClass,
+          column.type === "select" && column.centerCells ? "px-1 !justify-center gap-1" : "px-2",
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
           isLista && "font-semibold cursor-default",
           column.calculated && !isLista && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
           disabled && !column.calculated && !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50",
           disabled && !column.calculated && !isBooleanDisabled && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
-          column.centerCells && "justify-center text-center"
+          column.centerCells && !(column.type === "select") && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...(isBooleanDisabled ? { color: 'black' } : {}), ...listaStyle }}
         title={isLista && deliveryDateStr ? `Lista desde ${deliveryDateStr}` : undefined}
@@ -1651,7 +1652,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           ? ""
           : (column.format === "currency" || column.format === "area") 
             ? <FormattedCellValue value={value} format={column.format} />
-            : (formatValue(value, column.format) || "")}
+            : column.type === "select" && column.centerCells
+              ? <><span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span><ChevronDown className="w-3 h-3 shrink-0 opacity-40" /></>
+              : (formatValue(value, column.format) || "")}
       </div>
     );
   }
