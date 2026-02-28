@@ -1636,8 +1636,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       <div 
         className={cn(
           "spreadsheet-cell text-xs", cellBorderClass,
-          column.type === "select" && column.centerCells ? "px-1 !justify-center gap-1" : "px-2",
-          (column.format === "currency" || column.format === "area") ? "" : "truncate",
+          column.type === "select" ? (column.centerCells ? "px-1 !justify-center gap-1" : "px-1") : "px-2",
+          column.type === "select" ? "" : (column.format === "currency" || column.format === "area") ? "" : "truncate",
           isLista && "font-semibold cursor-default",
           column.calculated && !isLista && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
           disabled && !column.calculated && !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50",
@@ -1652,8 +1652,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           ? ""
           : (column.format === "currency" || column.format === "area") 
             ? <FormattedCellValue value={value} format={column.format} />
-            : column.type === "select" && column.centerCells
-              ? <><span className="truncate min-w-0">{formatValue(value, column.format) || ""}</span><ChevronDown className="w-3 h-3 shrink-0 opacity-40" /></>
+            : column.type === "select"
+              ? <><span className={cn("truncate min-w-0", !column.centerCells && "flex-1")}>{formatValue(value, column.format) || ""}</span><ChevronDown className="w-3 h-3 shrink-0 opacity-40" /></>
               : (formatValue(value, column.format) || "")}
       </div>
     );
@@ -2070,6 +2070,18 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     const displayValue = (entityLinkedFields.includes(column.key) && currentValue && !finalOptions.includes(currentValue)) ? "" : currentValue;
     
+    if (rowDisabledStyle) {
+      return (
+        <div
+          className={cn("spreadsheet-cell px-1", cellBorderClass, column.centerCells ? "!justify-center gap-1" : "")}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
+        >
+          <span className={cn("truncate min-w-0", !column.centerCells && "flex-1")}>{displayValue || ""}</span>
+          <ChevronDown className="w-3 h-3 shrink-0 opacity-40" />
+        </div>
+      );
+    }
+
     return (
       <div 
         className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
