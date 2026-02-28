@@ -1626,8 +1626,10 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   if (column.calculated || disabled) {
     const isBooleanDisabled = column.type === "boolean" && disabled && !column.calculated;
     const isLista = column.key === "appreciationTotal" && value === "Lista";
-    const listaStyle: React.CSSProperties = isLista && !rowDisabledStyle
-      ? { backgroundColor: '#dcfce7', color: '#15803d' }
+    const listaStyle: React.CSSProperties = isLista
+      ? rowDisabledStyle
+        ? { backgroundColor: '#A8C0AF', color: '#3d6b50' }
+        : { backgroundColor: '#dcfce7', color: '#15803d' }
       : {};
     const deliveryDateStr = isLista && row?.deliveryDate ? String(row.deliveryDate) : "";
     return (
@@ -1635,7 +1637,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn(
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          isLista && !rowDisabledStyle && "font-semibold cursor-default",
+          isLista && "font-semibold cursor-default",
           column.calculated && !isLista && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
           disabled && !column.calculated && !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50",
           disabled && !column.calculated && !isBooleanDisabled && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
