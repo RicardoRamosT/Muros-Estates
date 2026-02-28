@@ -228,8 +228,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "",
     columns: [
-      { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
-      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 62 },
+      { key: "bedrooms", label: "Recámaras", type: "select", options: [] as string[], width: 90, centerCells: true },
+      { key: "bathrooms", label: "Baños", type: "select", options: [] as string[], width: 62, centerCells: true },
       { key: "areas", label: "Áreas", type: "multiselect", options: [], width: 62 },
       { key: "hasBalcony", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize", hideLabel: true, fullLabel: "Balcón" },
       { key: "balconySize", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
@@ -249,8 +249,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "",
     columns: [
-      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 90 },
-      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 62 },
+      { key: "bedrooms2", label: "Recámaras", type: "select", options: [] as string[], width: 90, centerCells: true },
+      { key: "bathrooms2", label: "Baños", type: "select", options: [] as string[], width: 62, centerCells: true },
       { key: "areas2", label: "Áreas", type: "multiselect", options: [], width: 62 },
       { key: "hasBalcony2", label: "Balcón", type: "boolean", width: 60, linkedSizeField: "balconySize2", hideLabel: true, fullLabel: "Balcón", noUnassignedBool: true },
       { key: "balconySize2", label: "m²", type: "decimal", width: 65, format: "area", hideLabel: true, fullLabel: "Balcón m²" },
@@ -429,11 +429,11 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency", calculated: true },
-      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 62, calculated: true },
+      { key: "mortgageStartDate", label: "Inicia", type: "date", width: 82, calculated: true },
       { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 56, calculated: true },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
-      { key: "mortgageEndDate", label: "Termina", type: "date", width: 72, calculated: true },
+      { key: "mortgageEndDate", label: "Termina", type: "date", width: 82, calculated: true },
       { key: "mortgageTotal", label: "Total", type: "decimal", width: 85, format: "currency", calculated: true },
     ],
   },
@@ -447,9 +447,9 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "currency" },
       { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 75, format: "currency", calculated: true },
-      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 62, calculated: true },
+      { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 82, calculated: true },
       { key: "maintenanceFinal", label: "Final", type: "decimal", width: 75, format: "currency", calculated: true },
-      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 62, calculated: true },
+      { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 82, calculated: true },
       { key: "maintenanceTotal", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
   },
@@ -462,7 +462,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "rentInitial", label: "Inicial", type: "decimal", width: 75, format: "currency" },
-      { key: "rentStartDate", label: "Fecha", type: "date", width: 62, calculated: true },
+      { key: "rentStartDate", label: "Fecha", type: "date", width: 82, calculated: true },
     ],
   },
   {
@@ -486,7 +486,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "rentFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
-      { key: "rentEndDate", label: "Fecha", type: "date", width: 62, calculated: true },
+      { key: "rentEndDate", label: "Fecha", type: "date", width: 82, calculated: true },
     ],
   },
   {
@@ -1856,7 +1856,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     };
     
     const isSinEquipo = isQueIncluye && currentValues.length === 1 && currentValues[0] === SIN_EQUIPO;
-    const displayValue = isSinEquipo 
+    const isEmptyQueIncluye = isQueIncluye && currentValues.length === 0;
+    const displayValue = (isSinEquipo || isEmptyQueIncluye)
       ? SIN_EQUIPO
       : currentValues.length > 0 
         ? `${currentValues.length}`
@@ -1882,10 +1883,13 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                   !isSinEquipo && currentValues.length > 0 ? "justify-center font-medium" : "justify-between text-left"
                 )}
                 data-testid={`multiselect-${column.key}-${rowId}`}
-                title={isSinEquipo ? SIN_EQUIPO : currentValues.join(', ')}
+                title={isEmptyQueIncluye ? "Sin Equipo (por defecto)" : isSinEquipo ? SIN_EQUIPO : currentValues.join(', ')}
               >
-                <span className={cn(!isSinEquipo && currentValues.length > 0 ? "" : "truncate")}>{displayValue}</span>
-                {(isSinEquipo || currentValues.length === 0) && <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />}
+                <span className={cn(
+                  !isSinEquipo && !isEmptyQueIncluye && currentValues.length > 0 ? "" : "truncate",
+                  isEmptyQueIncluye && "text-muted-foreground italic"
+                )}>{displayValue}</span>
+                {(isSinEquipo || isEmptyQueIncluye || currentValues.length === 0) && <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
@@ -3305,6 +3309,15 @@ export function TypologySpreadsheet() {
     
     const currentRow = typologies.find(t => t.id === rowId);
     const normalizedChanges = { ...changes };
+
+    // Auto-default queIncluye to "Sin Equipo" when saving with empty field
+    const mergedQueIncluye = ("queIncluye" in normalizedChanges)
+      ? normalizedChanges.queIncluye
+      : currentRow?.queIncluye;
+    if (!mergedQueIncluye || mergedQueIncluye === "") {
+      (normalizedChanges as any).queIncluye = "Sin Equipo";
+    }
+
     if (currentRow && validEntities) {
       const entityChecks: { field: keyof typeof normalizedChanges; list: string[] }[] = [
         { field: "developer", list: validEntities.developers },
@@ -3768,7 +3781,9 @@ export function TypologySpreadsheet() {
           const rawEP = String(dev.entregaProyectada);
           const date = /^\d{4}-\d{2}-\d{2}$/.test(rawEP)
             ? new Date(rawEP + 'T12:00:00')
-            : new Date(rawEP);
+            : /^\d{4}$/.test(rawEP)
+              ? new Date(parseInt(rawEP), 0, 1, 12)
+              : new Date(rawEP);
           if (!isNaN(date.getTime())) {
             autoDeliveryDate = `${date.getDate().toString().padStart(2,'0')}/${MONTH_SHORT[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
           }
@@ -3793,7 +3808,9 @@ export function TypologySpreadsheet() {
         const rawEP2 = String(devForEntrega.entregaProyectada);
         const parsed = /^\d{4}-\d{2}-\d{2}$/.test(rawEP2)
           ? new Date(rawEP2 + 'T12:00:00')
-          : new Date(rawEP2);
+          : /^\d{4}$/.test(rawEP2)
+            ? new Date(parseInt(rawEP2), 0, 1, 12)
+            : new Date(rawEP2);
         if (!isNaN(parsed.getTime())) devEntregaDate = parsed;
       }
     }
