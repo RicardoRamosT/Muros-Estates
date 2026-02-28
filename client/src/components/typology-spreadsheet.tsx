@@ -1900,7 +1900,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
                       className="flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-accent cursor-pointer font-medium"
                     >
                       <Checkbox
-                        checked={currentValues.includes(SIN_EQUIPO)}
+                        checked={currentValues.includes(SIN_EQUIPO) || isEmptyQueIncluye}
                         onCheckedChange={() => handleToggle(SIN_EQUIPO)}
                       />
                       <span>{SIN_EQUIPO}</span>
