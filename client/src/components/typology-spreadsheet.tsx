@@ -2010,6 +2010,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       } else {
         options = [];
       }
+      if (tipologiasConfigByDevelopment && rowDev) {
+        const devConfig = tipologiasConfigByDevelopment[rowDev];
+        if (devConfig) {
+          options = options.filter(tipologia =>
+            ((devConfig[tipologia] || []) as string[]).length > 0
+          );
+        }
+      }
       const currentTipoDesarrollo = Array.isArray(row?.tipoDesarrollo)
         ? (row?.tipoDesarrollo as string[])[0]
         : (row?.tipoDesarrollo as string | null | undefined);
@@ -2129,20 +2137,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     );
   }
   
-  // Development type multi-select - shows types from the selected development or developer
+  // Development type multi-select - shows types from the selected development only
   if (column.type === "development-type-select") {
     const developmentName = row?.development;
     const selectedDevelopment = allDevelopments?.find(d => d.name === developmentName);
     
-    // First try development tipos, then fallback to developer tipos
     let availableTypes: string[] = [];
     if (selectedDevelopment?.tipos && (selectedDevelopment.tipos as string[]).length > 0) {
       availableTypes = selectedDevelopment.tipos as string[];
-    } else if (selectedDevelopment?.developerId && allDevelopers) {
-      const selectedDeveloper = allDevelopers.find(dev => dev.id === selectedDevelopment.developerId);
-      if (selectedDeveloper?.tipos && (selectedDeveloper.tipos as string[]).length > 0) {
-        availableTypes = selectedDeveloper.tipos as string[];
-      }
     }
     
     const currentTypes: string[] = Array.isArray(value) ? value : (value ? [value as string] : []);
