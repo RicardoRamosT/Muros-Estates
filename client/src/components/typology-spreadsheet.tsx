@@ -3013,14 +3013,8 @@ export function TypologySpreadsheet() {
           
           autoFillCityZoneFromDevelopment(autoDevName);
           
-          const devTipos = (developerDevelopments[0] as any).tipos as string[] | null;
-          if (devTipos && devTipos.length === 1) {
-            autoPopulatedFields.tipoDesarrollo = devTipos;
-            (updatedRow as any).tipoDesarrollo = devTipos;
-          } else if (devTipos && devTipos.length > 1) {
-            autoPopulatedFields.tipoDesarrollo = null;
-            (updatedRow as any).tipoDesarrollo = null;
-          }
+          autoPopulatedFields.tipoDesarrollo = null;
+          (updatedRow as any).tipoDesarrollo = null;
 
           autoPopulatedFields.type = null;
           (updatedRow as any).type = null;
@@ -3088,16 +3082,8 @@ export function TypologySpreadsheet() {
 
       const devName = value as string;
       if (devName) {
-        const devEntity = dbDevelopments.find(d => d.name === devName);
-        const devTipos = (devEntity as any)?.tipos as string[] | null;
-        if (devTipos && devTipos.length === 1) {
-          autoPopulatedFields.tipoDesarrollo = devTipos;
-          (updatedRow as any).tipoDesarrollo = devTipos;
-        } else {
-          autoPopulatedFields.tipoDesarrollo = null;
-          (updatedRow as any).tipoDesarrollo = null;
-        }
-
+        autoPopulatedFields.tipoDesarrollo = null;
+        (updatedRow as any).tipoDesarrollo = null;
         autoPopulatedFields.type = null;
         (updatedRow as any).type = null;
       } else {
@@ -3109,39 +3095,13 @@ export function TypologySpreadsheet() {
     }
 
     if (field === "tipoDesarrollo") {
-      const devName = (updatedRow as any).development as string | null;
-      const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
-      const tipoVal = Array.isArray(value) ? (value as string[])[0] : (value as string | null);
-      if (tipoVal && devConfig) {
-        const tipologiasForTipo = Object.entries(devConfig)
-          .filter(([, tipos]) => (tipos as string[]).includes(tipoVal))
-          .map(([tipologia]) => tipologia);
-        if (tipologiasForTipo.length === 1) {
-          autoPopulatedFields.type = tipologiasForTipo[0];
-          (updatedRow as any).type = tipologiasForTipo[0];
-        } else {
-          autoPopulatedFields.type = null;
-          (updatedRow as any).type = null;
-        }
-      } else {
-        autoPopulatedFields.type = null;
-        (updatedRow as any).type = null;
-      }
+      autoPopulatedFields.type = null;
+      (updatedRow as any).type = null;
     }
 
     if ((field as string) === "tipologia" && value) {
-      const devName = (updatedRow as any).development as string | null;
-      const devConfig = devName ? tipologiasConfigByDevelopment[devName] : null;
-      if (devConfig) {
-        const tiposForTipologia = (devConfig[value as string] || []) as string[];
-        if (tiposForTipologia.length === 1) {
-          autoPopulatedFields.tipoDesarrollo = [tiposForTipologia[0]];
-          (updatedRow as any).tipoDesarrollo = [tiposForTipologia[0]];
-        } else {
-          autoPopulatedFields.tipoDesarrollo = null;
-          (updatedRow as any).tipoDesarrollo = null;
-        }
-      }
+      autoPopulatedFields.tipoDesarrollo = null;
+      (updatedRow as any).tipoDesarrollo = null;
     }
 
     const dependentFieldsToClear: Record<string, string[]> = {
