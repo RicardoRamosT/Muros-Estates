@@ -3300,15 +3300,17 @@ export function TypologySpreadsheet() {
     if (!currentRow) return [];
     const changes = pendingChanges.get(rowId) || {};
     const mergedRow = { ...currentRow, ...changes };
-    if (!isTypologyComplete(mergedRow as Partial<Typology>, validEntities)) return [];
     const activeAvisos = avisos.filter(a => a.active);
     const warnings: string[] = [];
+    const isComplete = isTypologyComplete(mergedRow as Partial<Typology>, validEntities);
     for (const aviso of activeAvisos) {
       if (aviso.field === "media") {
         const mediaCount = getTypologyDocCount(rowId);
         if (mediaCount < aviso.minQuantity) {
           warnings.push(`Hay menos de ${aviso.minQuantity} cantidad de ${aviso.name.toLowerCase()} (actualmente ${mediaCount})`);
         }
+      } else if (isComplete) {
+        // otros tipos de aviso solo para filas completas (futuro)
       }
     }
     return warnings;
