@@ -3906,33 +3906,29 @@ export function TypologySpreadsheet() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
-          <div className="relative rounded-md overflow-hidden p-[2px]">
-            {pendingRowCount > 0 && !isSaving && (
-              <span className="save-electric-border" />
+          <Button 
+            onClick={async () => {
+              await saveAllPendingRows();
+            }}
+            size="sm"
+            disabled={pendingRowCount === 0 || isSaving}
+            className={cn(
+              "transition-all duration-300",
+              pendingRowCount > 0 && !isSaving && "save-electric-btn",
+              saveFlash 
+                ? "text-white shadow-lg scale-105" 
+                : "text-white"
             )}
-            <Button 
-              onClick={async () => {
-                await saveAllPendingRows();
-              }}
-              size="sm"
-              disabled={pendingRowCount === 0 || isSaving}
-              className={cn(
-                "relative z-10 transition-all duration-300",
-                saveFlash 
-                  ? "text-white shadow-lg scale-105" 
-                  : "text-white"
-              )}
-              style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
-              data-testid="button-save-row"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-1" />
-              )}
-              Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
-            </Button>
-          </div>
+            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
+            data-testid="button-save-row"
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-1" />
+            )}
+            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
+          </Button>
           <Button 
             onClick={handleAddRow} 
             size="sm"

@@ -407,26 +407,14 @@
   }
 }
 
-@keyframes electric-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes electric-travel {
+  0%   { box-shadow: 0 -4px 12px 3px #93c5fd; }
+  25%  { box-shadow: 4px 0  12px 3px #93c5fd; }
+  50%  { box-shadow: 0  4px 12px 3px #93c5fd; }
+  75%  { box-shadow: -4px 0 12px 3px #93c5fd; }
+  100% { box-shadow: 0 -4px 12px 3px #93c5fd; }
 }
 
-.save-electric-border {
-  position: absolute;
-  inset: -100%;
-  width: 300%;
-  height: 300%;
-  background: conic-gradient(
-    transparent 0deg,
-    transparent 158deg,
-    #93c5fd 168deg,
-    #ffffff 180deg,
-    #93c5fd 192deg,
-    transparent 202deg,
-    transparent 360deg
-  );
-  animation: electric-spin 1s linear infinite;
-  pointer-events: none;
-  z-index: 0;
+.save-electric-btn {
+  animation: electric-travel 1.2s linear infinite;
 }
