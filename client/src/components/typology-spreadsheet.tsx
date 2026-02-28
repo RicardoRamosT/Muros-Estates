@@ -1690,8 +1690,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         label = "Sí";
         break;
       case "ready":
-        bgColor = "#f97316";
-        dotColor = "#ea580c";
+        bgColor = "#F16100";
+        dotColor = "#C04D00";
         textColorStyle = { color: "white", fontWeight: 600 };
         label = "No";
         break;
@@ -4570,7 +4570,7 @@ export function TypologySpreadsheet() {
                               fullLabel={col.fullLabel || (col.hideLabel ? col.label : undefined)}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false_ready", "false_red", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
-                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#f97316", "false_red": "#dc2626", "null": "#1f2937" } : undefined}
+                              dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#F16100", "false_red": "#dc2626", "null": "#1f2937" } : undefined}
                               labelMap={col.key === "active" ? { "true": "Sí", "false_ready": "No Naranja", "false_red": "No Rojo", "null": "Deshabilitado" } : undefined}
                               hasParentGroup={!!section.parentLabel}
                             />
@@ -4626,7 +4626,7 @@ export function TypologySpreadsheet() {
                   const dotColor = mergedRow.active === null
                     ? "#6b7280"
                     : isComplete
-                      ? (mergedRow.active === true ? "#15803d" : "#f97316")
+                      ? (mergedRow.active === true ? "#15803d" : "#F16100")
                       : "#ef4444";
                   const missingForDot = !isComplete ? getMissingFields(mergedRow as Partial<Typology>, validEntities) : [];
                   const dotTooltip = missingForDot.length > 0
