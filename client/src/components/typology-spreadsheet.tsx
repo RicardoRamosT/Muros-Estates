@@ -2036,6 +2036,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         title={devWarning ? `Desarrollo incompleto:\n${devWarning.split('\n').map(l => '• ' + l).join('\n')}` : undefined}
       >
+        {devWarning !== undefined && (
+          <AlertCircle className={cn("w-3 h-3 shrink-0 mr-0.5", devWarning ? "text-amber-500" : "invisible")} />
+        )}
         <ExclusiveSelect 
           value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
           onValueChange={(val) => {
@@ -2047,14 +2050,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           }}
         >
           <SelectTrigger 
-            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3", column.centerCells && (!displayValue || /^\d+$/.test(displayValue)) ? "text-center" : "text-left", !displayValue && column.allowUnassigned && "font-medium")}
+            className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none bg-transparent px-1 [&_svg]:h-3 [&_svg]:w-3 text-center", !displayValue && column.allowUnassigned && "font-medium")}
             data-testid={`select-${column.key}-${rowId}`}
             title={displayValue || ""}
           >
-            <span className="truncate min-w-0 flex-1 flex items-center gap-0.5">
-              {devWarning && <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />}
-              {displayValue || ""}
-            </span>
+            <span className="truncate min-w-0 flex-1 text-center">{displayValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "" : "text-muted-foreground italic"} style={column.allowUnassigned ? { color: '#000' } : undefined}>
@@ -4673,7 +4673,7 @@ export function TypologySpreadsheet() {
                           const tipList = (selectedDev as any).tipologiasList as string[] | null;
                           if (!tipList || tipList.length === 0) devMissingFieldsList.push("Tipologías");
                         }
-                        const devWarningText = devMissingFieldsList.length > 0 ? devMissingFieldsList.join('\n') : undefined;
+                        const devWarningText = devMissingFieldsList.length > 0 ? devMissingFieldsList.join('\n') : "";
                         const isDevIncomplete = devMissingFieldsList.length > 0;
                         
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
