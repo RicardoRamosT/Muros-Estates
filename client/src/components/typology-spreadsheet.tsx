@@ -2089,13 +2089,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               "h-6 w-full min-w-0 text-xs border-0 focus:ring-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0",
               devWarning !== undefined
                 ? "pl-1 pr-0"
-                : cn("px-1", column.centerCells && (!displayValue || /^\d+$/.test(displayValue)) ? "text-center" : "text-left"),
+                : column.centerCells
+                  ? "px-1 !justify-center gap-1"
+                  : "px-1 text-left",
               !displayValue && column.allowUnassigned && "font-medium"
             )}
             data-testid={`select-${column.key}-${rowId}`}
             title={displayValue || ""}
           >
-            <span className={cn("truncate min-w-0 flex-1", devWarning !== undefined && "text-center")}>{displayValue || ""}</span>
+            <span className={cn("truncate min-w-0", column.centerCells ? "" : "flex-1", devWarning !== undefined && "text-center")}>{displayValue || ""}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "" : "text-muted-foreground italic"} style={column.allowUnassigned ? { color: '#000' } : undefined}>
