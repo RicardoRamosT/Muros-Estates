@@ -1,0 +1,41 @@
+En Desarrollo, si hay advertencia que la celda sea blanca, no amarilla, y con el simbolo amarillo
+
+El icono de advertencia que salga negro si esta dentro de una fila deshabilitada
+
+En un Desarrollo que no tiene tipos, al ponerlo en tipologias no marca la advertencia ni me dice que falta, pero tipo si se bloquea, o quizas hay una logica diferente que bloquea eso, hay que analizarlo
+
+En el hover de la bolita que las secciones esten todas en Mayuscula
+
+La columna Final es calculado crema, que la formula seria algo asi, tomamos el valor de incial * la tasa, despues para el siguiente año tomamos ese valor con la tasa y la multiplicamos por la tasa denuevo, y asi todos los años, por lo que si inicial es en 2025, y final en 2050, esa formula se haria 25 veces y en final se mostraria el ultimo valor que fue multiplicado por tasa. Y en la columna total, agarramos el total de todas las veces que se multiplico, para saber el total de costo que serian esos 25 años.
+
+En la columna EQUIPO debe esta standard Sin Equipo, que no este vacia nunca, y ya si quieres lo cambian
+
+En la columna Falta la logica no funciona, porque por ejemplo puse 2028 y me pone concluida cuando deberia decir 2 años y algo
+
+En la columna Falta, que en vez que diga Concluida diga Lista, que cuando este Lista le celda se ponga en verde, y al hacer hover que te diga desde cuando esta lista.
+
+En la columna Falta, que en vez que diga "9 Años 2 Meses", diga "9a - 2m", pero en el landing que si diga "9 Años 2 Meses", si hay por ejemplo 9 años, 2 meses y 22 dias, que mejor se redondee a 9 años 3 meses
+
+La logica de Medios, al guardar no me da una advertencia de que hay menos de la cantidad minima que tenemos en medios
+
+En catalogos, en GENERAL, el icono de basura del catalogo Avisos me gusta mas que los demas, reemplaza todos por ese de Avisos
+
+La columna Medios debe ser azul oscuro
+
+Crear un boton de busqueda de seccion a la derecha del titulo Tipologías, que seria un dropdown que Tambien puedas escribir el nombre y las opciones de secciones se van limitando acorde a lo que escribes, y al picarle a la seccion te haga scroll hacia esa seccion, y acaba cuando estes centrado en esa seccion. A la derecha de esa de busqueda se posicionarian los botones de limpiar filtros y descolapsar
+
+El boton de guardar que sea del color de Nuevo, y cuando este disponible para usarse que tenga como una animacion en su orilla que esta disponible, que un color que le da vuelta al boton, y al guardar, ya se hace de nuevo del color del boton de Nuevo, pero tenue porque no esta disponible para guardar. Borrar el badge que dice guardando, al guardar, que el boton se haga una animacion como de cargando, y al acabar que regrese a ser el boton normal.
+
+En Activo, el no naranja que sea mas naranja, menos transparente, para que no se confunda con el rojo, el naranja del color del logo de muros
+
+En Equipo al seleccionar algo que en vez que diga "1 seleccionado" que diga solo 1 centrado en la celda, y que esto sea asi en todos que tengan lo mismo de seleccionado
+
+Que por ejemplo en Recamaras, Baños, Areas, que en la celda su dato este centrado
+
+Al deshabilitar algo que los dropdowns, si y no, etc no pierdan la flechita, para que aunque esten deshabilitados esten simetricas con las demas filas
+
+En la celda Medios que los Iconos de las celdas sean negros, en vez de grises
+
+Al deshabilitar una fila que los calculados se hagan mas oscuros como si hubiera un gris delante de ellos para saber que esta deshabilitado
+
+En las fechas dice mes/años, que mejor diga la fecha completa con dia, en todas las fechas calculadas

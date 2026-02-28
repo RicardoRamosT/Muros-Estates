@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
-  Loader2, AlertCircle,
+  Loader2, AlertCircle, Search, Info,
   Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock, Maximize2
 } from "lucide-react";
 import {
@@ -114,6 +114,7 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
 
 const SECTION_COLOR_DARK = "rgb(11,120,180)";
 const SECTION_COLOR_LIGHT = "rgb(13,149,225)";
+const MEDIOS_COLOR = "rgb(30, 64, 175)";
 const SECTION_BORDER_COLOR = "rgb(121,135,203)";
 
 
@@ -447,7 +448,7 @@ const SECTIONS: SectionDef[] = [
       { key: "maintenanceM2", label: "m²", type: "decimal", width: 60, format: "currency" },
       { key: "maintenanceInitial", label: "Inicial", type: "decimal", width: 75, format: "currency", calculated: true },
       { key: "maintenanceStartDate", label: "Fecha", type: "date", width: 62, calculated: true },
-      { key: "maintenanceFinal", label: "Final", type: "decimal", width: 75, format: "currency" },
+      { key: "maintenanceFinal", label: "Final", type: "decimal", width: 75, format: "currency", calculated: true },
       { key: "maintenanceEndDate", label: "Fecha", type: "date", width: 62, calculated: true },
       { key: "maintenanceTotal", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true },
     ],
@@ -617,10 +618,16 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   }
   const mortgageTotal = mortgageMonthlyPayment * numPayments;
   
+  const appreciationRate = parseFloat(row.appreciationRate as string) || getDefault('appreciationRate', 7.0);
+
   const maintenanceM2 = maintenanceM2FromNivel || (parseFloat(row.maintenanceM2 as string) || 0);
   const maintenanceInitialCalc = maintenanceM2 * sizeFinal;
   const maintenanceInitial = maintenanceInitialCalc > 0 ? maintenanceInitialCalc : (parseFloat(row.maintenanceInitial as string) || 0);
-  const maintenanceTotal = maintenanceInitial * 12;
+  const maintRate = appreciationRate / 100;
+  const maintenanceFinal = maintenanceInitial * 12 * Math.pow(1 + maintRate, Math.max(0, mortgageYears - 1));
+  const maintenanceTotal = maintRate > 0
+    ? maintenanceInitial * 12 * ((Math.pow(1 + maintRate, mortgageYears) - 1) / maintRate)
+    : maintenanceInitial * 12 * mortgageYears;
 
   const rentInitial = parseFloat(row.rentInitial as string) || 0;
   const rentRatePercent = parseFloat(row.rentRatePercent as string) || getDefault('rentRatePercent', 7.0);
@@ -632,31 +639,35 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const investmentMonthly = rentMonths > 0 ? investmentNet / rentMonths : 0;
   const investmentRate = investmentTotal > 0 ? (investmentNet / investmentTotal) * 100 : 0;
   
-  const appreciationRate = parseFloat(row.appreciationRate as string) || getDefault('appreciationRate', 7.0);
-  
-  let appreciationTotalText = entregaDate ? "Concluida" : "";
+  let appreciationTotalText = "";
   const now = new Date();
-  if (entregaDate && entregaDate > now) {
-    const totalMonthsDiff =
-      (entregaDate.getFullYear() - now.getFullYear()) * 12 +
-      (entregaDate.getMonth() - now.getMonth()) +
-      (entregaDate.getDate() >= now.getDate() ? 0 : -1);
-    const años = Math.floor(totalMonthsDiff / 12);
-    const meses = Math.round(totalMonthsDiff % 12);
-    if (años > 0 && meses > 0) {
-      appreciationTotalText = `${años} año${años !== 1 ? 's' : ''} y ${meses} mes${meses !== 1 ? 'es' : ''}`;
-    } else if (años > 0) {
-      appreciationTotalText = `${años} año${años !== 1 ? 's' : ''}`;
+  if (entregaDate && !isNaN(entregaDate.getTime())) {
+    if (entregaDate > now) {
+      const totalMonthsDiff =
+        (entregaDate.getFullYear() - now.getFullYear()) * 12 +
+        (entregaDate.getMonth() - now.getMonth()) +
+        (entregaDate.getDate() > now.getDate() ? 0 : -1);
+      const rawMeses = totalMonthsDiff % 12;
+      const extraMonth = entregaDate.getDate() > now.getDate() ? 0 : 0;
+      const años = Math.floor(totalMonthsDiff / 12);
+      const meses = rawMeses + extraMonth;
+      if (años > 0 && meses > 0) {
+        appreciationTotalText = `${años}a - ${meses}m`;
+      } else if (años > 0) {
+        appreciationTotalText = `${años}a`;
+      } else {
+        appreciationTotalText = `${meses}m`;
+      }
     } else {
-      appreciationTotalText = `${meses} mes${meses !== 1 ? 'es' : ''}`;
+      appreciationTotalText = "Lista";
     }
   }
 
-  const totalYearsForAppreciation = entregaDate && entregaDate > now
-    ? ((entregaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+  const totalYearsForAppreciation = entregaDate && !isNaN(entregaDate.getTime()) && entregaDate > now
+    ? Math.floor((entregaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25))
     : 0;
-  const appreciationTotal = finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice;
-  const finalValue = finalPrice + appreciationTotal;
+  const appreciationGain = finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice;
+  const finalValue = finalPrice + appreciationGain;
   
   const result: Partial<Typology> = {
     finalPrice: finalPrice.toFixed(2),
@@ -679,6 +690,7 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     mortgageMonthlyPayment: mortgageMonthlyPayment.toFixed(2),
     mortgageTotal: mortgageTotal.toFixed(2),
     maintenanceInitial: maintenanceInitialCalc > 0 ? maintenanceInitialCalc.toFixed(2) : (row.maintenanceInitial ?? "0"),
+    maintenanceFinal: maintenanceFinal.toFixed(2),
     maintenanceTotal: maintenanceTotal.toFixed(2),
     rentRatePercent: row.rentRatePercent ?? rentRatePercent.toFixed(2),
     rentMonths: row.rentMonths ?? rentMonths,
@@ -824,12 +836,15 @@ function toDateInputValue(str: any): string {
   return "";
 }
 
+const MONTH_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
 function formatDateDisplay(str: any): string {
   if (!str) return "";
   const s = String(str).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const [year, month, day] = s.split('-');
-    return `${day}/${month}/${year.slice(2)}`;
+    const monthIdx = parseInt(month) - 1;
+    return `${day}/${MONTH_SHORT[monthIdx]}/${year.slice(2)}`;
   }
   return s;
 }
@@ -1541,7 +1556,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   const inputRef = useRef<HTMLInputElement>(null);
   const cellBorderClass = "";
   const rowDisabledStyle: React.CSSProperties | undefined = (isRowDisabled && column.key !== "active" && column.key !== "id")
-    ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
+    ? { backgroundColor: column.calculated ? '#4b5563' : '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
     : undefined;
   
   useEffect(() => {
@@ -1607,17 +1622,24 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
 
   if (column.calculated || disabled) {
     const isBooleanDisabled = column.type === "boolean" && disabled && !column.calculated;
+    const isLista = column.key === "appreciationTotal" && value === "Lista";
+    const listaStyle: React.CSSProperties = isLista && !rowDisabledStyle
+      ? { backgroundColor: '#dcfce7', color: '#15803d' }
+      : {};
+    const deliveryDateStr = isLista && row?.deliveryDate ? String(row.deliveryDate) : "";
     return (
       <div 
         className={cn(
           "spreadsheet-cell px-2 text-xs", cellBorderClass,
           (column.format === "currency" || column.format === "area") ? "" : "truncate",
-          column.calculated && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
+          isLista && !rowDisabledStyle && "font-semibold cursor-default",
+          column.calculated && !isLista && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
           disabled && !column.calculated && !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50",
           disabled && !column.calculated && !isBooleanDisabled && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...(isBooleanDisabled ? { color: 'black' } : {}) }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...(isBooleanDisabled ? { color: 'black' } : {}), ...listaStyle }}
+        title={isLista && deliveryDateStr ? `Lista desde ${deliveryDateStr}` : undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
         {isBooleanDisabled
@@ -1665,9 +1687,9 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         label = "Sí";
         break;
       case "ready":
-        bgColor = "#fff7ed";
-        dotColor = "#f97316";
-        textColorStyle = { color: "#f97316", fontWeight: 500 };
+        bgColor = "#f97316";
+        dotColor = "#ea580c";
+        textColorStyle = { color: "white", fontWeight: 600 };
         label = "No";
         break;
       case "disabled":
@@ -1688,7 +1710,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     const computedMissing = activeState === "incomplete" && row ? getMissingFields(row as Partial<Typology>, validEntities) : [];
     const missingCount = computedMissing.length;
     const tooltipContent = missingCount > 0
-      ? `Campos vacíos (${missingCount}):\n${computedMissing.map(f => `• ${f.section} → ${f.field}`).join('\n')}`
+      ? `Campos vacíos (${missingCount}):\n${computedMissing.map(f => `• ${f.section.toUpperCase()} → ${f.field}`).join('\n')}`
       : undefined;
 
     return (
@@ -1759,12 +1781,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         ? 'text-red-600 font-medium' 
         : canBeUnassigned ? 'text-foreground font-medium' : 'text-muted-foreground';
     if (rowDisabledStyle) {
-      const label = value === true ? "Sí" : value === false ? "No" : "";
+      const disLabel = value === true ? "Sí" : value === false ? "No" : "";
       return (
         <div
-          className={cn("spreadsheet-cell px-0 justify-center text-xs font-medium", cellBorderClass)}
+          className={cn("spreadsheet-cell px-0 justify-center gap-0.5 text-xs font-medium", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: '#9ca3af', color: 'black', pointerEvents: 'none', cursor: 'default' }}
-        >{label}</div>
+        >
+          <span style={{ width: '2.5ch' }}>{disLabel}</span>
+          <ChevronDown className="w-3 h-3 shrink-0 opacity-50" />
+        </div>
       );
     }
     return (
@@ -1834,7 +1859,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     const displayValue = isSinEquipo 
       ? SIN_EQUIPO
       : currentValues.length > 0 
-        ? `${currentValues.length} seleccionados`
+        ? `${currentValues.length}`
         : "";
     
     return (
@@ -1852,12 +1877,15 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="flex items-center justify-between w-full h-6 text-xs px-1 cursor-pointer bg-transparent border-0 focus:ring-0 focus:outline-none text-left"
+                className={cn(
+                  "flex items-center w-full h-6 text-xs px-1 cursor-pointer bg-transparent border-0 focus:ring-0 focus:outline-none",
+                  !isSinEquipo && currentValues.length > 0 ? "justify-center font-medium" : "justify-between text-left"
+                )}
                 data-testid={`multiselect-${column.key}-${rowId}`}
-                title={displayValue}
+                title={isSinEquipo ? SIN_EQUIPO : currentValues.join(', ')}
               >
-                <span className="truncate">{displayValue}</span>
-                <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className={cn(!isSinEquipo && currentValues.length > 0 ? "" : "truncate")}>{displayValue}</span>
+                {(isSinEquipo || currentValues.length === 0) && <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
@@ -2032,12 +2060,12 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (devWarning ? "bg-amber-50 dark:bg-amber-950/30" : isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         title={devWarning ? `Desarrollo incompleto:\n${devWarning.split('\n').map(l => '• ' + l).join('\n')}` : undefined}
       >
         {devWarning !== undefined && (
-          <AlertCircle className={cn("w-3 h-3 shrink-0 mr-0.5", devWarning ? "text-amber-500" : "invisible")} />
+          <AlertCircle className={cn("w-3 h-3 shrink-0 mr-0.5", devWarning ? (isRowDisabled ? "text-black" : "text-amber-500") : "invisible")} />
         )}
         <ExclusiveSelect 
           value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
@@ -2139,13 +2167,17 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       }
       return (
         <div 
-          className={cn("spreadsheet-cell px-1 text-gray-350 dark:text-gray-500 cursor-not-allowed", !rowDisabledStyle && "bg-gray-200/60 dark:bg-gray-800/50", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1 cursor-not-allowed", !rowDisabledStyle && "bg-amber-50/60 dark:bg-amber-950/20", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
+          title="Este desarrollo no tiene tipos configurados. Agrégalos en el catálogo del desarrollo."
         >
           {selectedType ? (
-            <span className="text-xs text-muted-foreground px-1">{selectedType}</span>
+            <span className="text-xs text-muted-foreground px-1 truncate">{selectedType}</span>
           ) : (
-            <span className="text-xs">&nbsp;</span>
+            <span className="flex items-center gap-0.5 text-[10px] text-amber-600 px-0.5">
+              <Info className="w-3 h-3 shrink-0" />
+              <span className="truncate">Sin tipos</span>
+            </span>
           )}
         </div>
       );
@@ -2292,6 +2324,69 @@ const BIDIRECTIONAL_PAIRS: [string, string][] = [
 ];
 
 type DynamicGrayState = Record<string, Record<string, string>>;
+
+function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement> }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const sectionGroups = useMemo(() => {
+    const result: { label: string; offset: number }[] = [];
+    let offset = 60;
+    SECTIONS.forEach(section => {
+      const label = section.parentLabel || section.label;
+      if (!result.find(g => g.label === label)) {
+        result.push({ label, offset });
+      }
+      offset += section.columns.reduce((acc, col) => acc + (col.width || 100) + SORT_ICON_WIDTH, 0);
+    });
+    return result;
+  }, []);
+
+  const filtered = query.trim()
+    ? sectionGroups.filter(g => g.label.toLowerCase().includes(query.toLowerCase()))
+    : sectionGroups;
+
+  const scrollTo = (offset: number) => {
+    scrollRef.current?.scrollTo({ left: offset, behavior: 'smooth' });
+    setOpen(false);
+    setQuery("");
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6" data-testid="button-section-search">
+              <Search className="w-3.5 h-3.5" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Ir a sección</TooltipContent>
+      </Tooltip>
+      <PopoverContent className="w-52 p-2" align="start">
+        <Input
+          placeholder="Buscar sección..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          className="h-7 text-xs mb-2"
+          autoFocus
+        />
+        <div className="space-y-0.5 max-h-60 overflow-y-auto">
+          {filtered.map(g => (
+            <button
+              key={g.label}
+              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent"
+              onClick={() => scrollTo(g.offset)}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function TypologySpreadsheet() {
   const { toast } = useToast();
@@ -3670,9 +3765,13 @@ export function TypologySpreadsheet() {
         if (dev.zone) displayZone = dev.zone;
         if (!displayNivelMantenimiento && (dev as any).nivel) displayNivelMantenimiento = (dev as any).nivel;
         if (dev.entregaProyectada) {
-          const date = new Date(dev.entregaProyectada);
-          const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-          autoDeliveryDate = `${months[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+          const rawEP = String(dev.entregaProyectada);
+          const date = /^\d{4}-\d{2}-\d{2}$/.test(rawEP)
+            ? new Date(rawEP + 'T12:00:00')
+            : new Date(rawEP);
+          if (!isNaN(date.getTime())) {
+            autoDeliveryDate = `${date.getDate().toString().padStart(2,'0')}/${MONTH_SHORT[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+          }
         }
       }
     }
@@ -3691,13 +3790,17 @@ export function TypologySpreadsheet() {
     if (merged.development && dbDevelopments.length > 0) {
       const devForEntrega = dbDevelopments.find(d => d.name === merged.development);
       if (devForEntrega?.entregaProyectada) {
-        devEntregaDate = new Date(devForEntrega.entregaProyectada);
+        const rawEP2 = String(devForEntrega.entregaProyectada);
+        const parsed = /^\d{4}-\d{2}-\d{2}$/.test(rawEP2)
+          ? new Date(rawEP2 + 'T12:00:00')
+          : new Date(rawEP2);
+        if (!isNaN(parsed.getTime())) devEntregaDate = parsed;
       }
     }
     
     const calculated = calculateFields(mergedWithInherited, defaults, nivelMantenimientoLookup, devEntregaDate);
     
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const fmtDate = (d: Date) => `${d.getDate().toString().padStart(2,'0')}/${MONTH_SHORT[d.getMonth()]}/${d.getFullYear().toString().slice(-2)}`;
     
     let mortgageStartDate: string | null = null;
     let mortgageEndDate: string | null = null;
@@ -3709,9 +3812,8 @@ export function TypologySpreadsheet() {
       const mortgageYrs = (calculated.mortgageYears as number) || (defaults as any)?.['mortgageYears'] || 15;
       const endDateObj = new Date(devEntregaDate);
       endDateObj.setFullYear(endDateObj.getFullYear() + mortgageYrs);
-      const endStr = `${months[endDateObj.getMonth()]}/${endDateObj.getFullYear().toString().slice(-2)}`;
-      maintenanceEndDate = endStr;
-      mortgageEndDate = endStr;
+      maintenanceEndDate = fmtDate(endDateObj);
+      mortgageEndDate = fmtDate(endDateObj);
     }
 
     let rentStartDateCalc: string | null = null;
@@ -3720,10 +3822,10 @@ export function TypologySpreadsheet() {
       const mortgageYrs = (calculated.mortgageYears as number) || (defaults as any)?.['mortgageYears'] || 15;
       const startObj = new Date(devEntregaDate);
       startObj.setMonth(startObj.getMonth() + 2);
-      rentStartDateCalc = `${months[startObj.getMonth()]}/${startObj.getFullYear().toString().slice(-2)}`;
+      rentStartDateCalc = fmtDate(startObj);
       const endObj = new Date(startObj);
       endObj.setFullYear(endObj.getFullYear() + mortgageYrs);
-      rentEndDateCalc = `${months[endObj.getMonth()]}/${endObj.getFullYear().toString().slice(-2)}`;
+      rentEndDateCalc = fmtDate(endObj);
     }
     
     const result = { ...merged, ...calculated, city: displayCity, zone: displayZone, nivelMantenimiento: displayNivelMantenimiento, deliveryDate: autoDeliveryDate, mortgageStartDate, mortgageEndDate, maintenanceStartDate, maintenanceEndDate, rentStartDate: rentStartDateCalc, rentEndDate: rentEndDateCalc } as Typology;
@@ -3752,6 +3854,7 @@ export function TypologySpreadsheet() {
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Tipologías</h1>
+          <SectionSearchButton scrollRef={contentScrollRef} />
           {(activeFilterCount > 0 || activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)) && (
             <Button
               variant="ghost"
@@ -3785,35 +3888,34 @@ export function TypologySpreadsheet() {
               Descolapsar
             </Button>
           )}
-          {isSaving && (
-            <Badge variant="secondary" className="animate-pulse">
-              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-              Guardando...
-            </Badge>
-          )}
           <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
-          <Button 
-            onClick={async () => {
-              await saveAllPendingRows();
-            }}
-            size="sm"
-            disabled={pendingRowCount === 0 || isSaving}
-            className={cn(
-              "transition-all duration-300",
-              saveFlash 
-                ? "text-white shadow-lg scale-105" 
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+          <div className="relative">
+            {pendingRowCount > 0 && !isSaving && (
+              <span className="absolute -inset-0.5 rounded-md animate-pulse bg-primary/30 pointer-events-none" />
             )}
-            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
-            data-testid="button-save-row"
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-1" />
-            )}
-            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
-          </Button>
+            <Button 
+              onClick={async () => {
+                await saveAllPendingRows();
+              }}
+              size="sm"
+              disabled={pendingRowCount === 0 || isSaving}
+              className={cn(
+                "relative transition-all duration-300",
+                saveFlash 
+                  ? "text-white shadow-lg scale-105" 
+                  : "text-white"
+              )}
+              style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
+              data-testid="button-save-row"
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-1" />
+              )}
+              Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
+            </Button>
+          </div>
           <Button 
             onClick={handleAddRow} 
             size="sm"
@@ -3990,7 +4092,7 @@ export function TypologySpreadsheet() {
                     <button
                       onClick={() => setCollapsedColumns(prev => { const n = new Set(prev); n.delete("medios"); return n; })}
                       className="flex-shrink-0 flex items-center justify-center h-full cursor-pointer"
-                      style={{ backgroundColor: SECTION_COLOR_LIGHT, width: COLLAPSED_COL_WIDTH }}
+                      style={{ backgroundColor: MEDIOS_COLOR, width: COLLAPSED_COL_WIDTH }}
                       data-testid="section-toggle-medios"
                     >
                       <Plus className="w-3 h-3" style={{ color: 'white' }} />
@@ -3999,7 +4101,7 @@ export function TypologySpreadsheet() {
                   <TooltipContent side="bottom" className="text-xs">MEDIOS</TooltipContent>
                 </Tooltip>
               ) : (
-                <div className="flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: 96 }}>
+                <div className="flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: MEDIOS_COLOR, width: 96 }}>
                   <div className="pointer-events-none" style={{ width: 20 }} />
                   <TruncatedLabel label="MEDIOS" columnKey="medios" uppercaseTooltip={true} />
                   <button
@@ -4336,7 +4438,7 @@ export function TypologySpreadsheet() {
                   );
                 }
               })()}
-              <div className="h-full flex-shrink-0" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
+              <div className="h-full flex-shrink-0" style={{ backgroundColor: MEDIOS_COLOR, borderBottom: '1px solid rgba(255,255,255,0.15)', width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }} />
             </div>
 
             {/* Row 3: Filter and sort controls */}
@@ -4453,7 +4555,7 @@ export function TypologySpreadsheet() {
                   });
                 });
               })()}
-              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: SECTION_COLOR_LIGHT, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
+              <div className="h-full flex-shrink-0 overflow-hidden" style={{ backgroundColor: MEDIOS_COLOR, width: collapsedColumns.has("medios") ? COLLAPSED_COL_WIDTH : 96 }}>
                 {!collapsedColumns.has("medios") && (
                   <ColumnFilter
                     column={{ key: "mediaCount" as any, label: "Medios", type: "number", width: 96 }}
@@ -4462,7 +4564,7 @@ export function TypologySpreadsheet() {
                     sortDirection={columnSorts["mediaCount"] || null}
                     onFilterChange={(values) => handleColumnFilterChange("mediaCount", values)}
                     onSortChange={(dir) => handleColumnSortChange("mediaCount", dir)}
-                    sectionColor={SECTION_COLOR_LIGHT}
+                    sectionColor={MEDIOS_COLOR}
                     hideLabel={true}
                     columnWidth={96}
                   />
@@ -4502,7 +4604,7 @@ export function TypologySpreadsheet() {
                       : "#ef4444";
                   const missingForDot = !isComplete ? getMissingFields(mergedRow as Partial<Typology>, validEntities) : [];
                   const dotTooltip = missingForDot.length > 0
-                    ? `Campos vacíos (${missingForDot.length}):\n${missingForDot.map(f => `• ${f.section} → ${f.field}`).join('\n')}`
+                    ? `Campos vacíos (${missingForDot.length}):\n${missingForDot.map(f => `• ${f.section.toUpperCase()} → ${f.field}`).join('\n')}`
                     : null;
                   return (
                     <div 
@@ -4765,7 +4867,7 @@ export function TypologySpreadsheet() {
                           }}
                           data-testid={`button-upload-media-${row.id}`}
                         >
-                          <Plus className="w-3.5 h-3.5 text-muted-foreground" />
+                          <Plus className="w-3.5 h-3.5 text-foreground" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -4807,7 +4909,7 @@ export function TypologySpreadsheet() {
                           {getTypologyDocCount(row.id) > 0 && (
                             <span className="text-xs font-medium mr-0.5">{getTypologyDocCount(row.id)}</span>
                           )}
-                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                          <Eye className="w-3.5 h-3.5 text-foreground" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
