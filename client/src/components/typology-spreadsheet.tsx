@@ -2010,13 +2010,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       } else {
         options = [];
       }
-      if (tipologiasConfigByDevelopment && rowDev) {
-        const devConfig = tipologiasConfigByDevelopment[rowDev];
-        if (devConfig) {
-          options = options.filter(tipologia =>
-            ((devConfig[tipologia] || []) as string[]).length > 0
-          );
-        }
+      if (rowDev) {
+        const devConfig = tipologiasConfigByDevelopment?.[rowDev];
+        options = options.filter(tipologia =>
+          devConfig ? ((devConfig[tipologia] || []) as string[]).length > 0 : false
+        );
       }
       const currentTipoDesarrollo = Array.isArray(row?.tipoDesarrollo)
         ? (row?.tipoDesarrollo as string[])[0]
