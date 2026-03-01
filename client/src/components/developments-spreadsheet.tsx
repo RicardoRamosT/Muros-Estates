@@ -19,7 +19,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown, Search } from "lucide-react";
+import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Save, ChevronDown, Search } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
@@ -311,6 +311,9 @@ export function DevelopmentsSpreadsheet() {
   const [localEdits, setLocalEdits] = useState<Record<string, Partial<Development>>>({});
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
   const saveRowByIdRef = useRef<(id: string) => Promise<void>>(async () => {});
+  const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFlash, setSaveFlash] = useState(false);
 
   const { data: developments = [], isLoading: developmentsLoading } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
@@ -422,6 +425,7 @@ export function DevelopmentsSpreadsheet() {
   const handleFieldChange = useCallback((id: string, data: Partial<Development>) => {
     const current = pendingChangesRef.current.get(id) || {};
     pendingChangesRef.current.set(id, { ...current, ...data });
+    setPendingChangesVersion(v => v + 1);
     setLocalEdits(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...data } }));
     if (activeEditingRowId && activeEditingRowId !== id) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -432,12 +436,20 @@ export function DevelopmentsSpreadsheet() {
   const saveRowById = useCallback(async (id: string) => {
     const changes = pendingChangesRef.current.get(id);
     if (!changes || Object.keys(changes).length === 0) return;
+    setIsSaving(true);
     try {
       await updateMutation.mutateAsync({ id, data: changes });
       pendingChangesRef.current.delete(id);
+      setPendingChangesVersion(v => v + 1);
       setLocalEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
-    } catch {}
-  }, [updateMutation]);
+      setSaveFlash(true);
+      setTimeout(() => setSaveFlash(false), 1200);
+    } catch {
+      toast({ title: "Error al guardar", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [updateMutation, toast]);
 
   saveRowByIdRef.current = saveRowById;
 
@@ -454,6 +466,11 @@ export function DevelopmentsSpreadsheet() {
     }
     setActiveEditingRowId(id);
   }, [activeEditingRowId, saveRowById]);
+
+  const pendingRowCount = useMemo(
+    () => Array.from(pendingChangesRef.current.values()).filter(c => c && Object.keys(c).length > 0).length,
+    [pendingChangesVersion]
+  );
 
   const handleCellBlur = useCallback((id: string, field: string, col: ColumnDef) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
@@ -727,15 +744,19 @@ export function DevelopmentsSpreadsheet() {
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrollos</span>
           <Button
-            size="sm"
             onClick={saveAllPending}
-            disabled={updateMutation.isPending || Object.keys(localEdits).length === 0}
-            className={Object.keys(localEdits).length > 0 ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-            variant={Object.keys(localEdits).length > 0 ? "default" : "outline"}
+            size="sm"
+            disabled={pendingRowCount === 0 || isSaving}
+            className={cn(
+              "transition-all duration-300",
+              pendingRowCount > 0 && !isSaving && "save-electric-btn",
+              saveFlash ? "text-white shadow-lg scale-105" : "text-white"
+            )}
+            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
             data-testid="button-save-pending-developments"
           >
-            {updateMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-            Guardar
+            {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
           </Button>
           {hasFullAccess && (
             <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">

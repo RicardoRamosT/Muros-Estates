@@ -18,7 +18,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Check } from "lucide-react";
+import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
@@ -72,6 +72,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [localEdits, setLocalEdits] = useState<Record<string, Partial<Client>>>({});
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
   const saveRowByIdRef = useRef<(id: string) => Promise<void>>(async () => {});
+  const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFlash, setSaveFlash] = useState(false);
   const contentScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
@@ -146,6 +149,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const handleFieldChange = useCallback((id: string, data: Partial<Client>) => {
     const current = pendingChangesRef.current.get(id) || {};
     pendingChangesRef.current.set(id, { ...current, ...data });
+    setPendingChangesVersion(v => v + 1);
     setLocalEdits(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...data } }));
     if (activeEditingRowId && activeEditingRowId !== id) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -156,12 +160,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const saveRowById = useCallback(async (id: string) => {
     const changes = pendingChangesRef.current.get(id);
     if (!changes || Object.keys(changes).length === 0) return;
+    setIsSaving(true);
     try {
       await updateMutation.mutateAsync({ id, data: changes });
       pendingChangesRef.current.delete(id);
+      setPendingChangesVersion(v => v + 1);
       setLocalEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
-    } catch {}
-  }, [updateMutation]);
+      setSaveFlash(true);
+      setTimeout(() => setSaveFlash(false), 1200);
+    } catch {
+      toast({ title: "Error al guardar", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [updateMutation, toast]);
 
   saveRowByIdRef.current = saveRowById;
 
@@ -178,6 +190,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
     setActiveEditingRowId(id);
   }, [activeEditingRowId, saveRowById]);
+
+  const pendingRowCount = useMemo(
+    () => Array.from(pendingChangesRef.current.values()).filter(c => c && Object.keys(c).length > 0).length,
+    [pendingChangesVersion]
+  );
 
   const handleCellBlur = useCallback((id: string, field: string) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
@@ -677,15 +694,19 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           )}
           <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} {pageName}</span>
           <Button
-            size="sm"
             onClick={saveAllPending}
-            disabled={updateMutation.isPending || Object.keys(localEdits).length === 0}
-            className={Object.keys(localEdits).length > 0 ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-            variant={Object.keys(localEdits).length > 0 ? "default" : "outline"}
+            size="sm"
+            disabled={pendingRowCount === 0 || isSaving}
+            className={cn(
+              "transition-all duration-300",
+              pendingRowCount > 0 && !isSaving && "save-electric-btn",
+              saveFlash ? "text-white shadow-lg scale-105" : "text-white"
+            )}
+            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
             data-testid="button-save-pending-prospects"
           >
-            {updateMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-            Guardar
+            {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
           </Button>
           {hasFullAccess && (
             <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
