@@ -533,7 +533,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true, calculated: true },
-      { key: "appreciationTotal", label: "Falta", type: "text", width: 130, calculated: true, centerCells: true },
+      { key: "appreciationTotal", label: "Listo", type: "text", width: 130, calculated: true, centerCells: true },
       { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Valor Final" },
     ],
   },
@@ -1626,6 +1626,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   if (column.calculated || disabled) {
     const isBooleanDisabled = column.type === "boolean" && disabled && !column.calculated;
     const isLista = column.key === "appreciationTotal" && value === "Listo";
+    const isAppreciationTotalDisabled = column.key === "appreciationTotal" && !!rowDisabledStyle && !isLista;
     const listaStyle: React.CSSProperties = isLista
       ? rowDisabledStyle
         ? { backgroundColor: '#A8C0AF', color: '#3d6b50' }
@@ -1636,7 +1637,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       <div 
         className={cn(
           "spreadsheet-cell text-xs", cellBorderClass,
-          column.type === "select" ? (column.centerCells ? "px-1 !justify-center gap-1" : "px-1") : "px-2",
+          column.type === "select" ? "px-1 !justify-center gap-1" : "px-2",
           column.type === "select" ? "" : (column.format === "currency" || column.format === "area") ? "" : "truncate",
           isLista && "font-semibold cursor-default",
           column.calculated && !isLista && !rowDisabledStyle && "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] cursor-default",
@@ -1644,7 +1645,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           disabled && !column.calculated && !isBooleanDisabled && "text-gray-350 dark:text-gray-500 cursor-not-allowed",
           column.centerCells && !(column.type === "select") && "justify-center text-center"
         )}
-        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...(isBooleanDisabled ? { color: 'black' } : {}), ...listaStyle }}
+        style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...((isBooleanDisabled || isAppreciationTotalDisabled) ? { color: 'black' } : {}), ...listaStyle }}
         title={isLista && deliveryDateStr ? `Listo desde ${deliveryDateStr}` : undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
@@ -2420,10 +2421,10 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
           {filtered.map(g => (
             <button
               key={g.label}
-              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent uppercase"
+              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent"
               onClick={() => scrollTo(g)}
             >
-              {g.label}
+              {g.label.toUpperCase()}
             </button>
           ))}
         </div>
@@ -4338,7 +4339,7 @@ export function TypologySpreadsheet() {
                       return [(
                         <div
                           key={`subsec-${section.id}`}
-                          className="flex-shrink-0 h-full flex items-center justify-between text-white"
+                          className="flex-shrink-0 h-full flex items-center justify-between text-white hover:brightness-110 transition-colors cursor-default"
                           style={{ 
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), 
                             width: sectionWidth,

@@ -29,7 +29,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Check, Clock } from "lucide-react";
+import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Check, Clock, Search } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,70 @@ const EMPRESA_TIPOS = [
   { value: "Constructora", label: "Constructora" },
   { value: "Arquitectos", label: "Arquitectos" },
 ];
+
+const COLUMN_GROUPS_DEV = [
+  { key: 'basic', label: '', color: '' },
+  { key: 'fechahora', label: 'FECHA/HORA', color: '#0d9488' },
+  { key: 'empresa', label: 'EMPRESA', color: 'rgb(11,120,180)' },
+  { key: 'fiscal', label: 'FISCAL', color: 'rgb(13,149,225)' },
+  { key: 'tipos', label: 'TIPOS', color: 'rgb(11,120,180)' },
+  { key: 'contacto', label: 'CONTACTO', color: 'rgb(13,149,225)' },
+  { key: 'docs', label: '', color: '' },
+];
+
+function DevSectionSearchButton({ groups, scrollRef }: {
+  groups: { label: string; offset: number; width: number }[];
+  scrollRef: React.RefObject<HTMLDivElement>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const filtered = query.trim()
+    ? groups.filter(g => g.label.toLowerCase().includes(query.toLowerCase()))
+    : groups;
+  const scrollTo = (group: { label: string; offset: number; width: number }) => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const freeSpace = container.clientWidth - group.width;
+    const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
+    container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    setOpen(false);
+    setQuery("");
+  };
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <button className="flex items-center justify-center w-6 h-6 rounded hover:bg-white/20" data-testid="button-section-search">
+              <Search className="w-3.5 h-3.5 text-white" />
+            </button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Ir a sección</TooltipContent>
+      </Tooltip>
+      <PopoverContent className="w-52 p-2" align="start">
+        <input
+          placeholder="Buscar sección..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          className="w-full h-7 text-xs border rounded px-2 mb-2 outline-none focus:ring-1 focus:ring-primary"
+          autoFocus
+        />
+        <div className="space-y-0.5 max-h-60 overflow-y-auto">
+          {filtered.map(g => (
+            <button
+              key={g.label}
+              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent uppercase"
+              onClick={() => scrollTo(g)}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function calcAntiguedad(fecha: Date | string | null): string {
   if (!fecha) return "";
@@ -107,26 +172,26 @@ export function DevelopersSpreadsheet() {
   });
 
   const allColumns: ColumnDef[] = [
-    { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox" },
+    { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index", group: "basic" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox", group: "basic" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
-    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly" },
-    { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown" },
-    { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown" },
-    { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown" },
-    { key: "name", label: "Desarrollador", width: "170px", cellType: "input" },
-    { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input" },
-    { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input" },
-    { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input" },
-    { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown" },
-    { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown" },
-    { key: "representante", label: "Representante", width: "170px", cellType: "input" },
-    { key: "contactName", label: "Ventas", width: "170px", cellType: "input" },
-    { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input" },
-    { key: "contactEmail", label: "Correo", width: "170px", cellType: "input" },
-    { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions" },
-    { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions" },
+    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "empresa" },
+    { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "empresa" },
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "empresa" },
+    { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown", group: "empresa" },
+    { key: "name", label: "Desarrollador", width: "170px", cellType: "input", group: "empresa" },
+    { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input", group: "fiscal" },
+    { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input", group: "fiscal" },
+    { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input", group: "fiscal" },
+    { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "contacto" },
+    { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
+    { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input", group: "contacto" },
+    { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
+    { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions", group: "docs" },
+    { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions", group: "docs" },
   ];
 
   const columns = useMemo(() => {
@@ -189,6 +254,45 @@ export function DevelopersSpreadsheet() {
   );
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
+
+  const visibleColumnGroups = useMemo(() => {
+    const groupLookup = Object.fromEntries(COLUMN_GROUPS_DEV.map(g => [g.key, g]));
+    const runs: { key: string; label: string; color: string; colspan: number }[] = [];
+    let currentGroup: string | null = null;
+    columns.forEach(col => {
+      const g = col.group || '';
+      if (g !== currentGroup) {
+        const groupDef = groupLookup[g] || { key: g, label: '', color: '' };
+        runs.push({ key: groupDef.key, label: groupDef.label, color: groupDef.color || '', colspan: 1 });
+        currentGroup = g;
+      } else {
+        runs[runs.length - 1].colspan++;
+      }
+    });
+    return runs;
+  }, [columns]);
+
+  const sectionGroupsForSearch = useMemo(() => {
+    const groupLookup = Object.fromEntries(COLUMN_GROUPS_DEV.map(g => [g.key, g]));
+    const result: { label: string; offset: number; width: number }[] = [];
+    let offset = 0;
+    let currentGroupKey = '';
+    for (const col of columns) {
+      const w = parseInt(col.width);
+      const gKey = col.group || '';
+      if (gKey === 'basic') { offset += w; continue; }
+      const groupDef = groupLookup[gKey];
+      if (!groupDef?.label) { offset += w; continue; }
+      if (gKey !== currentGroupKey) {
+        result.push({ label: groupDef.label, offset, width: w });
+        currentGroupKey = gKey;
+      } else if (result.length > 0) {
+        result[result.length - 1].width += w;
+      }
+      offset += w;
+    }
+    return result;
+  }, [columns]);
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<Developer>) => 
@@ -328,78 +432,89 @@ export function DevelopersSpreadsheet() {
         <div className="min-w-max text-xs">
           {/* Header: Two-row structure */}
           <div className="sticky top-0 z-20 bg-gray-300 dark:bg-gray-600">
-            {/* Row 1: Section headers */}
+            {/* Row 1: Corner search button + Section group headers */}
             <div className="flex border-b">
+              {/* Sticky corner: id (45) + active (58) = 103px */}
+              <div
+                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+                style={{ width: 103, minWidth: 103, height: 32, backgroundColor: 'rgb(11,120,180)' }}
+              >
+                <DevSectionSearchButton groups={sectionGroupsForSearch} scrollRef={contentScrollRef} />
+              </div>
+              {/* Group headers (skip 'basic' group — it's the corner cell) */}
               {(() => {
-                const row1Items: JSX.Element[] = [];
-                let i = 0;
-                while (i < columns.length) {
-                  const col = columns[i];
-                  if (col.key === 'fechahora_collapsed') {
-                    row1Items.push(
+                const items: JSX.Element[] = [];
+                let colIdx = 0;
+                for (const group of visibleColumnGroups) {
+                  if (group.key === 'basic') { colIdx += group.colspan; continue; }
+                  const groupCols = columns.slice(colIdx, colIdx + group.colspan);
+                  const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
+                  if (group.key === 'fechahora_collapsed' || columns[colIdx]?.key === 'fechahora_collapsed') {
+                    items.push(
                       <div
-                        key={`r1-${col.key}`}
-                        className="border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                        style={{ width: '30px', minWidth: '30px', height: '68px' }}
+                        key="r1-fechahora_collapsed"
+                        className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
+                        style={{ width: 30, minWidth: 30, height: 68, backgroundColor: '#0d9488' }}
                         onClick={() => setFechaHoraExpanded(true)}
                         data-testid="toggle-fechahora-expand"
                       >
                         <Plus className="w-3 h-3" />
                       </div>
                     );
-                    i++;
-                  } else if (col.group === 'fechahora') {
-                    let totalWidth = 0;
-                    while (i < columns.length && columns[i].group === 'fechahora') {
-                      totalWidth += parseInt(columns[i].width);
-                      i++;
-                    }
-                    row1Items.push(
+                  } else if (group.label) {
+                    items.push(
                       <div
-                        key="r1-fechahora"
-                        className="border-r border-gray-200 dark:border-gray-700 bg-teal-600 dark:bg-teal-700 text-white flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0"
-                        style={{ width: totalWidth, minWidth: totalWidth }}
+                        key={`r1-group-${group.key}`}
+                        className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
+                        style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || 'transparent' }}
                       >
-                        <span>FECHA/HORA</span>
-                        <button
-                          onClick={() => setFechaHoraExpanded(false)}
-                          className="ml-1 hover:opacity-80"
-                          data-testid="toggle-fechahora-collapse"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
+                        {group.key === 'fechahora' ? (
+                          <>
+                            <span>FECHA/HORA</span>
+                            <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
+                              <Minus className="w-3 h-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <span>{group.label}</span>
+                        )}
                       </div>
                     );
                   } else {
-                    row1Items.push(
-                      <div
-                        key={`r1-${col.key}`}
-                        className={cn(
-                          "border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0",
-                          col.key === 'id' && 'sticky left-0 z-30',
-                          col.key === 'active' && 'sticky z-30'
-                        )}
-                        style={{ width: col.width, minWidth: col.width, maxWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
-                      />
-                    );
-                    i++;
+                    groupCols.forEach(col => {
+                      items.push(
+                        <div
+                          key={`r1-${col.key}`}
+                          className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
+                          style={{ width: col.width, minWidth: col.width }}
+                        />
+                      );
+                    });
                   }
+                  colIdx += group.colspan;
                 }
-                return row1Items;
+                return items;
               })()}
             </div>
             {/* Row 2: Column headers */}
             <div className="flex border-b">
               {columns.map((col) => {
                 if (col.key === 'fechahora_collapsed') return null;
-                if (col.group === 'fechahora') {
+                const groupLookup = Object.fromEntries(COLUMN_GROUPS_DEV.map(g => [g.key, g]));
+                const groupDef = groupLookup[col.group || ''];
+                const groupColor = groupDef?.color || '';
+                const isColored = !!groupColor && col.group !== 'basic' && col.group !== 'docs';
+                if (col.group === 'basic') {
                   return (
                     <div
                       key={`r2-${col.key}`}
-                      className="border-r last:border-r-0 border-gray-200/30 bg-teal-600 dark:bg-teal-700 text-white px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
-                      style={{ width: col.width, minWidth: col.width }}
+                      className={cn(
+                        "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
+                        col.type === 'index' ? 'justify-center sticky left-0 z-30' : 'justify-start sticky z-30'
+                      )}
+                      style={{ width: col.width, minWidth: col.width, maxWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
                     >
-                      <span className="truncate">{col.label}</span>
+                      <span className="truncate text-gray-700 dark:text-gray-200">{col.label}</span>
                     </div>
                   );
                 }
@@ -407,19 +522,23 @@ export function DevelopersSpreadsheet() {
                   <div
                     key={`r2-${col.key}`}
                     className={cn(
-                      "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
-                      col.type === 'index' ? 'justify-center sticky left-0 z-30' : 'justify-start',
+                      "border-r border-white/20 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0",
+                      isColored ? 'text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200',
                       col.key === 'active' && 'sticky z-30'
                     )}
-                    style={{ width: col.width, minWidth: col.width, maxWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
+                    style={{
+                      width: col.width, minWidth: col.width, maxWidth: col.width,
+                      ...(isColored ? { backgroundColor: groupColor } : {}),
+                      ...(col.key === 'active' ? { left: 45 } : {})
+                    }}
                   >
-                    {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' ? (
+                    {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.type === 'toggle' ? (
                       <span className="truncate">{col.label}</span>
                     ) : (
                       <ColumnFilter
                         columnKey={col.key}
                         columnLabel={col.label}
-                        columnType={col.type === 'toggle' ? 'boolean' : col.type === 'date' ? 'text' : 'text'}
+                        columnType={col.type === 'toggle' ? 'boolean' : 'text'}
                         uniqueValues={uniqueValuesMap[col.key] || []}
                         availableValues={availableValuesMap[col.key]}
                         sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
@@ -436,7 +555,12 @@ export function DevelopersSpreadsheet() {
           </div>
 
           {/* Data rows */}
-          {visibleData.map((dev, index) => (
+          {visibleData.map((dev, index) => {
+            const isRowInactive = dev.active === false;
+            const inactiveCellStyle: React.CSSProperties = isRowInactive
+              ? { backgroundColor: '#e8e8e8', color: '#999999' }
+              : {};
+            return (
             <div
               key={dev.id}
               className={cn(
@@ -467,7 +591,7 @@ export function DevelopersSpreadsheet() {
                 
                 if (col.type === 'date-display') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${field}-${dev.id}`}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
                       <span className="text-xs text-muted-foreground">{formatDate(dev.createdAt)}</span>
                     </div>
                   );
@@ -475,7 +599,7 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'time-display') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${field}-${dev.id}`}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
                       <span className="text-xs text-muted-foreground">{formatTime(dev.createdAt)}</span>
                     </div>
                   );
@@ -489,8 +613,8 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'toggle') {
                   const isActive = dev.active ?? false;
-                  const cellBgColor = isActive ? '#dcfce7' : '#fee2e2';
-                  const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
+                  const cellBgColor = isActive ? '#dcfce7' : (isRowInactive ? '#f0b8b8' : '#fee2e2');
+                  const textColorClass = isActive ? 'text-green-700' : (isRowInactive ? 'text-[#a05050]' : 'text-red-600');
                   return (
                     <div 
                       key={field} 
@@ -531,7 +655,7 @@ export function DevelopersSpreadsheet() {
                     <div
                       key={field}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
@@ -581,7 +705,7 @@ export function DevelopersSpreadsheet() {
                     <div
                       key={field}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
@@ -618,7 +742,7 @@ export function DevelopersSpreadsheet() {
                     <div
                       key={field}
                       className={cn("spreadsheet-cell flex-shrink-0 px-2", getCellStyle({ type: "readonly" }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       <span className="text-xs text-muted-foreground">{calculated}</span>
@@ -628,10 +752,10 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'folder-link') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
                       <a
                         href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
-                        className="inline-flex items-center gap-1.5 text-primary hover:underline text-xs"
+                        className="inline-flex items-center gap-1.5 text-amber-700 hover:underline text-xs"
                         data-testid={`link-legales-${dev.id}`}
                       >
                         <FolderOpen className="w-4 h-4" />
@@ -723,7 +847,7 @@ export function DevelopersSpreadsheet() {
                     <div
                       key={field}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
@@ -777,7 +901,7 @@ export function DevelopersSpreadsheet() {
                     <div
                       key={field}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: cellType, disabled: !fieldCanEdit, isEditing }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
@@ -809,7 +933,7 @@ export function DevelopersSpreadsheet() {
                   <div
                     key={field}
                     className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: cellType, disabled: !fieldCanEdit, isEditing }))}
-                    style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
+                    style={{ width: col.width, minWidth: col.width, maxWidth: col.width, ...inactiveCellStyle }}
                     onClick={() => fieldCanEdit && handleCellClick(dev.id, field, value)}
                     data-testid={`cell-${field}-${dev.id}`}
                   >
@@ -838,7 +962,8 @@ export function DevelopersSpreadsheet() {
                 );
               })}
             </div>
-            ))}
+            );
+          })}
           <div ref={sentinelRef} style={{ height: '1px' }} />
           {filteredAndSortedData.length === 0 && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">

@@ -408,17 +408,25 @@
 }
 
 @keyframes electric-travel {
-  0%   { box-shadow: 0 -2px 6px 2px #bfdbfe, 0 -2px 14px 4px #60a5fa, inset 0 0 0 1px rgba(96,165,250,0.4); }
-  12%  { box-shadow: 4px -2px 8px 2px #e0f2fe, 2px -2px 18px 6px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.5); }
-  25%  { box-shadow: 4px 0 6px 2px #bfdbfe, 6px 0 14px 4px #60a5fa, inset 0 0 0 1px rgba(96,165,250,0.4); }
-  37%  { box-shadow: 4px 4px 8px 2px #e0f2fe, 4px 4px 18px 6px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.5); }
-  50%  { box-shadow: 0 4px 6px 2px #bfdbfe, 0 6px 14px 4px #60a5fa, inset 0 0 0 1px rgba(96,165,250,0.4); }
-  62%  { box-shadow: -4px 4px 8px 2px #e0f2fe, -2px 4px 18px 6px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.5); }
-  75%  { box-shadow: -4px 0 6px 2px #bfdbfe, -6px 0 14px 4px #60a5fa, inset 0 0 0 1px rgba(96,165,250,0.4); }
-  87%  { box-shadow: -4px -2px 8px 2px #e0f2fe, -2px -2px 18px 6px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.5); }
-  100% { box-shadow: 0 -2px 6px 2px #bfdbfe, 0 -2px 14px 4px #60a5fa, inset 0 0 0 1px rgba(96,165,250,0.4); }
+  0%   { box-shadow:  0   -3px 0 0 #38bdf8,  0   -3px 10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
+  6%   { box-shadow:  3px -3px 0 0 #ffffff,  3px -3px 16px 5px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.6); }
+  12%  { box-shadow:  5px  0   0 0 #38bdf8,  5px  0   10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
+  18%  { box-shadow:  5px  0   0 0 #7dd3fc,  5px  0   14px 4px #bae6fd, inset 0 0 0 1px rgba(186,230,253,0.4); }
+  25%  { box-shadow:  5px  3px 0 0 #ffffff,  5px  3px 16px 5px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.6); }
+  31%  { box-shadow:  0    5px 0 0 #38bdf8,  0    5px 10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
+  37%  { box-shadow:  0    5px 0 0 #7dd3fc,  0    5px 14px 4px #bae6fd, inset 0 0 0 1px rgba(186,230,253,0.4); }
+  44%  { box-shadow: -3px  5px 0 0 #ffffff, -3px  5px 16px 5px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.6); }
+  50%  { box-shadow: -5px  0   0 0 #38bdf8, -5px  0   10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
+  56%  { box-shadow: -5px  0   0 0 #7dd3fc, -5px  0   14px 4px #bae6fd, inset 0 0 0 1px rgba(186,230,253,0.4); }
+  62%  { box-shadow: -5px -3px 0 0 #ffffff, -5px -3px 16px 5px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.6); }
+  68%  { box-shadow:  0   -3px 0 0 #38bdf8,  0   -3px 10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
+  75%  { box-shadow:  0   -3px 0 0 #7dd3fc,  0   -3px 14px 4px #bae6fd, inset 0 0 0 1px rgba(186,230,253,0.4); }
+  81%  { box-shadow:  3px -3px 0 0 #ffffff,  3px -3px 16px 5px #ffffff, inset 0 0 0 1px rgba(255,255,255,0.6); }
+  87%  { box-shadow:  5px  0   0 0 #38bdf8,  5px  0   10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
+  94%  { box-shadow:  0    0   0 0 #7dd3fc,  0    0   20px 6px #bae6fd, inset 0 0 0 1px rgba(186,230,253,0.5); }
+  100% { box-shadow:  0   -3px 0 0 #38bdf8,  0   -3px 10px 3px #0ea5e9, inset 0 0 0 1px rgba(56,189,248,0.3); }
 }
 
 .save-electric-btn {
-  animation: electric-travel 0.7s linear infinite;
+  animation: electric-travel 0.65s linear infinite;
 }

@@ -19,7 +19,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown } from "lucide-react";
+import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Check, ChevronDown, Search } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
 import { DEVELOPMENT_TYPES } from "@shared/constants";
@@ -417,7 +418,12 @@ export function DevelopmentsSpreadsheet() {
         valueToSave = parseFloat(editValue);
         if (isNaN(valueToSave)) valueToSave = null;
       }
-      updateMutation.mutate({ id, data: { [field]: valueToSave } });
+      const dataToSave: Record<string, any> = { [field]: valueToSave };
+      if (field === 'name' && editValue && !dev.inicioPreventa) {
+        const match = developments.find(d => d.id !== id && d.name === editValue && d.inicioPreventa);
+        if (match) dataToSave.inicioPreventa = match.inicioPreventa;
+      }
+      updateMutation.mutate({ id, data: dataToSave });
     }
     setEditingCell(null);
   }, [editingCell, editValue, developments, updateMutation]);
