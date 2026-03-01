@@ -68,6 +68,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       return next;
     });
   };
+  const pendingChangesRef = useRef<Map<string, Partial<Client>>>(new Map());
+  const [localEdits, setLocalEdits] = useState<Record<string, Partial<Client>>>({});
+  const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
+  const saveRowByIdRef = useRef<(id: string) => Promise<void>>(async () => {});
   const contentScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
@@ -139,13 +143,38 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     setEditValue(String(currentValue ?? ""));
   }, []);
 
+  const handleFieldChange = useCallback((id: string, data: Partial<Client>) => {
+    const current = pendingChangesRef.current.get(id) || {};
+    pendingChangesRef.current.set(id, { ...current, ...data });
+    setLocalEdits(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...data } }));
+    if (activeEditingRowId && activeEditingRowId !== id) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
+    setActiveEditingRowId(id);
+  }, [activeEditingRowId]);
+
+  const saveRowById = useCallback(async (id: string) => {
+    const changes = pendingChangesRef.current.get(id);
+    if (!changes || Object.keys(changes).length === 0) return;
+    try {
+      await updateMutation.mutateAsync({ id, data: changes });
+      pendingChangesRef.current.delete(id);
+      setLocalEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
+    } catch {}
+  }, [updateMutation]);
+
+  saveRowByIdRef.current = saveRowById;
+
+  const handleRowClick = useCallback((id: string) => {
+    if (activeEditingRowId && activeEditingRowId !== id) {
+      saveRowById(activeEditingRowId);
+    }
+    setActiveEditingRowId(id);
+  }, [activeEditingRowId, saveRowById]);
+
   const handleCellBlur = useCallback((id: string, field: string) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
     
-    const prospect = prospects.find(p => p.id === id);
-    if (!prospect) return;
-    
-    // Validación: nombre y apellido deben tener al menos 3 caracteres
     if ((field === 'nombre' || field === 'apellido') && editValue && editValue.trim().length < 3) {
       toast({ 
         title: "Error de validación", 
@@ -156,18 +185,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       return;
     }
     
-    const currentValue = String((prospect as any)[field] ?? "");
-    if (editValue !== currentValue) {
-      updateMutation.mutate({ id, data: { [field]: editValue || null } });
-    }
+    handleFieldChange(id, { [field]: editValue || null } as any);
     setEditingCell(null);
-  }, [editingCell, editValue, prospects, updateMutation, toast]);
+  }, [editingCell, editValue, handleFieldChange, toast]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
-    // Convert special unassigned value to null for database
     const actualValue = value === '__unassigned__' ? null : (value || null);
     
-    // Define client funnel stages (stages that make someone a client)
     const clientFunnelStages = ['separado', 'enganche_firma'];
     
     if (field === 'embudo') {
@@ -176,54 +200,41 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       const shouldBeClient = clientFunnelStages.includes(value);
       
       if (!isCurrentlyClient && shouldBeClient) {
-        // Convert Prospect to Client
         updateMutation.mutate({ 
           id, 
-          data: { 
-            [field]: actualValue,
-            isClient: true,
-            convertedAt: new Date(),
-          } as any
+          data: { [field]: actualValue, isClient: true, convertedAt: new Date() } as any
         });
         toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes." });
         return;
       } else if (isCurrentlyClient && !shouldBeClient) {
-        // Convert Client back to Prospect
         updateMutation.mutate({ 
           id, 
-          data: { 
-            [field]: actualValue,
-            isClient: false,
-            convertedAt: null,
-          } as any
+          data: { [field]: actualValue, isClient: false, convertedAt: null } as any
         });
         toast({ title: "Cliente regresado a Prospecto", description: "El cliente ahora aparece en la sección de Prospectos." });
         return;
       }
     }
     
-    updateMutation.mutate({ id, data: { [field]: actualValue } });
-  }, [updateMutation, toast, prospects]);
+    handleFieldChange(id, { [field]: actualValue } as any);
+  }, [handleFieldChange, updateMutation, toast, prospects]);
 
   const handleTypologySelect = useCallback((prospectId: string, typologyId: string) => {
     if (typologyId === '__unassigned__') {
-      updateMutation.mutate({ id: prospectId, data: { tipologia: null } });
+      handleFieldChange(prospectId, { tipologia: null } as any);
       return;
     }
     const selectedTypology = typologies.find(t => t.id === typologyId);
     if (selectedTypology) {
-      updateMutation.mutate({ 
-        id: prospectId, 
-        data: { 
-          tipologia: typologyId,
-          ciudad: selectedTypology.city || null,
-          zona: selectedTypology.zone || null,
-          desarrollador: selectedTypology.developer || null,
-          desarrollo: selectedTypology.development || null,
-        } 
-      });
+      handleFieldChange(prospectId, { 
+        tipologia: typologyId,
+        ciudad: selectedTypology.city || null,
+        zona: selectedTypology.zone || null,
+        desarrollador: selectedTypology.developer || null,
+        desarrollo: selectedTypology.development || null,
+      } as any);
     }
-  }, [typologies, updateMutation]);
+  }, [typologies, handleFieldChange]);
 
   const handleActiveToggle = useCallback((id: string, newValue: boolean) => {
     updateMutation.mutate({ id, data: { active: newValue } });
@@ -536,6 +547,28 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     return maps;
   }, [developments, developers, typologies]);
 
+  const effectiveProspects = useMemo(() =>
+    prospects.map(p => ({ ...p, ...(localEdits[p.id] || {}) })),
+    [prospects, localEdits]
+  );
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      pendingChangesRef.current.forEach((changes, id) => {
+        if (Object.keys(changes).length > 0) {
+          fetch(`/api/clients/${id}`, {
+            method: 'PUT',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(changes),
+          });
+        }
+      });
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   // Column filtering and sorting
   const {
     sortConfig,
@@ -547,7 +580,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     handleClearFilter,
     clearAllFilters,
     availableValuesMap,
-  } = useColumnFilters(prospects, columns, orderMaps);
+  } = useColumnFilters(effectiveProspects, columns, orderMaps);
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -672,7 +705,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
           {visibleData.map((prospect, index) => {
             const isRowInactive = (prospect as any).active === false;
-            const isActiveRow = editingCell?.id === prospect.id;
+            const isActiveRow = activeEditingRowId === prospect.id;
             return (
             <div
               key={prospect.id}
@@ -686,6 +719,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
+              onClick={() => handleRowClick(prospect.id)}
             >
                 {columns.map((col) => {
                   const field = col.field || col.key;
@@ -1105,7 +1139,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       const newValues = checked 
                         ? [...selectedValues, optValue]
                         : selectedValues.filter(v => v !== optValue);
-                      updateMutation.mutate({ id: prospect.id, data: { [col.key]: newValues } as any });
+                      handleFieldChange(prospect.id, { [col.key]: newValues } as any);
                     };
 
                     return (
@@ -1168,7 +1202,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onChange={(e) => setEditValue(e.target.value)}
                             onBlur={() => {
                               if (editValue !== String(value ?? '')) {
-                                updateMutation.mutate({ id: prospect.id, data: { [col.key]: editValue || null } as any });
+                                handleFieldChange(prospect.id, { [col.key]: editValue || null } as any);
                               }
                               setEditingCell(null);
                             }}
@@ -1207,7 +1241,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onBlur={() => {
                               if (editValue !== dateValue) {
                                 const newDate = editValue ? new Date(editValue).toISOString() : null;
-                                updateMutation.mutate({ id: prospect.id, data: { [col.key]: newDate } as any });
+                                handleFieldChange(prospect.id, { [col.key]: newDate } as any);
                               }
                               setEditingCell(null);
                             }}

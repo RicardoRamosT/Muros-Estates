@@ -111,6 +111,10 @@ export function DevelopersSpreadsheet() {
       return next;
     });
   };
+  const pendingChangesRef = useRef<Map<string, Partial<Developer>>>(new Map());
+  const [localEdits, setLocalEdits] = useState<Record<string, Partial<Developer>>>({});
+  const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
+  const saveRowByIdRef = useRef<(id: string) => Promise<void>>(async () => {});
   const contentScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: developers = [], isLoading } = useQuery<Developer[]>({
@@ -185,6 +189,28 @@ export function DevelopersSpreadsheet() {
     return cols;
   }, [canView, fechaHoraExpanded, collapsedGroups]);
 
+  const effectiveDevelopers = useMemo(() =>
+    developers.map(d => ({ ...d, ...(localEdits[d.id] || {}) })),
+    [developers, localEdits]
+  );
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      pendingChangesRef.current.forEach((changes, id) => {
+        if (Object.keys(changes).length > 0) {
+          fetch(`/api/developers/${id}`, {
+            method: 'PUT',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(changes),
+          });
+        }
+      });
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   const {
     sortConfig,
     filterConfigs,
@@ -195,7 +221,7 @@ export function DevelopersSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(developers, columns);
+  } = useColumnFilters(effectiveDevelopers, columns);
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -304,15 +330,40 @@ export function DevelopersSpreadsheet() {
     setEditValue(String(currentValue ?? ""));
   }, []);
 
+  const handleFieldChange = useCallback((id: string, data: Partial<Developer>) => {
+    const current = pendingChangesRef.current.get(id) || {};
+    pendingChangesRef.current.set(id, { ...current, ...data });
+    setLocalEdits(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...data } }));
+    if (activeEditingRowId && activeEditingRowId !== id) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
+    setActiveEditingRowId(id);
+  }, [activeEditingRowId]);
+
+  const saveRowById = useCallback(async (id: string) => {
+    const changes = pendingChangesRef.current.get(id);
+    if (!changes || Object.keys(changes).length === 0) return;
+    try {
+      await updateMutation.mutateAsync({ id, data: changes });
+      pendingChangesRef.current.delete(id);
+      setLocalEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
+    } catch {}
+  }, [updateMutation]);
+
+  saveRowByIdRef.current = saveRowById;
+
+  const handleRowClick = useCallback((id: string) => {
+    if (activeEditingRowId && activeEditingRowId !== id) {
+      saveRowById(activeEditingRowId);
+    }
+    setActiveEditingRowId(id);
+  }, [activeEditingRowId, saveRowById]);
+
   const handleCellBlur = useCallback((id: string, field: string) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
     
-    const developer = developers.find(d => d.id === id);
-    if (!developer) return;
-    
     let valueToSave = editValue;
     
-    // RFC validation: enforce uppercase and validate length
     if (field === 'rfc' && valueToSave) {
       valueToSave = valueToSave.toUpperCase();
       const validation = validateRFC(valueToSave);
@@ -323,21 +374,18 @@ export function DevelopersSpreadsheet() {
       }
     }
     
-    const currentValue = String(developer[field as keyof Developer] ?? "");
-    if (valueToSave !== currentValue) {
-      updateMutation.mutate({ id, data: { [field]: valueToSave } });
-    }
+    handleFieldChange(id, { [field]: valueToSave || null });
     setEditingCell(null);
-  }, [editingCell, editValue, developers, updateMutation, toast]);
+  }, [editingCell, editValue, handleFieldChange, toast]);
 
   const handleMultiselectChange = useCallback((id: string, field: string, selectedValues: string[]) => {
-    updateMutation.mutate({ id, data: { [field]: selectedValues } });
-  }, [updateMutation]);
+    handleFieldChange(id, { [field]: selectedValues });
+  }, [handleFieldChange]);
 
   const handleDateChange = useCallback((id: string, field: string, value: string) => {
     const dateValue = value ? new Date(value) : null;
-    updateMutation.mutate({ id, data: { [field]: dateValue } });
-  }, [updateMutation]);
+    handleFieldChange(id, { [field]: dateValue });
+  }, [handleFieldChange]);
 
   const handleActiveToggle = useCallback((id: string, newValue: boolean) => {
     updateMutation.mutate({ id, data: { active: newValue } });
@@ -430,7 +478,7 @@ export function DevelopersSpreadsheet() {
           {/* Data rows */}
           {visibleData.map((dev, index) => {
             const isRowInactive = dev.active === false;
-            const isActiveRow = editingCell?.id === dev.id;
+            const isActiveRow = activeEditingRowId === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
               ? { backgroundColor: '#9ca3af' }
               : {};
@@ -447,6 +495,7 @@ export function DevelopersSpreadsheet() {
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-developer-${dev.id}`}
+              onClick={() => handleRowClick(dev.id)}
             >
               {columns.map((col) => {
                 const field = col.key;
@@ -553,7 +602,7 @@ export function DevelopersSpreadsheet() {
                           value={tipoValue || "__empty__"}
                           onValueChange={(v) => {
                             const val = v === "__empty__" ? "" : v;
-                            updateMutation.mutate({ id: dev.id, data: { tipo: val } });
+                            handleFieldChange(dev.id, { tipo: val as any });
                           }}
                         >
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
@@ -603,7 +652,7 @@ export function DevelopersSpreadsheet() {
                           value={selectValue || "__empty__"}
                           onValueChange={(v) => {
                             const val = v === "__empty__" ? "" : v;
-                            updateMutation.mutate({ id: dev.id, data: { [field]: val } });
+                            handleFieldChange(dev.id, { [field]: val } as any);
                           }}
                         >
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">

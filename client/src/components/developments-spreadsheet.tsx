@@ -143,12 +143,12 @@ const columns: ColumnDef[] = [
 
 function SingleTipologiaCell({
   dev,
-  updateMutation,
+  onSave,
   fieldCanEdit,
   developerTipos,
 }: {
   dev: Development;
-  updateMutation: any;
+  onSave: (data: Partial<Development>) => void;
   fieldCanEdit: boolean;
   developerTipos: string[];
 }) {
@@ -166,7 +166,7 @@ function SingleTipologiaCell({
       : [...arrValue, val];
     const newConfig = { ...tipologiasConfig };
     if (!next.includes(val)) delete newConfig[val];
-    updateMutation.mutate({ id: dev.id, data: { tipologiasList: next, tipologiasConfig: newConfig } });
+    onSave({ tipologiasList: next, tipologiasConfig: newConfig });
   };
 
   const handleSetTipo = (tipologia: string, tipo: string) => {
@@ -175,13 +175,13 @@ function SingleTipologiaCell({
       ? current.filter(t => t !== tipo)
       : [...current, tipo];
     const newConfig = { ...tipologiasConfig, [tipologia]: next };
-    updateMutation.mutate({ id: dev.id, data: { tipologiasConfig: newConfig } });
+    onSave({ tipologiasConfig: newConfig });
   };
 
   const handleAddNew = () => {
     const val = newName.trim();
     if (!val || arrValue.includes(val)) return;
-    updateMutation.mutate({ id: dev.id, data: { tipologiasList: [...arrValue, val] } });
+    onSave({ tipologiasList: [...arrValue, val] });
     setNewName("");
   };
 
@@ -307,6 +307,11 @@ export function DevelopmentsSpreadsheet() {
     });
   };
 
+  const pendingChangesRef = useRef<Map<string, Partial<Development>>>(new Map());
+  const [localEdits, setLocalEdits] = useState<Record<string, Partial<Development>>>({});
+  const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
+  const saveRowByIdRef = useRef<(id: string) => Promise<void>>(async () => {});
+
   const { data: developments = [], isLoading: developmentsLoading } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
   });
@@ -414,6 +419,35 @@ export function DevelopmentsSpreadsheet() {
     setEditValue(String(currentValue ?? ""));
   }, []);
 
+  const handleFieldChange = useCallback((id: string, data: Partial<Development>) => {
+    const current = pendingChangesRef.current.get(id) || {};
+    pendingChangesRef.current.set(id, { ...current, ...data });
+    setLocalEdits(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...data } }));
+    if (activeEditingRowId && activeEditingRowId !== id) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
+    setActiveEditingRowId(id);
+  }, [activeEditingRowId]);
+
+  const saveRowById = useCallback(async (id: string) => {
+    const changes = pendingChangesRef.current.get(id);
+    if (!changes || Object.keys(changes).length === 0) return;
+    try {
+      await updateMutation.mutateAsync({ id, data: changes });
+      pendingChangesRef.current.delete(id);
+      setLocalEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
+    } catch {}
+  }, [updateMutation]);
+
+  saveRowByIdRef.current = saveRowById;
+
+  const handleRowClick = useCallback((id: string) => {
+    if (activeEditingRowId && activeEditingRowId !== id) {
+      saveRowById(activeEditingRowId);
+    }
+    setActiveEditingRowId(id);
+  }, [activeEditingRowId, saveRowById]);
+
   const handleCellBlur = useCallback((id: string, field: string, col: ColumnDef) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
 
@@ -432,27 +466,27 @@ export function DevelopmentsSpreadsheet() {
         const match = developments.find(d => d.id !== id && d.name === editValue && d.inicioPreventa);
         if (match) dataToSave.inicioPreventa = match.inicioPreventa;
       }
-      updateMutation.mutate({ id, data: dataToSave });
+      handleFieldChange(id, dataToSave);
     }
     setEditingCell(null);
-  }, [editingCell, editValue, developments, updateMutation]);
+  }, [editingCell, editValue, developments, handleFieldChange]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = value === '__unassigned__' ? null : (value || null);
-    updateMutation.mutate({ id, data: { [field]: actualValue } });
+    handleFieldChange(id, { [field]: actualValue });
     setEditingCell(null);
-  }, [updateMutation]);
+  }, [handleFieldChange]);
 
   const handleCheckboxChange = useCallback((id: string, field: string, checked: boolean) => {
-    updateMutation.mutate({ id, data: { [field]: checked } });
-  }, [updateMutation]);
+    handleFieldChange(id, { [field]: checked });
+  }, [handleFieldChange]);
 
   const handleMultiSelectChange = useCallback((id: string, field: string, currentValues: string[], toggleValue: string) => {
     const newValues = currentValues.includes(toggleValue)
       ? currentValues.filter(v => v !== toggleValue)
       : [...currentValues, toggleValue];
-    updateMutation.mutate({ id, data: { [field]: newValues } });
-  }, [updateMutation]);
+    handleFieldChange(id, { [field]: newValues });
+  }, [handleFieldChange]);
 
   const getTypeFromDeveloper = useCallback((developerId: string | null) => {
     if (!developerId) return null;
@@ -524,8 +558,30 @@ export function DevelopmentsSpreadsheet() {
     return Object.fromEntries(sorted.map((d, i) => [String(d.id), i]));
   }, [developers]);
 
+  const effectiveDevelopments = useMemo(() =>
+    developments.map(d => ({ ...d, ...(localEdits[d.id] || {}) })),
+    [developments, localEdits]
+  );
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      pendingChangesRef.current.forEach((changes, id) => {
+        if (Object.keys(changes).length > 0) {
+          fetch(`/api/developments-entity/${id}`, {
+            method: 'PUT',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(changes),
+          });
+        }
+      });
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   const developmentsForFilter = useMemo(() => {
-    return developments.map(dev => {
+    return effectiveDevelopments.map(dev => {
       const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
       const selectedTipos = (dev.tipos as string[] | null) || [];
       return {
@@ -533,7 +589,7 @@ export function DevelopmentsSpreadsheet() {
         tipos: selectedTipos.filter(t => developerTipos.includes(t)),
       };
     });
-  }, [developments, getTypeFromDeveloper]);
+  }, [effectiveDevelopments, getTypeFromDeveloper]);
 
   const {
     sortConfig,
@@ -696,7 +752,7 @@ export function DevelopmentsSpreadsheet() {
 
           {visibleData.map((dev, rowIndex) => {
             const isRowInactive = dev.active === false;
-            const isActiveRow = editingCell?.id === dev.id;
+            const isActiveRow = activeEditingRowId === dev.id;
             return (
             <div
               key={dev.id}
@@ -710,6 +766,7 @@ export function DevelopmentsSpreadsheet() {
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-development-${dev.id}`}
+              onClick={() => handleRowClick(dev.id)}
             >
               {visibleColumns.map((col) => {
                 const fieldCanEdit = canEdit(col.key);
@@ -827,7 +884,7 @@ export function DevelopmentsSpreadsheet() {
                             if (dev.developerId) {
                               const selectedDev = developers.find(d => d.id === dev.developerId);
                               if (selectedDev && selectedDev.tipo !== (v === '__unassigned__' ? null : v)) {
-                                updateMutation.mutate({ id: dev.id, data: { developerId: null } });
+                                handleFieldChange(dev.id, { developerId: null });
                               }
                             }
                           }}
@@ -950,7 +1007,7 @@ export function DevelopmentsSpreadsheet() {
 
                   if (developerTipos.length === 1 && selectedTipos.length === 0) {
                     setTimeout(() => {
-                      updateMutation.mutate({ id: dev.id, data: { tipos: developerTipos } });
+                      handleFieldChange(dev.id, { tipos: developerTipos });
                     }, 0);
                   }
 
@@ -961,7 +1018,7 @@ export function DevelopmentsSpreadsheet() {
                           value={selectedTipo || '__unassigned__'}
                           onValueChange={(v) => {
                             const newTipos = v === '__unassigned__' ? [] : [v];
-                            updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
+                            handleFieldChange(dev.id, { tipos: newTipos });
                           }}
                         >
                           <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${!selectedTipo ? 'text-red-500 font-medium' : ''}`} data-testid={`select-tipos-${dev.id}`}>
@@ -1113,7 +1170,7 @@ export function DevelopmentsSpreadsheet() {
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                       <SingleTipologiaCell
                         dev={dev}
-                        updateMutation={updateMutation}
+                        onSave={(data) => handleFieldChange(dev.id, data)}
                         fieldCanEdit={fieldCanEdit}
                         developerTipos={cellDeveloperTipos}
                       />
@@ -1145,7 +1202,7 @@ export function DevelopmentsSpreadsheet() {
                                       const val = (e.target as HTMLInputElement).value.trim();
                                       if (val && !arrValue.includes(val)) {
                                         const newArr = [...arrValue, val];
-                                        updateMutation.mutate({ id: dev.id, data: { [col.key]: newArr } });
+                                        handleFieldChange(dev.id, { [col.key]: newArr });
                                       }
                                       (e.target as HTMLInputElement).value = '';
                                     }
@@ -1160,7 +1217,7 @@ export function DevelopmentsSpreadsheet() {
                                       <button
                                         onClick={() => {
                                           const newArr = arrValue.filter((_, i) => i !== idx);
-                                          updateMutation.mutate({ id: dev.id, data: { [col.key]: newArr } });
+                                          handleFieldChange(dev.id, { [col.key]: newArr });
                                         }}
                                         className="flex-shrink-0 cursor-pointer"
                                         data-testid={`creatable-remove-${col.key}-${dev.id}-${idx}`}
@@ -1321,8 +1378,8 @@ export function DevelopmentsSpreadsheet() {
                           <Input
                             autoFocus
                             defaultValue={value || ""}
-                            onBlur={(e) => { updateMutation.mutate({ id: dev.id, data: { [col.key]: e.target.value || null } }); setEditingCell(null); }}
-                            onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: dev.id, data: { [col.key]: (e.target as HTMLInputElement).value || null } }); setEditingCell(null); } if (e.key === "Escape") setEditingCell(null); }}
+                            onBlur={(e) => { handleFieldChange(dev.id, { [col.key]: e.target.value || null }); setEditingCell(null); }}
+                            onKeyDown={(e) => { if (e.key === "Enter") { handleFieldChange(dev.id, { [col.key]: (e.target as HTMLInputElement).value || null }); setEditingCell(null); } if (e.key === "Escape") setEditingCell(null); }}
                             className="h-6 text-xs border-0 bg-transparent focus:ring-0 shadow-none p-1"
                             data-testid={`input-redaccion-${dev.id}`}
                           />
@@ -1566,10 +1623,7 @@ export function DevelopmentsSpreadsheet() {
                                 onBlur={(e) => {
                                   const newValue = e.target.value;
                                   if (newValue !== dateValue) {
-                                    updateMutation.mutate({ 
-                                      id: dev.id, 
-                                      data: { [col.key]: newValue || null } 
-                                    });
+                                    handleFieldChange(dev.id, { [col.key]: newValue || null });
                                   }
                                   setOpenDatePopover(null);
                                 }}
@@ -1577,10 +1631,7 @@ export function DevelopmentsSpreadsheet() {
                                   if (e.key === 'Enter') {
                                     const newValue = (e.target as HTMLInputElement).value;
                                     if (newValue !== dateValue) {
-                                      updateMutation.mutate({ 
-                                        id: dev.id, 
-                                        data: { [col.key]: newValue || null } 
-                                      });
+                                      handleFieldChange(dev.id, { [col.key]: newValue || null });
                                     }
                                     setOpenDatePopover(null);
                                   }
@@ -1598,10 +1649,7 @@ export function DevelopmentsSpreadsheet() {
                                   const month = String(now.getMonth() + 1).padStart(2, '0');
                                   const day = String(now.getDate()).padStart(2, '0');
                                   const today = `${year}-${month}-${day}`;
-                                  updateMutation.mutate({ 
-                                    id: dev.id, 
-                                    data: { [col.key]: today } 
-                                  });
+                                  handleFieldChange(dev.id, { [col.key]: today });
                                   setOpenDatePopover(null);
                                 }}
                                 className="text-xs"
@@ -1642,7 +1690,7 @@ export function DevelopmentsSpreadsheet() {
                               title: col.label,
                               value: String(value || ''),
                               editable: true,
-                              onSave: (newVal) => updateMutation.mutate({ id: dev.id, data: { [col.key]: newVal || null } }),
+                              onSave: (newVal) => handleFieldChange(dev.id, { [col.key]: newVal || null }),
                             });
                           } else {
                             setTextDetail({ title: col.label, value: String(displayValue || ''), editable: false });
