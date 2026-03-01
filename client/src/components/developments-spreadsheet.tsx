@@ -298,6 +298,14 @@ export function DevelopmentsSpreadsheet() {
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const toggleGroupCollapse = (key: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
 
   const { data: developments = [], isLoading: developmentsLoading } = useQuery<Development[]>({
     queryKey: ["/api/developments-entity"],
@@ -491,8 +499,25 @@ export function DevelopmentsSpreadsheet() {
       cols.splice(pos, 0, collapsedCol);
     }
 
+    if (collapsedGroups.size > 0) {
+      const processed: ColumnDef[] = [];
+      let i = 0;
+      while (i < cols.length) {
+        const col = cols[i];
+        const gk = col.group || '';
+        if (collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed') {
+          processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
+          while (i < cols.length && cols[i].group === gk) i++;
+        } else {
+          processed.push(col);
+          i++;
+        }
+      }
+      cols = processed;
+    }
+
     return cols;
-  }, [canView, hasFullAccess, fechaHoraExpanded]);
+  }, [canView, hasFullAccess, fechaHoraExpanded, collapsedGroups]);
 
   const developerOrderMap = useMemo(() => {
     const sorted = [...developers].sort((a, b) => a.name.localeCompare(b.name, 'es'));
@@ -665,6 +690,8 @@ export function DevelopmentsSpreadsheet() {
             onClear={handleClearFilter}
             sectionGroups={sectionGroupsForSearch}
             scrollRef={contentScrollRef}
+            collapsedGroups={collapsedGroups}
+            onToggleGroupCollapse={toggleGroupCollapse}
           />
 
           {visibleData.map((dev, rowIndex) => {
@@ -726,6 +753,13 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'fechahora-collapsed') {
                   return (
                     <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
+                  );
+                }
+
+                if (col.type === 'group-collapsed') {
+                  const groupDef = groupLookupMap[col.group || ''];
+                  return (
+                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: groupDef?.color ? `${groupDef.color}22` : '#f3f4f6' }} />
                   );
                 }
 

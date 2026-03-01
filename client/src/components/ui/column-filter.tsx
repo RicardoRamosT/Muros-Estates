@@ -140,7 +140,7 @@ export function ColumnFilter({
   };
 
   return (
-    <div className="w-full h-full relative flex items-center text-white">
+    <div className={cn("w-full h-full relative flex items-center text-white", hideLabel && "justify-center")}>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button

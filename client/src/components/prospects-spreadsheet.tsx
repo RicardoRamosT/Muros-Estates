@@ -60,6 +60,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const toggleGroupCollapse = (key: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
   const contentScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
@@ -403,8 +411,25 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       cols.splice(insertAt, 0, collapsedCol);
     }
 
+    if (collapsedGroups.size > 0) {
+      const processed: typeof cols = [];
+      let i = 0;
+      while (i < cols.length) {
+        const col = cols[i];
+        const gk = (col as any).group || '';
+        if (collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed') {
+          processed.push({ key: `${gk}_collapsed`, label: '', width: '30px', type: 'group-collapsed' as any, group: gk });
+          while (i < cols.length && ((cols[i] as any).group || '') === gk) i++;
+        } else {
+          processed.push(col);
+          i++;
+        }
+      }
+      cols = processed;
+    }
+
     return cols;
-  }, [allColumns, canView, fechaHoraExpanded]);
+  }, [allColumns, canView, fechaHoraExpanded, collapsedGroups]);
 
   const COLUMN_GROUPS_CURRENT = isClientView ? COLUMN_GROUPS_CLIENT : COLUMN_GROUPS_PROSPECT;
   const groupLookupMap = useMemo(() => Object.fromEntries(COLUMN_GROUPS_CURRENT.map(g => [g.key, g])), [isClientView]);
@@ -534,6 +559,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [filteredAndSortedData.length]);
 
   useEffect(() => {
+    setCollapsedGroups(new Set());
+  }, [isClientView]);
+
+  useEffect(() => {
     const sentinel = sentinelRef.current;
     const scrollContainer = contentScrollRef.current;
     if (!sentinel || !scrollContainer) return;
@@ -637,6 +666,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             idFilterKey="index"
             labelMaps={labelMaps}
             groupMaps={groupMaps}
+            collapsedGroups={collapsedGroups}
+            onToggleGroupCollapse={toggleGroupCollapse}
           />
 
           {visibleData.map((prospect, index) => {
@@ -736,6 +767,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   if (col.type === 'fechahora-collapsed') {
                     return (
                       <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
+                    );
+                  }
+
+                  if (col.type === 'group-collapsed') {
+                    const groupDef = groupLookupMap[(col as any).group || ''];
+                    return (
+                      <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: groupDef?.color ? `${groupDef.color}22` : '#f3f4f6' }} />
                     );
                   }
 

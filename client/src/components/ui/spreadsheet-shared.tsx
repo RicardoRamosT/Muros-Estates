@@ -14,7 +14,7 @@ import {
 
 const NO_FILTER_TYPES = new Set([
   'actions', 'folder-link', 'index', 'toggle',
-  'calculated-percent', 'date-display', 'time-display',
+  'calculated-percent', 'date-display', 'time-display', 'group-collapsed',
 ]);
 
 function getColumnFilterType(type?: string): 'boolean' | 'number' | 'select' | 'text' {
@@ -109,6 +109,8 @@ interface SpreadsheetHeaderProps {
   idFilterKey?: string;
   labelMaps?: Record<string, Record<string, string>>;
   groupMaps?: Record<string, Record<string, string[]>>;
+  collapsedGroups?: Set<string>;
+  onToggleGroupCollapse?: (key: string) => void;
 }
 
 export function SpreadsheetHeader({
@@ -130,6 +132,8 @@ export function SpreadsheetHeader({
   idFilterKey = 'id',
   labelMaps,
   groupMaps,
+  collapsedGroups,
+  onToggleGroupCollapse,
 }: SpreadsheetHeaderProps) {
   return (
     <div className="sticky top-0 z-20">
@@ -161,24 +165,47 @@ export function SpreadsheetHeader({
                 </div>
               );
             } else if (group.label) {
-              items.push(
-                <div
-                  key={`r1-group-${group.key}`}
-                  className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
-                  style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
-                >
-                  <span>{group.label}</span>
-                  {group.key === 'fechahora' && (
-                    <button
-                      onClick={onFechaHoraCollapse}
-                      className="ml-1 hover:opacity-80"
-                      data-testid="toggle-fechahora-collapse"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              );
+              const isCollapsed = collapsedGroups?.has(group.key);
+              if (isCollapsed && group.key !== 'fechahora') {
+                items.push(
+                  <div
+                    key={`r1-group-${group.key}-collapsed`}
+                    className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
+                    style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af' }}
+                    onClick={() => onToggleGroupCollapse?.(group.key)}
+                    data-testid={`toggle-group-expand-${group.key}`}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </div>
+                );
+              } else {
+                items.push(
+                  <div
+                    key={`r1-group-${group.key}`}
+                    className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
+                    style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
+                  >
+                    <span>{group.label}</span>
+                    {group.key === 'fechahora' ? (
+                      <button
+                        onClick={onFechaHoraCollapse}
+                        className="ml-1 hover:opacity-80"
+                        data-testid="toggle-fechahora-collapse"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                    ) : onToggleGroupCollapse ? (
+                      <button
+                        onClick={() => onToggleGroupCollapse(group.key)}
+                        className="ml-1 hover:opacity-80"
+                        data-testid={`toggle-group-collapse-${group.key}`}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              }
             } else {
               groupCols.forEach(col => {
                 items.push(
@@ -212,6 +239,17 @@ export function SpreadsheetHeader({
                 key="r2-fechahora_collapsed"
                 className="flex-shrink-0 border-r"
                 style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
+              />
+            );
+          }
+          if (col.type === 'group-collapsed') {
+            const groupDef = groupLookupMap[col.group || ''];
+            const bg = groupDef?.color || '#9ca3af';
+            return (
+              <div
+                key={`r2-${col.key}`}
+                className="flex-shrink-0 border-r"
+                style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, opacity: 0.35 }}
               />
             );
           }
@@ -263,6 +301,17 @@ export function SpreadsheetHeader({
                 key="r3-fechahora_collapsed"
                 className="flex-shrink-0 border-r"
                 style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
+              />
+            );
+          }
+          if (col.type === 'group-collapsed') {
+            const groupDef = groupLookupMap[col.group || ''];
+            const bg = groupDef?.color || '#9ca3af';
+            return (
+              <div
+                key={`r3-${col.key}`}
+                className="flex-shrink-0 border-r"
+                style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, opacity: 0.35 }}
               />
             );
           }
