@@ -252,6 +252,7 @@ export function SpreadsheetHeader({
             onSort={(dir) => onSort(idFilterKey, dir)}
             onFilter={(state) => onFilter(idFilterKey, state)}
             onClear={() => onClear(idFilterKey)}
+            hideLabel
           />
         </div>
         {visibleColumns.map(col => {
@@ -295,6 +296,7 @@ export function SpreadsheetHeader({
                   onClear={() => onClear(col.key)}
                   labelMap={labelMaps?.[col.key]}
                   groupMap={groupMaps?.[col.key]}
+                  hideLabel
                 />
               )}
             </div>

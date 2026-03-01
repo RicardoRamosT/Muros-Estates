@@ -28,6 +28,7 @@ export interface ColumnFilterProps {
   onClear: () => void;
   labelMap?: Record<string, string>;
   groupMap?: Record<string, string[]>;
+  hideLabel?: boolean;
 }
 
 export function ColumnFilter({
@@ -43,6 +44,7 @@ export function ColumnFilter({
   onClear,
   labelMap,
   groupMap,
+  hideLabel = false,
 }: ColumnFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState(filterState.search);
@@ -358,13 +360,15 @@ export function ColumnFilter({
           </div>
         </PopoverContent>
       </Popover>
-      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0" title={columnLabel}>
-        {columnLabel}
-      </span>
+      {!hideLabel && (
+        <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0" title={columnLabel}>
+          {columnLabel}
+        </span>
+      )}
       <button
         onClick={handleSortClick}
         className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0"
-        style={{ width: 28 }}
+        style={{ width: hideLabel ? 28 : 28 }}
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />
