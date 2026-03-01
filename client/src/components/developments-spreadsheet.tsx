@@ -132,9 +132,9 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'empresa', type: 'boolean', width: '58px', cellType: 'checkbox' },
   { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
+  { key: 'active', label: 'Act.', group: 'empresa', type: 'boolean', width: '58px', cellType: 'checkbox' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'empresa', width: '130px', cellType: 'input' },
@@ -537,10 +537,10 @@ export function DevelopmentsSpreadsheet() {
     });
 
     if (!fechaHoraExpanded) {
-      const actIdx = cols.findIndex(c => c.key === 'active');
-      const insertAt = actIdx >= 0 ? actIdx + 1 : 1;
+      const insertAt = cols.findIndex(c => c.group !== 'corner' && c.group !== 'fechahora' && c.group !== 'fechahora_collapsed');
+      const pos = insertAt >= 0 ? insertAt : 1;
       const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', group: 'fechahora_collapsed', type: 'fechahora-collapsed' as any, width: '30px', cellType: 'readonly' };
-      cols.splice(insertAt, 0, collapsedCol);
+      cols.splice(pos, 0, collapsedCol);
     }
 
     return cols;
@@ -772,18 +772,23 @@ export function DevelopmentsSpreadsheet() {
                 <span className="text-xs font-semibold text-white">ID</span>
               </div>
               {visibleColumns.map((col) => {
-                if (col.group === 'corner' || col.key === 'fechahora_collapsed') return null;
+                if (col.group === 'corner') return null;
+                if (col.key === 'fechahora_collapsed') {
+                  return (
+                    <div key="r2-fechahora_collapsed" className="flex-shrink-0 border-r"
+                      style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }} />
+                  );
+                }
                 const groupDef = groupLookupMap[col.group || ''];
                 const groupColor = groupDef?.color || '';
                 const isColored = !!groupColor;
                 return (
                   <div
                     key={`r2-${col.key}`}
-                    className="border-r border-white/20 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
+                    className={`border-r border-white/30 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 ${isColored ? 'text-white' : 'text-gray-700'}`}
                     style={{
-                      width: col.width, minWidth: col.width,
+                      width: col.width, minWidth: col.width, height: 32,
                       backgroundColor: isColored ? groupColor : '#d1d5db',
-                      color: isColored ? 'white' : '#374151',
                     }}
                   >
                     <span className="truncate">{col.label}</span>
@@ -812,14 +817,20 @@ export function DevelopmentsSpreadsheet() {
                 />
               </div>
               {visibleColumns.map((col) => {
-                if (col.group === 'corner' || col.key === 'fechahora_collapsed') return null;
+                if (col.group === 'corner') return null;
+                if (col.key === 'fechahora_collapsed') {
+                  return (
+                    <div key="r3-fechahora_collapsed" className="flex-shrink-0 border-r"
+                      style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }} />
+                  );
+                }
                 const groupDef = groupLookupMap[col.group || ''];
                 const groupColor = groupDef?.color || '';
                 const isColored = !!groupColor;
                 return (
                   <div
                     key={`r3-${col.key}`}
-                    className="border-r border-white/20 flex items-center flex-shrink-0"
+                    className="border-r border-white/30 flex items-center flex-shrink-0"
                     style={{
                       width: col.width, minWidth: col.width, height: 32,
                       backgroundColor: isColored ? groupColor : '#d1d5db',
