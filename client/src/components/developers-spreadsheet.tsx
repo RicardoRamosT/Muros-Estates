@@ -450,12 +450,17 @@ export function DevelopersSpreadsheet() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrolladores</span>
-          {Object.keys(localEdits).length > 0 && (
-            <Button size="sm" onClick={saveAllPending} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid="button-save-pending-developers">
-              <Check className="w-4 h-4 mr-1" />
-              Guardar
-            </Button>
-          )}
+          <Button
+            size="sm"
+            onClick={saveAllPending}
+            disabled={updateMutation.isPending || Object.keys(localEdits).length === 0}
+            className={Object.keys(localEdits).length > 0 ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+            variant={Object.keys(localEdits).length > 0 ? "default" : "outline"}
+            data-testid="button-save-pending-developers"
+          >
+            {updateMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+            Guardar
+          </Button>
           {hasFullAccess && (
             <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
               <Plus className="w-4 h-4 mr-1" />
