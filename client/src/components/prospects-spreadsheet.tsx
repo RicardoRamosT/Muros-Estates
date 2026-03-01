@@ -18,12 +18,59 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download } from "lucide-react";
+import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCellStyle, type CellType } from "@/lib/spreadsheet-utils";
+import { getCellStyle, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
 import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
+
+const COLUMN_GROUPS_PROSPECT = [
+  { key: 'corner', label: '', color: '' },
+  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
+  { key: 'asignacion', label: 'ASIGNACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
+  { key: 'calificacion', label: 'CALIFICACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'seguimiento', label: 'SEGUIMIENTO', color: SHEET_COLOR_LIGHT },
+  { key: 'notas', label: 'NOTAS', color: SHEET_COLOR_DARK },
+  { key: 'actions', label: '', color: '' },
+];
+
+const COLUMN_GROUPS_CLIENT = [
+  { key: 'corner', label: '', color: '' },
+  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
+  { key: 'asignacion', label: 'ASIGNACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'financiero', label: 'FINANCIERO', color: SHEET_COLOR_LIGHT },
+  { key: 'actions', label: '', color: '' },
+];
+
+function ProspectSectionSearchButton({ groups, scrollRef }: { groups: { label: string; offset: number; width: number }[]; scrollRef: { current: HTMLDivElement | null } }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="p-1 hover:bg-white/20 rounded" data-testid="button-section-search">
+          <Search className="w-3 h-3 text-white" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-48 p-1">
+        {groups.map(g => (
+          <button
+            key={g.label}
+            className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded truncate"
+            onClick={() => {
+              scrollRef.current?.scrollTo({ left: g.offset, behavior: 'smooth' });
+              setOpen(false);
+            }}
+          >
+            {g.label}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 interface ProspectsSpreadsheetProps {
   isClientView?: boolean;
@@ -228,53 +275,53 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   };
 
   const prospectColumns = [
-    { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle" },
+    { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle", group: "asignacion" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
-    { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
-    { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select" },
-    { key: "zona", label: "Zona", width: "100px", type: "catalog-select" },
-    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select" },
-    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select" },
-    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select" },
-    { key: "nombre", label: "Nombre", width: "120px" },
-    { key: "apellido", label: "Apellido", width: "120px" },
-    { key: "telefono", label: "Teléfono", width: "110px" },
-    { key: "correo", label: "Correo", width: "160px" },
-    { key: "tipofil", label: "Tipo", width: "100px", type: "options-select" },
-    { key: "perfil", label: "Perfil", width: "110px", type: "options-select" },
-    { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select" },
-    { key: "brokerExterno", label: "Broker Ext.", width: "58px", type: "boolean-select" },
-    { key: "estatus", label: "Estatus", width: "100px", type: "options-select" },
-    { key: "embudo", label: "Embudo", width: "130px", type: "options-select" },
-    { key: "comoPaga", label: "Cómo Paga", width: "110px", type: "options-select" },
-    { key: "positivos", label: "Positivos", width: "140px", type: "multi-select" },
-    { key: "negativos", label: "Negativos", width: "140px", type: "multi-select" },
-    { key: "comentarios", label: "Comentarios", width: "160px", noFilter: true },
-    { key: "actions", label: "", width: "50px", type: "actions" },
+    { key: "asesorId", label: "Asesor", width: "120px", type: "select", group: "asignacion" },
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select", group: "asignacion" },
+    { key: "zona", label: "Zona", width: "100px", type: "catalog-select", group: "asignacion" },
+    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select", group: "asignacion" },
+    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select", group: "asignacion" },
+    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select", group: "asignacion" },
+    { key: "nombre", label: "Nombre", width: "120px", group: "contacto" },
+    { key: "apellido", label: "Apellido", width: "120px", group: "contacto" },
+    { key: "telefono", label: "Teléfono", width: "110px", group: "contacto" },
+    { key: "correo", label: "Correo", width: "160px", group: "contacto" },
+    { key: "tipofil", label: "Tipo", width: "100px", type: "options-select", group: "calificacion" },
+    { key: "perfil", label: "Perfil", width: "110px", type: "options-select", group: "calificacion" },
+    { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select", group: "calificacion" },
+    { key: "brokerExterno", label: "Broker Ext.", width: "58px", type: "boolean-select", group: "calificacion" },
+    { key: "estatus", label: "Estatus", width: "100px", type: "options-select", group: "seguimiento" },
+    { key: "embudo", label: "Embudo", width: "130px", type: "options-select", group: "seguimiento" },
+    { key: "comoPaga", label: "Cómo Paga", width: "110px", type: "options-select", group: "seguimiento" },
+    { key: "positivos", label: "Positivos", width: "140px", type: "multi-select", group: "notas" },
+    { key: "negativos", label: "Negativos", width: "140px", type: "multi-select", group: "notas" },
+    { key: "comentarios", label: "Comentarios", width: "160px", noFilter: true, group: "notas" },
+    { key: "actions", label: "", width: "50px", type: "actions", group: "actions" },
   ];
 
   const clientColumns = [
-    { key: "index", label: "ID", width: "45px", type: "index" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle" },
+    { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle", group: "contacto" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
-    { key: "asesorId", label: "Asesor", width: "120px", type: "select" },
-    { key: "nombre", label: "Nombre", width: "120px" },
-    { key: "apellido", label: "Apellido", width: "120px" },
-    { key: "telefono", label: "Teléfono", width: "110px" },
-    { key: "correo", label: "Correo", width: "160px" },
-    { key: "embudo", label: "Embudo", width: "130px", type: "options-select" },
-    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select" },
-    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select" },
-    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select" },
-    { key: "precioFinal", label: "Precio Final", width: "120px", type: "currency" },
-    { key: "separacion", label: "Separación", width: "110px", type: "currency" },
-    { key: "fechaSeparacion", label: "F. Separación", width: "110px", type: "date" },
-    { key: "enganche", label: "Enganche", width: "110px", type: "currency" },
-    { key: "fechaEnganche", label: "F. Enganche", width: "110px", type: "date" },
-    { key: "actions", label: "", width: "50px", type: "actions" },
+    { key: "asesorId", label: "Asesor", width: "120px", type: "select", group: "contacto" },
+    { key: "nombre", label: "Nombre", width: "120px", group: "contacto" },
+    { key: "apellido", label: "Apellido", width: "120px", group: "contacto" },
+    { key: "telefono", label: "Teléfono", width: "110px", group: "contacto" },
+    { key: "correo", label: "Correo", width: "160px", group: "contacto" },
+    { key: "embudo", label: "Embudo", width: "130px", type: "options-select", group: "contacto" },
+    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select", group: "asignacion" },
+    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select", group: "asignacion" },
+    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select", group: "asignacion" },
+    { key: "precioFinal", label: "Precio Final", width: "120px", type: "currency", group: "financiero" },
+    { key: "separacion", label: "Separación", width: "110px", type: "currency", group: "financiero" },
+    { key: "fechaSeparacion", label: "F. Separación", width: "110px", type: "date", group: "financiero" },
+    { key: "enganche", label: "Enganche", width: "110px", type: "currency", group: "financiero" },
+    { key: "fechaEnganche", label: "F. Enganche", width: "110px", type: "date", group: "financiero" },
+    { key: "actions", label: "", width: "50px", type: "actions", group: "actions" },
   ];
 
   const allColumns = isClientView ? clientColumns : prospectColumns;
@@ -381,18 +428,58 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
       if ((col as any).group === 'fechahora') return fechaHoraExpanded;
-      if (col.type === 'index' || col.type === 'actions') return true;
+      if ((col as any).group === 'corner' || col.type === 'index' || col.type === 'actions') return true;
       return canView(col.key);
     });
 
     if (!fechaHoraExpanded) {
       const actIdx = cols.findIndex(c => c.key === 'active');
-      const collapsedCol = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed' };
-      cols.splice(actIdx + 1, 0, collapsedCol);
+      const insertAt = actIdx >= 0 ? actIdx + 1 : 1;
+      const collapsedCol = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed', group: 'fechahora_collapsed' };
+      cols.splice(insertAt, 0, collapsedCol);
     }
 
     return cols;
   }, [allColumns, canView, fechaHoraExpanded]);
+
+  const COLUMN_GROUPS_CURRENT = isClientView ? COLUMN_GROUPS_CLIENT : COLUMN_GROUPS_PROSPECT;
+  const groupLookupMap = useMemo(() => Object.fromEntries(COLUMN_GROUPS_CURRENT.map(g => [g.key, g])), [isClientView]);
+
+  const visibleColumnGroups = useMemo(() => {
+    const runs: { key: string; label: string; color: string; colspan: number }[] = [];
+    for (const col of columns) {
+      const gKey = (col as any).group || '';
+      if (gKey === 'fechahora_collapsed') {
+        runs.push({ key: 'fechahora_collapsed', label: '', color: SHEET_FECHAHORA_COLOR, colspan: 1 });
+        continue;
+      }
+      const groupDef = groupLookupMap[gKey] || { key: gKey, label: '', color: '' };
+      const last = runs[runs.length - 1];
+      if (last && last.key === gKey) { last.colspan++; } else { runs.push({ ...groupDef, colspan: 1 }); }
+    }
+    return runs;
+  }, [columns, groupLookupMap]);
+
+  const sectionGroupsForSearch = useMemo(() => {
+    const result: { label: string; offset: number; width: number }[] = [];
+    let offset = 0;
+    let currentGroupKey = '';
+    for (const col of columns) {
+      const w = parseInt(col.width);
+      const gKey = (col as any).group || '';
+      if (gKey === 'corner') { offset += w; continue; }
+      const groupDef = groupLookupMap[gKey];
+      if (!groupDef?.label) { offset += w; continue; }
+      if (gKey !== currentGroupKey) {
+        result.push({ label: groupDef.label, offset, width: w });
+        currentGroupKey = gKey;
+      } else if (result.length > 0) {
+        result[result.length - 1].width += w;
+      }
+      offset += w;
+    }
+    return result;
+  }, [columns, groupLookupMap]);
 
   // Create order maps for options-select columns (for proper sorting by position)
   const orderMaps = useMemo(() => {
@@ -567,105 +654,140 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
-          <div className="sticky top-0 z-20 bg-gray-300 dark:bg-gray-600" data-testid="prospects-table-header">
-            {/* Row 1: Section headers */}
+          <div className="sticky top-0 z-20" data-testid="prospects-table-header">
+            {/* Row 1: Group labels */}
             <div className="flex border-b">
+              <div
+                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+              >
+                <ProspectSectionSearchButton groups={sectionGroupsForSearch} scrollRef={contentScrollRef} />
+              </div>
               {(() => {
-                const row1Items: JSX.Element[] = [];
-                let i = 0;
-                while (i < columns.length) {
-                  const col = columns[i];
-                  if (col.key === 'fechahora_collapsed') {
-                    row1Items.push(
+                const items: JSX.Element[] = [];
+                let colIdx = 0;
+                for (const group of visibleColumnGroups) {
+                  if (group.key === 'corner') { colIdx += group.colspan; continue; }
+                  const groupCols = columns.slice(colIdx, colIdx + group.colspan);
+                  const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
+                  if (group.key === 'fechahora_collapsed' || groupCols[0]?.key === 'fechahora_collapsed') {
+                    items.push(
                       <div
-                        key={`r1-${col.key}`}
-                        className="border-r bg-teal-600 dark:bg-teal-700 text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                        style={{ width: '30px', minWidth: '30px', height: '68px' }}
+                        key="r1-fechahora_collapsed"
+                        className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
+                        style={{ width: 30, minWidth: 30, height: 96, backgroundColor: SHEET_FECHAHORA_COLOR }}
                         onClick={() => setFechaHoraExpanded(true)}
                         data-testid="toggle-fechahora-expand"
                       >
                         <Plus className="w-3 h-3" />
                       </div>
                     );
-                    i++;
-                  } else if ((col as any).group === 'fechahora') {
-                    let totalWidth = 0;
-                    while (i < columns.length && (columns[i] as any).group === 'fechahora') {
-                      totalWidth += parseInt(columns[i].width);
-                      i++;
-                    }
-                    row1Items.push(
+                  } else if (group.label) {
+                    items.push(
                       <div
-                        key="r1-fechahora"
-                        className="border-r border-gray-200 dark:border-gray-700 bg-teal-600 dark:bg-teal-700 text-white flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0"
-                        style={{ width: totalWidth, minWidth: totalWidth }}
+                        key={`r1-group-${group.key}`}
+                        className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
+                        style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
                       >
-                        <span>FECHA/HORA</span>
-                        <button
-                          onClick={() => setFechaHoraExpanded(false)}
-                          className="ml-1 hover:opacity-80"
-                          data-testid="toggle-fechahora-collapse"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
+                        {group.key === 'fechahora' ? (
+                          <>
+                            <span>FECHA/HORA</span>
+                            <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
+                              <Minus className="w-3 h-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <span>{group.label}</span>
+                        )}
                       </div>
                     );
                   } else {
-                    row1Items.push(
-                      <div
-                        key={`r1-${col.key}`}
-                        className={cn(
-                          "border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0",
-                          col.key === 'index' && "sticky left-0 z-30",
-                          col.key === 'active' && "sticky z-30"
-                        )}
-                        style={{ width: col.width, minWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
-                      />
-                    );
-                    i++;
+                    groupCols.forEach(col => {
+                      items.push(
+                        <div
+                          key={`r1-${col.key}`}
+                          className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
+                          style={{ width: col.width, minWidth: col.width }}
+                        />
+                      );
+                    });
                   }
+                  colIdx += group.colspan;
                 }
-                return row1Items;
+                return items;
               })()}
             </div>
-            {/* Row 2: Column headers */}
+            {/* Row 2: Column names only */}
             <div className="flex border-b">
+              <div
+                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+              >
+                <span className="text-xs font-semibold text-white">ID</span>
+              </div>
               {columns.map((col) => {
-                if (col.key === 'fechahora_collapsed') return null;
-                if ((col as any).group === 'fechahora') {
-                  return (
-                    <div
-                      key={`r2-${col.key}`}
-                      className="border-r last:border-r-0 border-gray-200/30 bg-teal-600 dark:bg-teal-700 text-white px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
-                      style={{ width: col.width, minWidth: col.width }}
-                    >
-                      <span className="truncate">{col.label}</span>
-                    </div>
-                  );
-                }
+                if ((col as any).group === 'corner' || col.key === 'fechahora_collapsed') return null;
+                const groupDef = groupLookupMap[(col as any).group || ''];
+                const groupColor = groupDef?.color || '';
+                const isColored = !!groupColor;
                 return (
                   <div
                     key={`r2-${col.key}`}
-                    className={cn(
-                      "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
-                      col.type === 'index' ? 'justify-center' : 'justify-start',
-                      (col.key === 'index' || col.type === 'index') && "sticky left-0 z-30",
-                      col.key === 'active' && "sticky z-30"
-                    )}
-                    style={{ width: col.width, minWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
+                    className="border-r border-white/20 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
+                    style={{
+                      width: col.width, minWidth: col.width, height: 32,
+                      backgroundColor: isColored ? groupColor : '#d1d5db',
+                      color: isColored ? 'white' : '#374151',
+                    }}
                     data-testid={`column-header-${col.key}`}
                   >
-                    {col.type === 'actions' || col.type === 'index' || (col as any).noFilter ? (
-                      <div className={`flex items-center ${col.type === 'index' ? 'justify-center' : ''}`}>
-                        <span className="truncate">{col.label}</span>
-                      </div>
+                    <span className="truncate">{col.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Row 3: Filter controls */}
+            <div className="flex border-b">
+              <div
+                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+              >
+                <ColumnFilter
+                  columnKey="index"
+                  columnLabel="ID"
+                  columnType="text"
+                  uniqueValues={uniqueValuesMap['index'] || []}
+                  availableValues={availableValuesMap['index']}
+                  sortDirection={sortConfig.key === 'index' ? sortConfig.direction : null}
+                  filterState={filterConfigs['index'] || { search: "", selectedValues: new Set() }}
+                  onSort={(dir) => handleSort('index', dir)}
+                  onFilter={(state) => handleFilter('index', state)}
+                  onClear={() => handleClearFilter('index')}
+                />
+              </div>
+              {columns.map((col) => {
+                if ((col as any).group === 'corner' || col.key === 'fechahora_collapsed') return null;
+                const groupDef = groupLookupMap[(col as any).group || ''];
+                const groupColor = groupDef?.color || '';
+                const isColored = !!groupColor;
+                return (
+                  <div
+                    key={`r3-${col.key}`}
+                    className="border-r border-white/20 flex items-center flex-shrink-0"
+                    style={{
+                      width: col.width, minWidth: col.width, height: 32,
+                      backgroundColor: isColored ? groupColor : '#d1d5db',
+                    }}
+                  >
+                    {col.type === 'index' || col.type === 'actions' || (col as any).noFilter || col.type === 'toggle' ? (
+                      <div />
                     ) : (
                       <ColumnFilter
                         columnKey={col.key}
                         columnLabel={col.label}
                         columnType={
                           col.type === 'toggle' ? 'boolean' :
-                          col.type === 'currency' ? 'number' : 
+                          col.type === 'currency' ? 'number' :
                           col.type === 'select' ? 'select' : 'text'
                         }
                         uniqueValues={uniqueValuesMap[col.key] || []}
@@ -685,14 +807,21 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             </div>
           </div>
 
-          {visibleData.map((prospect, index) => (
+          {visibleData.map((prospect, index) => {
+            const isRowInactive = (prospect as any).active === false;
+            const isActiveRow = editingCell?.id === prospect.id;
+            return (
             <div
               key={prospect.id}
               className={cn(
                 "flex border-b group",
-                index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                isRowInactive
+                  ? ""
+                  : isActiveRow
+                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px' }}
+              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
             >
                 {columns.map((col) => {
@@ -704,22 +833,29 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
 
                   if (col.type === 'index') {
+                    const dotColor = (prospect as any).active === true ? '#15803d' : (prospect as any).active === false ? '#F16100' : '#6b7280';
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }} title={prospect.id}>
-                        <span className="text-xs text-muted-foreground">{index + 1}</span>
+                      <div
+                        key={col.key}
+                        className="spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 relative border-r border-b"
+                        style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
+                        title={prospect.id}
+                      >
+                        <span className="text-xs font-medium">{index + 1}</span>
+                        <span className="absolute bottom-1 right-1 rounded-full" style={{ width: 6, height: 6, backgroundColor: dotColor }} />
                       </div>
                     );
                   }
 
                   if (col.type === 'toggle') {
                     const isActive = (prospect as any).active ?? true;
-                    const cellBgColor = isActive ? '#dcfce7' : '#fee2e2';
-                    const textColorClass = isActive ? 'text-green-700' : 'text-red-600';
+                    const cellBgColor = isRowInactive ? '#9ca3af' : (isActive ? '#dcfce7' : '#fee2e2');
+                    const textColorClass = isRowInactive ? 'text-gray-600' : (isActive ? 'text-green-700' : 'text-red-600');
                     return (
                       <div 
                         key={col.key} 
-                        className={cn("spreadsheet-cell flex-shrink-0 sticky z-10", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                        style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, left: 45 }}
+                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                        style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
                       >
                         {fieldCanEdit ? (
                           <Select
@@ -1296,7 +1432,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   );
                 })}
             </div>
-          ))}
+          );
+          })}
           <div ref={sentinelRef} style={{ height: '1px' }} />
           {filteredAndSortedData.length === 0 && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">

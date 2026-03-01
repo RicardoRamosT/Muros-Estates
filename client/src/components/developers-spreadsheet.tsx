@@ -31,7 +31,7 @@ import {
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Check, Clock, Search } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType } from "@/lib/spreadsheet-utils";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -50,12 +50,13 @@ const EMPRESA_TIPOS = [
 ];
 
 const COLUMN_GROUPS_DEV = [
-  { key: 'basic', label: '', color: '' },
-  { key: 'fechahora', label: 'FECHA/HORA', color: '#0d9488' },
-  { key: 'empresa', label: 'EMPRESA', color: 'rgb(11,120,180)' },
-  { key: 'fiscal', label: 'FISCAL', color: 'rgb(13,149,225)' },
-  { key: 'tipos', label: 'TIPOS', color: 'rgb(11,120,180)' },
-  { key: 'contacto', label: 'CONTACTO', color: 'rgb(13,149,225)' },
+  { key: 'corner', label: '', color: '' },
+  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
+  { key: 'fechahora_collapsed', label: '', color: '' },
+  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_DARK },
+  { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_LIGHT },
+  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_DARK },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
   { key: 'docs', label: '', color: '' },
 ];
 
@@ -172,8 +173,8 @@ export function DevelopersSpreadsheet() {
   });
 
   const allColumns: ColumnDef[] = [
-    { key: "id", label: "ID", width: "45px", type: "index", autoField: true, cellType: "index", group: "basic" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox", group: "basic" },
+    { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox", group: "empresa" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "empresa" },
@@ -197,14 +198,15 @@ export function DevelopersSpreadsheet() {
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
       if (col.group === 'fechahora') return fechaHoraExpanded;
-      if (col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField) return true;
+      if (col.group === 'corner' || col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField) return true;
       return canView(col.key);
     });
 
     if (!fechaHoraExpanded) {
       const actIdx = cols.findIndex(c => c.key === 'active');
-      const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed', cellType: 'readonly' };
-      cols.splice(actIdx + 1, 0, collapsedCol);
+      const insertAt = actIdx >= 0 ? actIdx + 1 : 1;
+      const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed', cellType: 'readonly', group: 'fechahora_collapsed' };
+      cols.splice(insertAt, 0, collapsedCol);
     }
 
     return cols;
@@ -272,16 +274,17 @@ export function DevelopersSpreadsheet() {
     return runs;
   }, [columns]);
 
+  const groupLookupMap = useMemo(() => Object.fromEntries(COLUMN_GROUPS_DEV.map(g => [g.key, g])), []);
+
   const sectionGroupsForSearch = useMemo(() => {
-    const groupLookup = Object.fromEntries(COLUMN_GROUPS_DEV.map(g => [g.key, g]));
     const result: { label: string; offset: number; width: number }[] = [];
     let offset = 0;
     let currentGroupKey = '';
     for (const col of columns) {
       const w = parseInt(col.width);
       const gKey = col.group || '';
-      if (gKey === 'basic') { offset += w; continue; }
-      const groupDef = groupLookup[gKey];
+      if (gKey === 'corner') { offset += w; continue; }
+      const groupDef = groupLookupMap[gKey];
       if (!groupDef?.label) { offset += w; continue; }
       if (gKey !== currentGroupKey) {
         result.push({ label: groupDef.label, offset, width: w });
@@ -292,7 +295,7 @@ export function DevelopersSpreadsheet() {
       offset += w;
     }
     return result;
-  }, [columns]);
+  }, [columns, groupLookupMap]);
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<Developer>) => 
@@ -430,31 +433,30 @@ export function DevelopersSpreadsheet() {
       
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
-          {/* Header: Two-row structure */}
-          <div className="sticky top-0 z-20 bg-gray-300 dark:bg-gray-600">
-            {/* Row 1: Corner search button + Section group headers */}
+          {/* Header: Three-row structure (matches Tipologías) */}
+          <div className="sticky top-0 z-20">
+            {/* Row 1: Group labels */}
             <div className="flex border-b">
-              {/* Sticky corner: id (45) + active (58) = 103px */}
+              {/* Blue corner — SectionSearch */}
               <div
                 className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-                style={{ width: 103, minWidth: 103, height: 32, backgroundColor: 'rgb(11,120,180)' }}
+                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
               >
                 <DevSectionSearchButton groups={sectionGroupsForSearch} scrollRef={contentScrollRef} />
               </div>
-              {/* Group headers (skip 'basic' group — it's the corner cell) */}
               {(() => {
                 const items: JSX.Element[] = [];
                 let colIdx = 0;
                 for (const group of visibleColumnGroups) {
-                  if (group.key === 'basic') { colIdx += group.colspan; continue; }
+                  if (group.key === 'corner') { colIdx += group.colspan; continue; }
                   const groupCols = columns.slice(colIdx, colIdx + group.colspan);
                   const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
-                  if (group.key === 'fechahora_collapsed' || columns[colIdx]?.key === 'fechahora_collapsed') {
+                  if (group.key === 'fechahora_collapsed' || groupCols[0]?.key === 'fechahora_collapsed') {
                     items.push(
                       <div
                         key="r1-fechahora_collapsed"
                         className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                        style={{ width: 30, minWidth: 30, height: 68, backgroundColor: '#0d9488' }}
+                        style={{ width: 30, minWidth: 30, height: 96, backgroundColor: SHEET_FECHAHORA_COLOR }}
                         onClick={() => setFechaHoraExpanded(true)}
                         data-testid="toggle-fechahora-expand"
                       >
@@ -466,7 +468,7 @@ export function DevelopersSpreadsheet() {
                       <div
                         key={`r1-group-${group.key}`}
                         className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
-                        style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || 'transparent' }}
+                        style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
                       >
                         {group.key === 'fechahora' ? (
                           <>
@@ -496,44 +498,71 @@ export function DevelopersSpreadsheet() {
                 return items;
               })()}
             </div>
-            {/* Row 2: Column headers */}
+            {/* Row 2: Column names only */}
             <div className="flex border-b">
+              {/* Blue corner — "ID" text */}
+              <div
+                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+              >
+                <span className="text-xs font-semibold text-white">ID</span>
+              </div>
               {columns.map((col) => {
-                if (col.key === 'fechahora_collapsed') return null;
-                const groupLookup = Object.fromEntries(COLUMN_GROUPS_DEV.map(g => [g.key, g]));
-                const groupDef = groupLookup[col.group || ''];
+                if (col.group === 'corner' || col.key === 'fechahora_collapsed') return null;
+                const groupDef = groupLookupMap[col.group || ''];
                 const groupColor = groupDef?.color || '';
-                const isColored = !!groupColor && col.group !== 'basic' && col.group !== 'docs';
-                if (col.group === 'basic') {
-                  return (
-                    <div
-                      key={`r2-${col.key}`}
-                      className={cn(
-                        "border-r border-gray-200 dark:border-gray-700 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 bg-gray-300 dark:bg-gray-600",
-                        col.type === 'index' ? 'justify-center sticky left-0 z-30' : 'justify-start sticky z-30'
-                      )}
-                      style={{ width: col.width, minWidth: col.width, maxWidth: col.width, ...(col.key === 'active' ? { left: 45 } : {}) }}
-                    >
-                      <span className="truncate text-gray-700 dark:text-gray-200">{col.label}</span>
-                    </div>
-                  );
-                }
+                const isColored = !!groupColor;
                 return (
                   <div
                     key={`r2-${col.key}`}
-                    className={cn(
-                      "border-r border-white/20 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0",
-                      isColored ? 'text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200',
-                      col.key === 'active' && 'sticky z-30'
-                    )}
+                    className="border-r border-white/20 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
                     style={{
-                      width: col.width, minWidth: col.width, maxWidth: col.width,
-                      ...(isColored ? { backgroundColor: groupColor } : {}),
-                      ...(col.key === 'active' ? { left: 45 } : {})
+                      width: col.width, minWidth: col.width, height: 32,
+                      backgroundColor: isColored ? groupColor : '#d1d5db',
+                      color: isColored ? 'white' : '#374151',
+                    }}
+                  >
+                    <span className="truncate">{col.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Row 3: Filter controls */}
+            <div className="flex border-b">
+              {/* Blue corner — ColumnFilter for id */}
+              <div
+                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+              >
+                <ColumnFilter
+                  columnKey="id"
+                  columnLabel="ID"
+                  columnType="text"
+                  uniqueValues={uniqueValuesMap['id'] || []}
+                  availableValues={availableValuesMap['id']}
+                  sortDirection={sortConfig.key === 'id' ? sortConfig.direction : null}
+                  filterState={filterConfigs['id'] || { search: "", selectedValues: new Set() }}
+                  onSort={(dir) => handleSort('id', dir)}
+                  onFilter={(state) => handleFilter('id', state)}
+                  onClear={() => handleClearFilter('id')}
+                />
+              </div>
+              {columns.map((col) => {
+                if (col.group === 'corner' || col.key === 'fechahora_collapsed') return null;
+                const groupDef = groupLookupMap[col.group || ''];
+                const groupColor = groupDef?.color || '';
+                const isColored = !!groupColor;
+                return (
+                  <div
+                    key={`r3-${col.key}`}
+                    className="border-r border-white/20 flex items-center flex-shrink-0"
+                    style={{
+                      width: col.width, minWidth: col.width, height: 32,
+                      backgroundColor: isColored ? groupColor : '#d1d5db',
                     }}
                   >
                     {col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.type === 'toggle' ? (
-                      <span className="truncate">{col.label}</span>
+                      <div />
                     ) : (
                       <ColumnFilter
                         columnKey={col.key}
@@ -557,17 +586,22 @@ export function DevelopersSpreadsheet() {
           {/* Data rows */}
           {visibleData.map((dev, index) => {
             const isRowInactive = dev.active === false;
+            const isActiveRow = editingCell?.id === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
-              ? { backgroundColor: '#e8e8e8', color: '#999999' }
+              ? { backgroundColor: '#9ca3af' }
               : {};
             return (
             <div
               key={dev.id}
               className={cn(
                 "flex border-b group",
-                index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                isRowInactive
+                  ? ""
+                  : isActiveRow
+                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px' }}
+              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-developer-${dev.id}`}
             >
               {columns.map((col) => {
@@ -577,14 +611,19 @@ export function DevelopersSpreadsheet() {
                 const cellType = col.cellType || getCellTypeFromColumnType(col.type);
                 
                 if (col.type === 'index') {
+                  const dotColor = dev.active === true ? '#15803d' : dev.active === false ? '#F16100' : '#6b7280';
                   return (
-                    <div 
-                      key={field} 
-                      className={cn("spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 bg-gray-200 dark:bg-gray-700", getCellStyle({ type: "index", disabled: false }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                    <div
+                      key={field}
+                      className="spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 relative border-r border-b"
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
                       title={dev.id}
                     >
-                      <span className="text-xs text-muted-foreground">{index + 1}</span>
+                      <span className="text-xs font-medium">{index + 1}</span>
+                      <span
+                        className="absolute bottom-1 right-1 rounded-full"
+                        style={{ width: 6, height: 6, backgroundColor: dotColor }}
+                      />
                     </div>
                   );
                 }
@@ -613,13 +652,13 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'toggle') {
                   const isActive = dev.active ?? false;
-                  const cellBgColor = isActive ? '#dcfce7' : (isRowInactive ? '#f0b8b8' : '#fee2e2');
-                  const textColorClass = isActive ? 'text-green-700' : (isRowInactive ? 'text-[#a05050]' : 'text-red-600');
+                  const cellBgColor = isRowInactive ? '#9ca3af' : (isActive ? '#dcfce7' : '#fee2e2');
+                  const textColorClass = isRowInactive ? 'text-gray-600' : (isActive ? 'text-green-700' : 'text-red-600');
                   return (
                     <div 
                       key={field} 
-                      className={cn("spreadsheet-cell flex-shrink-0 sticky z-10", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, left: 45 }}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
                     >
                       {fieldCanEdit ? (
                         <Select

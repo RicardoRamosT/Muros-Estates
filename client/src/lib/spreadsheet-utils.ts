@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils";
 
+export const SHEET_COLOR_DARK = "rgb(11,120,180)";
+export const SHEET_COLOR_LIGHT = "rgb(13,149,225)";
+export const SHEET_BORDER_COLOR = "rgb(121,135,203)";
+export const SHEET_FECHAHORA_COLOR = "#0d9488";
+
 export type CellType = 
   | "input"      // White - editable text/number input
   | "dropdown"   // Gray - select/menu
