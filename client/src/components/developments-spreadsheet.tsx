@@ -62,21 +62,17 @@ const columnGroups: ColumnGroup[] = [
   { key: 'noheader_lockoff', label: '' },
   { key: 'distribucion', label: 'DISTRIBUCIÓN', color: '#88b04b' },
   { key: 'depas', label: 'DEPAS', color: '#92a8d1' },
-  { key: 'locales', label: 'LOCALES', color: '#955251' },
-  { key: 'oficinas', label: 'OFICINAS', color: '#b565a7' },
-  { key: 'salud', label: 'SALUD', color: '#009b77' },
+  { key: 'avance', label: 'AVANCE', color: '#7b6da0' },
   { key: 'noheader_preventa', label: '' },
   { key: 'noheader_redaccion', label: '' },
   { key: 'depas_pct', label: 'DEPAS', color: '#92a8d1' },
-  { key: 'locales_pct', label: 'LOCALES', color: '#955251' },
-  { key: 'oficinas_pct', label: 'OFICINAS', color: '#b565a7' },
-  { key: 'salud_pct', label: 'SALUD', color: '#009b77' },
-  { key: 'inicio', label: 'INICIO', color: '#dd4124' },
-  { key: 'entrega', label: 'ENTREGA', color: '#d65076' },
+  { key: 'avance_pct', label: 'AVANCE', color: '#7b6da0' },
+  { key: 'obra', label: 'OBRA', color: '#c0735f' },
   { key: 'noheader_contrato', label: '' },
   { key: 'ventas', label: 'VENTAS', color: '#45b8ac' },
   { key: 'pagos', label: 'PAGOS', color: '#efc050' },
   { key: 'noheader4', label: '' },
+  { key: 'noheader_amenidades', label: '' },
   { key: 'actions', label: '' },
 ];
 
@@ -98,10 +94,6 @@ const columns: ColumnDef[] = [
   { key: 'torres', label: 'Torres', group: 'structure', type: 'torres-select', width: '60px', cellType: 'dropdown' },
   { key: 'niveles', label: 'Niveles', group: 'structure', type: 'niveles-select', width: '65px', cellType: 'dropdown' },
   { key: 'vistas', label: 'Vistas', group: 'structure', type: 'multiselect-creatable', width: '95px', cellType: 'dropdown' },
-  { key: 'amenities', label: 'Amenidades', group: 'features', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
-  { key: 'efficiency', label: 'Eficiencia', group: 'features', type: 'multiselect-efficiency', width: '90px', cellType: 'dropdown' },
-  { key: 'otherFeatures', label: 'Otros', group: 'features', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
-  { key: 'acabados', label: 'Acabados', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'lockOff', label: 'Lock Off', group: 'noheader_lockoff', type: 'boolean', width: '58px', cellType: 'checkbox' },
@@ -109,25 +101,25 @@ const columns: ColumnDef[] = [
   { key: 'banos', label: 'Baños', group: 'distribucion', type: 'banos-select', width: '80px', cellType: 'dropdown' },
   { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
   { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
-  { key: 'localesUnidades', label: 'Uds', group: 'locales', type: 'number', width: '55px', cellType: 'input' },
-  { key: 'localesM2', label: 'm²', group: 'locales', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
-  { key: 'oficinasUnidades', label: 'Uds', group: 'oficinas', type: 'number', width: '55px', cellType: 'input' },
-  { key: 'oficinasM2', label: 'm²', group: 'oficinas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
-  { key: 'saludUnidades', label: 'Uds', group: 'salud', type: 'number', width: '55px', cellType: 'input' },
-  { key: 'saludM2', label: 'm²', group: 'salud', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'localesUnidades', label: 'Uds', group: 'avance', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'localesM2', label: 'm²', group: 'avance', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'oficinasUnidades', label: 'Uds', group: 'avance', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'oficinasM2', label: 'm²', group: 'avance', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'saludUnidades', label: 'Uds', group: 'avance', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'saludM2', label: 'm²', group: 'avance', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
   { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader_preventa', width: '90px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo Transc.', group: 'noheader_preventa', width: '85px', cellType: 'input' },
   { key: 'redaccionValor', label: 'Redacción Valor', group: 'noheader_redaccion', type: 'redaccion-text', width: '120px', cellType: 'input' },
   { key: 'depasVendidas', label: 'Vendidas', group: 'depas_pct', type: 'number', width: '65px', cellType: 'input' },
   { key: 'depasPorcentajeCalc', label: '%', group: 'depas_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
-  { key: 'localesVendidas', label: 'Vendidas', group: 'locales_pct', type: 'number', width: '65px', cellType: 'input' },
-  { key: 'localesPorcentajeCalc', label: '%', group: 'locales_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'localesUnidades', vendidas: 'localesVendidas' } },
-  { key: 'oficinasVendidas', label: 'Vendidas', group: 'oficinas_pct', type: 'number', width: '65px', cellType: 'input' },
-  { key: 'oficinasPorcentajeCalc', label: '%', group: 'oficinas_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'oficinasUnidades', vendidas: 'oficinasVendidas' } },
-  { key: 'saludVendidas', label: 'Vendidas', group: 'salud_pct', type: 'number', width: '65px', cellType: 'input' },
-  { key: 'saludPorcentajeCalc', label: '%', group: 'salud_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'saludUnidades', vendidas: 'saludVendidas' } },
-  { key: 'inicioProyectado', label: 'Proyectado', group: 'inicio', width: '85px', cellType: 'input', hasInmediato: true },
-  { key: 'entregaProyectada', label: 'Proyectada', group: 'entrega', width: '85px', cellType: 'input', hasInmediato: true },
+  { key: 'localesVendidas', label: 'Vendidas', group: 'avance_pct', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'localesPorcentajeCalc', label: '%', group: 'avance_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'localesUnidades', vendidas: 'localesVendidas' } },
+  { key: 'oficinasVendidas', label: 'Vendidas', group: 'avance_pct', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'oficinasPorcentajeCalc', label: '%', group: 'avance_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'oficinasUnidades', vendidas: 'oficinasVendidas' } },
+  { key: 'saludVendidas', label: 'Vendidas', group: 'avance_pct', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'saludPorcentajeCalc', label: '%', group: 'avance_pct', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'saludUnidades', vendidas: 'saludVendidas' } },
+  { key: 'inicioProyectado', label: 'Inicio', group: 'obra', width: '85px', cellType: 'input', hasInmediato: true },
+  { key: 'entregaProyectada', label: 'Entrega', group: 'obra', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
   { key: 'cesionDerechos', label: 'Cesión', group: 'noheader_contrato', type: 'cesion-derechos-select', width: '90px', cellType: 'dropdown' },
   { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '100px', cellType: 'input' },
@@ -140,6 +132,10 @@ const columns: ColumnDef[] = [
   { key: 'presentacion', label: 'Presentación', group: 'noheader4', type: 'presentacion-select', width: '100px', cellType: 'dropdown' },
   { key: 'legalesFolder', label: 'Legales', group: 'noheader4', type: 'folder-link', folderSection: 'legales', width: '70px' },
   { key: 'ventaFolder', label: 'Venta', group: 'noheader4', type: 'folder-link', folderSection: 'venta', width: '70px' },
+  { key: 'amenities', label: 'Amenidades', group: 'noheader_amenidades', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
+  { key: 'efficiency', label: 'Eficiencia', group: 'noheader_amenidades', type: 'multiselect-efficiency', width: '90px', cellType: 'dropdown' },
+  { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
+  { key: 'acabados', label: 'Acabados', group: 'noheader_amenidades', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'actions', label: '', group: 'actions', type: 'actions', width: '50px' },
 ];
 
@@ -805,19 +801,23 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'boolean') {
+                  const devTipos = (dev.tipos as string[] | null) || [];
+                  const isDepa = devTipos.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
+                  const isLockOffDisabledByTipo = col.key === 'lockOff' && !isDepa;
                   const cellBgColor = value === true 
-                    ? '#dcfce7'
+                    ? isLockOffDisabledByTipo ? '#e5e7eb' : '#dcfce7'
                     : value === false 
-                      ? '#fee2e2'
+                      ? isLockOffDisabledByTipo ? '#e5e7eb' : '#fee2e2'
                       : undefined;
                   const textColorClass = value === true 
-                    ? 'text-green-700 font-medium' 
+                    ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-green-700 font-medium' 
                     : value === false 
-                      ? 'text-red-600 font-medium' 
+                      ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-red-600 font-medium' 
                       : 'text-muted-foreground';
+                  const effectiveCanEdit = fieldCanEdit && !isLockOffDisabledByTipo;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }), col.key === 'active' && "sticky z-10")} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, ...(col.key === 'active' ? { left: 45 } : {}) }}>
-                      {fieldCanEdit ? (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }), col.key === 'active' && "sticky z-10")} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, ...(col.key === 'active' ? { left: 45 } : {}) }}>
+                      {effectiveCanEdit ? (
                         <Select
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
@@ -983,59 +983,42 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-tipos') {
                   const developerTipos = getTypeFromDeveloper(dev.developerId) || [];
                   const selectedTipos = (dev.tipos as string[] | null) || [];
-                  
+                  const selectedTipo = selectedTipos.find(t => developerTipos.includes(t)) || '';
+
                   if (developerTipos.length === 1 && selectedTipos.length === 0) {
                     setTimeout(() => {
                       updateMutation.mutate({ id: dev.id, data: { tipos: developerTipos } });
                     }, 0);
                   }
-                  
-                  const effectiveCount = selectedTipos.filter((t: string) => developerTipos.includes(t)).length;
-                  const displayValue = effectiveCount > 0 
-                    ? `${effectiveCount} seleccionados`
-                    : developerTipos.length > 0 ? 'Seleccionar' : 'Sin tipos';
-                  
+
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 }))} style={{ width: col.width, minWidth: col.width }}>
                       {fieldCanEdit && developerTipos.length > 0 ? (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full justify-between text-xs font-normal"
-                            >
-                              <span className={effectiveCount === 0 ? 'text-red-500 font-medium' : ''}>
-                                {effectiveCount === 0 ? 'SIN ASIGNAR' : displayValue}
-                              </span>
-                              <ChevronDown className="w-3 h-3 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-48 p-2" align="start">
-                            <div className="space-y-1">
-                              {developerTipos.map((tipo: string) => (
-                                <label key={tipo} className="flex items-center gap-2 cursor-pointer hover:bg-muted p-1 rounded">
-                                  <Checkbox
-                                    checked={selectedTipos.includes(tipo)}
-                                    onCheckedChange={(checked) => {
-                                      const newTipos = checked
-                                        ? [...selectedTipos, tipo]
-                                        : selectedTipos.filter((t: string) => t !== tipo);
-                                      updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
-                                    }}
-                                  />
-                                  <span className="text-xs">{tipo}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                        <Select
+                          value={selectedTipo || '__unassigned__'}
+                          onValueChange={(v) => {
+                            const newTipos = v === '__unassigned__' ? [] : [v];
+                            updateMutation.mutate({ id: dev.id, data: { tipos: newTipos } });
+                          }}
+                        >
+                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${!selectedTipo ? 'text-red-500 font-medium' : ''}`} data-testid={`select-tipos-${dev.id}`}>
+                            <SelectValue>
+                              <span>{selectedTipo || 'SIN ASIGNAR'}</span>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__unassigned__">—</SelectItem>
+                            {developerTipos.map((tipo: string) => (
+                              <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
-                          <span className={selectedTipos.length === 0 && developerTipos.length > 0 ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
-                            {selectedTipos.length === 0 && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipos.join(', ') || 'Sin tipos')}
+                        <div className="flex items-center gap-1 px-1">
+                          <span className={!selectedTipo && developerTipos.length > 0 ? 'text-red-500 font-medium text-xs' : 'text-xs text-muted-foreground'}>
+                            {!selectedTipo && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipo || 'Sin tipos')}
                           </span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50" />}
+                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 shrink-0" />}
                         </div>
                       )}
                     </div>
@@ -1307,9 +1290,12 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'recamaras-select') {
+                  const devTiposR = (dev.tipos as string[] | null) || [];
+                  const isDepaR = devTiposR.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
+                  const recamarasDisabled = !isDepaR;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
-                      {fieldCanEdit ? (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled }))} style={{ width: col.width, minWidth: col.width, ...(recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }}>
+                      {fieldCanEdit && !recamarasDisabled ? (
                         <Select
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
@@ -1327,7 +1313,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 shrink-0" />}
                         </div>
                       )}
                     </div>
@@ -1541,10 +1527,10 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'folder-link') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
                       <Link
                         href={`/admin/documentos?developmentId=${dev.id}&sectionType=${col.folderSection}`}
-                        className="text-primary hover:underline flex items-center gap-1"
+                        className="text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 flex items-center justify-center gap-1"
                         data-testid={`link-${col.folderSection}-${dev.id}`}
                       >
                         <FolderOpen className="w-4 h-4" />

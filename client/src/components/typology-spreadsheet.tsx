@@ -334,7 +334,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "duringConstructionPercent", label: "%", type: "decimal", width: 60, format: "percent", centerCells: true, fullLabel: "Porcentaje" },
       { key: "duringConstructionAmount", label: "$ Monto", type: "decimal", width: 70, format: "currency", fullLabel: "Plazo" },
-      { key: "paymentMonths", label: "Meses", type: "number", width: 60, fullLabel: "Meses", centerCells: true },
+      { key: "paymentMonths", label: "Meses", type: "number", width: 60, fullLabel: "Meses", centerCells: true, calculated: true },
       { key: "monthlyPayment", label: "Total", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Total" },
     ],
   },
@@ -430,7 +430,7 @@ const SECTIONS: SectionDef[] = [
     columns: [
       { key: "mortgageAmount", label: "Monto", type: "decimal", width: 70, format: "currency", calculated: true },
       { key: "mortgageStartDate", label: "Inicia", type: "date", width: 82, calculated: true },
-      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
+      { key: "mortgageInterestPercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true, calculated: true },
       { key: "mortgageYears", label: "Años", type: "number", width: 56, calculated: true },
       { key: "mortgageMonthlyPayment", label: "Mens.", type: "decimal", width: 80, format: "currency", calculated: true, fullLabel: "Mensualidad" },
       { key: "mortgageEndDate", label: "Termina", type: "date", width: 82, calculated: true },
@@ -474,7 +474,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
+      { key: "rentRatePercent", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true, calculated: true },
     ],
   },
   {
@@ -498,7 +498,7 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "rentMonths", label: "Meses", type: "number", width: 60 },
+      { key: "rentMonths", label: "Meses", type: "number", width: 60, centerCells: true, calculated: true },
     ],
   },
   {
@@ -532,8 +532,8 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
-      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true },
-      { key: "appreciationTotal", label: "Falta", type: "text", width: 130, calculated: true },
+      { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true, calculated: true },
+      { key: "appreciationTotal", label: "Falta", type: "text", width: 130, calculated: true, centerCells: true },
       { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Valor Final" },
     ],
   },
@@ -659,10 +659,10 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
         appreciationTotalText = `${meses}m`;
       } else {
         const daysLeft = Math.ceil((entregaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        appreciationTotalText = daysLeft > 0 ? `${daysLeft}d` : "Lista";
+        appreciationTotalText = daysLeft > 0 ? `${daysLeft}d` : "Listo";
       }
     } else {
-      appreciationTotalText = "Lista";
+      appreciationTotalText = "Listo";
     }
   }
 
@@ -1625,7 +1625,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
 
   if (column.calculated || disabled) {
     const isBooleanDisabled = column.type === "boolean" && disabled && !column.calculated;
-    const isLista = column.key === "appreciationTotal" && value === "Lista";
+    const isLista = column.key === "appreciationTotal" && value === "Listo";
     const listaStyle: React.CSSProperties = isLista
       ? rowDisabledStyle
         ? { backgroundColor: '#A8C0AF', color: '#3d6b50' }
@@ -1645,7 +1645,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           column.centerCells && !(column.type === "select") && "justify-center text-center"
         )}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle, ...(isBooleanDisabled ? { color: 'black' } : {}), ...listaStyle }}
-        title={isLista && deliveryDateStr ? `Lista desde ${deliveryDateStr}` : undefined}
+        title={isLista && deliveryDateStr ? `Listo desde ${deliveryDateStr}` : undefined}
         data-testid={`cell-${column.key}-disabled`}
       >
         {isBooleanDisabled
@@ -1790,10 +1790,12 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         : canBeUnassigned ? 'text-foreground font-medium' : 'text-muted-foreground';
     if (rowDisabledStyle) {
       const disLabel = value === true ? "Sí" : value === false ? "No" : "";
+      const disBg = value === true ? '#a8d5b5' : value === false ? '#f0b8b8' : '#9ca3af';
+      const disColor = value === true ? '#4a7c59' : value === false ? '#a05050' : '#6b7280';
       return (
         <div
           className={cn("spreadsheet-cell px-0 justify-center gap-0.5 text-xs font-medium", cellBorderClass)}
-          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: '#9ca3af', color: 'black', pointerEvents: 'none', cursor: 'default' }}
+          style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: disBg, color: disColor, pointerEvents: 'none', cursor: 'default' }}
         >
           <span style={{ width: '2.5ch' }}>{disLabel}</span>
           <ChevronDown className="w-3 h-3 shrink-0 opacity-50" />
@@ -2359,7 +2361,7 @@ const BIDIRECTIONAL_PAIRS: [string, string][] = [
 
 type DynamicGrayState = Record<string, Record<string, string>>;
 
-function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement> }) {
+function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObject<HTMLDivElement>; iconColor?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -2399,8 +2401,8 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6" data-testid="button-section-search">
-              <Search className="w-3.5 h-3.5" />
+            <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-white/20" data-testid="button-section-search">
+              <Search className="w-3.5 h-3.5" style={iconColor ? { color: iconColor } : undefined} />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -2418,7 +2420,7 @@ function SectionSearchButton({ scrollRef }: { scrollRef: React.RefObject<HTMLDiv
           {filtered.map(g => (
             <button
               key={g.label}
-              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent"
+              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent uppercase"
               onClick={() => scrollTo(g)}
             >
               {g.label}
@@ -3294,7 +3296,7 @@ export function TypologySpreadsheet() {
       if (aviso.field === "media") {
         const mediaCount = getTypologyDocCount(rowId);
         if (mediaCount < aviso.minQuantity) {
-          warnings.push(`Hay menos de ${aviso.minQuantity} cantidad de ${aviso.name.toLowerCase()} (actualmente ${mediaCount})`);
+          warnings.push(`El Registro solo tiene ${mediaCount} ${aviso.name.toLowerCase()} subidos`);
         }
       } else if (isComplete) {
         // otros tipos de aviso solo para filas completas (futuro)
@@ -3871,7 +3873,6 @@ export function TypologySpreadsheet() {
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Tipologías</h1>
-          <SectionSearchButton scrollRef={contentScrollRef} />
           {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
             <Button
               variant="ghost"
@@ -3950,7 +3951,9 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex w-max spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }} />
+              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30 flex items-center justify-center" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <SectionSearchButton scrollRef={contentScrollRef} iconColor="white" />
+              </div>
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
                 SECTIONS.forEach((section, sectionIndex) => {
@@ -4003,7 +4006,7 @@ export function TypologySpreadsheet() {
                   return (
                     <div 
                       key={groupKey} 
-                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showLabel ? "justify-between" : "justify-center")}
+                      className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showLabel ? "justify-between" : "justify-center", hasMergeHeaders && "hover:brightness-110 transition-[filter] cursor-default")}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),
                         width: totalWidth,
@@ -5049,12 +5052,12 @@ export function TypologySpreadsheet() {
       }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
+            <AlertDialogTitle className="flex items-center justify-center gap-2">
               <AlertCircle className="w-5 h-5 text-yellow-500" />
               Aviso
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className="space-y-2">
+              <div className="space-y-2 text-center">
                 {avisoWarning?.messages.map((msg, i) => (
                   <p key={i} className="text-sm">{msg}</p>
                 ))}
@@ -5062,7 +5065,7 @@ export function TypologySpreadsheet() {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="justify-center sm:justify-center">
             <AlertDialogCancel onClick={() => {
               avisoResolveRef.current?.(false);
               avisoResolveRef.current = null;
