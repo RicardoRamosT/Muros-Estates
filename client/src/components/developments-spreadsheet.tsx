@@ -441,6 +441,13 @@ export function DevelopmentsSpreadsheet() {
 
   saveRowByIdRef.current = saveRowById;
 
+  const saveAllPending = useCallback(async () => {
+    const ids = Array.from(pendingChangesRef.current.keys());
+    for (const id of ids) {
+      await saveRowById(id);
+    }
+  }, [saveRowById]);
+
   const handleRowClick = useCallback((id: string) => {
     if (activeEditingRowId && activeEditingRowId !== id) {
       saveRowById(activeEditingRowId);
@@ -719,6 +726,12 @@ export function DevelopmentsSpreadsheet() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrollos</span>
+          {Object.keys(localEdits).length > 0 && (
+            <Button size="sm" onClick={saveAllPending} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid="button-save-pending-developments">
+              <Check className="w-4 h-4 mr-1" />
+              Guardar
+            </Button>
+          )}
           {hasFullAccess && (
             <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">
               <Plus className="w-4 h-4 mr-1" />

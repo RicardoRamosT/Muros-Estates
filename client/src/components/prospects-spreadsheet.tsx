@@ -18,7 +18,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search } from "lucide-react";
+import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
@@ -164,6 +164,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [updateMutation]);
 
   saveRowByIdRef.current = saveRowById;
+
+  const saveAllPending = useCallback(async () => {
+    const ids = Array.from(pendingChangesRef.current.keys());
+    for (const id of ids) {
+      await saveRowById(id);
+    }
+  }, [saveRowById]);
 
   const handleRowClick = useCallback((id: string) => {
     if (activeEditingRowId && activeEditingRowId !== id) {
@@ -669,6 +676,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             </Button>
           )}
           <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} {pageName}</span>
+          {Object.keys(localEdits).length > 0 && (
+            <Button size="sm" onClick={saveAllPending} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid="button-save-pending-prospects">
+              <Check className="w-4 h-4 mr-1" />
+              Guardar
+            </Button>
+          )}
           {hasFullAccess && (
             <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
               <Plus className="w-4 h-4 mr-1" />
