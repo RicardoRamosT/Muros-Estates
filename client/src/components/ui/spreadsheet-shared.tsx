@@ -221,13 +221,15 @@ export function SpreadsheetHeader({
           return (
             <div
               key={`r2-${col.key}`}
-              className={`border-r border-white/30 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0 ${isColored ? 'text-white' : 'text-gray-700'}`}
+              className="border-r border-white/30 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
+              title={col.label}
               style={{
                 width: col.width, minWidth: col.width, height: 32,
                 backgroundColor: isColored ? groupColor : '#d1d5db',
+                color: isColored ? 'white' : '#374151',
               }}
             >
-              <span className="truncate">{col.label}</span>
+              <span className="truncate min-w-0">{col.label}</span>
             </div>
           );
         })}
@@ -270,9 +272,11 @@ export function SpreadsheetHeader({
             <div
               key={`r3-${col.key}`}
               className="border-r border-white/30 flex items-center flex-shrink-0"
+              title={col.label}
               style={{
                 width: col.width, minWidth: col.width, height: 32,
                 backgroundColor: isColored ? groupColor : '#d1d5db',
+                color: isColored ? 'white' : '#374151',
               }}
             >
               {NO_FILTER_TYPES.has(col.type || '') ? (

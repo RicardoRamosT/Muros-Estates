@@ -138,7 +138,7 @@ export function ColumnFilter({
   };
 
   return (
-    <div className="w-full h-full relative flex items-center">
+    <div className="w-full h-full relative flex items-center text-white">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
@@ -358,7 +358,7 @@ export function ColumnFilter({
           </div>
         </PopoverContent>
       </Popover>
-      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0">
+      <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0" title={columnLabel}>
         {columnLabel}
       </span>
       <button
