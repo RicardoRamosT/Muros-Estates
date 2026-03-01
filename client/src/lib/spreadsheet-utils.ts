@@ -291,6 +291,28 @@ export function getFormulaTooltip(field: string): FormulaDefinition | undefined 
   return TYPOLOGY_FORMULAS.find(f => f.field === field);
 }
 
+export interface SpreadsheetColumnDef {
+  key: string;
+  label: string;
+  group?: string;
+  width: string;
+  type?: string;
+  cellType?: CellType;
+}
+
+export interface SpreadsheetColumnGroup {
+  key: string;
+  label: string;
+  color?: string;
+}
+
+export interface SpreadsheetColumnGroupRun {
+  key: string;
+  label: string;
+  color?: string;
+  colspan: number;
+}
+
 export const HEADER_STYLE = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600 font-semibold text-xs uppercase tracking-wide";
 
 export const SECTION_HEADER_COLORS: Record<string, string> = {

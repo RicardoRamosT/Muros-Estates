@@ -21,7 +21,8 @@ import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCellStyle, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
+import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
 
@@ -45,32 +46,6 @@ const COLUMN_GROUPS_CLIENT = [
   { key: 'actions', label: '', color: '' },
 ];
 
-function ProspectSectionSearchButton({ groups, scrollRef }: { groups: { label: string; offset: number; width: number }[]; scrollRef: { current: HTMLDivElement | null } }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="p-1 hover:bg-white/20 rounded" data-testid="button-section-search">
-          <Search className="w-3 h-3 text-white" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-48 p-1">
-        {groups.map(g => (
-          <button
-            key={g.label}
-            className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded truncate"
-            onClick={() => {
-              scrollRef.current?.scrollTo({ left: g.offset, behavior: 'smooth' });
-              setOpen(false);
-            }}
-          >
-            {g.label}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 interface ProspectsSpreadsheetProps {
   isClientView?: boolean;
@@ -256,17 +231,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     } as any);
   };
 
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return "";
-    const d = new Date(date);
-    return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
-  const formatTime = (date: Date | string | null) => {
-    if (!date) return "";
-    const d = new Date(date);
-    return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
-  };
 
   const getAsesorName = (asesorId: string | null) => {
     if (!asesorId) return "";
@@ -654,158 +618,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs">
-          <div className="sticky top-0 z-20" data-testid="prospects-table-header">
-            {/* Row 1: Group labels */}
-            <div className="flex border-b">
-              <div
-                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
-              >
-                <ProspectSectionSearchButton groups={sectionGroupsForSearch} scrollRef={contentScrollRef} />
-              </div>
-              {(() => {
-                const items: JSX.Element[] = [];
-                let colIdx = 0;
-                for (const group of visibleColumnGroups) {
-                  if (group.key === 'corner') { colIdx += group.colspan; continue; }
-                  const groupCols = columns.slice(colIdx, colIdx + group.colspan);
-                  const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
-                  if (group.key === 'fechahora_collapsed' || groupCols[0]?.key === 'fechahora_collapsed') {
-                    items.push(
-                      <div
-                        key="r1-fechahora_collapsed"
-                        className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                        style={{ width: 30, minWidth: 30, height: 96, backgroundColor: SHEET_FECHAHORA_COLOR }}
-                        onClick={() => setFechaHoraExpanded(true)}
-                        data-testid="toggle-fechahora-expand"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </div>
-                    );
-                  } else if (group.label) {
-                    items.push(
-                      <div
-                        key={`r1-group-${group.key}`}
-                        className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
-                        style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
-                      >
-                        {group.key === 'fechahora' ? (
-                          <>
-                            <span>FECHA/HORA</span>
-                            <button onClick={() => setFechaHoraExpanded(false)} className="ml-1 hover:opacity-80" data-testid="toggle-fechahora-collapse">
-                              <Minus className="w-3 h-3" />
-                            </button>
-                          </>
-                        ) : (
-                          <span>{group.label}</span>
-                        )}
-                      </div>
-                    );
-                  } else {
-                    groupCols.forEach(col => {
-                      items.push(
-                        <div
-                          key={`r1-${col.key}`}
-                          className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
-                          style={{ width: col.width, minWidth: col.width }}
-                        />
-                      );
-                    });
-                  }
-                  colIdx += group.colspan;
-                }
-                return items;
-              })()}
-            </div>
-            {/* Row 2: Column names only */}
-            <div className="flex border-b">
-              <div
-                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
-              >
-                <span className="text-xs font-semibold text-white">ID</span>
-              </div>
-              {columns.map((col) => {
-                if ((col as any).group === 'corner' || col.key === 'fechahora_collapsed') return null;
-                const groupDef = groupLookupMap[(col as any).group || ''];
-                const groupColor = groupDef?.color || '';
-                const isColored = !!groupColor;
-                return (
-                  <div
-                    key={`r2-${col.key}`}
-                    className="border-r border-white/20 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
-                    style={{
-                      width: col.width, minWidth: col.width, height: 32,
-                      backgroundColor: isColored ? groupColor : '#d1d5db',
-                      color: isColored ? 'white' : '#374151',
-                    }}
-                    data-testid={`column-header-${col.key}`}
-                  >
-                    <span className="truncate">{col.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-            {/* Row 3: Filter controls */}
-            <div className="flex border-b">
-              <div
-                className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-                style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
-              >
-                <ColumnFilter
-                  columnKey="index"
-                  columnLabel="ID"
-                  columnType="text"
-                  uniqueValues={uniqueValuesMap['index'] || []}
-                  availableValues={availableValuesMap['index']}
-                  sortDirection={sortConfig.key === 'index' ? sortConfig.direction : null}
-                  filterState={filterConfigs['index'] || { search: "", selectedValues: new Set() }}
-                  onSort={(dir) => handleSort('index', dir)}
-                  onFilter={(state) => handleFilter('index', state)}
-                  onClear={() => handleClearFilter('index')}
-                />
-              </div>
-              {columns.map((col) => {
-                if ((col as any).group === 'corner' || col.key === 'fechahora_collapsed') return null;
-                const groupDef = groupLookupMap[(col as any).group || ''];
-                const groupColor = groupDef?.color || '';
-                const isColored = !!groupColor;
-                return (
-                  <div
-                    key={`r3-${col.key}`}
-                    className="border-r border-white/20 flex items-center flex-shrink-0"
-                    style={{
-                      width: col.width, minWidth: col.width, height: 32,
-                      backgroundColor: isColored ? groupColor : '#d1d5db',
-                    }}
-                  >
-                    {col.type === 'index' || col.type === 'actions' || (col as any).noFilter || col.type === 'toggle' ? (
-                      <div />
-                    ) : (
-                      <ColumnFilter
-                        columnKey={col.key}
-                        columnLabel={col.label}
-                        columnType={
-                          col.type === 'toggle' ? 'boolean' :
-                          col.type === 'currency' ? 'number' :
-                          col.type === 'select' ? 'select' : 'text'
-                        }
-                        uniqueValues={uniqueValuesMap[col.key] || []}
-                        availableValues={availableValuesMap[col.key]}
-                        sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                        filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
-                        onSort={(dir) => handleSort(col.key, dir)}
-                        onFilter={(state) => handleFilter(col.key, state)}
-                        onClear={() => handleClearFilter(col.key)}
-                        labelMap={labelMaps[col.key]}
-                        groupMap={groupMaps[col.key]}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <SpreadsheetHeader
+            visibleColumns={columns}
+            visibleColumnGroups={visibleColumnGroups}
+            groupLookupMap={groupLookupMap}
+            filterConfigs={filterConfigs}
+            sortConfig={sortConfig}
+            uniqueValuesMap={uniqueValuesMap}
+            availableValuesMap={availableValuesMap}
+            fechaHoraExpanded={fechaHoraExpanded}
+            onFechaHoraExpand={() => setFechaHoraExpanded(true)}
+            onFechaHoraCollapse={() => setFechaHoraExpanded(false)}
+            onSort={handleSort}
+            onFilter={handleFilter}
+            onClear={handleClearFilter}
+            sectionGroups={sectionGroupsForSearch}
+            scrollRef={contentScrollRef}
+            idFilterKey="index"
+            labelMaps={labelMaps}
+            groupMaps={groupMaps}
+          />
 
           {visibleData.map((prospect, index) => {
             const isRowInactive = (prospect as any).active === false;
