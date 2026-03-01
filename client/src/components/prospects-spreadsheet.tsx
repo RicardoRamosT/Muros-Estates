@@ -29,11 +29,11 @@ import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Devel
 const COLUMN_GROUPS_PROSPECT = [
   { key: 'corner', label: '', color: '' },
   { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
-  { key: 'asignacion', label: 'ASIGNACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
-  { key: 'calificacion', label: 'CALIFICACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'seguimiento', label: 'SEGUIMIENTO', color: SHEET_COLOR_LIGHT },
-  { key: 'notas', label: 'NOTAS', color: SHEET_COLOR_DARK },
+  { key: 'asignacion', label: 'ASIGNACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
+  { key: 'calificacion', label: 'CALIFICACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'seguimiento', label: 'SEGUIMIENTO', color: SHEET_COLOR_DARK },
+  { key: 'notas', label: 'NOTAS', color: SHEET_COLOR_LIGHT },
   { key: 'actions', label: '', color: '' },
 ];
 

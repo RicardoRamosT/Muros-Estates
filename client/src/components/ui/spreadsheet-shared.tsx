@@ -165,8 +165,8 @@ export function SpreadsheetHeader({
                 </div>
               );
             } else if (group.label) {
-              const isCollapsed = collapsedGroups?.has(group.key);
-              if (isCollapsed && group.key !== 'fechahora') {
+              const isCollapsed = group.key !== 'fechahora' && groupCols[0]?.type === 'group-collapsed';
+              if (isCollapsed) {
                 items.push(
                   <div
                     key={`r1-group-${group.key}-collapsed`}
@@ -211,8 +211,8 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-${col.key}`}
-                    className="border-r border-gray-200 dark:border-gray-700 bg-gray-300 dark:bg-gray-600 h-8 flex-shrink-0"
-                    style={{ width: col.width, minWidth: col.width }}
+                    className="border-r h-8 flex-shrink-0"
+                    style={{ width: col.width, minWidth: col.width, backgroundColor: group.color || '#d1d5db' }}
                   />
                 );
               });

@@ -54,10 +54,10 @@ const COLUMN_GROUPS_DEV = [
   { key: 'corner', label: '', color: '' },
   { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
   { key: 'fechahora_collapsed', label: '', color: '' },
-  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_DARK },
-  { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_LIGHT },
-  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_DARK },
-  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
+  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
+  { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_DARK },
+  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_LIGHT },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
   { key: 'docs', label: '', color: '' },
 ];
 
