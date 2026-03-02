@@ -138,7 +138,7 @@ export function SpreadsheetHeader({
   return (
     <div className="sticky top-0 z-20">
       {/* Row 1: Group labels */}
-      <div className="flex border-b">
+      <div className="flex border-b spreadsheet-header-row1" style={{ overflow: 'hidden' }}>
         <div
           className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
           style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
@@ -157,7 +157,7 @@ export function SpreadsheetHeader({
                 <div
                   key="r1-fechahora_collapsed"
                   className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                  style={{ width: 30, minWidth: 30, height: 96, backgroundColor: SHEET_FECHAHORA_COLOR }}
+                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
                   onClick={onFechaHoraExpand}
                   data-testid="toggle-fechahora-expand"
                 >
@@ -224,7 +224,7 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 2: Column names */}
-      <div className="flex border-b">
+      <div className="flex border-b spreadsheet-header-row2" style={{ overflow: 'hidden' }}>
         <div
           className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
           style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
@@ -274,10 +274,10 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 3: Filter controls */}
-      <div className="flex border-b">
+      <div className="flex border-b spreadsheet-header-row3" style={{ overflow: 'hidden' }}>
         <div
           className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-          style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+          style={{ width: 60, minWidth: 60, height: 24, backgroundColor: SHEET_COLOR_LIGHT }}
         >
           <ColumnFilter
             columnKey={idFilterKey}
@@ -300,7 +300,7 @@ export function SpreadsheetHeader({
               <div
                 key="r3-fechahora_collapsed"
                 className="flex-shrink-0 border-r"
-                style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: SHEET_FECHAHORA_COLOR }}
               />
             );
           }
@@ -311,7 +311,7 @@ export function SpreadsheetHeader({
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0 border-r"
-                style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, opacity: 0.35 }}
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: bg, opacity: 0.35 }}
               />
             );
           }
@@ -324,7 +324,7 @@ export function SpreadsheetHeader({
               className="border-r border-white/30 flex items-center flex-shrink-0"
               title={col.label}
               style={{
-                width: col.width, minWidth: col.width, height: 32,
+                width: col.width, minWidth: col.width, height: 24,
                 backgroundColor: isColored ? groupColor : '#d1d5db',
                 color: isColored ? 'white' : '#374151',
               }}
