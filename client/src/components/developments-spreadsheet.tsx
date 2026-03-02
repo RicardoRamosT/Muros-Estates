@@ -433,19 +433,6 @@ export function DevelopmentsSpreadsheet() {
     onError: () => toast({ title: "Error al eliminar", variant: "destructive" }),
   });
 
-  const hasAutoFixedRef = useRef(false);
-  useEffect(() => {
-    if (!developments.length || hasAutoFixedRef.current) return;
-    hasAutoFixedRef.current = true;
-    const incorrectRows = developments.filter(d => d.active === true && !isDevelopmentComplete(d));
-    if (!incorrectRows.length) return;
-    Promise.all(
-      incorrectRows.map(row => apiRequest("PUT", `/api/developments-entity/${row.id}`, { active: false }).catch(() => {}))
-    ).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["/api/developments-entity"] });
-    });
-  }, [developments]);
-
   const handleCellClick = useCallback((id: string, field: string, currentValue: string | number | boolean | null) => {
     setEditingCell({ id, field });
     setEditValue(String(currentValue ?? ""));
