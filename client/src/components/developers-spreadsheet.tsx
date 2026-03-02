@@ -94,6 +94,13 @@ interface ColumnDef {
   cellType?: CellType;
 }
 
+function isDeveloperComplete(dev: Developer): boolean {
+  return !!(
+    dev.tipo && dev.name && dev.razonSocial && dev.rfc &&
+    dev.tipos?.length && dev.contactName && dev.contactPhone && dev.contactEmail
+  );
+}
+
 export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
@@ -341,6 +348,19 @@ export function DevelopersSpreadsheet() {
     },
     onError: () => toast({ title: "Error al eliminar", variant: "destructive" }),
   });
+
+  const hasAutoFixedRef = useRef(false);
+  useEffect(() => {
+    if (!developers.length || hasAutoFixedRef.current) return;
+    hasAutoFixedRef.current = true;
+    const incorrectRows = developers.filter(d => d.active === true && !isDeveloperComplete(d));
+    if (!incorrectRows.length) return;
+    Promise.all(
+      incorrectRows.map(row => apiRequest("PUT", `/api/developers/${row.id}`, { active: false }).catch(() => {}))
+    ).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/developers"] });
+    });
+  }, [developers]);
 
   const handleCellClick = useCallback((id: string, field: string, currentValue: string | boolean | null) => {
     setEditingCell({ id, field });
@@ -607,7 +627,7 @@ export function DevelopersSpreadsheet() {
                 }
 
                 if (col.type === 'toggle') {
-                  const isComplete = !!(dev.name && dev.tipo);
+                  const isComplete = isDeveloperComplete(dev);
                   const isDisabled = dev.active === null || dev.active === undefined;
                   const activeState = isDisabled ? "disabled" : (dev.active === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                   const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";

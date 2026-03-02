@@ -77,6 +77,15 @@ const columnGroups: ColumnGroup[] = [
   { key: 'actions', label: '' },
 ];
 
+function isDevelopmentComplete(dev: Development): boolean {
+  return !!(
+    dev.empresaTipo && dev.developerId && dev.name && dev.city &&
+    dev.tipos?.length && dev.recamaras && dev.banos &&
+    dev.inicioProyectado && dev.entregaProyectada &&
+    dev.ventasNombre && dev.ventasTelefono
+  );
+}
+
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'active', label: 'Act.', group: 'registro', type: 'boolean', width: '58px', cellType: 'checkbox' },
@@ -423,6 +432,19 @@ export function DevelopmentsSpreadsheet() {
     },
     onError: () => toast({ title: "Error al eliminar", variant: "destructive" }),
   });
+
+  const hasAutoFixedRef = useRef(false);
+  useEffect(() => {
+    if (!developments.length || hasAutoFixedRef.current) return;
+    hasAutoFixedRef.current = true;
+    const incorrectRows = developments.filter(d => d.active === true && !isDevelopmentComplete(d));
+    if (!incorrectRows.length) return;
+    Promise.all(
+      incorrectRows.map(row => apiRequest("PUT", `/api/developments-entity/${row.id}`, { active: false }).catch(() => {}))
+    ).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/developments-entity"] });
+    });
+  }, [developments]);
 
   const handleCellClick = useCallback((id: string, field: string, currentValue: string | number | boolean | null) => {
     setEditingCell({ id, field });
@@ -881,7 +903,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'boolean') {
                   if (col.key === 'active') {
-                    const isComplete = !!(dev.name && dev.developerId);
+                    const isComplete = isDevelopmentComplete(dev);
                     const isDisabled = value === null || value === undefined;
                     const activeState = isDisabled ? "disabled" : (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                     const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
