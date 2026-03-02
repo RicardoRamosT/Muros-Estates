@@ -740,7 +740,8 @@ export function DevelopmentsSpreadsheet() {
     active: { "true": "Sí", "false": "No" },
     lockOff: { "true": "Sí", "false": "No" },
     developerId: Object.fromEntries(developers.map(d => [d.id, d.name])),
-  }), [developers]);
+    id: Object.fromEntries(developmentsForFilter.map((d, i) => [d.id, String(i + 1)])),
+  }), [developers, developmentsForFilter]);
 
   if (isLoading) {
     return (

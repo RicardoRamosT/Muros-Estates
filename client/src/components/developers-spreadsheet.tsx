@@ -448,7 +448,8 @@ export function DevelopersSpreadsheet() {
 
   const filterLabelMaps = useMemo<Record<string, Record<string, string>>>(() => ({
     active: { "true": "Sí", "false": "No" },
-  }), []);
+    id: Object.fromEntries(effectiveDevelopers.map((d, i) => [d.id, String(i + 1)])),
+  }), [effectiveDevelopers]);
 
   if (isLoading) {
     return (

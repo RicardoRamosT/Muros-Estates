@@ -434,7 +434,14 @@ export function useColumnFilters<T extends Record<string, any>>(
   };
 
   const handleFilter = (key: string, state: FilterState) => {
-    setFilterConfigs((prev) => ({ ...prev, [key]: state }));
+    setFilterConfigs((prev) => {
+      if (state.selectedValues.size === 0) {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return { ...prev, [key]: state };
+    });
   };
 
   const handleClearFilter = (key: string) => {
