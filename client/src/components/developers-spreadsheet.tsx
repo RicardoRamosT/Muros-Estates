@@ -96,8 +96,9 @@ interface ColumnDef {
 
 function isDeveloperComplete(dev: Developer): boolean {
   return !!(
-    dev.tipo && dev.name && dev.razonSocial && dev.rfc &&
-    dev.tipos?.length && dev.contactName && dev.contactPhone && dev.contactEmail
+    dev.tipo && dev.name && dev.razonSocial && dev.rfc && dev.domicilio &&
+    dev.tipos?.length && dev.contratos?.length && dev.representante &&
+    dev.contactName && dev.contactPhone && dev.contactEmail
   );
 }
 

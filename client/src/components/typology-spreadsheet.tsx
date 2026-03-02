@@ -4814,14 +4814,31 @@ export function TypologySpreadsheet() {
                         const selectedTypologyDeveloper = mergedRow.developer
                           ? dbDevelopers.find(d => d.name === mergedRow.developer)
                           : null;
+                        const developerIsIncomplete = selectedTypologyDeveloper ? !(
+                          (selectedTypologyDeveloper as any).tipo &&
+                          (selectedTypologyDeveloper as any).name &&
+                          (selectedTypologyDeveloper as any).razonSocial &&
+                          (selectedTypologyDeveloper as any).rfc &&
+                          (selectedTypologyDeveloper as any).domicilio &&
+                          (selectedTypologyDeveloper as any).tipos?.length &&
+                          (selectedTypologyDeveloper as any).contratos?.length &&
+                          (selectedTypologyDeveloper as any).representante &&
+                          (selectedTypologyDeveloper as any).contactName &&
+                          (selectedTypologyDeveloper as any).contactPhone &&
+                          (selectedTypologyDeveloper as any).contactEmail
+                        ) : false;
                         const developerWarningText = selectedTypologyDeveloper
                           ? (selectedTypologyDeveloper.active === null
                               ? "Desarrollador deshabilitado"
                               : selectedTypologyDeveloper.active === false
                                 ? "Desarrollador inactivo"
-                                : "")
+                                : developerIsIncomplete
+                                  ? "Desarrollador con datos incompletos"
+                                  : "")
                           : "";
-                        const isDeveloperInactive = !!(selectedTypologyDeveloper && selectedTypologyDeveloper.active !== true);
+                        const isDeveloperInactive = !!(selectedTypologyDeveloper && (
+                          selectedTypologyDeveloper.active !== true || developerIsIncomplete
+                        ));
                         
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
