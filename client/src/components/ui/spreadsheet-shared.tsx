@@ -270,7 +270,7 @@ export function SpreadsheetHeader({
                 }}
               >
                 <div style={{ width: isColored ? 20 : 8, flexShrink: 0 }} />
-                <span className="truncate min-w-0 flex-1">{col.label}</span>
+                <span className="truncate min-w-0 flex-1 text-center">{col.label}</span>
                 {isColored && onToggleColumnCollapse ? (
                   <button
                     onClick={() => onToggleColumnCollapse(col.key)}
