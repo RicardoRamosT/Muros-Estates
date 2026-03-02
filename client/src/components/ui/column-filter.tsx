@@ -140,21 +140,15 @@ export function ColumnFilter({
   };
 
   return (
-    <div className={cn("w-full h-full relative flex items-center text-white", hideLabel && "justify-center")}>
+    <div className="w-full h-full relative flex items-center text-white">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
-            className={cn(
-              "flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0",
-              hasActiveFilter && "text-primary"
-            )}
-            style={{ width: 28 }}
+            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+            style={{ width: 28, ...(hasActiveFilter ? { backgroundColor: '#f4b942' } : {}) }}
             data-testid={`filter-${columnKey}`}
           >
-            <ChevronDown className={cn(
-              "w-3 h-3 flex-shrink-0",
-              hasActiveFilter ? "text-primary" : "text-white"
-            )} />
+            <ChevronDown className="w-3 h-3 flex-shrink-0 text-white" />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-0" align="start">

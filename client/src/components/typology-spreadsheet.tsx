@@ -4597,18 +4597,22 @@ export function TypologySpreadsheet() {
             const hasRowPending = pendingChanges.has(row.id);
             
             const isRowDisabled = mergedRow.active === null;
+            const parentDevelopment = dbDevelopments.find((d: any) => d.name === mergedRow.development);
+            const parentDeveloper = dbDevelopers.find((d: any) => d.name === mergedRow.developer);
+            const isCascadeInactive = parentDevelopment?.active === false || parentDeveloper?.active === false;
+            const isRowGray = isRowDisabled || isCascadeInactive;
             return (
               <div
                 key={row.id}
                 className={cn(
                   "flex w-max border-b",
-                  isRowDisabled
+                  isRowGray
                     ? "cursor-default"
                     : isActiveRow 
                       ? "cursor-pointer ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
                       : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
                 )}
-                style={{ height: '32px', maxHeight: '32px', ...(isRowDisabled ? { backgroundColor: '#9ca3af', cursor: 'default' } : {}) }}
+                style={{ height: '32px', maxHeight: '32px', ...(isRowGray ? { backgroundColor: '#9ca3af', cursor: 'default' } : {}) }}
                 onClick={() => handleRowClick(row.id)}
                 data-testid={`row-typology-${row.id}`}
               >
@@ -4734,9 +4738,9 @@ export function TypologySpreadsheet() {
                               key={col.key}
                               className={cn(
                                 "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
-                                !isRowDisabled && section.cellColor
+                                !isRowGray && section.cellColor
                               )}
-                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH, ...(isRowDisabled ? { backgroundColor: '#9ca3af' } : {}) }}
+                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH, ...(isRowGray ? { backgroundColor: '#9ca3af' } : {}) }}
                               data-testid={`cell-createdDate-${row.id}`}
                             >
                               {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
@@ -4750,9 +4754,9 @@ export function TypologySpreadsheet() {
                               key={col.key}
                               className={cn(
                                 "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
-                                !isRowDisabled && section.cellColor
+                                !isRowGray && section.cellColor
                               )}
-                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH, ...(isRowDisabled ? { backgroundColor: '#9ca3af' } : {}) }}
+                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH, ...(isRowGray ? { backgroundColor: '#9ca3af' } : {}) }}
                               data-testid={`cell-createdTime-${row.id}`}
                             >
                               {formatTime(row.createdAt)}
@@ -4854,7 +4858,7 @@ export function TypologySpreadsheet() {
                             onLinkedSizeChange={col.linkedSizeField ? (newVal) => handleCellChange(row.id, col.linkedSizeField!, newVal) : undefined}
                             isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
                             validEntities={col.key === "active" ? validEntities : undefined}
-                            isRowDisabled={isRowDisabled}
+                            isRowDisabled={isRowGray}
                             devWarning={col.key === "development" ? devWarningText : undefined}
                           />
                         );

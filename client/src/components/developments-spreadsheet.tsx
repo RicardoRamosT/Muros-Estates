@@ -61,20 +61,20 @@ const columnGroups: ColumnGroup[] = [
   { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
   { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_LIGHT },
   { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_DARK },
-  { key: 'noheader_lockoff', label: '', color: SHEET_COLOR_DARK },
+  { key: 'noheader_lockoff', label: 'Lock Off', color: SHEET_COLOR_DARK },
   { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_LIGHT },
   { key: 'depas', label: 'DEPAS', color: SHEET_COLOR_DARK },
   { key: 'avance', label: 'AVANCE', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_preventa', label: '', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_redaccion', label: '', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_preventa', label: 'Preventa', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_redaccion', label: 'Redacción', color: SHEET_COLOR_LIGHT },
   { key: 'depas_pct', label: 'DEPAS %', color: SHEET_COLOR_DARK },
   { key: 'avance_pct', label: 'AVANCE %', color: SHEET_COLOR_LIGHT },
   { key: 'obra', label: 'OBRA', color: SHEET_COLOR_DARK },
-  { key: 'noheader_contrato', label: '', color: SHEET_COLOR_DARK },
+  { key: 'noheader_contrato', label: 'Contrato', color: SHEET_COLOR_DARK },
   { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_LIGHT },
   { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_DARK },
-  { key: 'noheader4', label: '', color: SHEET_COLOR_DARK },
-  { key: 'noheader_amenidades', label: '', color: SHEET_COLOR_DARK },
+  { key: 'noheader4', label: 'Extras', color: SHEET_COLOR_DARK },
+  { key: 'noheader_amenidades', label: 'Amenidades', color: SHEET_COLOR_DARK },
   { key: 'actions', label: '' },
 ];
 
@@ -791,7 +791,9 @@ export function DevelopmentsSpreadsheet() {
           />
 
           {visibleData.map((dev, rowIndex) => {
-            const isRowInactive = dev.active === false;
+            const parentDeveloper = developers.find(d => d.id === dev.developerId);
+            const isParentDeveloperInactive = parentDeveloper?.active === false;
+            const isRowInactive = dev.active === false || isParentDeveloperInactive;
             const isActiveRow = activeEditingRowId === dev.id;
             return (
             <div
