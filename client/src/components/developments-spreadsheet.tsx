@@ -82,7 +82,7 @@ const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
-  { key: 'active', label: 'Act.', group: 'empresa', type: 'boolean', width: '58px', cellType: 'checkbox' },
+  { key: 'active', label: 'Act.', group: 'empresa', type: 'boolean', width: '58px', cellType: 'checkbox', autoField: true },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'empresa', width: '130px', cellType: 'input' },
@@ -546,7 +546,7 @@ export function DevelopmentsSpreadsheet() {
     let cols = columns.filter(col => {
       if (col.group === 'fechahora' && !fechaHoraExpanded) return false;
       if (col.type === 'actions') return hasFullAccess;
-      if (col.key === 'id' || col.group === 'corner' || col.type === 'date-display' || col.type === 'time-display') return true;
+      if (col.key === 'id' || col.group === 'corner' || col.type === 'date-display' || col.type === 'time-display' || col.autoField) return true;
       const perm = canView(col.key);
       return perm;
     });
@@ -564,9 +564,18 @@ export function DevelopmentsSpreadsheet() {
       while (i < cols.length) {
         const col = cols[i];
         const gk = col.group || '';
-        if (collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed') {
-          processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
-          while (i < cols.length && cols[i].group === gk) i++;
+        const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed';
+        if (isCollapsibleGroup) {
+          // Emit any autoField columns in the group first (they are always visible)
+          while (i < cols.length && cols[i].group === gk && cols[i].autoField) {
+            processed.push(cols[i]);
+            i++;
+          }
+          // Then emit the collapse placeholder for non-autoField columns
+          if (i < cols.length && cols[i].group === gk) {
+            processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
+            while (i < cols.length && cols[i].group === gk) i++;
+          }
         } else {
           processed.push(col);
           i++;

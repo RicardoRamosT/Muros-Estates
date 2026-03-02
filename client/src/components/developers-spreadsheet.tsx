@@ -178,9 +178,18 @@ export function DevelopersSpreadsheet() {
       while (i < cols.length) {
         const col = cols[i];
         const gk = col.group || '';
-        if (collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed') {
-          processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
-          while (i < cols.length && cols[i].group === gk) i++;
+        const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed';
+        if (isCollapsibleGroup) {
+          // Emit any autoField columns in the group first (they are always visible)
+          while (i < cols.length && cols[i].group === gk && cols[i].autoField) {
+            processed.push(cols[i]);
+            i++;
+          }
+          // Then emit the collapse placeholder for non-autoField columns
+          if (i < cols.length && cols[i].group === gk) {
+            processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
+            while (i < cols.length && cols[i].group === gk) i++;
+          }
         } else {
           processed.push(col);
           i++;
