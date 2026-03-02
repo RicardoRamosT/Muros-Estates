@@ -49,32 +49,23 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
     const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
     container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
     setOpen(false);
-    setQuery("");
   };
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <button
-              className="flex items-center justify-center w-6 h-6 rounded hover:bg-white/20"
-              data-testid="button-section-search"
-            >
-              <Search className="w-3.5 h-3.5 text-white" />
-            </button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Ir a sección</TooltipContent>
-      </Tooltip>
-      <PopoverContent className="w-52 p-2" align="start">
+      <PopoverTrigger asChild>
+        <button className="p-1 rounded hover:bg-white/20 text-white" data-testid="button-section-search">
+          <Search className="w-3.5 h-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-2" align="start">
         <input
+          className="w-full text-xs border rounded px-2 py-1 mb-2 outline-none focus:ring-1"
           placeholder="Buscar sección..."
           value={query}
           onChange={e => setQuery(e.target.value)}
-          className="w-full h-7 text-xs border rounded px-2 mb-2 outline-none focus:ring-1 focus:ring-primary"
           autoFocus
         />
-        <div className="space-y-0.5 max-h-60 overflow-y-auto">
+        <div className="max-h-48 overflow-y-auto space-y-0.5">
           {filtered.map(g => (
             <button
               key={g.label}
@@ -135,13 +126,17 @@ export function SpreadsheetHeader({
   collapsedGroups,
   onToggleGroupCollapse,
 }: SpreadsheetHeaderProps) {
+  // Compute the corner columns (sticky area) dynamically
+  const cornerCols = visibleColumns.filter(c => c.group === 'corner');
+  const cornerWidth = cornerCols.reduce((sum, c) => sum + parseInt(c.width || '60'), 0) || 60;
+
   return (
     <div className="sticky top-0 z-20">
       {/* Row 1: Group labels */}
       <div className="flex border-b spreadsheet-header-row1" style={{ overflow: 'hidden' }}>
         <div
           className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-          style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+          style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
         >
           <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
         </div>
@@ -226,10 +221,21 @@ export function SpreadsheetHeader({
       {/* Row 2: Column names */}
       <div className="flex border-b spreadsheet-header-row2" style={{ overflow: 'hidden' }}>
         <div
-          className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-          style={{ width: 60, minWidth: 60, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+          className="flex-shrink-0 sticky left-0 z-30 flex"
+          style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
         >
-          <span className="text-xs font-semibold text-white">ID</span>
+          {cornerCols.map((col, i) => (
+            <div
+              key={col.key}
+              className="flex items-center justify-center font-semibold text-xs text-white"
+              style={{
+                width: col.width, minWidth: col.width, height: 32,
+                borderRight: '1px solid rgba(255,255,255,0.3)',
+              }}
+            >
+              {col.label || 'ID'}
+            </div>
+          ))}
         </div>
         {(() => {
           const items: JSX.Element[] = [];
@@ -302,22 +308,34 @@ export function SpreadsheetHeader({
       {/* Row 3: Filter controls */}
       <div className="flex border-b spreadsheet-header-row3" style={{ overflow: 'hidden' }}>
         <div
-          className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-          style={{ width: 60, minWidth: 60, height: 24, backgroundColor: SHEET_COLOR_LIGHT }}
+          className="flex-shrink-0 sticky left-0 z-30 flex"
+          style={{ width: cornerWidth, minWidth: cornerWidth, height: 24, backgroundColor: SHEET_COLOR_LIGHT }}
         >
-          <ColumnFilter
-            columnKey={idFilterKey}
-            columnLabel="ID"
-            columnType="text"
-            uniqueValues={uniqueValuesMap[idFilterKey] || []}
-            availableValues={availableValuesMap?.[idFilterKey]}
-            sortDirection={sortConfig.key === idFilterKey ? sortConfig.direction : null}
-            filterState={filterConfigs[idFilterKey] || { search: "", selectedValues: new Set() }}
-            onSort={(dir) => onSort(idFilterKey, dir)}
-            onFilter={(state) => onFilter(idFilterKey, state)}
-            onClear={() => onClear(idFilterKey)}
-            hideLabel
-          />
+          {cornerCols.map((col) => (
+            <div
+              key={col.key}
+              className="flex items-center"
+              style={{ width: col.width, minWidth: col.width, height: 24, borderRight: '1px solid rgba(255,255,255,0.2)' }}
+            >
+              {NO_FILTER_TYPES.has(col.type || '') ? (
+                <div />
+              ) : (
+                <ColumnFilter
+                  columnKey={col.key}
+                  columnLabel={col.label || 'ID'}
+                  columnType={getColumnFilterType(col.type)}
+                  uniqueValues={uniqueValuesMap[col.key] || []}
+                  availableValues={availableValuesMap?.[col.key]}
+                  sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                  filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                  onSort={(dir) => onSort(col.key, dir)}
+                  onFilter={(state) => onFilter(col.key, state)}
+                  onClear={() => onClear(col.key)}
+                  hideLabel
+                />
+              )}
+            </div>
+          ))}
         </div>
         {visibleColumns.map(col => {
           if (col.group === 'corner') return null;

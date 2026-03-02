@@ -80,9 +80,9 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
+  { key: 'active', label: 'Act.', group: 'corner', type: 'boolean', width: '58px', cellType: 'checkbox', autoField: true },
   { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
-  { key: 'active', label: 'Act.', group: 'empresa', type: 'boolean', width: '58px', cellType: 'checkbox', autoField: true },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'empresa', width: '130px', cellType: 'input' },
@@ -886,8 +886,9 @@ export function DevelopmentsSpreadsheet() {
                       ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-red-600 font-medium' 
                       : 'text-muted-foreground';
                   const effectiveCanEdit = fieldCanEdit && !isLockOffDisabledByTipo;
+                  const isActiveCorner = col.key === 'active';
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", isActiveCorner && "sticky z-10", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor, ...(isActiveCorner ? { left: '60px' } : {}) }}>
                       {effectiveCanEdit ? (
                         <Select
                           value={value === true ? "si" : value === false ? "no" : ""}

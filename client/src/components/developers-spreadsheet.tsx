@@ -137,9 +137,9 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox", group: "corner" },
     { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox", group: "empresa" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "empresa" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "empresa" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "empresa" },
@@ -605,8 +605,8 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div 
                       key={field} 
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
+                      className={cn("spreadsheet-cell flex-shrink-0 sticky z-10", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, left: '60px' }}
                     >
                       {fieldCanEdit ? (
                         <Select
