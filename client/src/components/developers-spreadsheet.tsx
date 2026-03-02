@@ -549,8 +549,8 @@ export function DevelopersSpreadsheet() {
                     >
                       <span className="text-xs font-medium">{index + 1}</span>
                       <span
-                        className="absolute bottom-1 right-1 rounded-full"
-                        style={{ width: 6, height: 6, backgroundColor: dotColor }}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                        style={{ backgroundColor: dotColor }}
                       />
                     </div>
                   );
@@ -580,36 +580,51 @@ export function DevelopersSpreadsheet() {
                 }
 
                 if (col.type === 'toggle') {
-                  const isActive = dev.active ?? false;
-                  const cellBgColor = isRowInactive ? '#9ca3af' : (isActive ? '#dcfce7' : '#fee2e2');
-                  const textColorClass = isRowInactive ? 'text-gray-600' : (isActive ? 'text-green-700' : 'text-red-600');
+                  const isComplete = !!(dev.name && dev.tipo);
+                  const isDisabled = dev.active === null || dev.active === undefined;
+                  const activeState = isDisabled ? "disabled" : (dev.active === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
+                  const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
+                  const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
+                  const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
+                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
                   return (
                     <div 
                       key={field} 
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
+                      className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}
                     >
                       {fieldCanEdit ? (
                         <Select
-                          value={isActive ? "si" : "no"}
-                          onValueChange={(v) => handleActiveToggle(dev.id, v === "si")}
+                          value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
+                          onValueChange={(v) => handleActiveToggle(dev.id, v === "active")}
                         >
                           <SelectTrigger 
-                            className={`h-6 text-xs border-0 bg-transparent px-1 font-medium ${textColorClass}`}
+                            className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
+                            style={textStyle}
                             data-testid={`toggle-active-${dev.id}`}
                           >
-                            <SelectValue>
-                              {isActive ? <span>Sí</span> : <span>No</span>}
-                            </SelectValue>
+                            <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
+                            <span className="truncate">{label}</span>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
-                            <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                            <SelectItem value="active" disabled={!isComplete} className="text-xs">
+                              <span className="flex items-center gap-1.5">
+                                <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
+                                <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="no" className="text-xs">
+                              <span className="flex items-center gap-1.5">
+                                <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
+                                <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
+                              </span>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
-                          <span>{isActive ? 'Sí' : 'No'}</span>
+                        <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
+                          <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
+                          <span>{label}</span>
                           <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                         </div>
                       )}

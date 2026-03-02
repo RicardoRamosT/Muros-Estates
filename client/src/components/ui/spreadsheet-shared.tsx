@@ -12,13 +12,13 @@ import {
 } from "@/lib/spreadsheet-utils";
 
 const NO_FILTER_TYPES = new Set([
-  'actions', 'folder-link', 'index', 'group-collapsed', 'calculated-percent',
+  'actions', 'folder-link', 'group-collapsed', 'calculated-percent',
 ]);
 
 function getColumnFilterType(type?: string): 'boolean' | 'number' | 'select' | 'text' {
   if (!type) return 'text';
   if (type === 'boolean' || type === 'toggle') return 'boolean';
-  if (type === 'number' || type === 'currency') return 'number';
+  if (type === 'number' || type === 'currency' || type === 'index') return 'number';
   if (type.includes('select')) return 'select';
   return 'text';
 }

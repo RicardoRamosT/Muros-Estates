@@ -776,7 +776,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         title={prospect.id}
                       >
                         <span className="text-xs font-medium">{index + 1}</span>
-                        <span className="absolute bottom-1 right-1 rounded-full" style={{ width: 6, height: 6, backgroundColor: dotColor }} />
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ backgroundColor: dotColor }} />
                       </div>
                     );
                   }

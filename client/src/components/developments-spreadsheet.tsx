@@ -822,8 +822,8 @@ export function DevelopmentsSpreadsheet() {
                     >
                       <span className="text-xs font-medium">{rowIndex + 1}</span>
                       <span
-                        className="absolute bottom-1 right-1 rounded-full"
-                        style={{ width: 6, height: 6, backgroundColor: dotColor }}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                        style={{ backgroundColor: dotColor }}
                       />
                     </div>
                   );
@@ -853,6 +853,49 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'boolean') {
+                  if (col.key === 'active') {
+                    const isComplete = !!(dev.name && dev.developerId);
+                    const isDisabled = value === null || value === undefined;
+                    const activeState = isDisabled ? "disabled" : (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
+                    const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
+                    const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
+                    const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
+                    const activeLabel = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
+                    return (
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}>
+                        {fieldCanEdit ? (
+                          <Select
+                            value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
+                            onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "active")}
+                          >
+                            <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0" style={textStyle} data-testid={`boolean-${col.key}-${dev.id}`}>
+                              <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
+                              <span className="truncate">{activeLabel}</span>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active" disabled={!isComplete} className="text-xs">
+                                <span className="flex items-center gap-1.5">
+                                  <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
+                                  <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="no" className="text-xs">
+                                <span className="flex items-center gap-1.5">
+                                  <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
+                                  <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
+                                </span>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
+                            <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
+                            <span>{activeLabel}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
                   const devTipos = (dev.tipos as string[] | null) || [];
                   const isDepa = devTipos.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
                   const isLockOffDisabledByTipo = col.key === 'lockOff' && !isDepa;
