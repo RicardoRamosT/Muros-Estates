@@ -175,7 +175,7 @@ export function DevelopersSpreadsheet() {
 
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
-      if (col.group === 'corner' || col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField || col.key === 'active') return true;
+      if (col.group === 'corner' || col.group === 'registro' || col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField) return true;
       return canView(col.key);
     });
 
