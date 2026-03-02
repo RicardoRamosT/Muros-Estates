@@ -1215,7 +1215,7 @@ export function DevelopmentsSpreadsheet() {
                           <span className={!selectedTipo && developerTipos.length > 0 ? 'text-red-500 font-medium text-xs' : 'text-xs text-muted-foreground'}>
                             {!selectedTipo && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipo || 'Sin tipos')}
                           </span>
-                          {!fieldCanEdit && }
+                          
                         </div>
                       )}
                     </div>
@@ -1510,7 +1510,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
-                          {!fieldCanEdit && }
+                          
                         </div>
                       )}
                     </div>
@@ -1875,7 +1875,7 @@ export function DevelopmentsSpreadsheet() {
                         }}
                       >
                         <span className="truncate">{displayValue || ''}</span>
-                        {!fieldCanEdit && }
+                        
                       </div>
                     </div>
                   );
@@ -1913,7 +1913,7 @@ export function DevelopmentsSpreadsheet() {
                         onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue), editable: false })}
                       >
                         <span className="truncate">{displayValue || ''}</span>
-                        {!fieldCanEdit && }
+                        
                       </div>
                     )}
                   </div>

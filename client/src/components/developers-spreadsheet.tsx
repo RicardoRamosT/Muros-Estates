@@ -958,7 +958,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1">
                           <span className="truncate uppercase" title={value ? String(value) : undefined}>{value || ''}</span>
-                          {!fieldCanEdit && }
+                          
                         </div>
                       )}
                     </div>
@@ -992,7 +992,7 @@ export function DevelopersSpreadsheet() {
                         >
                           {value || ''}
                         </span>
-                        {!fieldCanEdit && }
+                        
                       </div>
                     )}
                   </div>
