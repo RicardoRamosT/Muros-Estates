@@ -239,11 +239,8 @@ export function SpreadsheetHeader({
         </div>
         {(() => {
           const items: JSX.Element[] = [];
-          let currentGroupKey = '';
           for (const col of visibleColumns) {
             if (col.group === 'corner') continue;
-            const isFirstInGroup = col.group !== currentGroupKey;
-            if (col.group) currentGroupKey = col.group;
             if (col.key === 'fechahora_collapsed') {
               items.push(
                 <div
@@ -273,7 +270,6 @@ export function SpreadsheetHeader({
             const groupDef = groupLookupMap[col.group || ''];
             const groupColor = groupDef?.color || '';
             const isColored = !!groupColor;
-            const showCollapseBtn = isFirstInGroup && isColored && !!onToggleGroupCollapse;
             items.push(
               <div
                 key={`r2-${col.key}`}
@@ -284,20 +280,10 @@ export function SpreadsheetHeader({
                   backgroundColor: isColored ? groupColor : '#d1d5db',
                   color: isColored ? 'white' : '#374151',
                   paddingLeft: 8,
-                  paddingRight: showCollapseBtn ? 0 : 8,
+                  paddingRight: 8,
                 }}
               >
                 <span className="truncate min-w-0">{col.label}</span>
-                {showCollapseBtn && (
-                  <button
-                    onClick={() => onToggleGroupCollapse!(col.group!)}
-                    className="ml-auto flex-shrink-0 flex items-center justify-center hover:opacity-80 cursor-pointer"
-                    style={{ width: 16, height: '100%' }}
-                    data-testid={`toggle-group-collapse-r2-${col.group}`}
-                  >
-                    <Minus className="w-2.5 h-2.5 text-white/70" />
-                  </button>
-                )}
               </div>
             );
           }
