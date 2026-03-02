@@ -383,10 +383,10 @@ export function DevelopersSpreadsheet() {
     [pendingChangesVersion]
   );
 
-  const handleCellBlur = useCallback((id: string, field: string) => {
+  const handleCellBlur = useCallback((id: string, field: string, inputValue?: string) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
     
-    let valueToSave = editValue;
+    let valueToSave = inputValue !== undefined ? inputValue : editValue;
     
     if (field === 'rfc' && valueToSave) {
       valueToSave = valueToSave.toUpperCase();
@@ -885,10 +885,9 @@ export function DevelopersSpreadsheet() {
                     >
                       {isEditing && fieldCanEdit ? (
                         <Input
-                          value={editValue.toUpperCase()}
-                          onChange={(e) => setEditValue(e.target.value.toUpperCase())}
-                          onBlur={() => handleCellBlur(dev.id, field)}
-                          onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
+                          defaultValue={editValue.toUpperCase()}
+                          onBlur={(e) => handleCellBlur(dev.id, field, e.target.value.toUpperCase())}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value.toUpperCase()); }}
                           autoFocus
                           maxLength={13}
                           placeholder="12-13 dígitos"
@@ -917,10 +916,9 @@ export function DevelopersSpreadsheet() {
                   >
                     {isEditing && fieldCanEdit ? (
                       <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => handleCellBlur(dev.id, field)}
-                        onKeyDown={(e) => e.key === "Enter" && handleCellBlur(dev.id, field)}
+                        defaultValue={editValue}
+                        onBlur={(e) => handleCellBlur(dev.id, field, e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value); }}
                         autoFocus
                         className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                         data-testid={`input-${field}-${dev.id}`}

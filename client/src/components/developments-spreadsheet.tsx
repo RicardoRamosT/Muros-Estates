@@ -472,22 +472,23 @@ export function DevelopmentsSpreadsheet() {
     [pendingChangesVersion]
   );
 
-  const handleCellBlur = useCallback((id: string, field: string, col: ColumnDef) => {
+  const handleCellBlur = useCallback((id: string, field: string, col: ColumnDef, inputValue?: string) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
 
     const dev = developments.find(d => d.id === id);
     if (!dev) return;
 
+    const editVal = inputValue !== undefined ? inputValue : editValue;
     const currentValue = String((dev as any)[field] ?? "");
-    if (editValue !== currentValue) {
-      let valueToSave: string | number | null = editValue || null;
-      if (col.type === 'number' && editValue) {
-        valueToSave = parseFloat(editValue);
+    if (editVal !== currentValue) {
+      let valueToSave: string | number | null = editVal || null;
+      if (col.type === 'number' && editVal) {
+        valueToSave = parseFloat(editVal);
         if (isNaN(valueToSave)) valueToSave = null;
       }
       const dataToSave: Record<string, any> = { [field]: valueToSave };
-      if (field === 'name' && editValue && !dev.inicioPreventa) {
-        const match = developments.find(d => d.id !== id && d.name === editValue && d.inicioPreventa);
+      if (field === 'name' && editVal && !dev.inicioPreventa) {
+        const match = developments.find(d => d.id !== id && d.name === editVal && d.inicioPreventa);
         if (match) dataToSave.inicioPreventa = match.inicioPreventa;
       }
       handleFieldChange(id, dataToSave);
@@ -1760,10 +1761,9 @@ export function DevelopmentsSpreadsheet() {
                   >
                     {isEditing && fieldCanEdit ? (
                       <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => handleCellBlur(dev.id, col.key, col)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(dev.id, col.key, col)}
+                        defaultValue={editValue}
+                        onBlur={(e) => handleCellBlur(dev.id, col.key, col, e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleCellBlur(dev.id, col.key, col, (e.target as HTMLInputElement).value); }}
                         onFocus={(e) => e.target.select()}
                         className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                         autoFocus

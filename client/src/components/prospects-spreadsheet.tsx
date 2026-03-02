@@ -196,10 +196,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     [pendingChangesVersion]
   );
 
-  const handleCellBlur = useCallback((id: string, field: string) => {
+  const handleCellBlur = useCallback((id: string, field: string, inputValue?: string) => {
     if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
     
-    if ((field === 'nombre' || field === 'apellido') && editValue && editValue.trim().length < 3) {
+    const editVal = inputValue !== undefined ? inputValue : editValue;
+    if ((field === 'nombre' || field === 'apellido') && editVal && editVal.trim().length < 3) {
       toast({ 
         title: "Error de validación", 
         description: `${field === 'nombre' ? 'Nombre' : 'Apellido'} debe tener al menos 3 caracteres`, 
@@ -209,7 +210,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       return;
     }
     
-    handleFieldChange(id, { [field]: editValue || null } as any);
+    handleFieldChange(id, { [field]: editVal || null } as any);
     setEditingCell(null);
   }, [editingCell, editValue, handleFieldChange, toast]);
 
@@ -1237,15 +1238,15 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <Input
                             type="number"
                             step="0.01"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={() => {
-                              if (editValue !== String(value ?? '')) {
-                                handleFieldChange(prospect.id, { [col.key]: editValue || null } as any);
+                            defaultValue={editValue}
+                            onBlur={(e) => {
+                              const v = e.target.value;
+                              if (v !== String(value ?? '')) {
+                                handleFieldChange(prospect.id, { [col.key]: v || null } as any);
                               }
                               setEditingCell(null);
                             }}
-                            onKeyDown={(e) => e.key === 'Enter' && handleCellBlur(prospect.id, col.key)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value); }}
                             autoFocus
                             className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-${col.key}-${prospect.id}`}
@@ -1274,12 +1275,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         {isEditing && fieldCanEdit ? (
                           <Input
                             type="date"
-                            value={editValue || dateValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onFocus={() => setEditValue(dateValue)}
-                            onBlur={() => {
-                              if (editValue !== dateValue) {
-                                const newDate = editValue ? new Date(editValue).toISOString() : null;
+                            defaultValue={dateValue}
+                            onBlur={(e) => {
+                              const v = e.target.value;
+                              if (v !== dateValue) {
+                                const newDate = v ? new Date(v).toISOString() : null;
                                 handleFieldChange(prospect.id, { [col.key]: newDate } as any);
                               }
                               setEditingCell(null);
@@ -1352,10 +1352,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     >
                       {isEditing && fieldCanEdit ? (
                         <Input
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onBlur={() => handleCellBlur(prospect.id, col.key)}
-                          onKeyDown={(e) => e.key === "Enter" && handleCellBlur(prospect.id, col.key)}
+                          defaultValue={editValue}
+                          onBlur={(e) => handleCellBlur(prospect.id, col.key, e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value); }}
                           autoFocus
                           className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                           data-testid={`input-${col.key}-${prospect.id}`}

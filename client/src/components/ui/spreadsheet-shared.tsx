@@ -182,7 +182,7 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}`}
-                    className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-medium text-xs uppercase tracking-wide flex-shrink-0 text-white"
+                    className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-medium text-xs flex-shrink-0 text-white"
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
                   >
                     <span>{group.label}</span>
@@ -271,27 +271,27 @@ export function SpreadsheetHeader({
             items.push(
               <div
                 key={`r2-${col.key}`}
-                className="border-r border-white/30 font-medium text-xs tracking-wide flex items-center flex-shrink-0 overflow-hidden"
+                className="border-r border-white/30 font-medium text-xs flex items-center flex-shrink-0 overflow-hidden"
                 title={col.label}
                 style={{
                   width: col.width, minWidth: col.width, height: 32,
                   backgroundColor: isColored ? groupColor : '#d1d5db',
                   color: isColored ? 'white' : '#374151',
-                  paddingLeft: showCollapseBtn ? 0 : 8,
-                  paddingRight: 8,
+                  paddingLeft: 8,
+                  paddingRight: showCollapseBtn ? 0 : 8,
                 }}
               >
+                <span className="truncate min-w-0">{col.label}</span>
                 {showCollapseBtn && (
                   <button
                     onClick={() => onToggleGroupCollapse!(col.group!)}
-                    className="flex-shrink-0 flex items-center justify-center hover:opacity-80 cursor-pointer"
+                    className="ml-auto flex-shrink-0 flex items-center justify-center hover:opacity-80 cursor-pointer"
                     style={{ width: 16, height: '100%' }}
                     data-testid={`toggle-group-collapse-r2-${col.group}`}
                   >
                     <Minus className="w-2.5 h-2.5 text-white/70" />
                   </button>
                 )}
-                <span className="truncate min-w-0">{col.label}</span>
               </div>
             );
           }
