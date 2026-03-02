@@ -109,6 +109,15 @@ export function DevelopersSpreadsheet() {
       return next;
     });
   };
+  const COLLAPSED_COL_WIDTH = 20;
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const toggleColumn = (key: string) => {
+    setCollapsedColumns(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
   const pendingChangesRef = useRef<Map<string, Partial<Developer>>>(new Map());
   const [localEdits, setLocalEdits] = useState<Record<string, Partial<Developer>>>({});
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
@@ -188,8 +197,14 @@ export function DevelopersSpreadsheet() {
       cols = processed;
     }
 
+    if (collapsedColumns.size > 0) {
+      cols = cols.map(col =>
+        collapsedColumns.has(col.key) ? { ...col, width: `${COLLAPSED_COL_WIDTH}px` } : col
+      );
+    }
+
     return cols;
-  }, [canView, collapsedGroups]);
+  }, [canView, collapsedGroups, collapsedColumns]);
 
   const effectiveDevelopers = useMemo(() =>
     developers.map(d => ({ ...d, ...(localEdits[d.id] || {}) })),
@@ -508,6 +523,8 @@ export function DevelopersSpreadsheet() {
             scrollRef={contentScrollRef}
             collapsedGroups={collapsedGroups}
             onToggleGroupCollapse={toggleGroupCollapse}
+            collapsedColumns={collapsedColumns}
+            onToggleColumnCollapse={toggleColumn}
           />
 
           {/* Data rows */}
@@ -576,6 +593,16 @@ export function DevelopersSpreadsheet() {
                   const groupDef = groupLookupMap[col.group || ''];
                   return (
                     <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: groupDef?.color ? `${groupDef.color}22` : '#f3f4f6' }} />
+                  );
+                }
+
+                if (collapsedColumns.has(col.key)) {
+                  return (
+                    <div
+                      key={field}
+                      className="spreadsheet-cell flex-shrink-0"
+                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...inactiveCellStyle }}
+                    />
                   );
                 }
 

@@ -15,6 +15,8 @@ const NO_FILTER_TYPES = new Set([
   'actions', 'folder-link', 'group-collapsed', 'calculated-percent',
 ]);
 
+const COLLAPSED_COL_WIDTH = 20;
+
 function getColumnFilterType(type?: string): 'boolean' | 'number' | 'select' | 'text' {
   if (!type) return 'text';
   if (type === 'boolean' || type === 'toggle') return 'boolean';
@@ -97,6 +99,8 @@ interface SpreadsheetHeaderProps {
   groupMaps?: Record<string, Record<string, string[]>>;
   collapsedGroups?: Set<string>;
   onToggleGroupCollapse?: (key: string) => void;
+  collapsedColumns?: Set<string>;
+  onToggleColumnCollapse?: (key: string) => void;
 }
 
 export function SpreadsheetHeader({
@@ -117,10 +121,14 @@ export function SpreadsheetHeader({
   groupMaps,
   collapsedGroups,
   onToggleGroupCollapse,
+  collapsedColumns,
+  onToggleColumnCollapse,
 }: SpreadsheetHeaderProps) {
-  // Compute the corner columns (sticky area) dynamically
   const cornerCols = visibleColumns.filter(c => c.group === 'corner');
   const cornerWidth = cornerCols.reduce((sum, c) => sum + parseInt(c.width || '60'), 0) || 60;
+
+  const getColW = (col: SpreadsheetColumnDef) =>
+    collapsedColumns?.has(col.key) ? COLLAPSED_COL_WIDTH : parseInt(col.width);
 
   return (
     <div className="sticky top-0 z-20">
@@ -138,7 +146,7 @@ export function SpreadsheetHeader({
           for (const group of visibleColumnGroups) {
             if (group.key === 'corner') { colIdx += group.colspan; continue; }
             const groupCols = visibleColumns.slice(colIdx, colIdx + group.colspan);
-            const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
+            const totalWidth = groupCols.reduce((sum, c) => sum + getColW(c), 0);
             if (group.label) {
               const isCollapsed = groupCols[0]?.type === 'group-collapsed';
               if (isCollapsed) {
@@ -175,11 +183,12 @@ export function SpreadsheetHeader({
               }
             } else {
               groupCols.forEach(col => {
+                const w = getColW(col);
                 items.push(
                   <div
                     key={`r1-${col.key}`}
                     className="border-r h-8 flex-shrink-0"
-                    style={{ width: col.width, minWidth: col.width, backgroundColor: group.color || '#d1d5db' }}
+                    style={{ width: w, minWidth: w, backgroundColor: group.color || '#d1d5db' }}
                   />
                 );
               });
@@ -196,7 +205,7 @@ export function SpreadsheetHeader({
           className="flex-shrink-0 sticky left-0 z-30 flex"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
         >
-          {cornerCols.map((col, i) => (
+          {cornerCols.map((col) => (
             <div
               key={col.key}
               className="flex items-center justify-center font-semibold text-xs text-white"
@@ -232,6 +241,23 @@ export function SpreadsheetHeader({
             const groupDef = groupLookupMap[col.group || ''];
             const groupColor = groupDef?.color || '';
             const isColored = !!groupColor;
+            const isColCollapsed = collapsedColumns?.has(col.key) ?? false;
+
+            if (isColored && isColCollapsed) {
+              items.push(
+                <div
+                  key={`r2-${col.key}`}
+                  className="flex-shrink-0 border-r flex items-center justify-center cursor-pointer text-white hover:brightness-110"
+                  style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: groupColor }}
+                  onClick={() => onToggleColumnCollapse?.(col.key)}
+                  data-testid={`toggle-col-expand-${col.key}`}
+                >
+                  <Plus className="w-2.5 h-2.5" />
+                </div>
+              );
+              continue;
+            }
+
             items.push(
               <div
                 key={`r2-${col.key}`}
@@ -243,19 +269,20 @@ export function SpreadsheetHeader({
                   color: isColored ? 'white' : '#374151',
                 }}
               >
-                <div style={{ width: 8, flexShrink: 0 }} />
+                <div style={{ width: isColored ? 20 : 8, flexShrink: 0 }} />
                 <span className="truncate min-w-0 flex-1">{col.label}</span>
-                {isColored && onToggleGroupCollapse && col.group && (
+                {isColored && onToggleColumnCollapse ? (
                   <button
-                    onClick={() => onToggleGroupCollapse(col.group!)}
+                    onClick={() => onToggleColumnCollapse(col.key)}
                     className="flex-shrink-0 flex items-center justify-center hover:bg-white/20 cursor-pointer h-full"
                     style={{ width: 16 }}
-                    data-testid={`toggle-group-collapse-col-${col.key}`}
+                    data-testid={`toggle-col-collapse-${col.key}`}
                   >
                     <Minus className="w-2.5 h-2.5 text-white/80" />
                   </button>
+                ) : (
+                  <div style={{ width: 8, flexShrink: 0 }} />
                 )}
-                {!isColored && <div style={{ width: 8, flexShrink: 0 }} />}
               </div>
             );
           }
@@ -311,6 +338,18 @@ export function SpreadsheetHeader({
           const groupDef = groupLookupMap[col.group || ''];
           const groupColor = groupDef?.color || '';
           const isColored = !!groupColor;
+          const isColCollapsed = collapsedColumns?.has(col.key) ?? false;
+
+          if (isColored && isColCollapsed) {
+            return (
+              <div
+                key={`r3-${col.key}`}
+                className="flex-shrink-0 border-r"
+                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, opacity: 0.35 }}
+              />
+            );
+          }
+
           return (
             <div
               key={`r3-${col.key}`}
