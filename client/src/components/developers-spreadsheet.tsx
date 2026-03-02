@@ -453,8 +453,9 @@ export function DevelopersSpreadsheet() {
   }, [handleFieldChange]);
 
   const handleActiveToggle = useCallback((id: string, newValue: boolean | null) => {
-    updateMutation.mutate({ id, data: { active: newValue } });
-  }, [updateMutation]);
+    handleFieldChange(id, { active: newValue });
+    saveRowByIdRef.current(id);
+  }, [handleFieldChange]);
 
   const handleCreateNew = () => {
     // Generate unique name with random suffix to avoid duplicate key errors

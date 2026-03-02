@@ -949,9 +949,18 @@ export function DevelopmentsSpreadsheet() {
                           <Select
                             value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
                             onValueChange={(val) => {
-                              if (val === "disabled") handleFieldChange(dev.id, { active: null });
-                              else if (val === "active") { if (isComplete) handleFieldChange(dev.id, { active: true }); }
-                              else handleFieldChange(dev.id, { active: false });
+                              if (val === "disabled") {
+                                handleFieldChange(dev.id, { active: null });
+                                saveRowByIdRef.current(dev.id);
+                              } else if (val === "active") {
+                                if (isComplete) {
+                                  handleFieldChange(dev.id, { active: true });
+                                  saveRowByIdRef.current(dev.id);
+                                }
+                              } else {
+                                handleFieldChange(dev.id, { active: false });
+                                saveRowByIdRef.current(dev.id);
+                              }
                             }}
                           >
                             <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0" style={textStyle} data-testid={`boolean-${col.key}-${dev.id}`}>
