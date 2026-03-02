@@ -638,6 +638,25 @@ export function DevelopmentsSpreadsheet() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      const pending = pendingChangesRef.current;
+      if (pending.size === 0) return;
+      const sessionId = localStorage.getItem("muros_session");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+      pending.forEach((changes, id) => {
+        if (!changes || Object.keys(changes).length === 0) return;
+        fetch(`/api/developments-entity/${id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(changes),
+          keepalive: true,
+        });
+      });
+    };
+  }, []);
+
   const developmentsForFilter = useMemo(() => {
     return effectiveDevelopments.map(dev => {
       const developerTipos = getTypeFromDeveloper(dev.developerId) || [];

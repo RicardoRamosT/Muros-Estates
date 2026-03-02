@@ -236,6 +236,25 @@ export function DevelopersSpreadsheet() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      const pending = pendingChangesRef.current;
+      if (pending.size === 0) return;
+      const sessionId = localStorage.getItem("muros_session");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+      pending.forEach((changes, id) => {
+        if (!changes || Object.keys(changes).length === 0) return;
+        fetch(`/api/developers/${id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(changes),
+          keepalive: true,
+        });
+      });
+    };
+  }, []);
+
   const {
     sortConfig,
     filterConfigs,
