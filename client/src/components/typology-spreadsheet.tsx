@@ -1596,20 +1596,20 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           <div
             className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
             style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
-            title="Desarrollo incompleto"
+            title="Advertencia"
           >
             <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5 px-1">
               <AlertCircle className="w-3 h-3 shrink-0" />
-              <span className="truncate">Incompleto</span>
+              <span className="truncate">Advertencia</span>
             </span>
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-3 z-[200]" side="bottom" align="start">
           <p className="text-xs font-semibold text-amber-700 mb-1.5 flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
-            Desarrollo incompleto
+            Advertencia
           </p>
-          <p className="text-xs text-muted-foreground mb-2">Faltan campos en el Desarrollo seleccionado:</p>
+          <p className="text-xs text-muted-foreground mb-2">Se detectaron los siguientes problemas:</p>
           <div className="text-xs space-y-0.5">
             {devWarning.split('\n').map((line, i) => (
               <div key={i} className="flex items-start gap-1">
@@ -2095,7 +2095,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       <div 
         className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
-        title={devWarning ? `Desarrollo incompleto:\n${devWarning.split('\n').map(l => '• ' + l).join('\n')}` : undefined}
+        title={devWarning ? devWarning.split('\n').map(l => '• ' + l).join('\n') : undefined}
       >
         {devWarning !== undefined && (
           <AlertCircle className={cn("w-3 h-3 shrink-0 mr-0.5", devWarning ? (isRowDisabled ? "text-black" : "text-amber-500") : "invisible")} />
@@ -2176,20 +2176,20 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               <div 
                 className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
                 style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
-                title="Desarrollo incompleto"
+                title="Advertencia"
               >
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5 px-1">
                   <AlertCircle className="w-3 h-3 shrink-0" />
-                  <span className="truncate">Incompleto</span>
+                  <span className="truncate">Advertencia</span>
                 </span>
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-64 p-3 z-[200]" side="bottom" align="start">
               <p className="text-xs font-semibold text-amber-700 mb-1.5 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
-                Desarrollo incompleto
+                Advertencia
               </p>
-              <p className="text-xs text-muted-foreground mb-2">Faltan campos en el Desarrollo seleccionado:</p>
+              <p className="text-xs text-muted-foreground mb-2">Se detectaron los siguientes problemas:</p>
               <div className="text-xs space-y-0.5">
                 {devWarning.split('\n').map((line, i) => (
                   <div key={i} className="flex items-start gap-1">
@@ -2658,16 +2658,16 @@ export function TypologySpreadsheet() {
   }, [catalogCajones]);
   
   const developerOptions = useMemo(() => {
-    return dbDevelopers.map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
+    return dbDevelopers.filter(d => d.active === true).map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopers]);
   
   const developmentOptions = useMemo(() => {
-    return dbDevelopments.map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
+    return dbDevelopments.filter(d => d.active === true).map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopments]);
 
   const validEntities = useMemo<ValidEntities>(() => ({
-    developers: dbDevelopers.map(d => d.name).filter(Boolean),
-    developments: dbDevelopments.map(d => d.name).filter(Boolean),
+    developers: dbDevelopers.filter(d => d.active === true).map(d => d.name).filter(Boolean),
+    developments: dbDevelopments.filter(d => d.active === true).map(d => d.name).filter(Boolean),
   }), [dbDevelopers, dbDevelopments]);
   
   const zoneOptionsByCity = useMemo(() => {
@@ -4796,21 +4796,41 @@ export function TypologySpreadsheet() {
                         const selectedDev = hasDevelopment ? dbDevelopments.find(d => d.name === mergedRow.development) : null;
                         const devMissingFieldsList: string[] = [];
                         if (selectedDev) {
-                          if (!selectedDev.city) devMissingFieldsList.push("Ciudad");
-                          if (!selectedDev.zone) devMissingFieldsList.push("Zona");
+                          if (selectedDev.active === false) devMissingFieldsList.unshift("Desarrollo inactivo");
+                          const devParentDeveloper = dbDevelopers.find(d => d.id === (selectedDev as any).developerId);
+                          if (devParentDeveloper) {
+                            if (devParentDeveloper.active === null) devMissingFieldsList.unshift("Desarrollador del desarrollo: deshabilitado");
+                            else if (devParentDeveloper.active === false) devMissingFieldsList.unshift("Desarrollador del desarrollo: inactivo");
+                          }
+                          if (!selectedDev.city) devMissingFieldsList.push("Ciudad del desarrollo");
+                          if (!selectedDev.zone) devMissingFieldsList.push("Zona del desarrollo");
                           if (!selectedDev.entregaProyectada) devMissingFieldsList.push("Fecha de Entrega");
                           const tipList = (selectedDev as any).tipologiasList as string[] | null;
                           if (!tipList || tipList.length === 0) devMissingFieldsList.push("Tipologías");
                         }
                         const devWarningText = devMissingFieldsList.length > 0 ? devMissingFieldsList.join('\n') : "";
                         const isDevIncomplete = devMissingFieldsList.length > 0;
+
+                        const selectedTypologyDeveloper = mergedRow.developer
+                          ? dbDevelopers.find(d => d.name === mergedRow.developer)
+                          : null;
+                        const developerWarningText = selectedTypologyDeveloper
+                          ? (selectedTypologyDeveloper.active === null
+                              ? "Desarrollador deshabilitado"
+                              : selectedTypologyDeveloper.active === false
+                                ? "Desarrollador inactivo"
+                                : "")
+                          : "";
+                        const isDeveloperInactive = !!(selectedTypologyDeveloper && selectedTypologyDeveloper.active !== true);
                         
                         const hasTipoDesarrollo = !!(mergedRow.tipoDesarrollo && (Array.isArray(mergedRow.tipoDesarrollo) ? mergedRow.tipoDesarrollo.length > 0 : true));
                         const hasType = !!(mergedRow.type);
                         const devHasTipos = !!(selectedDev && (selectedDev as any).tipos && ((selectedDev as any).tipos as string[]).length > 0);
                         let isLockedByFlow = false;
                         if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
-                          if (!hasDevelopment || isDevIncomplete) {
+                          if (isDeveloperInactive) {
+                            isLockedByFlow = true;
+                          } else if (!hasDevelopment || isDevIncomplete) {
                             isLockedByFlow = true;
                           } else if (devHasTipos && !hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
@@ -4859,7 +4879,7 @@ export function TypologySpreadsheet() {
                             isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
                             validEntities={col.key === "active" ? validEntities : undefined}
                             isRowDisabled={isRowGray}
-                            devWarning={col.key === "development" ? devWarningText : undefined}
+                            devWarning={col.key === "development" ? devWarningText : col.key === "developer" ? developerWarningText : undefined}
                           />
                         );
 

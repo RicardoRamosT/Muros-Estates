@@ -86,6 +86,15 @@ function isDevelopmentComplete(dev: Development): boolean {
   );
 }
 
+function isDeveloperComplete(dev: Developer): boolean {
+  return !!(
+    dev.tipo && dev.name && dev.razonSocial && dev.rfc &&
+    dev.tipos?.length && dev.contactName && dev.contactPhone && dev.contactEmail
+  );
+}
+
+const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime", "developerId"]);
+
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'active', label: 'Act.', group: 'registro', type: 'boolean', width: '58px', cellType: 'checkbox' },
@@ -816,6 +825,7 @@ export function DevelopmentsSpreadsheet() {
             const parentDeveloper = developers.find(d => d.id === dev.developerId);
             const isParentDeveloperInactive = parentDeveloper?.active === false;
             const isRowInactive = dev.active === null || isParentDeveloperInactive;
+            const isDeveloperBlocked = !!(parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper)));
             const isActiveRow = activeEditingRowId === dev.id;
             return (
             <div
@@ -833,7 +843,7 @@ export function DevelopmentsSpreadsheet() {
               onClick={() => handleRowClick(dev.id)}
             >
               {visibleColumns.map((col) => {
-                const fieldCanEdit = canEdit(col.key);
+                const fieldCanEdit = canEdit(col.key) && (!isDeveloperBlocked || DEV_ALWAYS_UNLOCKED.has(col.key));
                 const value = (dev as any)[col.key];
                 const isEditing = editingCell?.id === dev.id && editingCell?.field === col.key;
 
@@ -1037,30 +1047,53 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'developer-select') {
                   const filteredDevs = developers.filter(d => {
+                    if (!d.active) return false;
                     if (dev.empresaTipo) {
                       return d.tipo === dev.empresaTipo;
                     }
                     return d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora';
                   });
+                  const developerWarningText = parentDeveloper
+                    ? (parentDeveloper.active === null
+                        ? "Desarrollador deshabilitado"
+                        : parentDeveloper.active === false
+                          ? "Desarrollador inactivo"
+                          : !isDeveloperComplete(parentDeveloper)
+                            ? "Desarrollador incompleto: faltan datos requeridos"
+                            : "")
+                    : "";
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
-                      {fieldCanEdit ? (
-                        <Select
-                          value={value || "__unassigned__"}
-                          onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
-                        >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
-                            {filteredDevs.map(d => (
-                              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    <div
+                      key={col.key}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      title={developerWarningText || undefined}
+                    >
+                      {canEdit(col.key) ? (
+                        <div className="flex items-center w-full overflow-hidden">
+                          {developerWarningText && (
+                            <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 ml-1" />
+                          )}
+                          <Select
+                            value={value || "__unassigned__"}
+                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent flex-1 min-w-0">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
+                              {filteredDevs.map(d => (
+                                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
+                          {developerWarningText && (
+                            <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                          )}
                           <span>{getDeveloperName(value)}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
