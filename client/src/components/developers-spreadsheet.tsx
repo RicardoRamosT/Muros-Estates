@@ -549,7 +549,7 @@ export function DevelopersSpreadsheet() {
 
           {/* Data rows */}
           {visibleData.map((dev, index) => {
-            const isRowInactive = dev.active === false;
+            const isRowInactive = dev.active === null;
             const isActiveRow = activeEditingRowId === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
               ? { backgroundColor: '#9ca3af' }

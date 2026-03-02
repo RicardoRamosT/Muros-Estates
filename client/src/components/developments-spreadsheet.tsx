@@ -827,8 +827,8 @@ export function DevelopmentsSpreadsheet() {
 
           {visibleData.map((dev, rowIndex) => {
             const parentDeveloper = developers.find(d => d.id === dev.developerId);
-            const isParentDeveloperInactive = parentDeveloper?.active === false;
-            const isRowInactive = dev.active === false || isParentDeveloperInactive;
+            const isParentDeveloperInactive = parentDeveloper?.active === null;
+            const isRowInactive = dev.active === null || isParentDeveloperInactive;
             const isActiveRow = activeEditingRowId === dev.id;
             return (
             <div
