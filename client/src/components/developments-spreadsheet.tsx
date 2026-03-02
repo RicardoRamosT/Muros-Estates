@@ -940,7 +940,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -974,7 +974,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{getDeveloperName(value)}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1002,7 +1002,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1031,7 +1031,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1104,7 +1104,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1132,7 +1132,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1160,7 +1160,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1512,7 +1512,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1540,7 +1540,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
@@ -1568,7 +1568,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
                           <Lock className="w-3 h-3 opacity-50" />
                         </div>
