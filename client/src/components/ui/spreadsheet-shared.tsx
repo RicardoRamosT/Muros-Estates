@@ -182,7 +182,7 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}`}
-                    className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-bold text-xs uppercase tracking-wide flex-shrink-0 text-white"
+                    className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-medium text-xs uppercase tracking-wide flex-shrink-0 text-white"
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
                   >
                     <span>{group.label}</span>
@@ -231,46 +231,72 @@ export function SpreadsheetHeader({
         >
           <span className="text-xs font-semibold text-white">ID</span>
         </div>
-        {visibleColumns.map(col => {
-          if (col.group === 'corner') return null;
-          if (col.key === 'fechahora_collapsed') {
-            return (
-              <div
-                key="r2-fechahora_collapsed"
-                className="flex-shrink-0 border-r"
-                style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
-              />
-            );
-          }
-          if (col.type === 'group-collapsed') {
+        {(() => {
+          const items: JSX.Element[] = [];
+          let currentGroupKey = '';
+          for (const col of visibleColumns) {
+            if (col.group === 'corner') continue;
+            const isFirstInGroup = col.group !== currentGroupKey;
+            if (col.group) currentGroupKey = col.group;
+            if (col.key === 'fechahora_collapsed') {
+              items.push(
+                <div
+                  key="r2-fechahora_collapsed"
+                  className="flex-shrink-0 border-r"
+                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
+                />
+              );
+              continue;
+            }
+            if (col.type === 'group-collapsed') {
+              const groupDef = groupLookupMap[col.group || ''];
+              const bg = groupDef?.color || '#9ca3af';
+              items.push(
+                <div
+                  key={`r2-${col.key}`}
+                  className="flex-shrink-0 border-r flex items-center justify-center cursor-pointer text-white hover:brightness-110"
+                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg }}
+                  onClick={() => onToggleGroupCollapse?.(col.group!)}
+                  data-testid={`toggle-group-expand-r2-${col.group}`}
+                >
+                  <Plus className="w-2.5 h-2.5" />
+                </div>
+              );
+              continue;
+            }
             const groupDef = groupLookupMap[col.group || ''];
-            const bg = groupDef?.color || '#9ca3af';
-            return (
+            const groupColor = groupDef?.color || '';
+            const isColored = !!groupColor;
+            const showCollapseBtn = isFirstInGroup && isColored && !!onToggleGroupCollapse;
+            items.push(
               <div
                 key={`r2-${col.key}`}
-                className="flex-shrink-0 border-r"
-                style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, opacity: 0.35 }}
-              />
+                className="border-r border-white/30 font-medium text-xs tracking-wide flex items-center flex-shrink-0 overflow-hidden"
+                title={col.label}
+                style={{
+                  width: col.width, minWidth: col.width, height: 32,
+                  backgroundColor: isColored ? groupColor : '#d1d5db',
+                  color: isColored ? 'white' : '#374151',
+                  paddingLeft: showCollapseBtn ? 0 : 8,
+                  paddingRight: 8,
+                }}
+              >
+                {showCollapseBtn && (
+                  <button
+                    onClick={() => onToggleGroupCollapse!(col.group!)}
+                    className="flex-shrink-0 flex items-center justify-center hover:opacity-80 cursor-pointer"
+                    style={{ width: 16, height: '100%' }}
+                    data-testid={`toggle-group-collapse-r2-${col.group}`}
+                  >
+                    <Minus className="w-2.5 h-2.5 text-white/70" />
+                  </button>
+                )}
+                <span className="truncate min-w-0">{col.label}</span>
+              </div>
             );
           }
-          const groupDef = groupLookupMap[col.group || ''];
-          const groupColor = groupDef?.color || '';
-          const isColored = !!groupColor;
-          return (
-            <div
-              key={`r2-${col.key}`}
-              className="border-r border-white/30 px-2 font-medium text-xs tracking-wide flex items-center flex-shrink-0"
-              title={col.label}
-              style={{
-                width: col.width, minWidth: col.width, height: 32,
-                backgroundColor: isColored ? groupColor : '#d1d5db',
-                color: isColored ? 'white' : '#374151',
-              }}
-            >
-              <span className="truncate min-w-0">{col.label}</span>
-            </div>
-          );
-        })}
+          return items;
+        })()}
       </div>
 
       {/* Row 3: Filter controls */}
