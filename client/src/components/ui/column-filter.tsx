@@ -55,11 +55,19 @@ export function ColumnFilter({
   const hasActiveFilter = isFiltered;
 
   const filteredValues = useMemo(() => {
-    if (!search) return uniqueValues;
-    const s = search.toLowerCase();
-    return uniqueValues.filter(v => {
-      const display = labelMap?.[v] ?? v;
-      return display?.toLowerCase().includes(s);
+    const values = !search
+      ? uniqueValues
+      : uniqueValues.filter(v => {
+          const display = labelMap?.[v] ?? v;
+          return display?.toLowerCase().includes(search.toLowerCase());
+        });
+    return [...values].sort((a, b) => {
+      const labelA = labelMap?.[a] ?? a;
+      const labelB = labelMap?.[b] ?? b;
+      const numA = parseFloat(labelA);
+      const numB = parseFloat(labelB);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return labelA.localeCompare(labelB, 'es');
     });
   }, [uniqueValues, search, labelMap]);
 
