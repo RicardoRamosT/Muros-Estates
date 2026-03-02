@@ -728,9 +728,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             sortConfig={sortConfig}
             uniqueValuesMap={uniqueValuesMap}
             availableValuesMap={availableValuesMap}
-            fechaHoraExpanded={fechaHoraExpanded}
-            onFechaHoraExpand={() => setFechaHoraExpanded(true)}
-            onFechaHoraCollapse={() => setFechaHoraExpanded(false)}
             onSort={handleSort}
             onFilter={handleFilter}
             onClear={handleClearFilter}

@@ -6,15 +6,13 @@ import { ColumnFilter } from "@/components/ui/column-filter";
 import type { FilterState, SortDirection } from "@/components/ui/column-filter";
 import {
   SHEET_COLOR_LIGHT,
-  SHEET_FECHAHORA_COLOR,
   type SpreadsheetColumnDef,
   type SpreadsheetColumnGroup,
   type SpreadsheetColumnGroupRun,
 } from "@/lib/spreadsheet-utils";
 
 const NO_FILTER_TYPES = new Set([
-  'actions', 'folder-link', 'index', 'toggle',
-  'calculated-percent', 'date-display', 'time-display', 'group-collapsed',
+  'actions', 'folder-link', 'index', 'group-collapsed', 'calculated-percent',
 ]);
 
 function getColumnFilterType(type?: string): 'boolean' | 'number' | 'select' | 'text' {
@@ -89,9 +87,6 @@ interface SpreadsheetHeaderProps {
   sortConfig: { key: string; direction: SortDirection };
   uniqueValuesMap: Record<string, string[]>;
   availableValuesMap?: Record<string, Set<string>>;
-  fechaHoraExpanded: boolean;
-  onFechaHoraExpand: () => void;
-  onFechaHoraCollapse: () => void;
   onSort: (key: string, dir: SortDirection) => void;
   onFilter: (key: string, state: FilterState) => void;
   onClear: (key: string) => void;
@@ -112,9 +107,6 @@ export function SpreadsheetHeader({
   sortConfig,
   uniqueValuesMap,
   availableValuesMap,
-  fechaHoraExpanded,
-  onFechaHoraExpand,
-  onFechaHoraCollapse,
   onSort,
   onFilter,
   onClear,
@@ -147,20 +139,8 @@ export function SpreadsheetHeader({
             if (group.key === 'corner') { colIdx += group.colspan; continue; }
             const groupCols = visibleColumns.slice(colIdx, colIdx + group.colspan);
             const totalWidth = groupCols.reduce((sum, c) => sum + parseInt(c.width), 0);
-            if (group.key === 'fechahora_collapsed' || groupCols[0]?.key === 'fechahora_collapsed') {
-              items.push(
-                <div
-                  key="r1-fechahora_collapsed"
-                  className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
-                  onClick={onFechaHoraExpand}
-                  data-testid="toggle-fechahora-expand"
-                >
-                  <Plus className="w-3 h-3" />
-                </div>
-              );
-            } else if (group.label) {
-              const isCollapsed = group.key !== 'fechahora' && groupCols[0]?.type === 'group-collapsed';
+            if (group.label) {
+              const isCollapsed = groupCols[0]?.type === 'group-collapsed';
               if (isCollapsed) {
                 items.push(
                   <div
@@ -181,15 +161,7 @@ export function SpreadsheetHeader({
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
                   >
                     <span>{group.label}</span>
-                    {group.key === 'fechahora' ? (
-                      <button
-                        onClick={onFechaHoraCollapse}
-                        className="ml-1 hover:opacity-80"
-                        data-testid="toggle-fechahora-collapse"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                    ) : onToggleGroupCollapse ? (
+                    {onToggleGroupCollapse ? (
                       <button
                         onClick={() => onToggleGroupCollapse(group.key)}
                         className="ml-1 hover:opacity-80"
@@ -241,16 +213,6 @@ export function SpreadsheetHeader({
           const items: JSX.Element[] = [];
           for (const col of visibleColumns) {
             if (col.group === 'corner') continue;
-            if (col.key === 'fechahora_collapsed') {
-              items.push(
-                <div
-                  key="r2-fechahora_collapsed"
-                  className="flex-shrink-0 border-r"
-                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: SHEET_FECHAHORA_COLOR }}
-                />
-              );
-              continue;
-            }
             if (col.type === 'group-collapsed') {
               const groupDef = groupLookupMap[col.group || ''];
               const bg = groupDef?.color || '#9ca3af';
@@ -335,15 +297,6 @@ export function SpreadsheetHeader({
         </div>
         {visibleColumns.map(col => {
           if (col.group === 'corner') return null;
-          if (col.key === 'fechahora_collapsed') {
-            return (
-              <div
-                key="r3-fechahora_collapsed"
-                className="flex-shrink-0 border-r"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: SHEET_FECHAHORA_COLOR }}
-              />
-            );
-          }
           if (col.type === 'group-collapsed') {
             const groupDef = groupLookupMap[col.group || ''];
             const bg = groupDef?.color || '#9ca3af';
