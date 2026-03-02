@@ -3,15 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  ChevronDown, Check, X, Search
-} from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SortDirection = "asc" | "desc" | null;
 
 export interface FilterState {
-  search: string;
   selectedValues: Set<string>;
 }
 
@@ -28,13 +25,13 @@ export interface ColumnFilterProps {
   onClear: () => void;
   labelMap?: Record<string, string>;
   groupMap?: Record<string, string[]>;
+  dotColorMap?: Record<string, string>;
   hideLabel?: boolean;
 }
 
 export function ColumnFilter({
   columnKey,
   columnLabel,
-  columnType = "text",
   uniqueValues,
   availableValues,
   sortDirection,
@@ -44,60 +41,63 @@ export function ColumnFilter({
   onClear,
   labelMap,
   groupMap,
+  dotColorMap,
   hideLabel = false,
 }: ColumnFilterProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [localSearch, setLocalSearch] = useState(filterState.search);
-  const [localSelected, setLocalSelected] = useState<Set<string>>(filterState.selectedValues);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const isNumeric = columnType === "number" || columnType === "date";
-  const hasActiveFilter = filterState.search || filterState.selectedValues.size > 0;
-  const hasActiveSort = sortDirection !== null;
+  const selectedValues = filterState.selectedValues;
+  const noneSelected = selectedValues.size === 1 && selectedValues.has("__none__");
+  const allSelected = selectedValues.size === 0 || (selectedValues.size === uniqueValues.length && !selectedValues.has("__none__"));
+  const isFiltered = noneSelected || (selectedValues.size > 0 && selectedValues.size < uniqueValues.length);
+  const isSorted = sortDirection !== null;
+  const hasActiveFilter = isFiltered;
 
   const filteredValues = useMemo(() => {
-    if (!localSearch) return uniqueValues;
-    const search = localSearch.toLowerCase();
+    if (!search) return uniqueValues;
+    const s = search.toLowerCase();
     return uniqueValues.filter(v => {
-      const displayValue = labelMap?.[v] ?? v;
-      return displayValue?.toLowerCase().includes(search);
+      const display = labelMap?.[v] ?? v;
+      return display?.toLowerCase().includes(s);
     });
-  }, [uniqueValues, localSearch, labelMap]);
+  }, [uniqueValues, search, labelMap]);
 
-  const handleSort = (dir: SortDirection) => {
-    onSort(dir);
+  const handleSelectAll = () => {
+    onFilter({ selectedValues: new Set() });
   };
 
-  const allSelected = localSelected.size === uniqueValues.length && uniqueValues.length > 0;
-
-  const handleSelectAllToggle = (checked: boolean) => {
-    setLocalSelected(checked ? new Set(uniqueValues) : new Set());
+  const handleDeselectAll = () => {
+    onFilter({ selectedValues: new Set(["__none__"]) });
   };
 
   const handleToggleValue = (value: string) => {
-    setLocalSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) {
-        next.delete(value);
+    let newSet: Set<string>;
+    if (noneSelected) {
+      newSet = new Set([value]);
+    } else {
+      newSet = new Set(selectedValues.size === 0 ? uniqueValues : selectedValues);
+      newSet.delete("__none__");
+      if (newSet.has(value)) {
+        newSet.delete(value);
       } else {
-        next.add(value);
+        newSet.add(value);
       }
-      return next;
-    });
+    }
+    if (newSet.size === uniqueValues.length) {
+      onFilter({ selectedValues: new Set() });
+    } else if (newSet.size === 0) {
+      onFilter({ selectedValues: new Set(["__none__"]) });
+    } else {
+      onFilter({ selectedValues: newSet });
+    }
   };
 
-  const handleApply = () => {
-    onFilter({
-      search: localSearch,
-      selectedValues: localSelected,
-    });
-    setIsOpen(false);
-  };
-
-  const handleClear = () => {
-    setLocalSearch("");
-    setLocalSelected(new Set());
+  const handleClearFilter = () => {
+    onFilter({ selectedValues: new Set() });
+    onSort(null);
     onClear();
-    setIsOpen(false);
+    setOpen(false);
   };
 
   const handleSortClick = (e: React.MouseEvent) => {
@@ -139,12 +139,14 @@ export function ColumnFilter({
     );
   };
 
+  const isChecked = (value: string) => selectedValues.size === 0 || selectedValues.has(value);
+
   return (
     <div className="w-full h-full relative flex items-center text-white">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
-            className="flex items-center justify-center h-full text-xs font-medium cursor-pointer flex-shrink-0"
+            className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 z-10"
             style={{ width: 28, ...(hasActiveFilter ? { backgroundColor: '#f4b942' } : {}) }}
             data-testid={`filter-${columnKey}`}
           >
@@ -152,17 +154,17 @@ export function ColumnFilter({
           </button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-64 p-0" align="start">
+        <PopoverContent className="w-56 p-0" align="start">
           <div className="flex flex-col">
             <div className="px-3 py-2 border-b bg-muted/50">
               <span className="text-xs font-semibold">{columnLabel}</span>
             </div>
 
-            {hasActiveFilter && (
+            {(hasActiveFilter || isSorted) && (
               <>
                 <button
                   className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted text-left text-muted-foreground"
-                  onClick={handleClear}
+                  onClick={handleClearFilter}
                   data-testid={`clear-filter-${columnKey}`}
                 >
                   <X className="w-4 h-4" />
@@ -172,189 +174,140 @@ export function ColumnFilter({
               </>
             )}
 
-            <div className="px-3 py-2">
-              <div className="relative mb-2">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar..."
-                  value={localSearch}
-                  onChange={(e) => setLocalSearch(e.target.value)}
-                  className="h-7 pl-7 text-xs"
-                />
-              </div>
+            <div className="p-2">
+              <Input
+                placeholder="Buscar..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-8 text-sm"
+                data-testid={`search-filter-${columnKey}`}
+              />
+            </div>
 
-              <div 
-                className="flex items-center gap-2 mb-1 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSelectAllToggle(true);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={() => {}}
-                    className="h-3 w-3 pointer-events-none"
-                  />
-                  <span className="text-xs font-medium select-none">
-                    (Seleccionar todo)
-                  </span>
-                </div>
-              </div>
-
-              <div 
-                className="flex items-center gap-2 mb-2 p-1 hover:bg-muted rounded cursor-pointer transition-colors" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSelectAllToggle(false);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
-                    <X className="h-2 w-2 text-muted-foreground" />
+            <div className="max-h-48 overflow-y-auto px-2 pb-2">
+              {groupMap && Object.keys(groupMap).length > 0 ? (
+                <>
+                  <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                      data-testid={`select-all-${columnKey}`}
+                    />
+                    <span className="text-xs font-medium">(Seleccionar todo)</span>
+                  </label>
+                  <div
+                    className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded mb-2 border-b pb-2"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
+                  >
+                    <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
                   </div>
-                  <span className="text-xs font-medium select-none text-muted-foreground">
-                    (Deseleccionar todo)
-                  </span>
-                </div>
-              </div>
-
-              <div className="max-h-40 overflow-y-auto space-y-1 border rounded p-1">
-                {filteredValues.length === 0 ? (
-                  <div className="text-xs text-muted-foreground text-center py-2">
-                    Sin resultados
-                  </div>
-                ) : groupMap ? (
-                  (() => {
-                    const filteredSet = new Set(filteredValues);
-                    const groupedEntries = Object.entries(groupMap)
-                      .map(([group, values]) => [group, values.filter(v => filteredSet.has(v))] as const)
-                      .filter(([, values]) => values.length > 0);
-                    const groupedValues = new Set(groupedEntries.flatMap(([, values]) => values));
-                    const ungrouped = filteredValues.filter(v => !groupedValues.has(v));
-
+                  {Object.entries(groupMap).map(([group, values]) => {
+                    const groupFiltered = values.filter(v =>
+                      v && (!search || (labelMap?.[v] ?? v).toLowerCase().includes(search.toLowerCase()))
+                    );
+                    if (groupFiltered.length === 0) return null;
                     return (
-                      <>
-                        {groupedEntries.map(([group, values]) => (
-                          <div key={group}>
-                            <div className="text-[10px] font-semibold text-muted-foreground uppercase px-1 pt-1 pb-0.5">
-                              {group}
-                            </div>
-                            {values.map((value) => {
-                              const isAvailable = !availableValues || availableValues.has(value);
-                              return (
-                                <label
-                                  key={value}
-                                  className={cn(
-                                    "flex items-center gap-2 px-1 pl-3 py-0.5 rounded",
-                                    isAvailable 
-                                      ? "hover:bg-muted cursor-pointer" 
-                                      : "opacity-40 cursor-not-allowed"
-                                  )}
-                                >
-                                  <Checkbox
-                                    checked={localSelected.has(value)}
-                                    onCheckedChange={() => handleToggleValue(value)}
-                                    disabled={!isAvailable}
-                                    className="h-3 w-3"
-                                  />
-                                  <span className={cn(
-                                    "text-xs truncate flex-1",
-                                    !isAvailable && "text-muted-foreground line-through"
-                                  )}>
-                                    {(labelMap?.[value] ?? value) || "(vacío)"}
-                                  </span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        ))}
-                        {ungrouped.map((value) => {
+                      <div key={group} className="mb-2">
+                        <div className="text-xs font-semibold text-muted-foreground px-1 py-1 bg-muted/50 rounded mb-1">
+                          {group}
+                        </div>
+                        {groupFiltered.map((value) => {
                           const isAvailable = !availableValues || availableValues.has(value);
+                          const displayValue = labelMap?.[value] ?? value;
+                          const dotColor = dotColorMap?.[value];
                           return (
                             <label
                               key={value}
                               className={cn(
-                                "flex items-center gap-2 px-1 py-0.5 rounded",
-                                isAvailable 
-                                  ? "hover:bg-muted cursor-pointer" 
-                                  : "opacity-40 cursor-not-allowed"
+                                "flex items-center gap-2 py-1 px-1 rounded ml-2",
+                                isAvailable ? "cursor-pointer hover:bg-muted" : "opacity-40 cursor-not-allowed"
                               )}
                             >
                               <Checkbox
-                                checked={localSelected.has(value)}
+                                checked={isChecked(value)}
                                 onCheckedChange={() => handleToggleValue(value)}
                                 disabled={!isAvailable}
-                                className="h-3 w-3"
+                                data-testid={`filter-value-${columnKey}-${value}`}
                               />
-                              <span className={cn(
-                                "text-xs truncate flex-1",
-                                !isAvailable && "text-muted-foreground line-through"
-                              )}>
-                                {(labelMap?.[value] ?? value) || "(vacío)"}
+                              <span className={cn("flex items-center gap-1.5 text-xs truncate", !isAvailable && "text-muted-foreground line-through")}>
+                                {dotColor && <span style={{ color: dotColor }} className="text-[8px] leading-none flex-shrink-0">●</span>}
+                                <span style={dotColor ? { color: dotColor, fontWeight: 500 } : undefined}>{displayValue}</span>
                               </span>
                             </label>
                           );
                         })}
-                      </>
+                      </div>
                     );
-                  })()
-                ) : (
-                  filteredValues.map((value) => {
+                  })}
+                </>
+              ) : (
+                <>
+                  <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                      data-testid={`select-all-${columnKey}`}
+                    />
+                    <span className="text-xs font-medium">(Seleccionar todo)</span>
+                  </label>
+                  <div
+                    className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
+                  >
+                    <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
+                  </div>
+
+                  {filteredValues.map((value) => {
                     const isAvailable = !availableValues || availableValues.has(value);
+                    const displayValue = labelMap?.[value] ?? value;
+                    const dotColor = dotColorMap?.[value];
                     return (
                       <label
                         key={value}
                         className={cn(
-                          "flex items-center gap-2 px-1 py-0.5 rounded",
-                          isAvailable 
-                            ? "hover:bg-muted cursor-pointer" 
-                            : "opacity-40 cursor-not-allowed"
+                          "flex items-center gap-2 py-1 px-1 rounded",
+                          isAvailable ? "cursor-pointer hover:bg-muted" : "opacity-40 cursor-not-allowed"
                         )}
                       >
                         <Checkbox
-                          checked={localSelected.has(value)}
+                          checked={isChecked(value)}
                           onCheckedChange={() => handleToggleValue(value)}
                           disabled={!isAvailable}
-                          className="h-3 w-3"
+                          data-testid={`filter-value-${columnKey}-${value}`}
                         />
-                        <span className={cn(
-                          "text-xs truncate flex-1",
-                          !isAvailable && "text-muted-foreground line-through"
-                        )}>
-                          {(labelMap?.[value] ?? value) || "(vacío)"}
+                        <span className={cn("flex items-center gap-1.5 text-xs truncate", !isAvailable && "text-muted-foreground line-through")}>
+                          {dotColor && <span style={{ color: dotColor }} className="text-[8px] leading-none flex-shrink-0">●</span>}
+                          <span style={dotColor ? { color: dotColor, fontWeight: 500 } : undefined}>{displayValue}</span>
                         </span>
                       </label>
                     );
-                  })
-                )}
-              </div>
+                  })}
+
+                  {filteredValues.length === 0 && (
+                    <p className="text-xs text-muted-foreground py-2 text-center">Sin resultados</p>
+                  )}
+                </>
+              )}
             </div>
 
-            <div className="flex gap-2 p-2 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 h-7 text-xs"
-                onClick={handleClear}
-              >
-                <X className="h-3 w-3 mr-1" />
-                Limpiar
+            <div className="border-t p-2 flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+                Cancelar
               </Button>
-              <Button
-                size="sm"
-                className="flex-1 h-7 text-xs"
-                onClick={handleApply}
-              >
-                <Check className="h-3 w-3 mr-1" />
-                Aplicar
+              <Button size="sm" onClick={() => setOpen(false)} data-testid={`apply-filter-${columnKey}`}>
+                Aceptar
               </Button>
             </div>
           </div>
         </PopoverContent>
       </Popover>
+
       {hideLabel ? (
         <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} />
       ) : (
@@ -362,10 +315,11 @@ export function ColumnFilter({
           {columnLabel}
         </span>
       )}
+
       <button
         onClick={handleSortClick}
-        className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0"
-        style={{ width: 28 }}
+        className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0 z-10"
+        style={{ width: 28, ...(isSorted ? { backgroundColor: '#f4b942' } : {}) }}
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />
@@ -395,6 +349,7 @@ export function useColumnFilters<T extends Record<string, any>>(
 
   const matchesFilter = (value: any, selectedValues: Set<string>): boolean => {
     if (selectedValues.size === 0) return true;
+    if (selectedValues.has("__none__")) return false;
     if (Array.isArray(value)) {
       return value.some(v => selectedValues.has(String(v ?? "")));
     }
@@ -420,20 +375,8 @@ export function useColumnFilters<T extends Record<string, any>>(
       let filteredData = [...data];
       Object.entries(filterConfigs).forEach(([key, filter]) => {
         if (key === col.key) return;
-        if (filter.search) {
-          const search = filter.search.toLowerCase();
-          filteredData = filteredData.filter((row) => {
-            const value = row[key];
-            if (Array.isArray(value)) {
-              return value.some(v => String(v ?? "").toLowerCase().includes(search));
-            }
-            return value?.toString().toLowerCase().includes(search);
-          });
-        }
         if (filter.selectedValues.size > 0) {
-          filteredData = filteredData.filter((row) => {
-            return matchesFilter(row[key], filter.selectedValues);
-          });
+          filteredData = filteredData.filter((row) => matchesFilter(row[key], filter.selectedValues));
         }
       });
       const availableValues = new Set<string>();
@@ -450,20 +393,8 @@ export function useColumnFilters<T extends Record<string, any>>(
     let result = [...data];
 
     Object.entries(filterConfigs).forEach(([key, filter]) => {
-      if (filter.search) {
-        const search = filter.search.toLowerCase();
-        result = result.filter((row) => {
-          const value = row[key];
-          if (Array.isArray(value)) {
-            return value.some(v => String(v ?? "").toLowerCase().includes(search));
-          }
-          return value?.toString().toLowerCase().includes(search);
-        });
-      }
       if (filter.selectedValues.size > 0) {
-        result = result.filter((row) => {
-          return matchesFilter(row[key], filter.selectedValues);
-        });
+        result = result.filter((row) => matchesFilter(row[key], filter.selectedValues));
       }
     });
 
@@ -473,26 +404,25 @@ export function useColumnFilters<T extends Record<string, any>>(
       result.sort((a, b) => {
         const aVal = a[key];
         const bVal = b[key];
-        
+
         if (aVal === null || aVal === undefined) return direction === "asc" ? 1 : -1;
         if (bVal === null || bVal === undefined) return direction === "asc" ? -1 : 1;
-        
-        // Use order map if available (for options-select fields)
+
         if (orderMap) {
           const aIdx = orderMap[String(aVal)] ?? 9999;
           const bIdx = orderMap[String(bVal)] ?? 9999;
           return direction === "asc" ? aIdx - bIdx : bIdx - aIdx;
         }
-        
+
         if (typeof aVal === "number" && typeof bVal === "number") {
           return direction === "asc" ? aVal - bVal : bVal - aVal;
         }
-        
+
         const aStr = String(aVal).toLowerCase();
         const bStr = String(bVal).toLowerCase();
-        return direction === "asc" 
-          ? aStr.localeCompare(bStr)
-          : bStr.localeCompare(aStr);
+        return direction === "asc"
+          ? aStr.localeCompare(bStr, "es")
+          : bStr.localeCompare(aStr, "es");
       });
     }
 

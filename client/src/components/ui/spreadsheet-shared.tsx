@@ -312,7 +312,7 @@ export function SpreadsheetHeader({
                   uniqueValues={uniqueValuesMap[col.key] || []}
                   availableValues={availableValuesMap?.[col.key]}
                   sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                  filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                  filterState={filterConfigs[col.key] || { selectedValues: new Set() }}
                   onSort={(dir) => onSort(col.key, dir)}
                   onFilter={(state) => onFilter(col.key, state)}
                   onClear={() => onClear(col.key)}
@@ -371,7 +371,7 @@ export function SpreadsheetHeader({
                   uniqueValues={uniqueValuesMap[col.key] || []}
                   availableValues={availableValuesMap?.[col.key]}
                   sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                  filterState={filterConfigs[col.key] || { search: "", selectedValues: new Set() }}
+                  filterState={filterConfigs[col.key] || { selectedValues: new Set() }}
                   onSort={(dir) => onSort(col.key, dir)}
                   onFilter={(state) => onFilter(col.key, state)}
                   onClear={() => onClear(col.key)}
