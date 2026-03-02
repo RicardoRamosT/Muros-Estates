@@ -165,19 +165,23 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}`}
-                    className="border-r border-white/20 flex items-center justify-center gap-1 h-8 px-2 font-medium text-xs flex-shrink-0 text-white"
+                    className="border-r border-white/20 flex items-center justify-between h-8 font-medium text-xs flex-shrink-0 text-white overflow-hidden"
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
                   >
-                    <span>{group.label}</span>
+                    <div style={{ width: 20, flexShrink: 0 }} />
+                    <span className="truncate min-w-0 flex-1 text-center">{group.label}</span>
                     {onToggleGroupCollapse ? (
                       <button
                         onClick={() => onToggleGroupCollapse(group.key)}
-                        className="ml-1 hover:opacity-80"
+                        className="flex-shrink-0 flex items-center justify-center hover:bg-white/10 h-full cursor-pointer"
+                        style={{ width: 20 }}
                         data-testid={`toggle-group-collapse-${group.key}`}
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                    ) : null}
+                    ) : (
+                      <div style={{ width: 20, flexShrink: 0 }} />
+                    )}
                   </div>
                 );
               }
