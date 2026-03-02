@@ -446,6 +446,10 @@ export function DevelopersSpreadsheet() {
     });
   };
 
+  const filterLabelMaps = useMemo<Record<string, Record<string, string>>>(() => ({
+    active: { "true": "Sí", "false": "No" },
+  }), []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -529,6 +533,7 @@ export function DevelopersSpreadsheet() {
             onClear={handleClearFilter}
             sectionGroups={sectionGroupsForSearch}
             scrollRef={contentScrollRef}
+            labelMaps={filterLabelMaps}
             collapsedGroups={collapsedGroups}
             onToggleGroupCollapse={toggleGroupCollapse}
             collapsedColumns={collapsedColumns}
