@@ -98,9 +98,9 @@ const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'registro', type: 'boolean', width: '58px', cellType: 'checkbox' },
-  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '58px', cellType: 'readonly' },
-  { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '52px', cellType: 'readonly' },
+  { key: 'active', label: 'Act.', group: 'registro', type: 'boolean', width: '70px', cellType: 'checkbox' },
+  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '80px', cellType: 'readonly' },
+  { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '66px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'empresa', width: '130px', cellType: 'input' },
