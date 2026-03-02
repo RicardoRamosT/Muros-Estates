@@ -31,7 +31,7 @@ import {
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -52,8 +52,7 @@ const EMPRESA_TIPOS = [
 
 const COLUMN_GROUPS_DEV = [
   { key: 'corner', label: '', color: '' },
-  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
-  { key: 'fechahora_collapsed', label: '', color: '' },
+  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
   { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
   { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_DARK },
   { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_LIGHT },
@@ -89,7 +88,7 @@ interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'select';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'select';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -102,7 +101,6 @@ export function DevelopersSpreadsheet() {
   const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'representante', 'contactName', 'contactPhone', 'contactEmail'];
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const toggleGroupCollapse = (key: string) => {
     setCollapsedGroups(prev => {
@@ -137,9 +135,9 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle", autoField: true, cellType: "checkbox", group: "corner" },
-    { key: "createdDate", label: "Fecha", width: "85px", type: "date-display", group: "fechahora", cellType: "readonly" },
-    { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "fechahora", cellType: "readonly" },
+    { key: "active", label: "Act.", width: "58px", type: "toggle", cellType: "checkbox", group: "registro" },
+    { key: "createdDate", label: "Fecha", width: "58px", type: "date-display", group: "registro", cellType: "readonly" },
+    { key: "createdTime", label: "Hora", width: "52px", type: "time-display", group: "registro", cellType: "readonly" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "empresa" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "empresa" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "empresa" },
@@ -160,17 +158,9 @@ export function DevelopersSpreadsheet() {
 
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
-      if (col.group === 'fechahora') return fechaHoraExpanded;
-      if (col.group === 'corner' || col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField) return true;
+      if (col.group === 'corner' || col.type === 'index' || col.type === 'actions' || col.type === 'folder-link' || col.autoField || col.key === 'active') return true;
       return canView(col.key);
     });
-
-    if (!fechaHoraExpanded) {
-      const insertAt = cols.findIndex(c => c.group !== 'corner' && c.group !== 'fechahora' && c.group !== 'fechahora_collapsed');
-      const pos = insertAt >= 0 ? insertAt : 1;
-      const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed', cellType: 'readonly', group: 'fechahora_collapsed' };
-      cols.splice(pos, 0, collapsedCol);
-    }
 
     if (collapsedGroups.size > 0) {
       const processed: ColumnDef[] = [];
@@ -178,7 +168,7 @@ export function DevelopersSpreadsheet() {
       while (i < cols.length) {
         const col = cols[i];
         const gk = col.group || '';
-        const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed';
+        const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'corner';
         if (isCollapsibleGroup) {
           // Emit any autoField columns in the group first (they are always visible)
           while (i < cols.length && cols[i].group === gk && cols[i].autoField) {
@@ -199,7 +189,7 @@ export function DevelopersSpreadsheet() {
     }
 
     return cols;
-  }, [canView, fechaHoraExpanded, collapsedGroups]);
+  }, [canView, collapsedGroups]);
 
   const effectiveDevelopers = useMemo(() =>
     developers.map(d => ({ ...d, ...(localEdits[d.id] || {}) })),
@@ -582,12 +572,6 @@ export function DevelopersSpreadsheet() {
                   );
                 }
 
-                if (col.type === 'fechahora-collapsed') {
-                  return (
-                    <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
-                  );
-                }
-
                 if (col.type === 'group-collapsed') {
                   const groupDef = groupLookupMap[col.group || ''];
                   return (
@@ -602,8 +586,8 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div 
                       key={field} 
-                      className={cn("spreadsheet-cell flex-shrink-0 sticky z-10", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor, left: '60px' }}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
                     >
                       {fieldCanEdit ? (
                         <Select

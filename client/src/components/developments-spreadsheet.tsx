@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
 import { DEVELOPMENT_TYPES } from "@shared/constants";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'multiselect-tipologias' | 'single-tipologia' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'fechahora-collapsed' | 'tipologias-count' | 'redaccion-text';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'multiselect-tipologias' | 'single-tipologia' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'tipologias-count' | 'redaccion-text';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -55,8 +55,7 @@ interface ColumnGroup {
 
 const columnGroups: ColumnGroup[] = [
   { key: 'corner', label: '' },
-  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
-  { key: 'fechahora_collapsed', label: '' },
+  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
   { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
   { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
   { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_LIGHT },
@@ -80,9 +79,9 @@ const columnGroups: ColumnGroup[] = [
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'corner', type: 'boolean', width: '58px', cellType: 'checkbox', autoField: true },
-  { key: 'createdDate', label: 'Fecha', group: 'fechahora', type: 'date-display', width: '85px', cellType: 'readonly' },
-  { key: 'createdTime', label: 'Hora', group: 'fechahora', type: 'time-display', width: '65px', cellType: 'readonly' },
+  { key: 'active', label: 'Act.', group: 'registro', type: 'boolean', width: '58px', cellType: 'checkbox' },
+  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '58px', cellType: 'readonly' },
+  { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '52px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'empresa', width: '130px', cellType: 'input' },
@@ -297,7 +296,6 @@ export function DevelopmentsSpreadsheet() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
-  const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const toggleGroupCollapse = (key: string) => {
     setCollapsedGroups(prev => {
@@ -544,19 +542,11 @@ export function DevelopmentsSpreadsheet() {
 
   const visibleColumns = useMemo(() => {
     let cols = columns.filter(col => {
-      if (col.group === 'fechahora' && !fechaHoraExpanded) return false;
       if (col.type === 'actions') return hasFullAccess;
-      if (col.key === 'id' || col.group === 'corner' || col.type === 'date-display' || col.type === 'time-display' || col.autoField) return true;
+      if (col.key === 'id' || col.group === 'corner' || col.group === 'registro' || col.autoField) return true;
       const perm = canView(col.key);
       return perm;
     });
-
-    if (!fechaHoraExpanded) {
-      const insertAt = cols.findIndex(c => c.group !== 'corner' && c.group !== 'fechahora' && c.group !== 'fechahora_collapsed');
-      const pos = insertAt >= 0 ? insertAt : 1;
-      const collapsedCol: ColumnDef = { key: 'fechahora_collapsed', label: '', group: 'fechahora_collapsed', type: 'fechahora-collapsed' as any, width: '30px', cellType: 'readonly' };
-      cols.splice(pos, 0, collapsedCol);
-    }
 
     if (collapsedGroups.size > 0) {
       const processed: ColumnDef[] = [];
@@ -564,7 +554,7 @@ export function DevelopmentsSpreadsheet() {
       while (i < cols.length) {
         const col = cols[i];
         const gk = col.group || '';
-        const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed';
+        const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'corner';
         if (isCollapsibleGroup) {
           // Emit any autoField columns in the group first (they are always visible)
           while (i < cols.length && cols[i].group === gk && cols[i].autoField) {
@@ -585,7 +575,7 @@ export function DevelopmentsSpreadsheet() {
     }
 
     return cols;
-  }, [canView, hasFullAccess, fechaHoraExpanded, collapsedGroups]);
+  }, [canView, hasFullAccess, collapsedGroups]);
 
   const developerOrderMap = useMemo(() => {
     const sorted = [...developers].sort((a, b) => a.name.localeCompare(b.name, 'es'));
@@ -855,12 +845,6 @@ export function DevelopmentsSpreadsheet() {
                   );
                 }
 
-                if (col.type === 'fechahora-collapsed') {
-                  return (
-                    <div key="fechahora_collapsed" className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-teal-50 dark:bg-teal-900/20" style={{ width: '30px', minWidth: '30px' }} />
-                  );
-                }
-
                 if (col.type === 'group-collapsed') {
                   const groupDef = groupLookupMap[col.group || ''];
                   return (
@@ -883,9 +867,8 @@ export function DevelopmentsSpreadsheet() {
                       ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-red-600 font-medium' 
                       : 'text-muted-foreground';
                   const effectiveCanEdit = fieldCanEdit && !isLockOffDisabledByTipo;
-                  const isActiveCorner = col.key === 'active';
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", isActiveCorner && "sticky z-10", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor, ...(isActiveCorner ? { left: '60px' } : {}) }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor }}>
                       {effectiveCanEdit ? (
                         <Select
                           value={value === true ? "si" : value === false ? "no" : ""}
