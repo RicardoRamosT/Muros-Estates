@@ -151,6 +151,7 @@ export function ColumnFilter({
             <ChevronDown className="w-3 h-3 flex-shrink-0 text-white" />
           </button>
         </PopoverTrigger>
+
         <PopoverContent className="w-64 p-0" align="start">
           <div className="flex flex-col">
             <div className="px-3 py-2 border-b bg-muted/50">
@@ -354,7 +355,9 @@ export function ColumnFilter({
           </div>
         </PopoverContent>
       </Popover>
-      {!hideLabel && (
+      {hideLabel ? (
+        <div className="flex-1 h-full cursor-default" style={{ minWidth: 4 }} />
+      ) : (
         <span className="flex-1 text-xs font-medium truncate pointer-events-none text-center min-w-0" title={columnLabel}>
           {columnLabel}
         </span>
@@ -362,7 +365,7 @@ export function ColumnFilter({
       <button
         onClick={handleSortClick}
         className="flex items-center justify-center h-full cursor-pointer rounded flex-shrink-0"
-        style={{ width: hideLabel ? 28 : 28 }}
+        style={{ width: 28 }}
         data-testid={`sort-${columnKey}`}
       >
         <SortIcon />
