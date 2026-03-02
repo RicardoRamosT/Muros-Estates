@@ -133,10 +133,10 @@ export function SpreadsheetHeader({
   return (
     <div className="sticky top-0 z-20">
       {/* Row 1: Group labels */}
-      <div className="flex border-b spreadsheet-header-row1">
+      <div className="flex spreadsheet-header-row1">
         <div
-          className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-          style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+          className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+          style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
         >
           <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
         </div>
@@ -153,8 +153,8 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}-collapsed`}
-                    className="border-r text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                    style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af' }}
+                    className="text-white cursor-pointer flex items-center justify-center flex-shrink-0"
+                    style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                     onClick={() => onToggleGroupCollapse?.(group.key)}
                     data-testid={`toggle-group-expand-${group.key}`}
                   >
@@ -165,8 +165,8 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}`}
-                    className="border-r border-white/20 flex items-center justify-between h-8 font-medium text-xs flex-shrink-0 text-white overflow-hidden"
-                    style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af' }}
+                    className="flex items-center justify-between h-8 font-medium text-xs flex-shrink-0 text-white overflow-hidden"
+                    style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   >
                     <div style={{ width: 20, flexShrink: 0 }} />
                     <span className="truncate min-w-0 flex-1 text-center">{group.label}</span>
@@ -191,8 +191,8 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-${col.key}`}
-                    className="border-r h-8 flex-shrink-0"
-                    style={{ width: w, minWidth: w, backgroundColor: group.color || '#d1d5db' }}
+                    className="h-8 flex-shrink-0"
+                    style={{ width: w, minWidth: w, backgroundColor: group.color || '#d1d5db', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   />
                 );
               });
@@ -204,10 +204,10 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 2: Column names */}
-      <div className="flex border-b spreadsheet-header-row2">
+      <div className="flex spreadsheet-header-row2">
         <div
           className="flex-shrink-0 sticky left-0 z-30 flex"
-          style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
+          style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)' }}
         >
           {cornerCols.map((col) => (
             <div
@@ -215,7 +215,8 @@ export function SpreadsheetHeader({
               className="flex items-center justify-center font-semibold text-xs text-white"
               style={{
                 width: col.width, minWidth: col.width, height: 32,
-                borderRight: '1px solid rgba(255,255,255,0.3)',
+                borderRight: '1px solid rgba(255,255,255,0.15)',
+                borderBottom: '1px solid rgba(255,255,255,0.15)',
               }}
             >
               {col.label || 'ID'}
@@ -232,8 +233,8 @@ export function SpreadsheetHeader({
               items.push(
                 <div
                   key={`r2-${col.key}`}
-                  className="flex-shrink-0 border-r flex items-center justify-center cursor-pointer text-white hover:brightness-110"
-                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg }}
+                  className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
+                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   onClick={() => onToggleGroupCollapse?.(col.group!)}
                   data-testid={`toggle-group-expand-r2-${col.group}`}
                 >
@@ -251,8 +252,8 @@ export function SpreadsheetHeader({
               items.push(
                 <div
                   key={`r2-${col.key}`}
-                  className="flex-shrink-0 border-r flex items-center justify-center cursor-pointer text-white hover:brightness-110"
-                  style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: groupColor }}
+                  className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
+                  style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   onClick={() => onToggleColumnCollapse?.(col.key)}
                   data-testid={`toggle-col-expand-${col.key}`}
                 >
@@ -265,12 +266,14 @@ export function SpreadsheetHeader({
             items.push(
               <div
                 key={`r2-${col.key}`}
-                className="border-r border-white/30 font-medium text-xs flex items-center justify-between flex-shrink-0 overflow-hidden"
+                className="font-medium text-xs flex items-center justify-between flex-shrink-0 overflow-hidden"
                 title={col.label}
                 style={{
                   width: col.width, minWidth: col.width, height: 32,
                   backgroundColor: isColored ? groupColor : '#d1d5db',
                   color: isColored ? 'white' : '#374151',
+                  borderRight: '1px solid rgba(255,255,255,0.15)',
+                  borderBottom: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
                 <div style={{ width: isColored ? 20 : 8, flexShrink: 0 }} />
@@ -304,7 +307,7 @@ export function SpreadsheetHeader({
             <div
               key={col.key}
               className="flex items-center"
-              style={{ width: col.width, minWidth: col.width, height: 24, borderRight: '1px solid rgba(255,255,255,0.2)' }}
+              style={{ width: col.width, minWidth: col.width, height: 24, borderRight: '1px solid rgba(255,255,255,0.15)' }}
             >
               {NO_FILTER_TYPES.has(col.type || '') ? (
                 <div />
@@ -336,8 +339,8 @@ export function SpreadsheetHeader({
             return (
               <div
                 key={`r3-${col.key}`}
-                className="flex-shrink-0 border-r"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: bg, opacity: 0.35 }}
+                className="flex-shrink-0"
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: bg, opacity: 0.35, borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }
@@ -350,8 +353,8 @@ export function SpreadsheetHeader({
             return (
               <div
                 key={`r3-${col.key}`}
-                className="flex-shrink-0 border-r"
-                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, opacity: 0.35 }}
+                className="flex-shrink-0"
+                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, opacity: 0.35, borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }
@@ -359,12 +362,13 @@ export function SpreadsheetHeader({
           return (
             <div
               key={`r3-${col.key}`}
-              className="border-r border-white/30 flex items-center flex-shrink-0"
+              className="flex items-center flex-shrink-0"
               title={col.label}
               style={{
                 width: col.width, minWidth: col.width, height: 24,
                 backgroundColor: isColored ? groupColor : '#d1d5db',
                 color: isColored ? 'white' : '#374151',
+                borderRight: '1px solid rgba(255,255,255,0.15)',
               }}
             >
               {NO_FILTER_TYPES.has(col.type || '') ? (
