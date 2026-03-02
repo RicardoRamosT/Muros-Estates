@@ -1054,15 +1054,24 @@ export function DevelopmentsSpreadsheet() {
                     }
                     return d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora';
                   });
-                  const developerWarningText = parentDeveloper
-                    ? (parentDeveloper.active === null
-                        ? "Desarrollador deshabilitado"
-                        : parentDeveloper.active === false
-                          ? "Desarrollador inactivo"
-                          : !isDeveloperComplete(parentDeveloper)
-                            ? "Desarrollador incompleto: faltan datos requeridos"
-                            : "")
-                    : "";
+                  const developerWarningText = (() => {
+                    if (!parentDeveloper) return "";
+                    if (parentDeveloper.active === null) return "Desarrollador deshabilitado";
+                    if (parentDeveloper.active === false) return "Desarrollador inactivo";
+                    const missing: string[] = [];
+                    if (!parentDeveloper.tipo) missing.push("Tipo");
+                    if (!parentDeveloper.name) missing.push("Nombre");
+                    if (!parentDeveloper.razonSocial) missing.push("Razón Social");
+                    if (!parentDeveloper.rfc) missing.push("RFC");
+                    if (!parentDeveloper.domicilio) missing.push("Domicilio");
+                    if (!parentDeveloper.tipos?.length) missing.push("Tipos");
+                    if (!parentDeveloper.contratos?.length) missing.push("Contratos");
+                    if (!parentDeveloper.representante) missing.push("Representante");
+                    if (!parentDeveloper.contactName) missing.push("Ventas");
+                    if (!parentDeveloper.contactPhone) missing.push("Teléfono");
+                    if (!parentDeveloper.contactEmail) missing.push("Correo");
+                    return missing.length > 0 ? `Faltan datos del desarrollador:\n${missing.join('\n')}` : "";
+                  })();
                   return (
                     <div
                       key={col.key}

@@ -4827,15 +4827,25 @@ export function TypologySpreadsheet() {
                           (selectedTypologyDeveloper as any).contactPhone &&
                           (selectedTypologyDeveloper as any).contactEmail
                         ) : false;
-                        const developerWarningText = selectedTypologyDeveloper
-                          ? (selectedTypologyDeveloper.active === null
-                              ? "Desarrollador deshabilitado"
-                              : selectedTypologyDeveloper.active === false
-                                ? "Desarrollador inactivo"
-                                : developerIsIncomplete
-                                  ? "Desarrollador con datos incompletos"
-                                  : "")
-                          : "";
+                        const developerWarningText = (() => {
+                          if (!selectedTypologyDeveloper) return "";
+                          if (selectedTypologyDeveloper.active === null) return "Desarrollador deshabilitado";
+                          if (selectedTypologyDeveloper.active === false) return "Desarrollador inactivo";
+                          if (!developerIsIncomplete) return "";
+                          const missing: string[] = [];
+                          if (!(selectedTypologyDeveloper as any).tipo) missing.push("Tipo");
+                          if (!(selectedTypologyDeveloper as any).name) missing.push("Nombre");
+                          if (!(selectedTypologyDeveloper as any).razonSocial) missing.push("Razón Social");
+                          if (!(selectedTypologyDeveloper as any).rfc) missing.push("RFC");
+                          if (!(selectedTypologyDeveloper as any).domicilio) missing.push("Domicilio");
+                          if (!(selectedTypologyDeveloper as any).tipos?.length) missing.push("Tipos");
+                          if (!(selectedTypologyDeveloper as any).contratos?.length) missing.push("Contratos");
+                          if (!(selectedTypologyDeveloper as any).representante) missing.push("Representante");
+                          if (!(selectedTypologyDeveloper as any).contactName) missing.push("Ventas");
+                          if (!(selectedTypologyDeveloper as any).contactPhone) missing.push("Teléfono");
+                          if (!(selectedTypologyDeveloper as any).contactEmail) missing.push("Correo");
+                          return missing.length > 0 ? `Faltan datos del desarrollador:\n${missing.join('\n')}` : "";
+                        })();
                         const isDeveloperInactive = !!(selectedTypologyDeveloper && (
                           selectedTypologyDeveloper.active !== true || developerIsIncomplete
                         ));
