@@ -316,6 +316,8 @@ export function SpreadsheetHeader({
                   onSort={(dir) => onSort(col.key, dir)}
                   onFilter={(state) => onFilter(col.key, state)}
                   onClear={() => onClear(col.key)}
+                  labelMap={labelMaps?.[col.key]}
+                  groupMap={groupMaps?.[col.key]}
                   hideLabel
                 />
               )}
