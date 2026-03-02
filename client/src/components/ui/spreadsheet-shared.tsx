@@ -133,7 +133,7 @@ export function SpreadsheetHeader({
   return (
     <div className="sticky top-0 z-20">
       {/* Row 1: Group labels */}
-      <div className="flex border-b spreadsheet-header-row1" style={{ overflow: 'hidden' }}>
+      <div className="flex border-b spreadsheet-header-row1">
         <div
           className="border-r flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
@@ -200,7 +200,7 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 2: Column names */}
-      <div className="flex border-b spreadsheet-header-row2" style={{ overflow: 'hidden' }}>
+      <div className="flex border-b spreadsheet-header-row2">
         <div
           className="flex-shrink-0 sticky left-0 z-30 flex"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT }}
@@ -291,7 +291,7 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 3: Filter controls */}
-      <div className="flex border-b spreadsheet-header-row3" style={{ overflow: 'hidden' }}>
+      <div className="flex border-b spreadsheet-header-row3">
         <div
           className="flex-shrink-0 sticky left-0 z-30 flex"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 24, backgroundColor: SHEET_COLOR_LIGHT }}
