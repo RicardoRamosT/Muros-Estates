@@ -410,7 +410,7 @@ export function DevelopersSpreadsheet() {
     handleFieldChange(id, { [field]: dateValue });
   }, [handleFieldChange]);
 
-  const handleActiveToggle = useCallback((id: string, newValue: boolean) => {
+  const handleActiveToggle = useCallback((id: string, newValue: boolean | null) => {
     updateMutation.mutate({ id, data: { active: newValue } });
   }, [updateMutation]);
 
@@ -596,7 +596,11 @@ export function DevelopersSpreadsheet() {
                       {fieldCanEdit ? (
                         <Select
                           value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
-                          onValueChange={(v) => handleActiveToggle(dev.id, v === "active")}
+                          onValueChange={(v) => {
+                            if (v === "disabled") handleActiveToggle(dev.id, null);
+                            else if (v === "active") { if (isComplete) handleActiveToggle(dev.id, true); }
+                            else handleActiveToggle(dev.id, false);
+                          }}
                         >
                           <SelectTrigger 
                             className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
@@ -617,6 +621,12 @@ export function DevelopersSpreadsheet() {
                               <span className="flex items-center gap-1.5">
                                 <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
                                 <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="disabled" className="text-xs">
+                              <span className="flex items-center gap-1.5">
+                                <span style={{ color: "#1f2937" }} className="text-[8px] leading-none">●</span>
+                                <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
                               </span>
                             </SelectItem>
                           </SelectContent>

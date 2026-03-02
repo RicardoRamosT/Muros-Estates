@@ -866,7 +866,11 @@ export function DevelopmentsSpreadsheet() {
                         {fieldCanEdit ? (
                           <Select
                             value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
-                            onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "active")}
+                            onValueChange={(val) => {
+                              if (val === "disabled") handleFieldChange(dev.id, { active: null });
+                              else if (val === "active") { if (isComplete) handleFieldChange(dev.id, { active: true }); }
+                              else handleFieldChange(dev.id, { active: false });
+                            }}
                           >
                             <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0" style={textStyle} data-testid={`boolean-${col.key}-${dev.id}`}>
                               <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
@@ -883,6 +887,12 @@ export function DevelopmentsSpreadsheet() {
                                 <span className="flex items-center gap-1.5">
                                   <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
                                   <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="disabled" className="text-xs">
+                                <span className="flex items-center gap-1.5">
+                                  <span style={{ color: "#1f2937" }} className="text-[8px] leading-none">●</span>
+                                  <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
                                 </span>
                               </SelectItem>
                             </SelectContent>
