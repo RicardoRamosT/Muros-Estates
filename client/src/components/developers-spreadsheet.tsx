@@ -681,7 +681,7 @@ export function DevelopersSpreadsheet() {
                         <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
                           <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                           <span>{label}</span>
-                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -718,7 +718,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="truncate text-xs">{tipoValue}</span>
-                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -768,7 +768,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="truncate text-xs">{selectValue}</span>
-                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -866,7 +866,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1">
                           <span className="truncate">{formatDate(dateValue)}</span>
-                          <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -927,7 +927,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1">
                           <span className="truncate">{displayValue}</span>
-                          <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -958,7 +958,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1">
                           <span className="truncate uppercase" title={value ? String(value) : undefined}>{value || ''}</span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                          {!fieldCanEdit && }
                         </div>
                       )}
                     </div>
@@ -992,7 +992,7 @@ export function DevelopersSpreadsheet() {
                         >
                           {value || ''}
                         </span>
-                        {!fieldCanEdit && <Lock className="w-3 h-3 text-muted-foreground opacity-50 flex-shrink-0" />}
+                        {!fieldCanEdit && }
                       </div>
                     )}
                   </div>

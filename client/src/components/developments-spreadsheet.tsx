@@ -207,7 +207,7 @@ function SingleTipologiaCell({
     return (
       <div className="flex items-center gap-1 px-2">
         <span className="text-xs text-muted-foreground truncate">{displayLabel}</span>
-        <Lock className="w-3 h-3 opacity-50 shrink-0" />
+        
       </div>
     );
   }
@@ -1047,7 +1047,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1113,7 +1113,7 @@ export function DevelopmentsSpreadsheet() {
                             <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
                           )}
                           <span>{getDeveloperName(value)}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1141,7 +1141,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1170,7 +1170,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1215,7 +1215,7 @@ export function DevelopmentsSpreadsheet() {
                           <span className={!selectedTipo && developerTipos.length > 0 ? 'text-red-500 font-medium text-xs' : 'text-xs text-muted-foreground'}>
                             {!selectedTipo && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipo || 'Sin tipos')}
                           </span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 shrink-0" />}
+                          {!fieldCanEdit && }
                         </div>
                       )}
                     </div>
@@ -1243,7 +1243,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1271,7 +1271,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1299,7 +1299,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1333,7 +1333,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1411,7 +1411,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? arrValue.join(', ') : ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1445,7 +1445,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1479,7 +1479,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1510,7 +1510,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
-                          {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 shrink-0" />}
+                          {!fieldCanEdit && }
                         </div>
                       )}
                     </div>
@@ -1539,7 +1539,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1572,7 +1572,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1623,7 +1623,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
-                          <Lock className="w-3 h-3 opacity-50 shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1651,7 +1651,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1679,7 +1679,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1707,7 +1707,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          <Lock className="w-3 h-3 opacity-50" />
+                          
                         </div>
                       )}
                     </div>
@@ -1840,7 +1840,7 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 min-h-[20px]">
                           <span className="truncate text-xs">{formattedDate || '-'}</span>
-                          <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          
                         </div>
                       )}
                     </div>
@@ -1875,7 +1875,7 @@ export function DevelopmentsSpreadsheet() {
                         }}
                       >
                         <span className="truncate">{displayValue || ''}</span>
-                        {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                        {!fieldCanEdit && }
                       </div>
                     </div>
                   );
@@ -1913,7 +1913,7 @@ export function DevelopmentsSpreadsheet() {
                         onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue), editable: false })}
                       >
                         <span className="truncate">{displayValue || ''}</span>
-                        {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
+                        {!fieldCanEdit && }
                       </div>
                     )}
                   </div>
