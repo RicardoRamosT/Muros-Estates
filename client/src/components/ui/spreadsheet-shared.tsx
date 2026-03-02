@@ -273,17 +273,27 @@ export function SpreadsheetHeader({
             items.push(
               <div
                 key={`r2-${col.key}`}
-                className="border-r border-white/30 font-medium text-xs flex items-center flex-shrink-0 overflow-hidden"
+                className="border-r border-white/30 font-medium text-xs flex items-center justify-between flex-shrink-0 overflow-hidden"
                 title={col.label}
                 style={{
                   width: col.width, minWidth: col.width, height: 32,
                   backgroundColor: isColored ? groupColor : '#d1d5db',
                   color: isColored ? 'white' : '#374151',
-                  paddingLeft: 8,
-                  paddingRight: 8,
                 }}
               >
-                <span className="truncate min-w-0">{col.label}</span>
+                <div style={{ width: 8, flexShrink: 0 }} />
+                <span className="truncate min-w-0 flex-1">{col.label}</span>
+                {isColored && onToggleGroupCollapse && col.group && (
+                  <button
+                    onClick={() => onToggleGroupCollapse(col.group!)}
+                    className="flex-shrink-0 flex items-center justify-center hover:bg-white/20 cursor-pointer h-full"
+                    style={{ width: 16 }}
+                    data-testid={`toggle-group-collapse-col-${col.key}`}
+                  >
+                    <Minus className="w-2.5 h-2.5 text-white/80" />
+                  </button>
+                )}
+                {!isColored && <div style={{ width: 8, flexShrink: 0 }} />}
               </div>
             );
           }
