@@ -551,7 +551,7 @@ export function DevelopmentsSpreadsheet() {
   const handleCreateNew = () => {
     createMutation.mutate({
       name: "Nuevo Desarrollo",
-      active: true,
+      active: false,
     });
   };
 
@@ -827,7 +827,7 @@ export function DevelopmentsSpreadsheet() {
 
           {visibleData.map((dev, rowIndex) => {
             const parentDeveloper = developers.find(d => d.id === dev.developerId);
-            const isParentDeveloperInactive = parentDeveloper?.active === null;
+            const isParentDeveloperInactive = parentDeveloper?.active === false;
             const isRowInactive = dev.active === null || isParentDeveloperInactive;
             const isActiveRow = activeEditingRowId === dev.id;
             return (
@@ -851,7 +851,12 @@ export function DevelopmentsSpreadsheet() {
                 const isEditing = editingCell?.id === dev.id && editingCell?.field === col.key;
 
                 if (col.key === 'id') {
-                  const dotColor = dev.active === true ? '#15803d' : dev.active === false ? '#F16100' : '#6b7280';
+                  const isCompleteForDot = isDevelopmentComplete(dev);
+                  const dotColor = dev.active === null
+                    ? '#6b7280'
+                    : isCompleteForDot
+                      ? (dev.active === true ? '#15803d' : '#F16100')
+                      : '#ef4444';
                   return (
                     <div
                       key={col.key}

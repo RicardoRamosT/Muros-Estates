@@ -454,7 +454,7 @@ export function DevelopersSpreadsheet() {
     const uniqueSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
     createMutation.mutate({
       name: `Nuevo Desarrollador ${uniqueSuffix}`,
-      active: true,
+      active: false,
     });
   };
 
@@ -576,7 +576,12 @@ export function DevelopersSpreadsheet() {
                 const cellType = col.cellType || getCellTypeFromColumnType(col.type);
                 
                 if (col.type === 'index') {
-                  const dotColor = dev.active === true ? '#15803d' : dev.active === false ? '#F16100' : '#6b7280';
+                  const isCompleteForDot = isDeveloperComplete(dev);
+                  const dotColor = dev.active === null
+                    ? '#6b7280'
+                    : isCompleteForDot
+                      ? (dev.active === true ? '#15803d' : '#F16100')
+                      : '#ef4444';
                   return (
                     <div
                       key={field}
