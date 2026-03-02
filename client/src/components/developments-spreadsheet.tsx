@@ -836,6 +836,9 @@ export function DevelopmentsSpreadsheet() {
             const isRowInactive = dev.active === null || isParentDeveloperInactive;
             const isDeveloperBlocked = !!(parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper)));
             const isActiveRow = activeEditingRowId === dev.id;
+            const inactiveCellStyle: React.CSSProperties = isRowInactive
+              ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
+              : {};
             return (
             <div
               key={dev.id}
@@ -881,7 +884,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'date-display') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
                     </div>
                   );
@@ -889,7 +892,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'time-display') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
                     </div>
                   );
@@ -898,7 +901,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'group-collapsed') {
                   const groupDef = groupLookupMap[col.group || ''];
                   return (
-                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: groupDef?.color ? `${groupDef.color}22` : '#f3f4f6' }} />
+                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: isRowInactive ? '#9ca3af' : (groupDef?.color ? `${groupDef.color}22` : '#f3f4f6') }} />
                   );
                 }
 
@@ -1020,7 +1023,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'empresa-tipo-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1084,7 +1087,7 @@ export function DevelopmentsSpreadsheet() {
                     <div
                       key={col.key}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       title={developerWarningText || undefined}
                     >
                       {canEdit(col.key) ? (
@@ -1122,7 +1125,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'city-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1151,7 +1154,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'zone-select') {
                   const zones = getZonesForCity(dev.city);
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1189,7 +1192,7 @@ export function DevelopmentsSpreadsheet() {
                   }
 
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit && developerTipos.length > 0 ? (
                         <Select
                           value={selectedTipo || '__unassigned__'}
@@ -1224,7 +1227,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'nivel-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1252,7 +1255,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'torres-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value?.toString() || "__unassigned__"}
@@ -1280,7 +1283,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'niveles-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value?.toString() || "__unassigned__"}
@@ -1309,7 +1312,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-amenities') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -1344,7 +1347,7 @@ export function DevelopmentsSpreadsheet() {
                   const allDevTipos = getTypeFromDeveloper(dev.developerId) || [];
                   const cellDeveloperTipos = ((dev.tipos as string[] | null) || []).filter(t => allDevTipos.includes(t));
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <SingleTipologiaCell
                         dev={dev}
                         onSave={(data) => handleFieldChange(dev.id, data)}
@@ -1358,7 +1361,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-creatable') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -1421,7 +1424,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-efficiency') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -1455,7 +1458,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-other') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -1491,7 +1494,7 @@ export function DevelopmentsSpreadsheet() {
                   const isDepaR = devTiposR.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
                   const recamarasDisabled = !isDepaR;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled }))} style={{ width: col.width, minWidth: col.width, ...(recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled }))} style={{ width: col.width, minWidth: col.width, ...(isRowInactive ? inactiveCellStyle : recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }}>
                       {fieldCanEdit && !recamarasDisabled ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1520,7 +1523,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'banos-select') {
                   const banosOptions = catalogBanos.map((b: any) => b.name).filter(Boolean);
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1549,7 +1552,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'redaccion-text') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         editingCell?.id === dev.id && editingCell?.field === col.key ? (
                           <Input
@@ -1590,7 +1593,7 @@ export function DevelopmentsSpreadsheet() {
                     }
                   }
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }), "text-center justify-center")} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }), "text-center justify-center")} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <span className="text-muted-foreground">{percentValue}</span>
                     </div>
                   );
@@ -1599,7 +1602,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-acabados') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -1632,7 +1635,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'tipo-contrato-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1660,7 +1663,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'cesion-derechos-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1688,7 +1691,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'presentacion-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       {fieldCanEdit ? (
                         <Select
                           value={value || "__unassigned__"}
@@ -1716,7 +1719,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'index') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <span className="text-xs text-muted-foreground">{rowIndex + 1}</span>
                     </div>
                   );
@@ -1724,7 +1727,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'folder-link') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", !isRowInactive && "bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <Link
                         href={`/admin/documentos?developmentId=${dev.id}&sectionType=${col.folderSection}`}
                         className="text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 flex items-center justify-center gap-1"
@@ -1738,7 +1741,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'actions') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -1776,7 +1779,7 @@ export function DevelopmentsSpreadsheet() {
                           disabled: !fieldCanEdit
                         })
                       )}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${col.key}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
@@ -1856,7 +1859,7 @@ export function DevelopmentsSpreadsheet() {
                     <div
                       key={col.key}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${col.key}-${dev.id}`}
                     >
                       <div
@@ -1892,7 +1895,7 @@ export function DevelopmentsSpreadsheet() {
                         isEditing 
                       })
                     )}
-                    style={{ width: col.width, minWidth: col.width }}
+                    style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                     onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, value)}
                     data-testid={`cell-${col.key}-${dev.id}`}
                   >

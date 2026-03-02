@@ -546,7 +546,7 @@ export function DevelopersSpreadsheet() {
             const isRowInactive = dev.active === null;
             const isActiveRow = activeEditingRowId === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
-              ? { backgroundColor: '#9ca3af' }
+              ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
               : {};
             return (
             <div
@@ -611,7 +611,7 @@ export function DevelopersSpreadsheet() {
                 if (col.type === 'group-collapsed') {
                   const groupDef = groupLookupMap[col.group || ''];
                   return (
-                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: groupDef?.color ? `${groupDef.color}22` : '#f3f4f6' }} />
+                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: isRowInactive ? '#9ca3af' : (groupDef?.color ? `${groupDef.color}22` : '#f3f4f6') }} />
                   );
                 }
 
@@ -791,7 +791,7 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'folder-link') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center", !isRowInactive && "bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <a
                         href={`/admin/documentos?developerId=${dev.id}&sectionType=legales`}
                         className="inline-flex items-center gap-1.5 text-amber-700 hover:underline text-xs"
@@ -806,7 +806,7 @@ export function DevelopersSpreadsheet() {
                 
                 if (col.type === 'actions') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width }}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {hasFullAccess && (
                         <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
                           <DialogTrigger asChild>
@@ -852,7 +852,7 @@ export function DevelopersSpreadsheet() {
                     <div
                       key={field}
                       className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "date", disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
