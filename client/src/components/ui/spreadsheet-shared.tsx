@@ -48,7 +48,7 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
     if (!container) return;
     const cornerWidth = groups[0]?.offset ?? 60;
     const centeredLeft = Math.max(0, group.offset - cornerWidth);
-    container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    container.scrollLeft = centeredLeft;
     setOpen(false);
   };
   return (
