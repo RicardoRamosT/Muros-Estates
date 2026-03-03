@@ -13,6 +13,7 @@ import {
 
 const NO_FILTER_TYPES = new Set([
   'actions', 'folder-link', 'group-collapsed', 'calculated-percent',
+  'date-display', 'time-display', 'typology-type',
 ]);
 
 const COLLAPSED_COL_WIDTH = 20;
@@ -309,7 +310,7 @@ export function SpreadsheetHeader({
               className="flex items-center"
               style={{ width: col.width, minWidth: col.width, height: 24, borderRight: '1px solid rgba(255,255,255,0.15)' }}
             >
-              {NO_FILTER_TYPES.has(col.type || '') ? (
+              {NO_FILTER_TYPES.has(col.type || '') || (col as any).noFilter ? (
                 <div />
               ) : (
                 <ColumnFilter
@@ -371,7 +372,7 @@ export function SpreadsheetHeader({
                 borderRight: '1px solid rgba(255,255,255,0.15)',
               }}
             >
-              {NO_FILTER_TYPES.has(col.type || '') ? (
+              {NO_FILTER_TYPES.has(col.type || '') || (col as any).noFilter ? (
                 <div />
               ) : (
                 <ColumnFilter

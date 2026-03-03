@@ -413,8 +413,15 @@ export function useColumnFilters<T extends Record<string, any>>(
         const aVal = a[key];
         const bVal = b[key];
 
-        if (aVal === null || aVal === undefined) return direction === "asc" ? 1 : -1;
-        if (bVal === null || bVal === undefined) return direction === "asc" ? -1 : 1;
+        const aStr = String(aVal ?? "").trim();
+        const bStr = String(bVal ?? "").trim();
+
+        // Always push null/undefined/empty to the end regardless of sort direction (matches Tipologías behavior)
+        const aEmpty = aStr === "" || aVal === null || aVal === undefined;
+        const bEmpty = bStr === "" || bVal === null || bVal === undefined;
+        if (aEmpty && bEmpty) return 0;
+        if (aEmpty) return 1;
+        if (bEmpty) return -1;
 
         if (orderMap) {
           const aIdx = orderMap[String(aVal)] ?? 9999;
@@ -422,12 +429,14 @@ export function useColumnFilters<T extends Record<string, any>>(
           return direction === "asc" ? aIdx - bIdx : bIdx - aIdx;
         }
 
-        if (typeof aVal === "number" && typeof bVal === "number") {
-          return direction === "asc" ? aVal - bVal : bVal - aVal;
+        // Parse numbers stripping currency symbols and commas (matches Tipologías behavior for DB decimal strings)
+        const parseNum = (s: string) => parseFloat(s.replace(/[$,]/g, "").trim());
+        const aNum = parseNum(aStr);
+        const bNum = parseNum(bStr);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return direction === "asc" ? aNum - bNum : bNum - aNum;
         }
 
-        const aStr = String(aVal).toLowerCase();
-        const bStr = String(bVal).toLowerCase();
         return direction === "asc"
           ? aStr.localeCompare(bStr, "es")
           : bStr.localeCompare(aStr, "es");
