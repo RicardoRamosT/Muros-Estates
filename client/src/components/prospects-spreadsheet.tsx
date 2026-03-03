@@ -359,30 +359,35 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "desarrollo",    label: "Desarrollo",    width: "130px", type: "catalog-select",  group: "cunidad" },
     { key: "tipoUnidad",    label: "Tipo",          width: "100px", type: "typology-type",   group: "cunidad" },
     { key: "tipologia",     label: "Tipología",     width: "130px", type: "typology-select", group: "cunidad" },
-    { key: "precioFinal",   label: "Precio Unidad", width: "130px", type: "currency",        group: "cunidad" },
+    { key: "cajones",       label: "Cajones",       width: "90px",                           group: "cunidad" },
+    { key: "bodegas",       label: "Bodega",        width: "90px",                           group: "cunidad" },
+    { key: "precioFinal",   label: "Precio Final",  width: "130px", type: "currency",        group: "cunidad" },
     // EXTRAS
-    { key: "cajon",       label: "Cajón",       width: "90px",  group: "cextras" },
-    { key: "precioCajon", label: "Precio Cajón",width: "120px", type: "currency", group: "cextras" },
-    { key: "bodega",      label: "Bodega",      width: "90px",  group: "cextras" },
-    { key: "precioBodega",label: "Precio Bodega",width: "120px",type: "currency", group: "cextras" },
-    { key: "precioTotal", label: "Precio Total", width: "130px",type: "currency", group: "cextras" },
-    // SEPARACIÓN
-    { key: "porcentajeSeparacion", label: "%",     width: "70px",  type: "plain-number", group: "cseparacion" },
-    { key: "fechaSeparacion",      label: "Fecha", width: "100px", type: "date",         group: "cseparacion" },
-    { key: "separacion",           label: "Monto", width: "120px", type: "currency",     group: "cseparacion" },
-    // ENGANCHE
+    { key: "cajon",        label: "Cajón",      width: "90px",  group: "cextras" },
+    { key: "precioCajon",  label: "Precio",     width: "110px", type: "currency", group: "cextras" },
+    { key: "bodega",       label: "Bodega",     width: "90px",  group: "cextras" },
+    { key: "precioBodega", label: "Precio",     width: "110px", type: "currency", group: "cextras" },
+    { key: "precioTotal",  label: "Precio Total",width: "130px",type: "currency", group: "cextras" },
+    // SEPARACIÓN: %, Monto, Fecha, Papelería
+    { key: "porcentajeSeparacion", label: "%",         width: "70px",  type: "plain-number", group: "cseparacion" },
+    { key: "separacion",           label: "Monto",     width: "120px", type: "currency",     group: "cseparacion" },
+    { key: "fechaSeparacion",      label: "Fecha",     width: "100px", type: "date",         group: "cseparacion" },
+    { key: "papeleriaSeparacion",  label: "Papelería", width: "120px", type: "currency",     group: "cseparacion" },
+    // ENGANCHE: %, Monto, Fecha
     { key: "porcentajeEnganche", label: "%",     width: "70px",  type: "plain-number", group: "cenganche" },
     { key: "enganche",           label: "Monto", width: "120px", type: "currency",     group: "cenganche" },
     { key: "fechaEnganche",      label: "Fecha", width: "100px", type: "date",         group: "cenganche" },
-    // A PLAZO
-    { key: "plazoNumero",        label: "#",            width: "70px",  type: "plain-number", group: "cplazo" },
-    { key: "plazoMetro",         label: "Metro",        width: "90px",  type: "plain-number", group: "cplazo" },
-    { key: "plazoMensualidades", label: "Mensualidades",width: "115px", type: "plain-number", group: "cplazo" },
-    { key: "plazoMonto",         label: "Monto",        width: "120px", type: "currency",     group: "cplazo" },
-    { key: "plazoFechaFinal",    label: "Fecha Final",  width: "110px", type: "date",         group: "cplazo" },
-    // LIQUIDACIÓN
-    { key: "fechaLiquidacion", label: "Fecha",       width: "110px", type: "date", group: "cliquidacion" },
-    { key: "comentarios",      label: "Comentarios", width: "180px", noFilter: true, group: "cliquidacion" },
+    // A PLAZO: %, Mensualidades, Monto, Fecha de Inicio, Fecha Final
+    { key: "porcentajePlazo",    label: "%",             width: "70px",  type: "plain-number", group: "cplazo" },
+    { key: "plazoMensualidades", label: "Mensualidades", width: "115px", type: "plain-number", group: "cplazo" },
+    { key: "plazoMonto",         label: "Monto",         width: "120px", type: "currency",     group: "cplazo" },
+    { key: "plazoFechaInicio",   label: "Fecha de Inicio",width: "115px",type: "date",         group: "cplazo" },
+    { key: "plazoFechaFinal",    label: "Fecha Final",   width: "115px", type: "date",         group: "cplazo" },
+    // LIQUIDACIÓN: Escrituración, Fecha, Papelería, Comentarios
+    { key: "escrituracion",    label: "Escrituración", width: "130px", type: "currency", group: "cliquidacion" },
+    { key: "fechaLiquidacion", label: "Fecha",         width: "110px", type: "date",     group: "cliquidacion" },
+    { key: "papeleria",        label: "Papelería",     width: "120px", type: "currency", group: "cliquidacion" },
+    { key: "comentarios",      label: "Comentarios",   width: "180px", noFilter: true,   group: "cliquidacion" },
     // ACTIONS
     { key: "actions", label: "", width: "50px", type: "actions", group: "actions" },
   ];

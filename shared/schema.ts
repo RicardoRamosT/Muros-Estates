@@ -228,8 +228,18 @@ export const PAGE_PERMISSIONS = {
       // SEPARACIÓN / ENGANCHE porcentajes
       porcentajeSeparacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       porcentajeEnganche:   { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // UNIDAD extras incluidos
+      cajones: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      bodegas: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // SEPARACIÓN papelería
+      papeleriaSeparacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // A PLAZO nuevos
+      porcentajePlazo:  { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      plazoFechaInicio: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       // LIQUIDACIÓN
+      escrituracion:    { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       fechaLiquidacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      papeleria:        { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       comentarios:      { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
@@ -898,8 +908,21 @@ export const clients = pgTable("clients", {
   porcentajeSeparacion: decimal("porcentaje_separacion", { precision: 5, scale: 2 }),
   porcentajeEnganche: decimal("porcentaje_enganche", { precision: 5, scale: 2 }),
 
+  // UNIDAD: included parking/storage
+  cajones: text("cajones"),
+  bodegas: text("bodegas"),
+
+  // SEPARACIÓN: paperwork fee
+  papeleriaSeparacion: decimal("papeleria_separacion", { precision: 12, scale: 2 }),
+
+  // A PLAZO: percentage and start date
+  porcentajePlazo: decimal("porcentaje_plazo", { precision: 5, scale: 2 }),
+  plazoFechaInicio: timestamp("plazo_fecha_inicio"),
+
   // Liquidation
+  escrituracion: decimal("escrituracion", { precision: 12, scale: 2 }),
   fechaLiquidacion: timestamp("fecha_liquidacion"),
+  papeleria: decimal("papeleria", { precision: 12, scale: 2 }),
 
   // Active status
   active: boolean("active").default(true),
