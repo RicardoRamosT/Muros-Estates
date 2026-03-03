@@ -2390,9 +2390,20 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
   const scrollTo = (group: { label: string; offset: number; width: number }) => {
     const container = scrollRef.current;
     if (!container) return;
-    const freeSpace = container.clientWidth - group.width;
-    const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
-    container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
+    if (el) {
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const elLeft = elRect.left - containerRect.left + container.scrollLeft;
+      const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
+      const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
+      const centeredLeft = Math.max(0, elLeft + el.clientWidth / 2 - stickyWidth - (container.clientWidth - stickyWidth) / 2);
+      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    } else {
+      const freeSpace = container.clientWidth - group.width;
+      const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
+      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    }
     setOpen(false);
     setQuery("");
   };
@@ -3952,7 +3963,7 @@ export function TypologySpreadsheet() {
           <div className="sticky top-0 z-20 bg-background">
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex w-max spreadsheet-header-row1">
-              <div className="w-[60px] flex-shrink-0 sticky left-0 z-30 flex items-center justify-center" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+              <div data-sticky-corner className="w-[60px] flex-shrink-0 sticky left-0 z-30 flex items-center justify-center" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                 <SectionSearchButton scrollRef={contentScrollRef} iconColor="white" />
               </div>
               {(() => {
@@ -4006,7 +4017,8 @@ export function TypologySpreadsheet() {
                   const hasMergeHeaders = group.sections.some(s => s.section.mergeHeaders);
                   return (
                     <div 
-                      key={groupKey} 
+                      key={groupKey}
+                      data-section-group={group.label}
                       className={cn("flex-shrink-0 flex items-center h-full text-white overflow-hidden", showLabel ? "justify-between" : "justify-center", hasMergeHeaders && "hover:brightness-110 transition-[filter] cursor-default")}
                       style={{ 
                         backgroundColor: getSectionGroupColor(SECTIONS, firstIndex),

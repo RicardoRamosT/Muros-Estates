@@ -46,9 +46,20 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
   const scrollTo = (group: SectionGroup) => {
     const container = scrollRef.current;
     if (!container) return;
-    const freeSpace = container.clientWidth - group.width;
-    const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
-    container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
+    if (el) {
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const elLeft = elRect.left - containerRect.left + container.scrollLeft;
+      const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
+      const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
+      const centeredLeft = Math.max(0, elLeft + el.clientWidth / 2 - stickyWidth - (container.clientWidth - stickyWidth) / 2);
+      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    } else {
+      const freeSpace = container.clientWidth - group.width;
+      const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
+      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    }
     setOpen(false);
   };
   return (
@@ -136,6 +147,7 @@ export function SpreadsheetHeader({
       {/* Row 1: Group labels */}
       <div className="flex spreadsheet-header-row1">
         <div
+          data-sticky-corner
           className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
         >
@@ -154,6 +166,7 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}-collapsed`}
+                    data-section-group={group.label}
                     className="text-white cursor-pointer flex items-center justify-center flex-shrink-0"
                     style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                     onClick={() => onToggleGroupCollapse?.(group.key)}
@@ -166,6 +179,7 @@ export function SpreadsheetHeader({
                 items.push(
                   <div
                     key={`r1-group-${group.key}`}
+                    data-section-group={group.label}
                     className="flex items-center justify-between h-8 font-medium text-xs flex-shrink-0 text-white overflow-hidden"
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   >
