@@ -7,7 +7,7 @@ import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -785,11 +785,7 @@ export function DevelopmentsSpreadsheet() {
         <div className="flex items-center gap-2">
           <Building className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrollos</h1>
-          {role && (
-            <Badge variant="outline" className="text-xs">
-              {role}
-            </Badge>
-          )}
+
           {hasActiveFilters && (
             <Button 
               variant="ghost" 
