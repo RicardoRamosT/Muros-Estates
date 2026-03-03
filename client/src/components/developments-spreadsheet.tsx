@@ -736,16 +736,15 @@ export function DevelopmentsSpreadsheet() {
   const sectionGroupsForSearch = useMemo(() => {
     const result: { label: string; offset: number; width: number }[] = [];
     let offset = 0;
-    let cornerWidth = 0;
     let currentGroupKey = '';
     for (const col of visibleColumns) {
       const w = parseInt(col.width);
       const gKey = col.group || '';
-      if (gKey === 'corner') { offset += w; cornerWidth += w; continue; }
+      if (gKey === 'corner') { offset += w; continue; }
       const groupDef = groupLookupMap[gKey];
       if (!groupDef?.label) { offset += w; continue; }
       if (gKey !== currentGroupKey) {
-        result.push({ label: groupDef.label, offset: offset - cornerWidth, width: w });
+        result.push({ label: groupDef.label, offset, width: w });
         currentGroupKey = gKey;
       } else if (result.length > 0) {
         result[result.length - 1].width += w;
