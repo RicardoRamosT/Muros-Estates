@@ -205,6 +205,32 @@ export const PAGE_PERMISSIONS = {
       enganche: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       // 15. fechaEnganche - Finanzas: 1, Asesor: 2, Desarrollador: 1
       fechaEnganche: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // GENERAL (missing from original)
+      tipofil:      { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      perfil:       { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      comoLlega:    { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      brokerExterno:{ admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // UBICACIÓN
+      ciudad:       { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      zona:         { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // A PLAZO (existing fields)
+      plazoNumero:        { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      plazoMetro:         { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      plazoMensualidades: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      plazoMonto:         { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      plazoFechaFinal:    { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // EXTRAS
+      cajon:        { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      precioCajon:  { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      bodega:       { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      precioBodega: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      precioTotal:  { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // SEPARACIÓN / ENGANCHE porcentajes
+      porcentajeSeparacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      porcentajeEnganche:   { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      // LIQUIDACIÓN
+      fechaLiquidacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      comentarios:      { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
   // Permisos para Desarrollos - 54 columnas
@@ -859,7 +885,22 @@ export const clients = pgTable("clients", {
   plazoMetro: decimal("plazo_metro", { precision: 12, scale: 2 }),
   plazoMensualidades: integer("plazo_mensualidades"),
   plazoMonto: decimal("plazo_monto", { precision: 12, scale: 2 }),
-  
+  plazoFechaFinal: timestamp("plazo_fecha_final"),
+
+  // Extras (parking / storage)
+  cajon: text("cajon"),
+  precioCajon: decimal("precio_cajon", { precision: 12, scale: 2 }),
+  bodega: text("bodega"),
+  precioBodega: decimal("precio_bodega", { precision: 12, scale: 2 }),
+  precioTotal: decimal("precio_total", { precision: 12, scale: 2 }),
+
+  // Payment percentages
+  porcentajeSeparacion: decimal("porcentaje_separacion", { precision: 5, scale: 2 }),
+  porcentajeEnganche: decimal("porcentaje_enganche", { precision: 5, scale: 2 }),
+
+  // Liquidation
+  fechaLiquidacion: timestamp("fecha_liquidacion"),
+
   // Active status
   active: boolean("active").default(true),
   

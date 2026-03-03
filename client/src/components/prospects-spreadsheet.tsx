@@ -46,10 +46,17 @@ const COLUMN_GROUPS_PROSPECT = [
 
 const COLUMN_GROUPS_CLIENT = [
   { key: 'corner', label: '', color: '' },
-  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
-  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
-  { key: 'asignacion', label: 'ASIGNACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'financiero', label: 'FINANCIERO', color: SHEET_COLOR_LIGHT },
+  { key: 'cregistro', label: 'REGISTRO', color: SHEET_FECHAHORA_COLOR },
+  { key: 'casesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
+  { key: 'ccliente', label: 'CLIENTE', color: SHEET_COLOR_DARK },
+  { key: 'cgeneral', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
+  { key: 'cubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'cunidad', label: 'UNIDAD', color: SHEET_COLOR_LIGHT },
+  { key: 'cextras', label: 'EXTRAS', color: SHEET_COLOR_DARK },
+  { key: 'cseparacion', label: 'SEPARACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'cenganche', label: 'ENGANCHE', color: SHEET_COLOR_DARK },
+  { key: 'cplazo', label: 'A PLAZO', color: SHEET_COLOR_LIGHT },
+  { key: 'cliquidacion', label: 'LIQUIDACIÓN', color: SHEET_COLOR_DARK },
   { key: 'actions', label: '', color: '' },
 ];
 
@@ -327,24 +334,56 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   ];
 
   const clientColumns = [
-    { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle", group: "contacto" },
-    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
-    { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
-    { key: "asesorId", label: "Asesor", width: "120px", type: "select", group: "contacto" },
-    { key: "nombre", label: "Nombre", width: "120px", group: "contacto" },
-    { key: "apellido", label: "Apellido", width: "120px", group: "contacto" },
-    { key: "telefono", label: "Teléfono", width: "110px", group: "contacto" },
-    { key: "correo", label: "Correo", width: "160px", group: "contacto" },
-    { key: "embudo", label: "Embudo", width: "130px", type: "options-select", group: "contacto" },
-    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select", group: "asignacion" },
-    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select", group: "asignacion" },
-    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select", group: "asignacion" },
-    { key: "precioFinal", label: "Precio Final", width: "120px", type: "currency", group: "financiero" },
-    { key: "separacion", label: "Separación", width: "110px", type: "currency", group: "financiero" },
-    { key: "fechaSeparacion", label: "F. Separación", width: "110px", type: "date", group: "financiero" },
-    { key: "enganche", label: "Enganche", width: "110px", type: "currency", group: "financiero" },
-    { key: "fechaEnganche", label: "F. Enganche", width: "110px", type: "date", group: "financiero" },
+    { key: "index",   label: "ID",   width: "60px",  type: "index",        group: "corner" },
+    // REGISTRO
+    { key: "active",  label: "Activo", width: "58px", type: "toggle",      group: "cregistro" },
+    { key: "fecha",   label: "Fecha",  width: "85px", type: "date-display", field: "createdAt", group: "cregistro" },
+    { key: "hora",    label: "Hora",   width: "65px", type: "time-display", field: "createdAt", group: "cregistro" },
+    // ASESOR
+    { key: "asesorId", label: "Asesor", width: "130px", type: "select",    group: "casesor" },
+    // CLIENTE
+    { key: "nombre",   label: "Nombre",   width: "120px", group: "ccliente" },
+    { key: "apellido", label: "Apellido", width: "120px", group: "ccliente" },
+    { key: "telefono", label: "Teléfono", width: "110px", group: "ccliente" },
+    { key: "correo",   label: "Correo",   width: "160px", group: "ccliente" },
+    // GENERAL
+    { key: "tipofil",      label: "Tipo",       width: "100px", type: "options-select",  group: "cgeneral" },
+    { key: "perfil",       label: "Perfil",     width: "110px", type: "options-select",  group: "cgeneral" },
+    { key: "comoLlega",    label: "Fuente",     width: "130px", type: "options-select",  group: "cgeneral" },
+    { key: "brokerExterno",label: "Asesor Ext.",width: "80px",  type: "boolean-select",  group: "cgeneral" },
+    // UBICACIÓN
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select", group: "cubicacion" },
+    { key: "zona",   label: "Zona",   width: "100px", type: "catalog-select", group: "cubicacion" },
+    // UNIDAD
+    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select",  group: "cunidad" },
+    { key: "desarrollo",    label: "Desarrollo",    width: "130px", type: "catalog-select",  group: "cunidad" },
+    { key: "tipoUnidad",    label: "Tipo",          width: "100px", type: "typology-type",   group: "cunidad" },
+    { key: "tipologia",     label: "Tipología",     width: "130px", type: "typology-select", group: "cunidad" },
+    { key: "precioFinal",   label: "Precio Unidad", width: "130px", type: "currency",        group: "cunidad" },
+    // EXTRAS
+    { key: "cajon",       label: "Cajón",       width: "90px",  group: "cextras" },
+    { key: "precioCajon", label: "Precio Cajón",width: "120px", type: "currency", group: "cextras" },
+    { key: "bodega",      label: "Bodega",      width: "90px",  group: "cextras" },
+    { key: "precioBodega",label: "Precio Bodega",width: "120px",type: "currency", group: "cextras" },
+    { key: "precioTotal", label: "Precio Total", width: "130px",type: "currency", group: "cextras" },
+    // SEPARACIÓN
+    { key: "porcentajeSeparacion", label: "%",     width: "70px",  type: "plain-number", group: "cseparacion" },
+    { key: "fechaSeparacion",      label: "Fecha", width: "100px", type: "date",         group: "cseparacion" },
+    { key: "separacion",           label: "Monto", width: "120px", type: "currency",     group: "cseparacion" },
+    // ENGANCHE
+    { key: "porcentajeEnganche", label: "%",     width: "70px",  type: "plain-number", group: "cenganche" },
+    { key: "enganche",           label: "Monto", width: "120px", type: "currency",     group: "cenganche" },
+    { key: "fechaEnganche",      label: "Fecha", width: "100px", type: "date",         group: "cenganche" },
+    // A PLAZO
+    { key: "plazoNumero",        label: "#",            width: "70px",  type: "plain-number", group: "cplazo" },
+    { key: "plazoMetro",         label: "Metro",        width: "90px",  type: "plain-number", group: "cplazo" },
+    { key: "plazoMensualidades", label: "Mensualidades",width: "115px", type: "plain-number", group: "cplazo" },
+    { key: "plazoMonto",         label: "Monto",        width: "120px", type: "currency",     group: "cplazo" },
+    { key: "plazoFechaFinal",    label: "Fecha Final",  width: "110px", type: "date",         group: "cplazo" },
+    // LIQUIDACIÓN
+    { key: "fechaLiquidacion", label: "Fecha",       width: "110px", type: "date", group: "cliquidacion" },
+    { key: "comentarios",      label: "Comentarios", width: "180px", noFilter: true, group: "cliquidacion" },
+    // ACTIONS
     { key: "actions", label: "", width: "50px", type: "actions", group: "actions" },
   ];
 
@@ -1323,8 +1362,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  // Handle client-specific date fields (fechaSeparacion, fechaEnganche)
-                  if ((col.key === 'fechaSeparacion' || col.key === 'fechaEnganche') && col.type === 'date') {
+                  // Handle all date fields (fechaSeparacion, fechaEnganche, plazoFechaFinal, fechaLiquidacion, etc.)
+                  if (col.type === 'date') {
                     const rawValue = (prospect as any)[col.key];
                     const dateValue = rawValue ? new Date(rawValue).toISOString().split('T')[0] : '';
                     return (
