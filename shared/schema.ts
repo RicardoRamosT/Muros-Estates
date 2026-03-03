@@ -235,6 +235,7 @@ export const PAGE_PERMISSIONS = {
       papeleriaSeparacion: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       // A PLAZO nuevos
       porcentajePlazo:  { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
+      plazoTotal:       { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       plazoFechaInicio: { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
       // LIQUIDACIÓN
       escrituracion:    { admin: 'edit', finanzas: 'view', asesor: 'edit', desarrollador: 'view' },
@@ -915,8 +916,9 @@ export const clients = pgTable("clients", {
   // SEPARACIÓN: paperwork fee
   papeleriaSeparacion: decimal("papeleria_separacion", { precision: 12, scale: 2 }),
 
-  // A PLAZO: percentage and start date
+  // A PLAZO: percentage, total amount, and start date
   porcentajePlazo: decimal("porcentaje_plazo", { precision: 5, scale: 2 }),
+  plazoTotal: decimal("plazo_total", { precision: 12, scale: 2 }),
   plazoFechaInicio: timestamp("plazo_fecha_inicio"),
 
   // Liquidation

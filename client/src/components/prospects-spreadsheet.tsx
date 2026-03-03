@@ -377,8 +377,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "porcentajeEnganche", label: "%",     width: "70px",  type: "plain-number", group: "cenganche" },
     { key: "enganche",           label: "Monto", width: "120px", type: "currency",     group: "cenganche" },
     { key: "fechaEnganche",      label: "Fecha", width: "100px", type: "date",         group: "cenganche" },
-    // A PLAZO: %, Mensualidades, Monto, Fecha de Inicio, Fecha Final
+    // A PLAZO: %, Monto, Mensualidades, Monto, Fecha de Inicio, Fecha Final
     { key: "porcentajePlazo",    label: "%",             width: "70px",  type: "plain-number", group: "cplazo" },
+    { key: "plazoTotal",         label: "Monto",         width: "120px", type: "currency",     group: "cplazo" },
     { key: "plazoMensualidades", label: "Mensualidades", width: "115px", type: "plain-number", group: "cplazo" },
     { key: "plazoMonto",         label: "Monto",         width: "120px", type: "currency",     group: "cplazo" },
     { key: "plazoFechaInicio",   label: "Fecha de Inicio",width: "115px",type: "date",         group: "cplazo" },
