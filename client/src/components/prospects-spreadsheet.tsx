@@ -53,10 +53,12 @@ const COLUMN_GROUPS_CLIENT = [
   { key: 'cubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
   { key: 'cunidad', label: 'UNIDAD', color: SHEET_COLOR_LIGHT },
   { key: 'cextras', label: 'EXTRAS', color: SHEET_COLOR_DARK },
-  { key: 'cseparacion', label: 'SEPARACIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'cenganche', label: 'ENGANCHE', color: SHEET_COLOR_DARK },
-  { key: 'cplazo', label: 'A PLAZO', color: SHEET_COLOR_LIGHT },
-  { key: 'cliquidacion', label: 'LIQUIDACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'cpreciototal', label: '', color: SHEET_COLOR_LIGHT },
+  { key: 'cseparacion', label: 'SEPARACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'cenganche', label: 'ENGANCHE', color: SHEET_COLOR_LIGHT },
+  { key: 'cplazo', label: 'A PLAZO', color: SHEET_COLOR_DARK },
+  { key: 'cliquidacion', label: 'LIQUIDACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'ccomentarios', label: '', color: SHEET_COLOR_DARK },
   { key: 'actions', label: '', color: '' },
 ];
 
@@ -363,11 +365,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "bodegas",       label: "Bodega",        width: "90px",                           group: "cunidad" },
     { key: "precioFinal",   label: "Precio Final",  width: "130px", type: "currency",        group: "cunidad" },
     // EXTRAS
-    { key: "cajon",        label: "Cajón",      width: "90px",  group: "cextras" },
-    { key: "precioCajon",  label: "Precio",     width: "110px", type: "currency", group: "cextras" },
-    { key: "bodega",       label: "Bodega",     width: "90px",  group: "cextras" },
-    { key: "precioBodega", label: "Precio",     width: "110px", type: "currency", group: "cextras" },
-    { key: "precioTotal",  label: "Precio Total",width: "130px",type: "currency", group: "cextras" },
+    { key: "cajon",        label: "Cajón",       width: "90px",  group: "cextras" },
+    { key: "precioCajon",  label: "Precio",      width: "110px", type: "currency", group: "cextras" },
+    { key: "bodega",       label: "Bodega",      width: "90px",  group: "cextras" },
+    { key: "precioBodega", label: "Precio",      width: "110px", type: "currency", group: "cextras" },
+    // PRECIO TOTAL (sección individual)
+    { key: "precioTotal",  label: "Precio Total", width: "130px", type: "currency", group: "cpreciototal" },
     // SEPARACIÓN: %, Monto, Fecha, Papelería
     { key: "porcentajeSeparacion", label: "%",         width: "70px",  type: "plain-number", group: "cseparacion" },
     { key: "separacion",           label: "Monto",     width: "120px", type: "currency",     group: "cseparacion" },
@@ -384,11 +387,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "plazoMonto",         label: "Monto",         width: "120px", type: "currency",     group: "cplazo" },
     { key: "plazoFechaInicio",   label: "Fecha de Inicio",width: "115px",type: "date",         group: "cplazo" },
     { key: "plazoFechaFinal",    label: "Fecha Final",   width: "115px", type: "date",         group: "cplazo" },
-    // LIQUIDACIÓN: Escrituración, Fecha, Papelería, Comentarios
+    // LIQUIDACIÓN: Escrituración, Fecha, Papelería
     { key: "escrituracion",    label: "Escrituración", width: "130px", type: "currency", group: "cliquidacion" },
     { key: "fechaLiquidacion", label: "Fecha",         width: "110px", type: "date",     group: "cliquidacion" },
     { key: "papeleria",        label: "Papelería",     width: "120px", type: "currency", group: "cliquidacion" },
-    { key: "comentarios",      label: "Comentarios",   width: "180px", noFilter: true,   group: "cliquidacion" },
+    // COMENTARIOS (sección individual)
+    { key: "comentarios",      label: "Comentarios",   width: "200px", noFilter: true,   group: "ccomentarios" },
     // ACTIONS
     { key: "actions", label: "", width: "50px", type: "actions", group: "actions" },
   ];
