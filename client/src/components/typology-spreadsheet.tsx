@@ -4892,7 +4892,7 @@ export function TypologySpreadsheet() {
                             city={mergedRow.city || undefined}
                             developer={mergedRow.developer || undefined}
                             onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
-                            disabled={isConditionallyDisabled || isLockedByFlow}
+                            disabled={isConditionallyDisabled || isLockedByFlow || (col.key === "development" && (!mergedRow.developer || !!developerWarningText))}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
                             allDevelopers={dbDevelopers}
