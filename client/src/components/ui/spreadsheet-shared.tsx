@@ -35,9 +35,10 @@ interface SectionGroup {
 interface SpreadsheetSectionSearchProps {
   groups: SectionGroup[];
   scrollRef: React.RefObject<HTMLDivElement> | { current: HTMLDivElement | null };
+  cornerWidth?: number;
 }
 
-export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSectionSearchProps) {
+export function SpreadsheetSectionSearch({ groups, scrollRef, cornerWidth = 0 }: SpreadsheetSectionSearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const filtered = query.trim()
@@ -46,7 +47,7 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
   const scrollTo = (group: SectionGroup) => {
     const container = scrollRef.current;
     if (!container) return;
-    const freeSpace = container.clientWidth - group.width;
+    const freeSpace = container.clientWidth - cornerWidth - group.width;
     const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
     container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
     setOpen(false);
@@ -139,7 +140,7 @@ export function SpreadsheetHeader({
           className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
         >
-          <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
+          <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} cornerWidth={cornerWidth} />
         </div>
         {(() => {
           const items: JSX.Element[] = [];
