@@ -568,6 +568,7 @@ export function DevelopersSpreadsheet() {
             const inactiveCellStyle: React.CSSProperties = isRowInactive
               ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
               : {};
+            const cellTextClass = isRowInactive ? "text-gray-700" : "text-muted-foreground";
             return (
             <div
               key={dev.id}
@@ -615,7 +616,7 @@ export function DevelopersSpreadsheet() {
                 if (col.type === 'date-display') {
                   return (
                     <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
-                      <span className="text-xs text-muted-foreground">{formatDate(dev.createdAt)}</span>
+                      <span className={cn("text-xs", cellTextClass)}>{formatDate(dev.createdAt)}</span>
                     </div>
                   );
                 }
@@ -623,7 +624,7 @@ export function DevelopersSpreadsheet() {
                 if (col.type === 'time-display') {
                   return (
                     <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
-                      <span className="text-xs text-muted-foreground">{formatTime(dev.createdAt)}</span>
+                      <span className={cn("text-xs", cellTextClass)}>{formatTime(dev.createdAt)}</span>
                     </div>
                   );
                 }
@@ -804,7 +805,7 @@ export function DevelopersSpreadsheet() {
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
-                      <span className="text-xs text-muted-foreground">{calculated}</span>
+                      <span className={cn("text-xs", cellTextClass)}>{calculated}</span>
                     </div>
                   );
                 }

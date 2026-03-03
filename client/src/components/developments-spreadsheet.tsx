@@ -858,6 +858,7 @@ export function DevelopmentsSpreadsheet() {
             const inactiveCellStyle: React.CSSProperties = isRowInactive
               ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
               : {};
+            const cellTextClass = isRowInactive ? "text-gray-700" : "text-muted-foreground";
             return (
             <div
               key={dev.id}
@@ -904,7 +905,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'date-display') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
-                      <span className="text-xs text-muted-foreground px-1">{formatDate(dev.createdAt)}</span>
+                      <span className={cn("text-xs px-1", cellTextClass)}>{formatDate(dev.createdAt)}</span>
                     </div>
                   );
                 }
@@ -912,7 +913,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'time-display') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
-                      <span className="text-xs text-muted-foreground px-1">{formatTime(dev.createdAt)}</span>
+                      <span className={cn("text-xs px-1", cellTextClass)}>{formatTime(dev.createdAt)}</span>
                     </div>
                   );
                 }
@@ -1006,10 +1007,10 @@ export function DevelopmentsSpreadsheet() {
                       ? isLockOffDisabledByTipo ? '#e5e7eb' : '#fee2e2'
                       : undefined;
                   const textColorClass = value === true 
-                    ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-green-700 font-medium' 
+                    ? isLockOffDisabledByTipo ? (isRowInactive ? 'text-gray-600' : 'text-gray-400') : 'text-green-700 font-medium' 
                     : value === false 
-                      ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-red-600 font-medium' 
-                      : 'text-muted-foreground';
+                      ? isLockOffDisabledByTipo ? (isRowInactive ? 'text-gray-600' : 'text-gray-400') : 'text-red-600 font-medium' 
+                      : cellTextClass;
                   const effectiveCanEdit = fieldCanEdit && !isLockOffDisabledByTipo;
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor }}>
@@ -1243,7 +1244,7 @@ export function DevelopmentsSpreadsheet() {
                         </Select>
                       ) : (
                         <div className="flex items-center gap-1 px-1">
-                          <span className={!selectedTipo && developerTipos.length > 0 ? 'text-red-500 font-medium text-xs' : 'text-xs text-muted-foreground'}>
+                          <span className={!selectedTipo && developerTipos.length > 0 ? 'text-red-500 font-medium text-xs' : cn('text-xs', cellTextClass)}>
                             {!selectedTipo && developerTipos.length > 0 ? 'SIN ASIGNAR' : (selectedTipo || 'Sin tipos')}
                           </span>
                           
@@ -1363,7 +1364,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
                           
                         </div>
                       )}
@@ -1441,7 +1442,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? arrValue.join(', ') : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? arrValue.join(', ') : ""}</span>
                           
                         </div>
                       )}
@@ -1475,7 +1476,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
                           
                         </div>
                       )}
@@ -1509,7 +1510,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
                           
                         </div>
                       )}
@@ -1540,7 +1541,7 @@ export function DevelopmentsSpreadsheet() {
                         </Select>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
                           
                         </div>
                       )}
@@ -1569,7 +1570,7 @@ export function DevelopmentsSpreadsheet() {
                         </Select>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
                           
                         </div>
                       )}
@@ -1602,7 +1603,7 @@ export function DevelopmentsSpreadsheet() {
                         )
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{value || ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
                           
                         </div>
                       )}
@@ -1622,7 +1623,7 @@ export function DevelopmentsSpreadsheet() {
                   }
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }), "text-center justify-center")} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
-                      <span className="text-muted-foreground">{percentValue}</span>
+                      <span className={cellTextClass}>{percentValue}</span>
                     </div>
                   );
                 }
@@ -1653,7 +1654,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className="text-xs text-muted-foreground truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
                           
                         </div>
                       )}
@@ -1748,7 +1749,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'index') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "index" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
-                      <span className="text-xs text-muted-foreground">{rowIndex + 1}</span>
+                      <span className={cn("text-xs", cellTextClass)}>{rowIndex + 1}</span>
                     </div>
                   );
                 }
