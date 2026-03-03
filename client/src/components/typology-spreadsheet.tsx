@@ -533,7 +533,7 @@ const SECTIONS: SectionDef[] = [
     cellColor: "bg-[rgb(254,243,220)]/30 dark:bg-[rgb(50,35,10)]/30",
     columns: [
       { key: "appreciationRate", label: "Tasa", type: "decimal", width: 60, format: "percent", centerCells: true, calculated: true },
-      { key: "appreciationTotal", label: "Listo", type: "text", width: 130, calculated: true, centerCells: true },
+      { key: "appreciationTotal", label: "Falta", type: "text", width: 130, calculated: true, centerCells: true },
       { key: "finalValue", label: "M. Final", type: "decimal", width: 90, format: "currency", calculated: true, fullLabel: "Valor Final" },
     ],
   },
