@@ -46,20 +46,9 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
   const scrollTo = (group: SectionGroup) => {
     const container = scrollRef.current;
     if (!container) return;
-    const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
-    if (el) {
-      const containerRect = container.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const elLeft = elRect.left - containerRect.left + container.scrollLeft;
-      const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
-      const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
-      const centeredLeft = Math.max(0, elLeft + el.clientWidth / 2 - stickyWidth - (container.clientWidth - stickyWidth) / 2);
-      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
-    } else {
-      const freeSpace = container.clientWidth - group.width;
-      const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
-      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
-    }
+    const freeSpace = container.clientWidth - group.width;
+    const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
+    container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
     setOpen(false);
   };
   return (
