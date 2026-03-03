@@ -21,14 +21,14 @@ import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, SHEET_FECHAHORA_COLOR } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
 
 const COLUMN_GROUPS_PROSPECT = [
   { key: 'corner', label: '', color: '' },
-  { key: 'registro', label: 'REGISTRO', color: SHEET_FECHAHORA_COLOR },
+  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
   { key: 'asesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
   { key: 'prospecto', label: 'PROSPECTO', color: SHEET_COLOR_DARK },
   { key: 'general', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
@@ -46,7 +46,7 @@ const COLUMN_GROUPS_PROSPECT = [
 
 const COLUMN_GROUPS_CLIENT = [
   { key: 'corner', label: '', color: '' },
-  { key: 'cregistro', label: 'REGISTRO', color: SHEET_FECHAHORA_COLOR },
+  { key: 'cregistro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
   { key: 'casesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
   { key: 'ccliente', label: 'CLIENTE', color: SHEET_COLOR_DARK },
   { key: 'cgeneral', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
@@ -532,7 +532,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     for (const col of columns) {
       const gKey = (col as any).group || '';
       if (gKey === 'fechahora_collapsed') {
-        runs.push({ key: 'fechahora_collapsed', label: '', color: SHEET_FECHAHORA_COLOR, colspan: 1 });
+        runs.push({ key: 'fechahora_collapsed', label: '', color: SHEET_COLOR_DARK, colspan: 1 });
         continue;
       }
       const groupDef = groupLookupMap[gKey] || { key: gKey, label: '', color: '' };
