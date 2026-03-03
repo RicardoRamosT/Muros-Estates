@@ -18,7 +18,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save } from "lucide-react";
+import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
@@ -731,6 +731,18 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               <Eye className="w-3 h-3 mr-1" />
               Permisos limitados
             </Badge>
+          )}
+          {collapsedGroups.size > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCollapsedGroups(new Set())}
+              title="Descolapsar todo"
+              data-testid="button-expand-all"
+            >
+              <Maximize2 className="w-3 h-3 mr-1" />
+              Descolapsar
+            </Button>
           )}
           {hasActiveFilters && (
             <Button 

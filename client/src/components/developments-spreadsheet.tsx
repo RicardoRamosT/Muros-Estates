@@ -19,7 +19,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
-import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Save, Check, ChevronDown, Search } from "lucide-react";
+import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Save, Check, ChevronDown, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion, CatalogNivelMantenimiento } from "@shared/schema";
@@ -786,6 +786,21 @@ export function DevelopmentsSpreadsheet() {
           <Building className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrollos</h1>
 
+          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCollapsedGroups(new Set());
+                setCollapsedColumns(new Set());
+              }}
+              title="Descolapsar todo"
+              data-testid="button-expand-all"
+            >
+              <Maximize2 className="w-3 h-3 mr-1" />
+              Descolapsar
+            </Button>
+          )}
           {hasActiveFilters && (
             <Button 
               variant="ghost" 
