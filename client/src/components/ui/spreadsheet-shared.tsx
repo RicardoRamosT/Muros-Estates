@@ -47,9 +47,14 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
     const container = scrollRef.current;
     if (!container) return;
     const cornerWidth = groups[0]?.offset ?? 60;
-    const centeredLeft = Math.max(0, group.offset - cornerWidth);
-    container.scrollLeft = centeredLeft;
+    const freeSpace = Math.max(0, container.clientWidth - cornerWidth - group.width);
+    const centeredLeft = Math.max(0, group.offset - cornerWidth - freeSpace / 2);
     setOpen(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      });
+    });
   };
   return (
     <Popover open={open} onOpenChange={setOpen}>

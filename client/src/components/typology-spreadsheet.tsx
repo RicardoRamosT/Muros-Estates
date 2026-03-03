@@ -2390,6 +2390,7 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
   const scrollTo = (group: { label: string; offset: number; width: number }) => {
     const container = scrollRef.current;
     if (!container) return;
+    let centeredLeft = 0;
     const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
     if (el) {
       const containerRect = container.getBoundingClientRect();
@@ -2397,15 +2398,18 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
       const elLeft = elRect.left - containerRect.left + container.scrollLeft;
       const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
       const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
-      const centeredLeft = Math.max(0, elLeft + el.clientWidth / 2 - stickyWidth - (container.clientWidth - stickyWidth) / 2);
-      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      centeredLeft = Math.max(0, elLeft + el.clientWidth / 2 - stickyWidth - (container.clientWidth - stickyWidth) / 2);
     } else {
       const freeSpace = container.clientWidth - group.width;
-      const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
-      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
     }
     setOpen(false);
     setQuery("");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      });
+    });
   };
 
   return (
