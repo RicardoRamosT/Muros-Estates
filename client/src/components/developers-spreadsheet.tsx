@@ -187,16 +187,8 @@ export function DevelopersSpreadsheet() {
         const gk = col.group || '';
         const isCollapsibleGroup = collapsedGroups.has(gk) && gk !== 'corner';
         if (isCollapsibleGroup) {
-          // Emit any autoField columns in the group first (they are always visible)
-          while (i < cols.length && cols[i].group === gk && cols[i].autoField) {
-            processed.push(cols[i]);
-            i++;
-          }
-          // Then emit the collapse placeholder for non-autoField columns
-          if (i < cols.length && cols[i].group === gk) {
-            processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
-            while (i < cols.length && cols[i].group === gk) i++;
-          }
+          processed.push({ key: `${gk}_collapsed`, label: '', group: gk, type: 'group-collapsed' as any, width: '30px', cellType: 'readonly' });
+          while (i < cols.length && cols[i].group === gk) i++;
         } else {
           processed.push(col);
           i++;
