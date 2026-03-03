@@ -840,6 +840,12 @@ export const clients = pgTable("clients", {
   fechaSeparacion: timestamp("fecha_separacion"),
   enganche: decimal("enganche", { precision: 12, scale: 2 }),
   fechaEnganche: timestamp("fecha_enganche"),
+
+  // A Plazo fields
+  plazoNumero: integer("plazo_numero"),
+  plazoMetro: decimal("plazo_metro", { precision: 12, scale: 2 }),
+  plazoMensualidades: integer("plazo_mensualidades"),
+  plazoMonto: decimal("plazo_monto", { precision: 12, scale: 2 }),
   
   // Active status
   active: boolean("active").default(true),

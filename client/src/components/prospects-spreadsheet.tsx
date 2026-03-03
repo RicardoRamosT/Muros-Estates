@@ -28,12 +28,19 @@ import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Devel
 
 const COLUMN_GROUPS_PROSPECT = [
   { key: 'corner', label: '', color: '' },
-  { key: 'fechahora', label: 'FECHA/HORA', color: SHEET_FECHAHORA_COLOR },
-  { key: 'asignacion', label: 'ASIGNACIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
-  { key: 'calificacion', label: 'CALIFICACIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'seguimiento', label: 'SEGUIMIENTO', color: SHEET_COLOR_DARK },
-  { key: 'notas', label: 'NOTAS', color: SHEET_COLOR_LIGHT },
+  { key: 'registro', label: 'REGISTRO', color: SHEET_FECHAHORA_COLOR },
+  { key: 'asesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
+  { key: 'prospecto', label: 'PROSPECTO', color: SHEET_COLOR_DARK },
+  { key: 'general', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
+  { key: 'estatus', label: 'ESTATUS', color: SHEET_COLOR_DARK },
+  { key: 'etapa', label: 'ETAPA', color: SHEET_COLOR_LIGHT },
+  { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'unidad', label: 'UNIDAD', color: SHEET_COLOR_LIGHT },
+  { key: 'separacion', label: 'SEPARACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'enganche', label: 'ENGANCHE', color: SHEET_COLOR_LIGHT },
+  { key: 'plazo', label: 'A PLAZO', color: SHEET_COLOR_DARK },
+  { key: 'comoPagaGroup', label: 'CÓMO PAGA', color: SHEET_COLOR_LIGHT },
+  { key: 'notas', label: 'COMENTARIOS', color: SHEET_COLOR_DARK },
   { key: 'actions', label: '', color: '' },
 ];
 
@@ -59,7 +66,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [fechaHoraExpanded, setFechaHoraExpanded] = useState(true);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const toggleGroupCollapse = (key: string) => {
     setCollapsedGroups(prev => {
@@ -284,29 +290,39 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const prospectColumns = [
     { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
-    { key: "active", label: "Act.", width: "58px", type: "toggle", group: "asignacion" },
-    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "fechahora" },
-    { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "fechahora" },
-    { key: "asesorId", label: "Asesor", width: "120px", type: "select", group: "asignacion" },
-    { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select", group: "asignacion" },
-    { key: "zona", label: "Zona", width: "100px", type: "catalog-select", group: "asignacion" },
-    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select", group: "asignacion" },
-    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select", group: "asignacion" },
-    { key: "tipologia", label: "Tipología", width: "120px", type: "typology-select", group: "asignacion" },
-    { key: "nombre", label: "Nombre", width: "120px", group: "contacto" },
-    { key: "apellido", label: "Apellido", width: "120px", group: "contacto" },
-    { key: "telefono", label: "Teléfono", width: "110px", group: "contacto" },
-    { key: "correo", label: "Correo", width: "160px", group: "contacto" },
-    { key: "tipofil", label: "Tipo", width: "100px", type: "options-select", group: "calificacion" },
-    { key: "perfil", label: "Perfil", width: "110px", type: "options-select", group: "calificacion" },
-    { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select", group: "calificacion" },
-    { key: "brokerExterno", label: "Broker Ext.", width: "58px", type: "boolean-select", group: "calificacion" },
-    { key: "estatus", label: "Estatus", width: "100px", type: "options-select", group: "seguimiento" },
-    { key: "embudo", label: "Embudo", width: "130px", type: "options-select", group: "seguimiento" },
-    { key: "comoPaga", label: "Cómo Paga", width: "110px", type: "options-select", group: "seguimiento" },
+    { key: "active", label: "Activo", width: "58px", type: "toggle", group: "registro" },
+    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "registro" },
+    { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "registro" },
+    { key: "asesorId", label: "Asesor", width: "130px", type: "select", group: "asesor" },
+    { key: "nombre", label: "Nombre", width: "120px", group: "prospecto" },
+    { key: "apellido", label: "Apellido", width: "120px", group: "prospecto" },
+    { key: "telefono", label: "Teléfono", width: "110px", group: "prospecto" },
+    { key: "correo", label: "Correo", width: "160px", group: "prospecto" },
+    { key: "tipofil", label: "Tipo", width: "100px", type: "options-select", group: "general" },
+    { key: "perfil", label: "Perfil", width: "110px", type: "options-select", group: "general" },
+    { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select", group: "general" },
+    { key: "brokerExterno", label: "Asesor Ext.", width: "80px", type: "boolean-select", group: "general" },
+    { key: "estatus", label: "Estatus", width: "100px", type: "options-select", group: "estatus" },
+    { key: "embudo", label: "Etapa", width: "140px", type: "options-select", group: "etapa" },
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select", group: "ubicacion" },
+    { key: "zona", label: "Zona", width: "100px", type: "catalog-select", group: "ubicacion" },
+    { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select", group: "unidad" },
+    { key: "desarrollo", label: "Desarrollo", width: "130px", type: "catalog-select", group: "unidad" },
+    { key: "tipoUnidad", label: "Tipo", width: "100px", type: "typology-type", group: "unidad" },
+    { key: "tipologia", label: "Tipología", width: "130px", type: "typology-select", group: "unidad" },
+    { key: "precioFinal", label: "Precio Unidad", width: "130px", type: "currency", group: "unidad" },
+    { key: "fechaSeparacion", label: "#", width: "100px", type: "date", group: "separacion" },
+    { key: "separacion", label: "Monto", width: "120px", type: "currency", group: "separacion" },
+    { key: "fechaEnganche", label: "#", width: "100px", type: "date", group: "enganche" },
+    { key: "enganche", label: "Monto", width: "120px", type: "currency", group: "enganche" },
+    { key: "plazoNumero", label: "#", width: "70px", type: "plain-number", group: "plazo" },
+    { key: "plazoMetro", label: "Metro", width: "90px", type: "plain-number", group: "plazo" },
+    { key: "plazoMensualidades", label: "Mensualidades", width: "115px", type: "plain-number", group: "plazo" },
+    { key: "plazoMonto", label: "Monto", width: "120px", type: "currency", group: "plazo" },
+    { key: "comoPaga", label: "Cómo Paga", width: "120px", type: "options-select", group: "comoPagaGroup" },
     { key: "positivos", label: "Positivos", width: "140px", type: "multi-select", group: "notas" },
     { key: "negativos", label: "Negativos", width: "140px", type: "multi-select", group: "notas" },
-    { key: "comentarios", label: "Comentarios", width: "160px", noFilter: true, group: "notas" },
+    { key: "comentarios", label: "Otros", width: "160px", noFilter: true, group: "notas" },
     { key: "actions", label: "", width: "50px", type: "actions", group: "actions" },
   ];
 
@@ -435,17 +451,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
-      if ((col as any).group === 'fechahora') return fechaHoraExpanded;
-      if ((col as any).group === 'corner' || col.type === 'index' || col.type === 'actions') return true;
+      if ((col as any).group === 'corner' || col.type === 'index' || col.type === 'actions' || col.type === 'typology-type') return true;
       return canView(col.key);
     });
-
-    if (!fechaHoraExpanded) {
-      const actIdx = cols.findIndex(c => c.key === 'active');
-      const insertAt = actIdx >= 0 ? actIdx + 1 : 1;
-      const collapsedCol = { key: 'fechahora_collapsed', label: '', width: '30px', type: 'fechahora-collapsed', group: 'fechahora_collapsed' };
-      cols.splice(insertAt, 0, collapsedCol);
-    }
 
     if (collapsedGroups.size > 0) {
       const processed: typeof cols = [];
@@ -453,7 +461,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       while (i < cols.length) {
         const col = cols[i];
         const gk = (col as any).group || '';
-        if (collapsedGroups.has(gk) && gk !== 'fechahora' && gk !== 'corner' && gk !== 'fechahora_collapsed') {
+        if (collapsedGroups.has(gk) && gk !== 'corner') {
           processed.push({ key: `${gk}_collapsed`, label: '', width: '30px', type: 'group-collapsed' as any, group: gk });
           while (i < cols.length && ((cols[i] as any).group || '') === gk) i++;
         } else {
@@ -465,7 +473,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
 
     return cols;
-  }, [allColumns, canView, fechaHoraExpanded, collapsedGroups]);
+  }, [allColumns, canView, collapsedGroups]);
 
   const COLUMN_GROUPS_CURRENT = isClientView ? COLUMN_GROUPS_CLIENT : COLUMN_GROUPS_PROSPECT;
   const groupLookupMap = useMemo(() => Object.fromEntries(COLUMN_GROUPS_CURRENT.map(g => [g.key, g])), [isClientView]);
