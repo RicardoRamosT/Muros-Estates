@@ -1,0 +1,12 @@
+12. Al elegir un desarrollo que no tiene tipos, del aviso de que no tiene tipos sale en la columna Tipos, pero debería ponerse en amarillo el desarrollo de que esta incompleto, igual con tipologías, si falta que no me deje seguir después del desarrollo, y que esto aplique con todo, si le falta algo en especifico que me lo diga y no me deje seguir hasta que lo arregle, analiza en Desarrollos. Y que si hay tipologías sin tipo, que eso lo marque en el error, y hasta que todas sus tipologías tengan tipo, ya dejan seguir.
+13. En Desarrollos quiero lo siguiente: En vez de que en la misma fila pongamos todos los tipos del desarrollador y eso, que se individualicen los desarrollos, y si hay 3 tipos hay 3 filas con cada tipo, y en tipologías ya no es necesario el dropdown de tipo, ya que solo se puede elegir un tipo por desarrollo, seria dropdwon el tipo, no checkbox. Nivel, Torres, Tipo, Tipología, Pisos (En su dropdown, puedo crear varios rangos con +, y hasta abajo, sticky un input único, de poner los pisos máximos de ese edificio, y al llenarlo que se llene automáticamente en los temas desarrollos de ese desarrollador, y si se edita en cualquier desarrollo se actualiza en todos los desarrollos), Vistas
+14. En Desarrollos, tipos solo puedes seleccionar uno y que la celda diga cual es. En Recamaras si el tipo es Oficina, que este en gris, en caso contrario que sean checkboxes para que aparezca en tipologías, en baños igual, lo que eligas en desarrollo saldrá en tipologías
+15. En Desarrollos las columnas Locales, Oficinas y Salud se remplazan por Metraje, Unidades, medidas y porcentaje. Y que su encabezado1, se llame Avance.
+16. En Desarrollos, la columna Inicio, automáticamente se ponga la misma fecha de otro registro que ya exista del mismo desarrollo
+17. En Desarrollos, las columnas Amenidades, Eficiencia, Otros y Acabados deberían ir al final
+18. En Desarrollos, las columnas Lock-Off y Recamaras solo estaran activas para departamentos, para otros que este deshabilitado
+19. En Desarrollos, arriba de inicio, entrega, que su encabezado1 sea Obra
+20. En Desarrollos, contratos y cesion, las opciones sean de su desarrollador.
+21. En Desarrollos, faltan las columnas comercializadora, arquitectura y constructora, que serian dropdowns con datos registrados, que irían después de la sección Pagos
+22. En Desarrollos, Presentacion son las opciones de su desarrollador, con checkboxes
+23. En desarrollos, las carpetas de las celdas de leales y ventas, que sean amarillas y centradas

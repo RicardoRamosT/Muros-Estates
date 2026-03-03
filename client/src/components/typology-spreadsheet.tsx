@@ -4817,8 +4817,12 @@ export function TypologySpreadsheet() {
                           if (!selectedDev.city) devMissingFieldsList.push("Ciudad del desarrollo");
                           if (!selectedDev.zone) devMissingFieldsList.push("Zona del desarrollo");
                           if (!selectedDev.entregaProyectada) devMissingFieldsList.push("Fecha de Entrega");
+                          const devTipos = (selectedDev as any).tipos as string[] | null;
+                          if (!devTipos || devTipos.length === 0) devMissingFieldsList.push("Tipos del desarrollo");
                           const tipList = (selectedDev as any).tipologiasList as string[] | null;
                           if (!tipList || tipList.length === 0) devMissingFieldsList.push("Tipologías");
+                          const devTypologiesWithoutType = typologies.filter(t => t.development === mergedRow.development && (!t.type || (Array.isArray(t.type) && (t.type as string[]).length === 0)));
+                          if (devTypologiesWithoutType.length > 0) devMissingFieldsList.push(`${devTypologiesWithoutType.length} tipología(s) sin tipo`);
                         }
                         const devWarningText = devMissingFieldsList.length > 0 ? devMissingFieldsList.join('\n') : "";
                         const isDevIncomplete = devMissingFieldsList.length > 0;
