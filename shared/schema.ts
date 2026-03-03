@@ -151,6 +151,19 @@ export const PAGE_PERMISSIONS = {
       negativos: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
       // 22. comentarios - Profiler: 2, Asesor: 2
       comentarios: { admin: 'edit', perfilador: 'edit', asesor: 'edit' },
+      // UNIDAD
+      precioFinal:        { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      // SEPARACIÓN
+      fechaSeparacion:    { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      separacion:         { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      // ENGANCHE
+      fechaEnganche:      { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      enganche:           { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      // A PLAZO
+      plazoNumero:        { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      plazoMetro:         { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      plazoMensualidades: { admin: 'edit', perfilador: 'view', asesor: 'edit' },
+      plazoMonto:         { admin: 'edit', perfilador: 'view', asesor: 'edit' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
   // Permisos para Clientes (convertidos) - 16 campos

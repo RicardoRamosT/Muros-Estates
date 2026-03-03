@@ -999,6 +999,18 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
+                  // Handle typology-type field (derived read-only: shows type from selected tipología)
+                  if (col.type === 'typology-type') {
+                    const tipologiaId = (prospect as any).tipologia;
+                    const selectedTypology = typologies.find(t => t.id === tipologiaId);
+                    const tipoLabel = selectedTypology?.type || '';
+                    return (
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-tipoUnidad-${prospect.id}`}>
+                        <span className="text-xs px-2 truncate text-muted-foreground">{tipoLabel}</span>
+                      </div>
+                    );
+                  }
+
                   // Handle typology-select field (cascaded by developer and development)
                   if (col.type === 'typology-select') {
                     const value = (prospect as any).tipologia;
@@ -1166,6 +1178,51 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               </span>
                             )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // Handle plain-number fields (plazoNumero, plazoMetro, plazoMensualidades)
+                  if (col.type === 'plain-number') {
+                    const value = (prospect as any)[col.key];
+                    const numValue = value !== null && value !== undefined ? Number(value) : null;
+                    const isInteger = col.key === 'plazoNumero' || col.key === 'plazoMensualidades';
+                    const displayValue = numValue !== null
+                      ? isInteger
+                        ? numValue.toLocaleString('es-MX')
+                        : numValue.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : '';
+                    return (
+                      <div
+                        key={col.key}
+                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
+                        style={{ width: col.width, minWidth: col.width }}
+                        onClick={() => fieldCanEdit && !isEditing && handleCellClick(prospect.id, col.key, String(value ?? ''))}
+                        data-testid={`cell-${col.key}-${prospect.id}`}
+                      >
+                        {isEditing && fieldCanEdit ? (
+                          <Input
+                            type="number"
+                            step={isInteger ? '1' : '0.01'}
+                            defaultValue={editValue}
+                            onBlur={(e) => {
+                              const v = e.target.value;
+                              if (v !== String(value ?? '')) {
+                                handleFieldChange(prospect.id, { [col.key]: v !== '' ? Number(v) : null } as any);
+                              }
+                              setEditingCell(null);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            autoFocus
+                            className="h-6 text-xs border-0 p-0 px-1 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-${col.key}-${prospect.id}`}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-1 px-2">
+                            <span className="text-xs text-muted-foreground">{displayValue}</span>
+                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
                           </div>
                         )}
                       </div>
