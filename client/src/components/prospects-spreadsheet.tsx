@@ -1193,7 +1193,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const embudoColor = isEmbudo && selectedOption ? (selectedOption as any).color : null;
                     
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...(isEmbudo && embudoColor ? { backgroundColor: embudoColor } : {}) }}>
                         {fieldCanEdit ? (
                           <Select
                             value={value || "__unassigned__"}
@@ -1224,10 +1224,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <div className="flex items-center gap-1 px-3">
                             {displayLabel ? (
                               isEmbudo && embudoColor ? (
-                                <span 
-                                  className="px-2 py-0.5 rounded text-xs font-medium" 
-                                  style={{ backgroundColor: embudoColor, color: '#000' }}
-                                >
+                                <span className="text-xs font-medium" style={{ color: '#000' }}>
                                   {displayLabel}
                                 </span>
                               ) : (

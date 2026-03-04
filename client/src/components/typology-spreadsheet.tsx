@@ -1985,7 +1985,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         const devRecord = allDevelopers.find((dev: any) => dev.name === developer);
         if (devRecord) {
           options = allDevelopments
-            .filter(d => d.developerId === devRecord.id)
+            .filter(d => d.developerId === devRecord.id && d.active === true)
             .map(d => d.name)
             .filter(Boolean)
             .sort((a, b) => a.localeCompare(b, 'es'));

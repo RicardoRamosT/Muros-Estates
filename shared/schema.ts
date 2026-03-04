@@ -733,7 +733,8 @@ export const developments = pgTable("developments", {
   zone3: text("zone_3"), // Zona 3
   type: text("type"), // Tipo de desarrollo (Residencial, Uso mixto, etc.) - legacy
   tipos: text("tipos").array(), // Array de tipos de desarrollo (heredados del desarrollador)
-  nivel: text("nivel"), // Nivel
+  nivel: text("nivel"), // Nivel: JSON string de rangos [{desde: N, hasta: N}]
+  nivelMaximo: integer("nivel_maximo"), // Nivel máximo del edificio
   torres: integer("torres"), // Número de torres
   niveles: integer("niveles"), // Número de niveles
   tipologiasList: text("tipologias_list").array(), // Listado libre de tipologías del desarrollo

@@ -96,9 +96,7 @@ interface ColumnDef {
 
 function isDeveloperComplete(dev: Developer): boolean {
   return !!(
-    dev.tipo && dev.name && dev.razonSocial && dev.rfc && dev.domicilio &&
-    dev.tipos?.length && dev.contratos?.length && dev.representante &&
-    dev.contactName && dev.contactPhone && dev.contactEmail
+    dev.tipo && dev.name && dev.tipos?.length && dev.contratos?.length
   );
 }
 
@@ -430,10 +428,16 @@ export function DevelopersSpreadsheet() {
         return;
       }
     }
+
+    const existingValue = pendingChangesRef.current.get(id)?.[field as keyof Developer] ?? developers.find(d => d.id === id)?.[field as keyof Developer];
+    if (String(existingValue ?? '') === String(valueToSave ?? '')) {
+      setEditingCell(null);
+      return;
+    }
     
     handleFieldChange(id, { [field]: valueToSave || null });
     setEditingCell(null);
-  }, [editingCell, editValue, handleFieldChange, toast]);
+  }, [editingCell, editValue, handleFieldChange, toast, developers]);
 
   const handleMultiselectChange = useCallback((id: string, field: string, selectedValues: string[]) => {
     handleFieldChange(id, { [field]: selectedValues });
@@ -684,7 +688,7 @@ export function DevelopersSpreadsheet() {
                             <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                             <span className="truncate">{label}</span>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
                             <SelectItem value="active" disabled={!isComplete} className="text-xs">
                               <span className="flex items-center gap-1.5">
                                 <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
@@ -736,7 +740,7 @@ export function DevelopersSpreadsheet() {
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
                             <SelectItem value="__empty__">Seleccionar</SelectItem>
                             {EMPRESA_TIPOS.map(t => (
                               <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
@@ -786,7 +790,7 @@ export function DevelopersSpreadsheet() {
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
                             <SelectItem value="__empty__">Seleccionar</SelectItem>
                             {selectOptions.map(o => (
                               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -918,7 +922,7 @@ export function DevelopersSpreadsheet() {
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
-                        <Popover>
+                        <Popover modal={false}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="ghost"
@@ -929,7 +933,7 @@ export function DevelopersSpreadsheet() {
                               <ChevronDown className="h-3 w-3 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-56 p-2" align="start">
+                          <PopoverContent className="w-56 p-2" align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
                             <div className="space-y-1">
                               {options.map((opt) => (
                                 <label

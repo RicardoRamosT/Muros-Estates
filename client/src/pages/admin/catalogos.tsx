@@ -75,10 +75,10 @@ export default function AdminCatalogos() {
             <CompactList title="Áreas" endpoint="/api/catalog/areas" queryKey="/api/catalog/areas" ordered />
             <CompactList title="Cajones" endpoint="/api/catalog/cajones" queryKey="/api/catalog/cajones" ordered />
             <CompactList title="Incluye" endpoint="/api/catalog/incluye" queryKey="/api/catalog/incluye" ordered />
+            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
             <CompactList title="Como Se Entregan" endpoint="/api/catalog/acabados" queryKey="/api/catalog/acabados" ordered />
             <CompactList title="Eficiencia" endpoint="/api/catalog/efficiency-features" queryKey="/api/catalog/efficiency-features" ordered />
             <CompactList title="Seguridad" endpoint="/api/catalog/other-features" queryKey="/api/catalog/other-features" ordered />
-            <CompactList title="Amenidades" endpoint="/api/catalog/amenities" queryKey="/api/catalog/amenities" ordered />
             <NivelMini />
           </CollapsibleSection>
 
@@ -664,7 +664,7 @@ function NivelMini() {
   return (
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-nivel-mantenimiento">
       <div className={CARD_HEADER}>
-        <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Nivel Mantenimiento">Nivel Mantenimiento</span>
+        <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Nivel">Nivel</span>
         <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-white/80" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="w-3 h-3" />
         </Button>

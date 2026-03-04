@@ -44,12 +44,16 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
     ? groups.filter(g => g.label.toLowerCase().includes(query.toLowerCase()))
     : groups;
   const scrollTo = (group: SectionGroup) => {
+    setOpen(false);
     const container = scrollRef.current;
     if (!container) return;
     const cornerWidth = groups[0]?.offset ?? 60;
-    const centeredLeft = Math.max(0, group.offset - cornerWidth);
-    container.scrollLeft = centeredLeft;
-    setOpen(false);
+    const targetLeft = Math.max(0, group.offset - cornerWidth);
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = targetLeft;
+      }
+    });
   };
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -58,7 +62,7 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
           <Search className="w-3.5 h-3.5" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-48 p-2" align="start">
+      <PopoverContent className="w-48 p-2" align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
         <input
           className="w-full text-xs border rounded px-2 py-1 mb-2 outline-none focus:ring-1"
           placeholder="Buscar sección..."
