@@ -1,0 +1,41 @@
+En Desarrolladores, al meterte a un dropdowns y picarle a algo de afuérenlara si te deja picarle a algo
+
+En Desarrolladores las columnas Tipo, Desarrollador, Tipos y Contratos, son obligatorias para que el activo se ponga en No naranja para activarlo, las demás eran opcionales
+
+En Desarrolladores, al picarle a un input y salirte el botond e Guardar se activa pero no tiene porque si no cambie ningún valor
+
+En Desarrollos, aunque todos estén desactivados se ven en tipologías, probablemente la cascada no aplica correctamente en los activos
+
+En Desarrollos, el autoguardado al cambiar de sección no funciona correctamente 
+
+En Desarrollos, al poner 1 zona, la Zona 2 ya no se puede seleccionar el dato de Zona 1, igual en Zona 3 no puede seleccionar lo de Zona 1 y 2
+
+En Desarrollos, quitar la opción de elegir tipo de tipologías, ya que se harán las tipologías individualmente, por lo que su desarrollo ya le da su tipo, por ejemplo, creare 3 filas del mismo desarrollo, pero creare 1 tipología en cada fila del mismo desarrollo, y esa fila sera especialmente para esa tipologías nadamas, no para varias, por lo que si un desarrollo tiene 6 tipologías, habra 6 filas en desarrollos.
+
+En Desarrollos, en la columna Nivel, en el dropdown que sea crear un desde y hasta como rango, y podemos crear varios rangos, y hasta abajo del dropdown tener un input de niveles máximos, del nivel máximo del edificio, y si el input de nivel máximo se edita, en todas las tipologías del mismo desarrollo se editara acordemente.
+
+En Desarrollos, en la sección Depas se llamaría CANTIDAD
+
+En Desarrollos, en Avance deberia tener 2 columnas nadamas que son: Unidades, Porcentaje
+
+En Desarrollos, Cambiar la sección de Avance al nombre VENDIDO
+
+En Desarrollos, borrar la sección AVANCE %, y la de DEPAS que esta detrás de AVANCE %
+
+En Desarrollos, la sección AMENIDADES va después de CANTIDAD, y la columna Acabados va fuera individualmente, antes de AMENIDADES
+
+En Desarrollos, la sección REDACCION, va entre las secciónenlesnes ACABADOS y AMENIDADES
+
+En Desarrollos, la sección EXTRAS, desmantelar las columnas, que cada columna tenga su sección individual
+
+En Prospectos la columna ETAPA, que sus valores llenen la celda de su color, no solo el input.
+
+En Prospectos, ponerles las lógicas a los montos automátizados, ver el excel
+
+Checar la lógica de Búsqueda que esta bugeada
+
+Arreglar la animación del botón de guardado
+
+En CATALOGOS mover el catalogo AMENIDADES, adelante de como se entregan
+
+EN Catalogos, NIVEL MANTENIMIENTO, que solo se llame NIVEL
