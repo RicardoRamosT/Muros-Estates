@@ -1,9 +1,3 @@
-databases:
-  - name: muros-estates-db
-    plan: free
-    databaseName: muros_estates
-    user: muros_user
-
 services:
   - type: web
     name: muros-estates
@@ -15,6 +9,4 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: muros-estates-db
-          property: connectionString
+        sync: false
