@@ -748,7 +748,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     handleClearFilter,
     clearAllFilters,
     availableValuesMap,
-  } = useColumnFilters(effectiveProspects, columns, orderMaps);
+  } = useColumnFilters(effectiveProspects, columns, orderMaps, { defaultSortKey: "createdAt" });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;

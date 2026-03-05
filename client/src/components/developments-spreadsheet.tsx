@@ -223,10 +223,9 @@ function isDevelopmentComplete(dev: Development, parentDeveloper?: Developer | n
     return false;
   }
   return !!(
-    dev.empresaTipo && dev.developerId && dev.name && dev.city &&
-    dev.tipos?.length && dev.recamaras && dev.banos &&
-    dev.inicioProyectado && dev.entregaProyectada &&
-    dev.ventasNombre && dev.ventasTelefono
+    dev.developerId && dev.name && dev.city &&
+    dev.tipos?.length && dev.vistas?.length && dev.niveles &&
+    dev.entregaProyectada
   );
 }
 
@@ -241,17 +240,13 @@ function getMissingFieldsDevelopment(dev: Development, parentDeveloper?: Develop
   if (parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper))) {
     missing.push("Desarrollador padre (inactivo o incompleto)");
   }
-  if (!dev.empresaTipo) missing.push("Tipo empresa");
   if (!dev.developerId) missing.push("Desarrollador");
   if (!dev.name) missing.push("Nombre");
   if (!dev.city) missing.push("Ciudad");
   if (!dev.tipos?.length) missing.push("Tipos");
-  if (!dev.recamaras) missing.push("Recámaras");
-  if (!dev.banos) missing.push("Baños");
-  if (!dev.inicioProyectado) missing.push("Inicio proyectado");
+  if (!dev.vistas?.length) missing.push("Vistas");
+  if (!dev.niveles) missing.push("Niveles");
   if (!dev.entregaProyectada) missing.push("Entrega proyectada");
-  if (!dev.ventasNombre) missing.push("Nombre ventas");
-  if (!dev.ventasTelefono) missing.push("Teléfono ventas");
   return missing;
 }
 
@@ -677,7 +672,7 @@ export function DevelopmentsSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(developmentsForFilter, visibleColumns, { developerId: developerOrderMap });
+  } = useColumnFilters(developmentsForFilter, visibleColumns, { developerId: developerOrderMap }, { defaultSortKey: "createdAt" });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -978,6 +973,10 @@ export function DevelopmentsSpreadsheet() {
                     : isCompleteForDot
                       ? (dev.active === true ? '#15803d' : '#F16100')
                       : '#ef4444';
+                  const missingForDot = !isCompleteForDot ? getMissingFieldsDevelopment(dev, parentDeveloper) : [];
+                  const dotTooltip = missingForDot.length > 0
+                    ? `Campos vacíos (${missingForDot.length}):\n${missingForDot.map(f => `• ${f}`).join('\n')}`
+                    : null;
                   return (
                     <div
                       key={col.key}
@@ -986,10 +985,20 @@ export function DevelopmentsSpreadsheet() {
                       title={dev.id}
                     >
                       <span className="text-xs font-medium">{stableRowNumberMap.get(dev.id) ?? rowIndex + 1}</span>
-                      <span
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-                        style={{ backgroundColor: dotColor }}
-                      />
+                      {dotTooltip ? (
+                        <Tooltip delayDuration={200}>
+                          <TooltipTrigger asChild>
+                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                                  style={{ backgroundColor: dotColor }} />
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="text-[10px] leading-tight whitespace-pre-line max-w-[300px] max-h-[280px] overflow-y-auto z-[400]">
+                            {dotTooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                              style={{ backgroundColor: dotColor }} />
+                      )}
                     </div>
                   );
                 }

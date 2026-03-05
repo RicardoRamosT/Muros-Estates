@@ -384,6 +384,15 @@
     min-height: 24px;
   }
 
+  /* Hide scrollbar but keep scrolling */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   /* Visible scrollbar for spreadsheet containers */
   .spreadsheet-scroll::-webkit-scrollbar {
     height: 12px;

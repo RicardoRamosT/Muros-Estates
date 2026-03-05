@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
@@ -757,136 +757,61 @@ function NivelMini() {
   );
 }
 
-const AVISO_FIELDS = [
-  { value: "media", label: "Medios" },
-];
-
 function AvisosMini() {
   const { data: items = [], isLoading } = useQuery<CatalogAviso[]>({ queryKey: ["/api/catalog/avisos"] });
-  const [showForm, setShowForm] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newMin, setNewMin] = useState(1);
+  const { toast } = useToast();
+  const [localMin, setLocalMin] = useState<string>("");
+
+  const mediosAviso = items.find(a => a.field === "media");
+  const mediosMinStr = String(mediosAviso?.minQuantity ?? 1);
+  useEffect(() => { setLocalMin(mediosMinStr); }, [mediosMinStr]);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<CatalogAviso> }) => apiRequest("PUT", `/api/catalog/avisos/${id}`, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/avisos"] }),
+    onError: () => { toast({ title: "Error al actualizar aviso", variant: "destructive" }); },
   });
-
-  const createMutation = useMutation({
-    mutationFn: (data: { name: string; field: string; minQuantity: number }) => apiRequest("POST", "/api/catalog/avisos", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/catalog/avisos"] });
-      setNewName("");
-      setNewMin(1);
-      setShowForm(false);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/catalog/avisos/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/catalog/avisos"] }),
-  });
-
-  const handleCreate = () => {
-    if (!newName.trim()) return;
-    createMutation.mutate({ name: newName.trim(), field: "media", minQuantity: newMin });
-  };
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col" data-testid="catalog-avisos">
       <div className={CARD_HEADER}>
         <span className="font-semibold text-xs uppercase tracking-wide truncate" title="Avisos">Avisos</span>
-        <button
-          onClick={() => setShowForm(v => !v)}
-          className="ml-auto p-0.5 rounded hover:bg-white/20 transition-colors"
-          data-testid="button-nuevo-aviso"
-          title="Nuevo aviso"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
       </div>
-      {showForm && (
-        <div className="flex items-center gap-1 px-1.5 py-1 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-950/30">
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Nombre del aviso"
-            className="h-5 text-xs flex-1 min-w-0 border-gray-300"
-            data-testid="input-nuevo-aviso-name"
-            onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setShowForm(false); }}
-            autoFocus
-          />
-          <Input
-            type="number"
-            min={1}
-            value={newMin}
-            onChange={(e) => setNewMin(parseInt(e.target.value) || 1)}
-            className="h-5 text-xs w-12 border-gray-300 text-center"
-            data-testid="input-nuevo-aviso-min"
-          />
-          <button
-            onClick={handleCreate}
-            disabled={createMutation.isPending || !newName.trim()}
-            className="text-[10px] px-1.5 py-0.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 shrink-0"
-            data-testid="button-guardar-aviso"
-          >
-            {createMutation.isPending ? "..." : "Guardar"}
-          </button>
-          <button
-            onClick={() => setShowForm(false)}
-            className="text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 shrink-0"
-            data-testid="button-cancelar-aviso"
-          >
-            Cancelar
-          </button>
-        </div>
-      )}
       <div className="overflow-auto" style={{ height: BODY_HEIGHT_WITH_HEADER }}>
         {isLoading ? (
           <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin" /></div>
-        ) : items.length === 0 ? (
-          <div className="text-xs text-muted-foreground text-center py-3">Sin avisos configurados</div>
+        ) : !mediosAviso ? (
+          <div className="text-xs text-muted-foreground text-center py-3">Cargando aviso de medios...</div>
         ) : (
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr>
-                <th className={TH}>Nombre</th>
-                <th className={TH}>Campo</th>
+                <th className={TH}>Aviso</th>
                 <th className={TH}>Mín.</th>
-                <th className={TH} style={{ width: "24px" }}></th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700" style={{ height: `${ROW_HEIGHT}px` }}>
-                  <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700">
-                    <span className="text-xs">{item.name}</span>
-                  </td>
-                  <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700 text-center">
-                    <span className="text-xs">{AVISO_FIELDS.find(f => f.value === item.field)?.label ?? item.field}</span>
-                  </td>
-                  <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700 text-center">
-                    <Input
-                      type="number"
-                      min={1}
-                      value={item.minQuantity}
-                      onChange={(e) => updateMutation.mutate({ id: item.id, data: { minQuantity: parseInt(e.target.value) || 1 } })}
-                      className="h-5 text-xs border-0 p-0 text-center focus-visible:ring-0 w-full"
-                      data-testid={`input-aviso-min-${item.id}`}
-                    />
-                  </td>
-                  <td className="px-1 py-0.5 text-center">
-                    <button
-                      onClick={() => deleteMutation.mutate(item.id)}
-                      disabled={deleteMutation.isPending}
-                      className="text-red-400 hover:text-red-600 disabled:opacity-40"
-                      data-testid={`button-delete-aviso-${item.id}`}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              <tr className="border-b border-gray-200 dark:border-gray-700" style={{ height: `${ROW_HEIGHT}px` }}>
+                <td className="px-1.5 py-0.5 border-r border-gray-200 dark:border-gray-700">
+                  <span className="text-xs">Medios mínimos</span>
+                </td>
+                <td className="px-1.5 py-0.5 text-center">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={localMin}
+                    onChange={(e) => setLocalMin(e.target.value)}
+                    onBlur={() => {
+                      const val = parseInt(localMin) || 1;
+                      setLocalMin(String(val));
+                      if (val !== mediosAviso.minQuantity) updateMutation.mutate({ id: mediosAviso.id, data: { minQuantity: val } });
+                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                    className="h-5 text-xs border-0 p-0 text-center focus-visible:ring-0 w-full"
+                    data-testid="input-aviso-medios-min"
+                  />
+                </td>
+              </tr>
             </tbody>
           </table>
         )}

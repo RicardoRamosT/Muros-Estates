@@ -2839,7 +2839,12 @@ export async function registerRoutes(
   });
 
   app.get("/api/catalog/avisos", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogAvisos();
+    let items = await storage.getCatalogAvisos();
+    // Auto-seed the fixed "Medios" aviso if it doesn't exist
+    if (!items.some(i => i.field === "media")) {
+      const seeded = await storage.createCatalogAviso({ name: "Medios", field: "media", minQuantity: 1 });
+      items = [...items, seeded];
+    }
     res.json(items);
   });
 

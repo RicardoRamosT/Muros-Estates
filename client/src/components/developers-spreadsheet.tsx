@@ -296,7 +296,7 @@ export function DevelopersSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(effectiveDevelopers, columns);
+  } = useColumnFilters(effectiveDevelopers, columns, undefined, { defaultSortKey: "createdAt" });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -731,6 +731,10 @@ export function DevelopersSpreadsheet() {
                     : isCompleteForDot
                       ? (dev.active === true ? '#15803d' : '#F16100')
                       : '#ef4444';
+                  const missingForDot = !isCompleteForDot ? getMissingFieldsDeveloper(dev) : [];
+                  const dotTooltip = missingForDot.length > 0
+                    ? `Campos vacíos (${missingForDot.length}):\n${missingForDot.map(f => `• ${f}`).join('\n')}`
+                    : null;
                   return (
                     <div
                       key={field}
@@ -739,10 +743,20 @@ export function DevelopersSpreadsheet() {
                       title={dev.id}
                     >
                       <span className="text-xs font-medium">{stableRowNumberMap.get(dev.id) ?? index + 1}</span>
-                      <span
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-                        style={{ backgroundColor: dotColor }}
-                      />
+                      {dotTooltip ? (
+                        <Tooltip delayDuration={200}>
+                          <TooltipTrigger asChild>
+                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                                  style={{ backgroundColor: dotColor }} />
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="text-[10px] leading-tight whitespace-pre-line max-w-[300px] max-h-[280px] overflow-y-auto z-[400]">
+                            {dotTooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                              style={{ backgroundColor: dotColor }} />
+                      )}
                     </div>
                   );
                 }

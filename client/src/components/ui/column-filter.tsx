@@ -339,7 +339,8 @@ export function ColumnFilter({
 export function useColumnFilters<T extends Record<string, any>>(
   data: T[],
   columns: { key: string; type?: string }[],
-  orderMaps?: Record<string, Record<string, number>>
+  orderMaps?: Record<string, Record<string, number>>,
+  options?: { defaultSortKey?: string; defaultSortDirection?: "asc" | "desc" }
 ) {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({
     key: "",
@@ -441,10 +442,19 @@ export function useColumnFilters<T extends Record<string, any>>(
           ? aStr.localeCompare(bStr, "es")
           : bStr.localeCompare(aStr, "es");
       });
+    } else if (options?.defaultSortKey) {
+      // Default sort when no column sort is active (matches Tipologías createdAt ascending behavior)
+      const key = options.defaultSortKey;
+      const dir = options.defaultSortDirection ?? "asc";
+      result.sort((a, b) => {
+        const aVal = new Date(a[key] || 0).getTime();
+        const bVal = new Date(b[key] || 0).getTime();
+        return dir === "asc" ? aVal - bVal : bVal - aVal;
+      });
     }
 
     return result;
-  }, [data, sortConfig, filterConfigs, orderMaps]);
+  }, [data, sortConfig, filterConfigs, orderMaps, options?.defaultSortKey, options?.defaultSortDirection]);
 
   const handleSort = (key: string, direction: SortDirection) => {
     setSortConfig({ key, direction });
