@@ -3,8 +3,8 @@ services:
     name: muros-estates
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
+    buildCommand: npm install --include=dev && npx cross-env npx tsx script/build.ts
+    startCommand: node dist/index.cjs
     envVars:
       - key: NODE_ENV
         value: production
