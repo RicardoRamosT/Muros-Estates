@@ -8,6 +8,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { WebSocketServer, WebSocket } from "ws";
+import crypto from "crypto";
 
 // WebSocket clients set for real-time updates
 const wsClients = new Set<WebSocket>();
@@ -20,6 +21,48 @@ function broadcastTypologyUpdate(action: "create" | "update" | "delete", typolog
       client.send(message);
     }
   });
+}
+
+// Broadcast developer update to all connected clients
+function broadcastDeveloperUpdate(action: "create" | "update" | "delete", developer: Record<string, any> | { id: string }) {
+  const message = JSON.stringify({ type: "developer", action, data: developer });
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
+// Broadcast development update to all connected clients
+function broadcastDevelopmentUpdate(action: "create" | "update" | "delete", development: Record<string, any> | { id: string }) {
+  const message = JSON.stringify({ type: "development", action, data: development });
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
+// Broadcast client update to all connected clients
+function broadcastClientUpdate(action: "create" | "update" | "delete", clientData: Record<string, any> | { id: string }) {
+  const message = JSON.stringify({ type: "client", action, data: clientData });
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
+// Server-side completeness checks to prevent activating incomplete entities
+function isDeveloperComplete(d: Record<string, any>): boolean {
+  return !!(d.tipo && d.name && d.tipos?.length && d.contratos?.length);
+}
+
+function isDevelopmentComplete(d: Record<string, any>): boolean {
+  return !!(d.empresaTipo && d.developerId && d.name && d.city &&
+    d.tipos?.length && d.recamaras && d.banos &&
+    d.inicioProyectado && d.entregaProyectada &&
+    d.ventasNombre && d.ventasTelefono);
 }
 
 // Numeric fields in typology that need empty string to null conversion
@@ -200,7 +243,7 @@ export async function registerRoutes(
   
   // ============ FILE UPLOAD ROUTES ============
   
-  app.post("/api/upload", requireAuth, requireRole("admin", "actualizador"), upload.array("files", 20), async (req, res) => {
+  app.post("/api/upload", requireAuth, requireRole("admin", "actualizador"), upload.array("files", 10), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
@@ -406,6 +449,7 @@ export async function registerRoutes(
         zona: validationResult.data.zona || null,
       });
       
+      broadcastClientUpdate("create", client);
       res.status(201).json({ success: true, message: "Gracias por contactarnos. Un asesor te contactará pronto." });
     } catch (error) {
       console.error("Error creating contact:", error);
@@ -435,6 +479,10 @@ export async function registerRoutes(
       if (!client) {
         return res.status(404).json({ error: "Cliente no encontrado" });
       }
+      // Asesor can only view their own assigned clients
+      if (req.user!.role === "asesor" && client.assignedTo !== req.user!.id) {
+        return res.status(403).json({ error: "No tienes acceso a este cliente" });
+      }
       res.json(client);
     } catch (error) {
       console.error("Error fetching client:", error);
@@ -453,6 +501,7 @@ export async function registerRoutes(
         ...validationResult.data,
         source: "manual",
       });
+      broadcastClientUpdate("create", client);
       res.status(201).json(client);
     } catch (error) {
       console.error("Error creating client:", error);
@@ -462,6 +511,17 @@ export async function registerRoutes(
   
   app.put("/api/clients/:id", requireAuth, requireRole("admin", "perfilador", "asesor"), async (req, res) => {
     try {
+      // Asesor can only update their own assigned clients
+      if (req.user!.role === "asesor") {
+        const existing = await storage.getClient(req.params.id as string);
+        if (!existing) {
+          return res.status(404).json({ error: "Cliente no encontrado" });
+        }
+        if (existing.assignedTo !== req.user!.id) {
+          return res.status(403).json({ error: "No tienes acceso a este cliente" });
+        }
+      }
+
       // Convert date strings to Date objects for timestamp fields
       const data = { ...req.body };
       if (data.convertedAt && typeof data.convertedAt === 'string') {
@@ -473,11 +533,12 @@ export async function registerRoutes(
       if (data.fechaEnganche && typeof data.fechaEnganche === 'string') {
         data.fechaEnganche = new Date(data.fechaEnganche);
       }
-      
+
       const client = await storage.updateClient(req.params.id as string, data);
       if (!client) {
         return res.status(404).json({ error: "Cliente no encontrado" });
       }
+      broadcastClientUpdate("update", client);
       res.json(client);
     } catch (error) {
       console.error("Error updating client:", error);
@@ -488,6 +549,7 @@ export async function registerRoutes(
   app.delete("/api/clients/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       await storage.deleteClient(req.params.id as string);
+      broadcastClientUpdate("delete", { id: req.params.id as string });
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting client:", error);
@@ -873,21 +935,46 @@ export async function registerRoutes(
   app.put("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
       const id = req.params.id as string;
-      
+
+      // Prevent activating a typology with inactive parents
+      if (req.body.active === true) {
+        const existing = await storage.getTypology(id);
+        if (!existing) {
+          return res.status(404).json({ error: "Tipología no encontrada" });
+        }
+        const merged = { ...existing, ...req.body };
+        // Check developer is active
+        if (merged.developer) {
+          const devs = await storage.getAllDevelopers();
+          const dev = devs.find((d: any) => d.name === merged.developer);
+          if (!dev || dev.active !== true) {
+            return res.status(400).json({ error: "No se puede activar una tipología cuyo desarrollador no está activo" });
+          }
+        }
+        // Check development is active
+        if (merged.development) {
+          const desas = await storage.getAllDevelopmentsEntity();
+          const desa = desas.find((d: any) => d.name === merged.development);
+          if (!desa || desa.active !== true) {
+            return res.status(400).json({ error: "No se puede activar una tipología cuyo desarrollo no está activo" });
+          }
+        }
+      }
+
       const updateData = cleanTypologyData({
         ...req.body,
         updatedBy: req.user!.id,
       });
-      
+
       const typology = await storage.updateTypology(id, updateData);
-      
+
       if (!typology) {
         return res.status(404).json({ error: "Tipología no encontrada" });
       }
-      
+
       // Broadcast to all connected clients
       broadcastTypologyUpdate("update", typology);
-      
+
       res.json(typology);
     } catch (error) {
       console.error("Error updating typology:", error);
@@ -898,18 +985,41 @@ export async function registerRoutes(
   app.patch("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
       const id = req.params.id as string;
-      
+
+      // Prevent activating a typology with inactive parents
+      if (req.body.active === true) {
+        const existing = await storage.getTypology(id);
+        if (!existing) {
+          return res.status(404).json({ error: "Tipología no encontrada" });
+        }
+        const merged = { ...existing, ...req.body };
+        if (merged.developer) {
+          const devs = await storage.getAllDevelopers();
+          const dev = devs.find((d: any) => d.name === merged.developer);
+          if (!dev || dev.active !== true) {
+            return res.status(400).json({ error: "No se puede activar una tipología cuyo desarrollador no está activo" });
+          }
+        }
+        if (merged.development) {
+          const desas = await storage.getAllDevelopmentsEntity();
+          const desa = desas.find((d: any) => d.name === merged.development);
+          if (!desa || desa.active !== true) {
+            return res.status(400).json({ error: "No se puede activar una tipología cuyo desarrollo no está activo" });
+          }
+        }
+      }
+
       const updateData = cleanTypologyData({
         ...req.body,
         updatedBy: req.user!.id,
       });
-      
+
       const typology = await storage.updateTypology(id, updateData);
-      
+
       if (!typology) {
         return res.status(404).json({ error: "Tipología no encontrada" });
       }
-      
+
       // Broadcast to all connected clients
       broadcastTypologyUpdate("update", typology);
       
@@ -954,7 +1064,7 @@ export async function registerRoutes(
   });
   
   // Upload media for a specific typology
-  app.post("/api/development-media", requireAuth, requireRole("admin", "actualizador"), upload.array("files", 20), async (req, res) => {
+  app.post("/api/development-media", requireAuth, requireRole("admin", "actualizador"), upload.array("files", 10), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       const { typologyId } = req.body;
@@ -1050,6 +1160,7 @@ export async function registerRoutes(
   app.post("/api/developers", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
       const dev = await storage.createDeveloper(req.body);
+      broadcastDeveloperUpdate("create", dev);
       res.status(201).json(dev);
     } catch (error) {
       console.error("Error creating developer:", error);
@@ -1065,10 +1176,24 @@ export async function registerRoutes(
       if (data.fechaAntiguedad && typeof data.fechaAntiguedad === 'string') {
         data.fechaAntiguedad = new Date(data.fechaAntiguedad);
       }
+
+      // Prevent activating an incomplete developer
+      if (data.active === true) {
+        const existing = await storage.getDeveloper(id);
+        if (!existing) {
+          return res.status(404).json({ error: "Desarrollador no encontrado" });
+        }
+        const merged = { ...existing, ...data };
+        if (!isDeveloperComplete(merged)) {
+          return res.status(400).json({ error: "No se puede activar un desarrollador con datos incompletos" });
+        }
+      }
+
       const dev = await storage.updateDeveloper(id, data);
       if (!dev) {
         return res.status(404).json({ error: "Desarrollador no encontrado" });
       }
+      broadcastDeveloperUpdate("update", dev);
       res.json(dev);
     } catch (error) {
       console.error("Error updating developer:", error);
@@ -1090,6 +1215,7 @@ export async function registerRoutes(
       if (dev.name) {
         await storage.clearTypologyFieldByValue("developer", dev.name);
       }
+      broadcastDeveloperUpdate("delete", { id });
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting developer:", error);
@@ -1131,6 +1257,7 @@ export async function registerRoutes(
   app.post("/api/developments-entity", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
       const dev = await storage.createDevelopmentEntity(req.body);
+      broadcastDevelopmentUpdate("create", dev);
       res.status(201).json(dev);
     } catch (error) {
       console.error("Error creating development:", error);
@@ -1141,6 +1268,26 @@ export async function registerRoutes(
   app.put("/api/developments-entity/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
       const id = req.params.id as string;
+
+      // Prevent activating an incomplete development or one with inactive parent
+      if (req.body.active === true) {
+        const existing = await storage.getDevelopmentEntity(id);
+        if (!existing) {
+          return res.status(404).json({ error: "Desarrollo no encontrado" });
+        }
+        const merged = { ...existing, ...req.body };
+        if (!isDevelopmentComplete(merged)) {
+          return res.status(400).json({ error: "No se puede activar un desarrollo con datos incompletos" });
+        }
+        // Check parent developer is active
+        if (merged.developerId) {
+          const parent = await storage.getDeveloper(merged.developerId);
+          if (!parent || parent.active !== true) {
+            return res.status(400).json({ error: "No se puede activar un desarrollo cuyo desarrollador no está activo" });
+          }
+        }
+      }
+
       const dev = await storage.updateDevelopmentEntity(id, req.body);
       if (!dev) {
         return res.status(404).json({ error: "Desarrollo no encontrado" });
@@ -1167,7 +1314,8 @@ export async function registerRoutes(
           console.error("Error propagating date to typologies:", propError);
         }
       }
-      
+
+      broadcastDevelopmentUpdate("update", dev);
       res.json(dev);
     } catch (error) {
       console.error("Error updating development:", error);
@@ -1189,6 +1337,7 @@ export async function registerRoutes(
       if (dev.name) {
         await storage.clearTypologyFieldByValue("development", dev.name);
       }
+      broadcastDevelopmentUpdate("delete", { id });
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting development:", error);
@@ -1461,12 +1610,7 @@ export async function registerRoutes(
   
   // Generate unique token for shared links
   function generateToken(): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let token = "";
-    for (let i = 0; i < 32; i++) {
-      token += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return token;
+    return crypto.randomBytes(32).toString("hex");
   }
   
   // Get all shared links (admin view)

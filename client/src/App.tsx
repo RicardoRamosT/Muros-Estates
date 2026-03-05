@@ -10,7 +10,6 @@ import Properties from "@/pages/properties";
 import PropertyDetail from "@/pages/property-detail";
 import TypologyDetail from "@/pages/typology-detail";
 import Login from "@/pages/login";
-import AdminDashboard from "@/pages/admin/dashboard";
 import PropertyEdit from "@/pages/admin/property-edit";
 import AdminUsers from "@/pages/admin/users";
 import AdminUserNew from "@/pages/admin/user-new";
@@ -45,6 +44,16 @@ function ProtectedRoute({ component: Component, allowedRoles }: { component: Rea
   }
 
   return <Component />;
+}
+
+function AdminRedirect() {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  if (!isAuthenticated) return <Redirect to="/login" />;
+  const role = user?.role;
+  if (role === "admin" || role === "actualizador") return <Redirect to="/admin/desarrolladores" />;
+  if (role === "perfilador" || role === "asesor") return <Redirect to="/admin/prospectos" />;
+  return <Redirect to="/admin/desarrolladores" />;
 }
 
 function Router() {
@@ -93,7 +102,7 @@ function Router() {
         {() => <ProtectedRoute component={AdminCatalogos} allowedRoles={["admin", "actualizador"]} />}
       </Route>
       <Route path="/admin">
-        {() => <ProtectedRoute component={AdminDashboard} />}
+        {() => <AdminRedirect />}
       </Route>
       <Route component={NotFound} />
     </Switch>

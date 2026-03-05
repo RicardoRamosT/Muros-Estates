@@ -31,10 +31,32 @@ import {
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
+
+const ActiveDropdownRef = { current: null as (() => void) | null };
+
+function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+  const [open, setOpen] = useState(false);
+  const closeMe = useCallback(() => setOpen(false), []);
+  useEffect(() => {
+    return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
+  }, [closeMe]);
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    if (isOpen) {
+      if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+        ActiveDropdownRef.current();
+      }
+      ActiveDropdownRef.current = closeMe;
+    } else {
+      if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+    }
+    setOpen(isOpen);
+  }, [closeMe]);
+  return <Select {...props} open={open} onOpenChange={handleOpenChange}>{children}</Select>;
+}
 
 const DESARROLLO_TIPOS = [
   { value: "Residencial", label: "Residencial" },
@@ -96,19 +118,36 @@ interface ColumnDef {
 
 function isDeveloperComplete(dev: Developer): boolean {
   return !!(
-    dev.tipo && dev.name && dev.tipos?.length && dev.contratos?.length
+    dev.tipo?.trim() && EMPRESA_TIPOS.some(t => t.value === dev.tipo?.trim()) &&
+    dev.name?.trim() && dev.tipos?.length && dev.contratos?.length
   );
+}
+
+function getMissingFieldsDeveloper(dev: Developer): string[] {
+  const missing: string[] = [];
+  if (!dev.tipo?.trim() || !EMPRESA_TIPOS.some(t => t.value === dev.tipo?.trim())) missing.push("Tipo");
+  if (!dev.name?.trim()) missing.push("Nombre");
+  if (!dev.tipos?.length) missing.push("Tipos");
+  if (!dev.contratos?.length) missing.push("Contratos");
+  return missing;
 }
 
 export function DevelopersSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
-  const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
+  const editingCellRef = useRef<{id: string, field: string} | null>(null);
+  const setEditingCell = useCallback((v: {id: string, field: string} | null) => { editingCellRef.current = v; setEditingCell_(v); }, []);
   const LONG_TEXT_FIELDS = ['name', 'razonSocial', 'domicilio', 'representante', 'contactName', 'contactPhone', 'contactEmail'];
-  const [editValue, setEditValue] = useState("");
+  const [editValue, setEditValue_] = useState("");
+  const editValueRef = useRef("");
+  const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const toggleGroupCollapse = (key: string) => {
+    if (activeEditingRowId) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
     setCollapsedGroups(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
@@ -118,6 +157,9 @@ export function DevelopersSpreadsheet() {
   const COLLAPSED_COL_WIDTH = 20;
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
   const toggleColumn = (key: string) => {
+    if (activeEditingRowId) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
     setCollapsedColumns(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
@@ -209,41 +251,40 @@ export function DevelopersSpreadsheet() {
     [developers, localEdits]
   );
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      pendingChangesRef.current.forEach((changes, id) => {
-        if (Object.keys(changes).length > 0) {
-          fetch(`/api/developers/${id}`, {
-            method: 'PUT',
-            keepalive: true,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(changes),
-          });
-        }
-      });
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  const flushPendingChanges = useCallback(() => {
+    const ec = editingCellRef.current;
+    if (ec) {
+      const current = pendingChangesRef.current.get(ec.id) || {};
+      pendingChangesRef.current.set(ec.id, { ...current, [ec.field]: editValueRef.current || null });
+    }
+    const pending = pendingChangesRef.current;
+    if (pending.size === 0) return;
+    const sessionId = localStorage.getItem("muros_session");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+    const promises: Promise<any>[] = [];
+    pending.forEach((changes, id) => {
+      if (!changes || Object.keys(changes).length === 0) return;
+      promises.push(fetch(`/api/developers/${id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(changes),
+        keepalive: true,
+      }));
+    });
+    pending.clear();
+    Promise.all(promises).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/developers"] });
+    });
   }, []);
 
   useEffect(() => {
+    window.addEventListener('beforeunload', flushPendingChanges);
     return () => {
-      const pending = pendingChangesRef.current;
-      if (pending.size === 0) return;
-      const sessionId = localStorage.getItem("muros_session");
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
-      pending.forEach((changes, id) => {
-        if (!changes || Object.keys(changes).length === 0) return;
-        fetch(`/api/developers/${id}`, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify(changes),
-          keepalive: true,
-        });
-      });
+      window.removeEventListener('beforeunload', flushPendingChanges);
+      flushPendingChanges();
     };
-  }, []);
+  }, [flushPendingChanges]);
 
   const {
     sortConfig,
@@ -263,10 +304,6 @@ export function DevelopersSpreadsheet() {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setVisibleCount(INITIAL_ROWS);
-  }, [filteredAndSortedData.length]);
-
-  useEffect(() => {
     const sentinel = sentinelRef.current;
     const scrollContainer = contentScrollRef.current;
     if (!sentinel || !scrollContainer) return;
@@ -283,10 +320,96 @@ export function DevelopersSpreadsheet() {
     return () => observer.disconnect();
   }, [filteredAndSortedData.length]);
 
+  // WebSocket real-time sync
+  const wsRef = useRef<WebSocket | null>(null);
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    let mounted = true;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      if (!mounted) return;
+      wsRef.current = new WebSocket(wsUrl);
+      wsRef.current.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "developer") {
+            queryClient.invalidateQueries({ queryKey: ["/api/developers"] });
+          }
+        } catch (e) {
+          console.error("WebSocket message error:", e);
+        }
+      };
+      wsRef.current.onclose = () => {
+        if (!mounted) return;
+        reconnectTimer = setTimeout(connect, 3000);
+      };
+      wsRef.current.onerror = () => {};
+    };
+    connect();
+    return () => {
+      mounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); }
+    };
+  }, []);
+
   const visibleData = useMemo(
     () => filteredAndSortedData.slice(0, visibleCount),
     [filteredAndSortedData, visibleCount]
   );
+
+  // Stable row numbering (creation-order)
+  const stableRowNumberMap = useMemo(() => {
+    const sorted = [...developers].sort((a, b) =>
+      new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+    );
+    const map = new Map<string, number>();
+    sorted.forEach((t, i) => map.set(t.id, i + 1));
+    return map;
+  }, [developers]);
+
+  // Zoom controls
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [showZoomPopup, setShowZoomPopup] = useState(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleZoomChange = (newZoom: number) => {
+    const clampedZoom = Math.max(50, Math.min(150, newZoom));
+    setZoomLevel(clampedZoom);
+    setShowZoomPopup(true);
+    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
+    zoomTimeoutRef.current = setTimeout(() => setShowZoomPopup(false), 2000);
+  };
+  const zoomIn = () => handleZoomChange(zoomLevel + 5);
+  const zoomOut = () => handleZoomChange(zoomLevel - 5);
+
+  // Auto-scroll to bottom on load and creation
+  const scrollToBottomPhaseRef = useRef<'idle' | 'loading_all' | 'done'>('idle');
+
+  useEffect(() => {
+    if (isLoading || developers.length === 0 || scrollToBottomPhaseRef.current !== 'idle') return;
+    scrollToBottomPhaseRef.current = 'loading_all';
+    setVisibleCount(filteredAndSortedData.length);
+  }, [isLoading, developers]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'loading_all') return;
+    if (visibleCount < filteredAndSortedData.length) return;
+    scrollToBottomPhaseRef.current = 'done';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (contentScrollRef.current) {
+          contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
+        }
+      });
+    });
+  }, [visibleCount, filteredAndSortedData.length]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'done') return;
+    scrollToBottomPhaseRef.current = 'idle';
+  }, [filteredAndSortedData.length]);
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
@@ -550,7 +673,7 @@ export function DevelopersSpreadsheet() {
       </div>
       
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
-        <div className="min-w-max text-xs">
+        <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
           {/* Header: Three-row structure (matches Tipologías) */}
           <SpreadsheetHeader
             visibleColumns={columns}
@@ -615,7 +738,7 @@ export function DevelopersSpreadsheet() {
                       style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
                       title={dev.id}
                     >
-                      <span className="text-xs font-medium">{index + 1}</span>
+                      <span className="text-xs font-medium">{stableRowNumberMap.get(dev.id) ?? index + 1}</span>
                       <span
                         className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
                         style={{ backgroundColor: dotColor }}
@@ -665,14 +788,18 @@ export function DevelopersSpreadsheet() {
                   const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
                   const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
                   const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
-                  return (
-                    <div 
-                      key={field} 
+                  const missingFields = activeState === "incomplete" ? getMissingFieldsDeveloper(dev) : [];
+                  const tooltipContent = missingFields.length > 0
+                    ? `Campos vacíos (${missingFields.length}):\n${missingFields.map(f => `• ${f}`).join('\n')}`
+                    : undefined;
+                  const cellContent = (
+                    <div
+                      key={field}
                       className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
                       style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}
                     >
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
                           onValueChange={(v) => {
                             if (v === "disabled") handleActiveToggle(dev.id, null);
@@ -680,7 +807,7 @@ export function DevelopersSpreadsheet() {
                             else handleActiveToggle(dev.id, false);
                           }}
                         >
-                          <SelectTrigger 
+                          <SelectTrigger
                             className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
                             style={textStyle}
                             data-testid={`toggle-active-${dev.id}`}
@@ -688,7 +815,7 @@ export function DevelopersSpreadsheet() {
                             <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                             <span className="truncate">{label}</span>
                           </SelectTrigger>
-                          <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                          <SelectContent>
                             <SelectItem value="active" disabled={!isComplete} className="text-xs">
                               <span className="flex items-center gap-1.5">
                                 <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
@@ -708,16 +835,24 @@ export function DevelopersSpreadsheet() {
                               </span>
                             </SelectItem>
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
                           <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                           <span>{label}</span>
-                          
                         </div>
                       )}
                     </div>
                   );
+                  if (tooltipContent) {
+                    return (
+                      <Tooltip key={field}>
+                        <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
+                        <TooltipContent side="right" className="whitespace-pre-line text-xs max-w-[300px]">{tooltipContent}</TooltipContent>
+                      </Tooltip>
+                    );
+                  }
+                  return cellContent;
                 }
                 
                 if (col.type === 'tipo-select') {
@@ -730,7 +865,7 @@ export function DevelopersSpreadsheet() {
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={tipoValue || "__empty__"}
                           onValueChange={(v) => {
                             const val = v === "__empty__" ? "" : v;
@@ -740,13 +875,13 @@ export function DevelopersSpreadsheet() {
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
-                          <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                          <SelectContent>
                             <SelectItem value="__empty__">Seleccionar</SelectItem>
                             {EMPRESA_TIPOS.map(t => (
                               <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="truncate text-xs">{tipoValue}</span>
@@ -780,7 +915,7 @@ export function DevelopersSpreadsheet() {
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={selectValue || "__empty__"}
                           onValueChange={(v) => {
                             const val = v === "__empty__" ? "" : v;
@@ -790,13 +925,13 @@ export function DevelopersSpreadsheet() {
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
-                          <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                          <SelectContent>
                             <SelectItem value="__empty__">Seleccionar</SelectItem>
                             {selectOptions.map(o => (
                               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className="truncate text-xs">{selectValue}</span>
@@ -922,7 +1057,7 @@ export function DevelopersSpreadsheet() {
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
-                        <Popover modal={false}>
+                        <Popover modal>
                           <PopoverTrigger asChild>
                             <Button
                               variant="ghost"
@@ -980,7 +1115,13 @@ export function DevelopersSpreadsheet() {
                         <Input
                           defaultValue={editValue.toUpperCase()}
                           onBlur={(e) => handleCellBlur(dev.id, field, e.target.value.toUpperCase())}
-                          onKeyDown={(e) => { if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value.toUpperCase()); }}
+                          onKeyDown={(e) => {
+                            createInputFilter('rfc')(e);
+                            if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value.toUpperCase());
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          onPaste={createPasteFilter('rfc')}
+                          onInput={(e) => { (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.toUpperCase(); }}
                           autoFocus
                           maxLength={13}
                           placeholder="12-13 dígitos"
@@ -1008,14 +1149,24 @@ export function DevelopersSpreadsheet() {
                     data-testid={`cell-${field}-${dev.id}`}
                   >
                     {isEditing && fieldCanEdit ? (
-                      <Input
-                        defaultValue={editValue}
-                        onBlur={(e) => handleCellBlur(dev.id, field, e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value); }}
-                        autoFocus
-                        className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                        data-testid={`input-${field}-${dev.id}`}
-                      />
+                      (() => {
+                        const filterType = getColumnFilterType(field);
+                        return (
+                          <Input
+                            defaultValue={editValue}
+                            onBlur={(e) => handleCellBlur(dev.id, field, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (filterType) createInputFilter(filterType)(e);
+                              if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value);
+                              if (e.key === "Escape") setEditingCell(null);
+                            }}
+                            onPaste={filterType ? createPasteFilter(filterType) : undefined}
+                            autoFocus
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            data-testid={`input-${field}-${dev.id}`}
+                          />
+                        );
+                      })()
                     ) : (
                       <div className="flex items-center gap-1 overflow-hidden">
                         <span
@@ -1042,6 +1193,20 @@ export function DevelopersSpreadsheet() {
             </div>
           )}
         </div>
+      </div>
+      {showZoomPopup && (
+        <div className="fixed bottom-12 right-4 z-50 bg-background border rounded-md shadow-md px-3 py-1 text-xs font-medium">
+          {zoomLevel}%
+        </div>
+      )}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center bg-background border rounded-md shadow-md p-0">
+        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-b-none" onClick={zoomIn} disabled={zoomLevel >= 150}>
+          <Plus className="h-3 w-3" />
+        </Button>
+        <div className="h-px w-3 bg-border" />
+        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50}>
+          <Minus className="h-3 w-3" />
+        </Button>
       </div>
     </div>
   );

@@ -1209,7 +1209,7 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
 
   return (
     <div className="w-full h-full relative flex items-center text-white" style={{ backgroundColor: sectionColor || undefined }}>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover modal open={open} onOpenChange={setOpen}>
         {hideLabel ? (
           <PopoverTrigger asChild>
             <button
@@ -1591,7 +1591,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   
   if (devWarning && disabled) {
     return (
-      <Popover>
+      <Popover modal>
         <PopoverTrigger asChild>
           <div
             className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
@@ -2171,7 +2171,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (availableTypes.length === 0 || disabled) {
       if (devWarning) {
         return (
-          <Popover>
+          <Popover modal>
             <PopoverTrigger asChild>
               <div 
                 className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
@@ -2229,7 +2229,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
-        <Popover>
+        <Popover modal>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
@@ -2388,28 +2388,30 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
     : sectionGroups;
 
   const scrollTo = (group: { label: string; offset: number; width: number }) => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
-    if (el) {
-      const containerRect = container.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const elLeft = elRect.left - containerRect.left + container.scrollLeft;
-      const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
-      const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
-      const centeredLeft = Math.max(0, elLeft + el.clientWidth / 2 - stickyWidth - (container.clientWidth - stickyWidth) / 2);
-      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
-    } else {
-      const freeSpace = container.clientWidth - group.width;
-      const centeredLeft = Math.max(0, group.offset - Math.max(0, freeSpace) / 2);
-      container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
-    }
     setOpen(false);
     setQuery("");
+    requestAnimationFrame(() => {
+      const container = scrollRef.current;
+      if (!container) return;
+      const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
+      const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
+      const visibleWidth = container.clientWidth - stickyWidth;
+      const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
+      if (el) {
+        const containerRect = container.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const elLeft = elRect.left - containerRect.left + container.scrollLeft;
+        const centeredLeft = Math.max(0, elLeft + elRect.width / 2 - stickyWidth - visibleWidth / 2);
+        container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      } else {
+        const centeredLeft = Math.max(0, group.offset - (visibleWidth - group.width) / 2);
+        container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      }
+    });
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover modal open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
@@ -2895,14 +2897,17 @@ export function TypologySpreadsheet() {
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
-    
+    let mounted = true;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
     const connect = () => {
+      if (!mounted) return;
       wsRef.current = new WebSocket(wsUrl);
-      
+
       wsRef.current.onopen = () => {
         console.log("WebSocket connected");
       };
-      
+
       wsRef.current.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
@@ -2913,21 +2918,25 @@ export function TypologySpreadsheet() {
           console.error("WebSocket message error:", e);
         }
       };
-      
+
       wsRef.current.onclose = () => {
+        if (!mounted) return;
         console.log("WebSocket disconnected, reconnecting...");
-        setTimeout(connect, 3000);
+        reconnectTimer = setTimeout(connect, 3000);
       };
-      
+
       wsRef.current.onerror = (error) => {
         console.error("WebSocket error:", error);
       };
     };
-    
+
     connect();
-    
+
     return () => {
+      mounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
       if (wsRef.current) {
+        wsRef.current.onclose = null;
         wsRef.current.close();
       }
     };
@@ -3410,38 +3419,35 @@ export function TypologySpreadsheet() {
   const hasPendingRowChanges = activeEditingRowId ? pendingChanges.has(activeEditingRowId) : false;
   const pendingRowCount = useMemo(() => Array.from(pendingChangesRef.current.values()).filter(c => c && Object.keys(c).length > 0).length, [pendingChangesVersion]);
 
-  useEffect(() => {
-    const hasPending = pendingChanges.size > 0;
-    const handler = (e: BeforeUnloadEvent) => {
-      if (hasPending) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    if (hasPending) {
-      window.addEventListener("beforeunload", handler);
-    }
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [pendingChangesVersion]);
+  const flushPendingChanges = useCallback(() => {
+    const pending = pendingChangesRef.current;
+    if (pending.size === 0) return;
+    const sessionId = localStorage.getItem("muros_session");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+    const promises: Promise<any>[] = [];
+    pending.forEach((changes, rowId) => {
+      if (!changes || Object.keys(changes).length === 0) return;
+      promises.push(fetch(`/api/typologies/${rowId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(changes),
+        keepalive: true,
+      }));
+    });
+    pending.clear();
+    Promise.all(promises).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
+    });
+  }, []);
 
   useEffect(() => {
+    window.addEventListener('beforeunload', flushPendingChanges);
     return () => {
-      const pending = pendingChangesRef.current;
-      if (pending.size === 0) return;
-      const sessionId = localStorage.getItem("muros_session");
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
-      pending.forEach((changes, rowId) => {
-        if (!changes || Object.keys(changes).length === 0) return;
-        fetch(`/api/typologies/${rowId}`, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify(changes),
-          keepalive: true,
-        });
-      });
+      window.removeEventListener('beforeunload', flushPendingChanges);
+      flushPendingChanges();
     };
-  }, []);
+  }, [flushPendingChanges]);
 
   const handleAddRow = () => {
     const globalKeys = ["mortgageInterestPercent", "rentRatePercent", "rentMonths", "appreciationRate"];
@@ -4611,7 +4617,9 @@ export function TypologySpreadsheet() {
             const isRowDisabled = mergedRow.active === null;
             const parentDevelopment = dbDevelopments.find((d: any) => d.name === mergedRow.development);
             const parentDeveloper = dbDevelopers.find((d: any) => d.name === mergedRow.developer);
-            const isCascadeInactive = parentDevelopment?.active === false || parentDeveloper?.active === false;
+            const isCascadeInactive =
+              (mergedRow.developer && (!parentDeveloper || parentDeveloper.active !== true)) ||
+              (mergedRow.development && (!parentDevelopment || parentDevelopment.active !== true));
             const isRowGray = isRowDisabled || isCascadeInactive;
             return (
               <div

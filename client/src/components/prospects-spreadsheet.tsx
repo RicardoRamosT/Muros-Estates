@@ -21,10 +21,32 @@ import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
+
+const ActiveDropdownRef = { current: null as (() => void) | null };
+
+function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+  const [open, setOpen] = useState(false);
+  const closeMe = useCallback(() => setOpen(false), []);
+  useEffect(() => {
+    return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
+  }, [closeMe]);
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    if (isOpen) {
+      if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+        ActiveDropdownRef.current();
+      }
+      ActiveDropdownRef.current = closeMe;
+    } else {
+      if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+    }
+    setOpen(isOpen);
+  }, [closeMe]);
+  return <Select {...props} open={open} onOpenChange={handleOpenChange}>{children}</Select>;
+}
 
 const COLUMN_GROUPS_PROSPECT = [
   { key: 'corner', label: '', color: '' },
@@ -71,13 +93,32 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const { toast } = useToast();
   const pageName = isClientView ? 'clientes' : 'prospectos';
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions(pageName as any);
-  const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
+  const editingCellRef = useRef<{id: string, field: string} | null>(null);
+  const setEditingCell = useCallback((v: {id: string, field: string} | null) => { editingCellRef.current = v; setEditingCell_(v); }, []);
   const [textDetail, setTextDetail] = useState<{title: string, value: string} | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [editValue, setEditValue_] = useState("");
+  const editValueRef = useRef("");
+  const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const toggleGroupCollapse = (key: string) => {
+    if (activeEditingRowId) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
     setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+  const COLLAPSED_COL_WIDTH = 20;
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const toggleColumn = (key: string) => {
+    if (activeEditingRowId) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
+    setCollapsedColumns(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
       return next;
@@ -162,6 +203,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, []);
 
   const handleFieldChange = useCallback((id: string, data: Partial<Client>) => {
+    // Auto-calculate financial amounts in client view
+    if (isClientView) {
+      const financialTriggers = ['precioFinal', 'porcentajeSeparacion', 'porcentajeEnganche', 'porcentajePlazo'];
+      const changedKeys = Object.keys(data);
+      if (changedKeys.some(k => financialTriggers.includes(k))) {
+        const record = prospects.find(p => p.id === id);
+        const pending = pendingChangesRef.current.get(id) || {};
+        const local = localEdits[id] || {};
+        const merged: any = { ...record, ...pending, ...local, ...data };
+        const precio = parseFloat(merged.precioFinal) || 0;
+        if (precio > 0) {
+          const pctSep = parseFloat(merged.porcentajeSeparacion) || 0;
+          const pctEng = parseFloat(merged.porcentajeEnganche) || 0;
+          const pctPlazo = parseFloat(merged.porcentajePlazo) || 0;
+          if (pctSep >= 0) (data as any).separacion = String(Math.round(precio * pctSep / 100));
+          if (pctEng >= 0) (data as any).enganche = String(Math.round(precio * pctEng / 100));
+          if (pctPlazo >= 0) (data as any).plazoTotal = String(Math.round(precio * pctPlazo / 100));
+        }
+      }
+    }
     const current = pendingChangesRef.current.get(id) || {};
     pendingChangesRef.current.set(id, { ...current, ...data });
     setPendingChangesVersion(v => v + 1);
@@ -170,7 +231,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       saveRowByIdRef.current(activeEditingRowId);
     }
     setActiveEditingRowId(id);
-  }, [activeEditingRowId]);
+  }, [activeEditingRowId, isClientView, prospects, localEdits]);
 
   const saveRowById = useCallback(async (id: string) => {
     const changes = pendingChangesRef.current.get(id);
@@ -282,11 +343,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const handleCreateNew = () => {
     createMutation.mutate({
-      nombre: "Nuevo Prospecto",
+      nombre: isClientView ? "Nuevo Cliente" : "Nuevo Prospecto",
       telefono: "",
       estatus: "activo",
       embudo: "nuevo",
       comoLlega: "web",
+      ...(isClientView ? { isClient: true } : {}),
     } as any);
   };
 
@@ -299,10 +361,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const prospectColumns = [
     { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
-    { key: "active", label: "Activo", width: "58px", type: "toggle", group: "registro" },
+    { key: "active", label: "Activo", width: "68px", type: "toggle", group: "registro" },
     { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "registro" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "registro" },
-    { key: "asesorId", label: "Asesor", width: "130px", type: "select", group: "asesor" },
+    { key: "asesorId", label: "", width: "130px", type: "select", group: "asesor" },
     { key: "nombre", label: "Nombre", width: "120px", group: "prospecto" },
     { key: "apellido", label: "Apellido", width: "120px", group: "prospecto" },
     { key: "telefono", label: "Teléfono", width: "110px", group: "prospecto" },
@@ -311,8 +373,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "perfil", label: "Perfil", width: "110px", type: "options-select", group: "general" },
     { key: "comoLlega", label: "Fuente", width: "130px", type: "options-select", group: "general" },
     { key: "brokerExterno", label: "Asesor Ext.", width: "80px", type: "boolean-select", group: "general" },
-    { key: "estatus", label: "Estatus", width: "100px", type: "options-select", group: "estatus" },
-    { key: "embudo", label: "Etapa", width: "140px", type: "options-select", group: "etapa" },
+    { key: "estatus", label: "", width: "100px", type: "options-select", group: "estatus" },
+    { key: "embudo", label: "", width: "140px", type: "options-select", group: "etapa" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select", group: "ubicacion" },
     { key: "zona", label: "Zona", width: "100px", type: "catalog-select", group: "ubicacion" },
     { key: "desarrollador", label: "Desarrollador", width: "130px", type: "catalog-select", group: "unidad" },
@@ -328,7 +390,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "plazoMetro", label: "Metro", width: "90px", type: "plain-number", group: "plazo" },
     { key: "plazoMensualidades", label: "Mensualidades", width: "115px", type: "plain-number", group: "plazo" },
     { key: "plazoMonto", label: "Monto", width: "120px", type: "currency", group: "plazo" },
-    { key: "comoPaga", label: "Cómo Paga", width: "120px", type: "options-select", group: "comoPagaGroup" },
+    { key: "comoPaga", label: "", width: "120px", type: "options-select", group: "comoPagaGroup" },
     { key: "positivos", label: "Positivos", width: "140px", type: "multi-select", group: "notas" },
     { key: "negativos", label: "Negativos", width: "140px", type: "multi-select", group: "notas" },
     { key: "comentarios", label: "Otros", width: "160px", noFilter: true, group: "notas" },
@@ -338,11 +400,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const clientColumns = [
     { key: "index",   label: "ID",   width: "60px",  type: "index",        group: "corner" },
     // REGISTRO
-    { key: "active",  label: "Activo", width: "58px", type: "toggle",      group: "cregistro" },
+    { key: "active",  label: "Activo", width: "68px", type: "toggle",      group: "cregistro" },
     { key: "fecha",   label: "Fecha",  width: "85px", type: "date-display", field: "createdAt", group: "cregistro" },
     { key: "hora",    label: "Hora",   width: "65px", type: "time-display", field: "createdAt", group: "cregistro" },
     // ASESOR
-    { key: "asesorId", label: "Asesor", width: "130px", type: "select",    group: "casesor" },
+    { key: "asesorId", label: "", width: "130px", type: "select",    group: "casesor" },
     // CLIENTE
     { key: "nombre",   label: "Nombre",   width: "120px", group: "ccliente" },
     { key: "apellido", label: "Apellido", width: "120px", group: "ccliente" },
@@ -521,8 +583,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       cols = processed;
     }
 
+    if (collapsedColumns.size > 0) {
+      cols = cols.map(col =>
+        collapsedColumns.has(col.key) ? { ...col, width: `${COLLAPSED_COL_WIDTH}px` } : col
+      );
+    }
+
     return cols;
-  }, [allColumns, canView, collapsedGroups]);
+  }, [allColumns, canView, collapsedGroups, collapsedColumns]);
 
   const COLUMN_GROUPS_CURRENT = isClientView ? COLUMN_GROUPS_CLIENT : COLUMN_GROUPS_PROSPECT;
   const groupLookupMap = useMemo(() => Object.fromEntries(COLUMN_GROUPS_CURRENT.map(g => [g.key, g])), [isClientView]);
@@ -634,22 +702,40 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     [prospects, localEdits]
   );
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      pendingChangesRef.current.forEach((changes, id) => {
-        if (Object.keys(changes).length > 0) {
-          fetch(`/api/clients/${id}`, {
-            method: 'PUT',
-            keepalive: true,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(changes),
-          });
-        }
-      });
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  const flushPendingChanges = useCallback(() => {
+    const ec = editingCellRef.current;
+    if (ec) {
+      const current = pendingChangesRef.current.get(ec.id) || {};
+      pendingChangesRef.current.set(ec.id, { ...current, [ec.field]: editValueRef.current || null });
+    }
+    const pending = pendingChangesRef.current;
+    if (pending.size === 0) return;
+    const sessionId = localStorage.getItem("muros_session");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+    const promises: Promise<any>[] = [];
+    pending.forEach((changes, id) => {
+      if (!changes || Object.keys(changes).length === 0) return;
+      promises.push(fetch(`/api/clients/${id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(changes),
+        keepalive: true,
+      }));
+    });
+    pending.clear();
+    Promise.all(promises).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+    });
   }, []);
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', flushPendingChanges);
+    return () => {
+      window.removeEventListener('beforeunload', flushPendingChanges);
+      flushPendingChanges();
+    };
+  }, [flushPendingChanges]);
 
   // Column filtering and sorting
   const {
@@ -668,10 +754,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const LOAD_MORE = 30;
   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setVisibleCount(INITIAL_ROWS);
-  }, [filteredAndSortedData.length]);
 
   useEffect(() => {
     setCollapsedGroups(new Set());
@@ -694,10 +776,96 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     return () => observer.disconnect();
   }, [filteredAndSortedData.length]);
 
+  // WebSocket real-time sync
+  const wsRef = useRef<WebSocket | null>(null);
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    let mounted = true;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      if (!mounted) return;
+      wsRef.current = new WebSocket(wsUrl);
+      wsRef.current.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "client") {
+            queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+          }
+        } catch (e) {
+          console.error("WebSocket message error:", e);
+        }
+      };
+      wsRef.current.onclose = () => {
+        if (!mounted) return;
+        reconnectTimer = setTimeout(connect, 3000);
+      };
+      wsRef.current.onerror = () => {};
+    };
+    connect();
+    return () => {
+      mounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); }
+    };
+  }, []);
+
   const visibleData = useMemo(
     () => filteredAndSortedData.slice(0, visibleCount),
     [filteredAndSortedData, visibleCount]
   );
+
+  // Stable row numbering (creation-order)
+  const stableRowNumberMap = useMemo(() => {
+    const sorted = [...prospects].sort((a, b) =>
+      new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+    );
+    const map = new Map<string, number>();
+    sorted.forEach((t, i) => map.set(t.id, i + 1));
+    return map;
+  }, [prospects]);
+
+  // Zoom controls
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [showZoomPopup, setShowZoomPopup] = useState(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleZoomChange = (newZoom: number) => {
+    const clampedZoom = Math.max(50, Math.min(150, newZoom));
+    setZoomLevel(clampedZoom);
+    setShowZoomPopup(true);
+    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
+    zoomTimeoutRef.current = setTimeout(() => setShowZoomPopup(false), 2000);
+  };
+  const zoomIn = () => handleZoomChange(zoomLevel + 5);
+  const zoomOut = () => handleZoomChange(zoomLevel - 5);
+
+  // Auto-scroll to bottom on load and creation
+  const scrollToBottomPhaseRef = useRef<'idle' | 'loading_all' | 'done'>('idle');
+
+  useEffect(() => {
+    if (isLoading || prospects.length === 0 || scrollToBottomPhaseRef.current !== 'idle') return;
+    scrollToBottomPhaseRef.current = 'loading_all';
+    setVisibleCount(filteredAndSortedData.length);
+  }, [isLoading, prospects]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'loading_all') return;
+    if (visibleCount < filteredAndSortedData.length) return;
+    scrollToBottomPhaseRef.current = 'done';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (contentScrollRef.current) {
+          contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
+        }
+      });
+    });
+  }, [visibleCount, filteredAndSortedData.length]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'done') return;
+    scrollToBottomPhaseRef.current = 'idle';
+  }, [filteredAndSortedData.length]);
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
@@ -732,11 +900,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               Permisos limitados
             </Badge>
           )}
-          {collapsedGroups.size > 0 && (
+          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCollapsedGroups(new Set())}
+              onClick={() => {
+                setCollapsedGroups(new Set());
+                setCollapsedColumns(new Set());
+              }}
               title="Descolapsar todo"
               data-testid="button-expand-all"
             >
@@ -788,7 +959,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       </div>
 
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
-        <div className="min-w-max text-xs">
+        <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
           <SpreadsheetHeader
             visibleColumns={columns}
             visibleColumnGroups={visibleColumnGroups}
@@ -807,6 +978,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             groupMaps={groupMaps}
             collapsedGroups={collapsedGroups}
             onToggleGroupCollapse={toggleGroupCollapse}
+            collapsedColumns={collapsedColumns}
+            onToggleColumnCollapse={toggleColumn}
           />
 
           {visibleData.map((prospect, index) => {
@@ -844,7 +1017,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
                         title={prospect.id}
                       >
-                        <span className="text-xs font-medium">{index + 1}</span>
+                        <span className="text-xs font-medium">{stableRowNumberMap.get(prospect.id) ?? index + 1}</span>
                         <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ backgroundColor: dotColor }} />
                       </div>
                     );
@@ -861,11 +1034,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
                       >
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={isActive ? "si" : "no"}
                             onValueChange={(v) => handleActiveToggle(prospect.id, v === "si")}
                           >
-                            <SelectTrigger 
+                            <SelectTrigger
                               className={`h-6 text-xs border-0 bg-transparent px-1 font-medium ${textColorClass}`}
                               data-testid={`toggle-active-${prospect.id}`}
                             >
@@ -877,7 +1050,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                               <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
                             <span>{isActive ? 'Sí' : 'No'}</span>
@@ -917,13 +1090,23 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
+                  if (collapsedColumns.has(col.key)) {
+                    return (
+                      <div
+                        key={col.key}
+                        className="spreadsheet-cell flex-shrink-0"
+                        style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
+                      />
+                    );
+                  }
+
                   if (col.key === 'asesorId') {
                     const value = (prospect as any).asesorId;
                     const asesorName = getAsesorName(value);
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'asesorId', v)}
                           >
@@ -936,7 +1119,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center gap-1 px-3">
                             {value ? (
@@ -956,7 +1139,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={value}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'estatus', v)}
                           >
@@ -968,7 +1151,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center gap-1 px-3">
                             <Badge variant="outline" className="text-xs">
@@ -1004,7 +1187,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       return (
                         <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                           {fieldCanEdit ? (
-                            <Select
+                            <ExclusiveSelect
                               value={value || "__unassigned__"}
                               onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                             >
@@ -1022,7 +1205,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                   </SelectGroup>
                                 ))}
                               </SelectContent>
-                            </Select>
+                            </ExclusiveSelect>
                           ) : (
                             <div className="flex items-center gap-1 px-3">
                               <span>{value || '-'}</span>
@@ -1036,7 +1219,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
@@ -1049,7 +1232,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center gap-1 px-3">
                             <span>{value || '-'}</span>
@@ -1092,7 +1275,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleTypologySelect(prospect.id, v)}
                           >
@@ -1122,13 +1305,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 })()
                               ) : (
                                 <SelectItem value="__no_options__" disabled>
-                                  {prospectDeveloper || prospectDevelopment 
-                                    ? 'No hay tipologías para esta selección' 
+                                  {prospectDeveloper || prospectDevelopment
+                                    ? 'No hay tipologías para esta selección'
                                     : 'Selecciona desarrollador/desarrollo primero'}
                                 </SelectItem>
                               )}
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center gap-1 px-3">
                             <span>{displayName}</span>
@@ -1157,11 +1340,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
-                            <SelectTrigger 
+                            <SelectTrigger
                               className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
                             >
                               <SelectValue placeholder="-" />
@@ -1171,7 +1354,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                               <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
                             <span>{displayValue || '-'}</span>
@@ -1191,15 +1374,19 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const isComoPaga = col.key === 'comoPaga';
                     const isEmbudo = col.key === 'embudo';
                     const embudoColor = isEmbudo && selectedOption ? (selectedOption as any).color : null;
-                    
+                    const cellClasses = getCellStyle({ type: "dropdown", disabled: !fieldCanEdit });
+                    const effectiveClasses = isEmbudo && embudoColor
+                      ? cellClasses.replace(/\bbg-\S+/g, '')
+                      : cellClasses;
+
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...(isEmbudo && embudoColor ? { backgroundColor: embudoColor } : {}) }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", effectiveClasses)} style={{ width: col.width, minWidth: col.width, ...(isEmbudo && embudoColor ? { backgroundColor: embudoColor } : {}) }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
-                            <SelectTrigger 
+                            <SelectTrigger
                               className={`h-6 text-xs border-0 bg-transparent ${isComoPaga && !value ? 'text-red-500 font-medium' : ''}`}
                               style={embudoColor ? { backgroundColor: embudoColor, color: '#000', fontWeight: 500 } : {}}
                             >
@@ -1210,8 +1397,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 {isComoPaga ? '-' : '-'}
                               </SelectItem>
                               {options.map(opt => (
-                                <SelectItem 
-                                  key={opt.value} 
+                                <SelectItem
+                                  key={opt.value}
                                   value={opt.value}
                                   style={isEmbudo && (opt as any).color ? { backgroundColor: (opt as any).color } : {}}
                                 >
@@ -1219,7 +1406,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 </SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center gap-1 px-3">
                             {displayLabel ? (
@@ -1272,7 +1459,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               }
                               setEditingCell(null);
                             }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                              if (e.key === 'Escape') { setEditingCell(null); }
+                            }}
                             autoFocus
                             className="h-6 text-xs border-0 p-0 px-1 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-${col.key}-${prospect.id}`}
@@ -1305,7 +1495,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
-                          <Popover>
+                          <Popover modal>
                             <PopoverTrigger asChild>
                               <Button variant="ghost" className={`h-6 w-full justify-start text-xs font-normal px-2 ${!displayText ? 'text-red-500 font-medium' : ''}`}>
                                 <span className="truncate">{displayText || 'SIN ASIGNAR'}</span>
@@ -1366,7 +1556,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               }
                               setEditingCell(null);
                             }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value); }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value);
+                              if (e.key === 'Escape') { setEditingCell(null); }
+                            }}
                             autoFocus
                             className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
                             data-testid={`input-${col.key}-${prospect.id}`}
@@ -1471,14 +1664,24 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       data-testid={`cell-${col.key}-${prospect.id}`}
                     >
                       {isEditing && fieldCanEdit ? (
-                        <Input
-                          defaultValue={editValue}
-                          onBlur={(e) => handleCellBlur(prospect.id, col.key, e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value); }}
-                          autoFocus
-                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                          data-testid={`input-${col.key}-${prospect.id}`}
-                        />
+                        (() => {
+                          const filterType = getColumnFilterType(col.key);
+                          return (
+                            <Input
+                              defaultValue={editValue}
+                              onBlur={(e) => handleCellBlur(prospect.id, col.key, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (filterType) createInputFilter(filterType)(e);
+                                if (e.key === "Enter") handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value);
+                                if (e.key === "Escape") { setEditingCell(null); }
+                              }}
+                              onPaste={filterType ? createPasteFilter(filterType) : undefined}
+                              autoFocus
+                              className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                              data-testid={`input-${col.key}-${prospect.id}`}
+                            />
+                          );
+                        })()
                       ) : (
                         <div
                           className="flex items-center gap-1 cursor-pointer"
@@ -1512,6 +1715,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         title={textDetail?.title || ""}
         value={textDetail?.value || ""}
       />
+      {showZoomPopup && (
+        <div className="fixed bottom-12 right-4 z-50 bg-background border rounded-md shadow-md px-3 py-1 text-xs font-medium">
+          {zoomLevel}%
+        </div>
+      )}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center bg-background border rounded-md shadow-md p-0">
+        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-b-none" onClick={zoomIn} disabled={zoomLevel >= 150}>
+          <Plus className="h-3 w-3" />
+        </Button>
+        <div className="h-px w-3 bg-border" />
+        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50}>
+          <Minus className="h-3 w-3" />
+        </Button>
+      </div>
     </div>
   );
 }

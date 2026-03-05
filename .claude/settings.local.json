@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(__NEW_LINE_f7b489b712b32ef1__ echo:*)",
+      "Bash(__NEW_LINE_2ff7f0d8072ef824__ echo:*)",
+      "Bash(node:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(__NEW_LINE_91cad47548f6924e__ echo:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)"
+    ]
+  }
+}

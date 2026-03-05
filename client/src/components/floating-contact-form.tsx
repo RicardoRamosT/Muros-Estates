@@ -128,7 +128,7 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
         <Button
           size="lg"
           onClick={() => setIsOpen(true)}
-          className="rounded-full shadow-lg gap-2 px-6"
+          className="rounded-full shadow-lg gap-2 px-6 animate-in fade-in duration-200"
           data-testid="button-open-contact"
         >
           {showInterestButton ? (
@@ -144,7 +144,7 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
           )}
         </Button>
       ) : (
-        <Card className="w-72 shadow-2xl border-0 animate-in slide-in-from-bottom-4" data-testid="card-floating-contact">
+        <Card className="w-72 shadow-2xl border-0 animate-in slide-in-from-bottom-4 fade-in duration-300" data-testid="card-floating-contact">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm" data-testid="text-floating-title">

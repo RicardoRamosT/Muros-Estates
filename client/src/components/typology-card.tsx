@@ -35,7 +35,7 @@ export function TypologyCard({ typology, index, imageUrl }: TypologyCardProps) {
   return (
     <Link href={`/tipologia/${typology.id}`}>
       <Card 
-        className="overflow-hidden cursor-pointer group hover-elevate active-elevate-2 transition-all duration-300"
+        className="cursor-pointer group transition-shadow transition-transform duration-300"
         data-testid={`card-typology-${typology.id}`}
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">

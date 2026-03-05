@@ -35,7 +35,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Link href={`/property/${property.id}`}>
       <Card 
-        className="overflow-hidden cursor-pointer group hover-elevate active-elevate-2 transition-all duration-300"
+        className="cursor-pointer group transition-shadow transition-transform duration-300"
         data-testid={`card-property-${property.id}`}
       >
         <div className="relative aspect-[4/3] overflow-hidden">
@@ -43,7 +43,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <img
               src={property.images[0]}
               alt={property.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">

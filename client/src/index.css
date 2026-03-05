@@ -344,7 +344,7 @@
   .spreadsheet-cell input:focus-visible {
     outline: none !important;
     box-shadow: none !important;
-    ring: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
   }
 
   /* Remove spin buttons (arrows) on numeric inputs */
@@ -407,17 +407,45 @@
   }
 }
 
-@keyframes save-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255, 181, 73, 0.7), 0 0 0 0 rgba(255, 181, 73, 0.3);
-    opacity: 1;
-  }
-  50% {
-    box-shadow: 0 0 0 5px rgba(255, 181, 73, 0), 0 0 12px 4px rgba(255, 181, 73, 0.25);
-    opacity: 0.9;
-  }
+@keyframes electric-rotate {
+  0% { --electric-angle: 0deg; }
+  100% { --electric-angle: 360deg; }
+}
+
+@property --electric-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
 }
 
 .save-electric-btn {
-  animation: save-pulse 1.8s ease-in-out infinite;
+  position: relative;
+  overflow: visible;
+  z-index: 0;
+}
+
+.save-electric-btn::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--electric-angle),
+    transparent 0%,
+    transparent 60%,
+    hsl(43 76% 53%) 75%,
+    hsl(43 95% 70%) 80%,
+    white 82%,
+    hsl(43 95% 70%) 84%,
+    hsl(43 76% 53%) 89%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: electric-rotate 1.5s linear infinite;
+  z-index: -1;
+  pointer-events: none;
 }

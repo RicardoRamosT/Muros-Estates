@@ -24,9 +24,31 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { DEVELOPMENT_TYPES } from "@shared/constants";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { cn } from "@/lib/utils";
+
+const ActiveDropdownRef = { current: null as (() => void) | null };
+
+function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+  const [open, setOpen] = useState(false);
+  const closeMe = useCallback(() => setOpen(false), []);
+  useEffect(() => {
+    return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
+  }, [closeMe]);
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    if (isOpen) {
+      if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+        ActiveDropdownRef.current();
+      }
+      ActiveDropdownRef.current = closeMe;
+    } else {
+      if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+    }
+    setOpen(isOpen);
+  }, [closeMe]);
+  return <Select {...props} open={open} onOpenChange={handleOpenChange}>{children}</Select>;
+}
 
 const TORRES_OPTIONS = Array.from({ length: 9 }, (_, i) => i + 1);
 const NIVELES_OPTIONS = Array.from({ length: 110 }, (_, i) => i + 1);
@@ -60,22 +82,22 @@ const columnGroups: ColumnGroup[] = [
   { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
   { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_LIGHT },
   { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_DARK },
-  { key: 'noheader_lockoff', label: 'Lock Off', color: SHEET_COLOR_DARK },
+  { key: 'noheader_lockoff', label: 'LOCK OFF', color: SHEET_COLOR_DARK },
   { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_LIGHT },
   { key: 'depas', label: 'CANTIDAD', color: SHEET_COLOR_DARK },
   { key: 'avance', label: 'VENDIDO', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_acabados', label: 'Acabados', color: SHEET_COLOR_DARK },
-  { key: 'noheader_redaccion', label: 'Redacción', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_amenidades', label: 'Amenidades', color: SHEET_COLOR_DARK },
-  { key: 'noheader_preventa', label: 'Preventa', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_acabados', label: 'ACABADOS', color: SHEET_COLOR_DARK },
+  { key: 'noheader_redaccion', label: 'REDACCIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_amenidades', label: 'AMENIDADES', color: SHEET_COLOR_DARK },
+  { key: 'noheader_preventa', label: 'PREVENTA', color: SHEET_COLOR_LIGHT },
   { key: 'obra', label: 'OBRA', color: SHEET_COLOR_DARK },
-  { key: 'noheader_contrato', label: 'Contrato', color: SHEET_COLOR_DARK },
+  { key: 'noheader_contrato', label: 'CONTRATO', color: SHEET_COLOR_DARK },
   { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_LIGHT },
   { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_DARK },
-  { key: 'noheader_ubicacion', label: 'Ubicación', color: SHEET_COLOR_DARK },
-  { key: 'noheader_presentacion', label: 'Presentación', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_legales', label: 'Legales', color: SHEET_COLOR_DARK },
-  { key: 'noheader_venta', label: 'Venta', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'noheader_presentacion', label: 'PRESENTACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_legales', label: 'LEGALES', color: SHEET_COLOR_DARK },
+  { key: 'noheader_venta', label: 'VENTA', color: SHEET_COLOR_LIGHT },
   { key: 'actions', label: '' },
 ];
 
@@ -132,7 +154,7 @@ function NivelRangeCell({ dev, onSave, fieldCanEdit }: { dev: Development; onSav
   const display = formatNivelDisplay(rangos);
 
   return (
-    <Popover open={open} onOpenChange={handleOpen} modal={false}>
+    <Popover open={open} onOpenChange={handleOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -196,7 +218,10 @@ function NivelRangeCell({ dev, onSave, fieldCanEdit }: { dev: Development; onSav
   );
 }
 
-function isDevelopmentComplete(dev: Development): boolean {
+function isDevelopmentComplete(dev: Development, parentDeveloper?: Developer | null): boolean {
+  if (parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper))) {
+    return false;
+  }
   return !!(
     dev.empresaTipo && dev.developerId && dev.name && dev.city &&
     dev.tipos?.length && dev.recamaras && dev.banos &&
@@ -207,8 +232,27 @@ function isDevelopmentComplete(dev: Development): boolean {
 
 function isDeveloperComplete(dev: Developer): boolean {
   return !!(
-    dev.tipo && dev.name && dev.tipos?.length && dev.contratos?.length
+    dev.tipo?.trim() && dev.name?.trim() && dev.tipos?.length && dev.contratos?.length
   );
+}
+
+function getMissingFieldsDevelopment(dev: Development, parentDeveloper?: Developer | null): string[] {
+  const missing: string[] = [];
+  if (parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper))) {
+    missing.push("Desarrollador padre (inactivo o incompleto)");
+  }
+  if (!dev.empresaTipo) missing.push("Tipo empresa");
+  if (!dev.developerId) missing.push("Desarrollador");
+  if (!dev.name) missing.push("Nombre");
+  if (!dev.city) missing.push("Ciudad");
+  if (!dev.tipos?.length) missing.push("Tipos");
+  if (!dev.recamaras) missing.push("Recámaras");
+  if (!dev.banos) missing.push("Baños");
+  if (!dev.inicioProyectado) missing.push("Inicio proyectado");
+  if (!dev.entregaProyectada) missing.push("Entrega proyectada");
+  if (!dev.ventasNombre) missing.push("Nombre ventas");
+  if (!dev.ventasTelefono) missing.push("Teléfono ventas");
+  return missing;
 }
 
 const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime", "developerId"]);
@@ -227,22 +271,22 @@ const columns: ColumnDef[] = [
   { key: 'zone3', label: 'Zona 3', group: 'ubicacion', type: 'zone-select', width: '95px', cellType: 'dropdown' },
   { key: 'tipos', label: 'Tipos', group: 'estructura', type: 'multiselect-tipos', width: '110px', cellType: 'dropdown' },
   { key: 'nivel', label: 'Nivel', group: 'estructura', type: 'nivel-select', width: '110px', cellType: 'dropdown' },
-  { key: 'torres', label: 'Torres', group: 'estructura', type: 'torres-select', width: '60px', cellType: 'dropdown' },
-  { key: 'niveles', label: 'Niveles', group: 'estructura', type: 'niveles-select', width: '65px', cellType: 'dropdown' },
+  { key: 'torres', label: 'Torres', group: 'estructura', type: 'torres-select', width: '78px', cellType: 'dropdown' },
+  { key: 'niveles', label: 'Niveles', group: 'estructura', type: 'niveles-select', width: '78px', cellType: 'dropdown' },
   { key: 'vistas', label: 'Vistas', group: 'estructura', type: 'multiselect-creatable', width: '95px', cellType: 'dropdown' },
   { key: 'tamanoDesde', label: 'Desde', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
   { key: 'tamanoHasta', label: 'Hasta', group: 'tamano', type: 'number', width: '75px', cellType: 'input', suffix: 'm²' },
-  { key: 'lockOff', label: 'Lock Off', group: 'noheader_lockoff', type: 'boolean', width: '58px', cellType: 'checkbox' },
+  { key: 'lockOff', label: '', group: 'noheader_lockoff', type: 'boolean', width: '110px', cellType: 'checkbox' },
   { key: 'recamaras', label: 'Recámaras', group: 'distribucion', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
   { key: 'banos', label: 'Baños', group: 'distribucion', type: 'banos-select', width: '80px', cellType: 'dropdown' },
   { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
   { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
-  { key: 'depasVendidas', label: 'Vendidas', group: 'avance', type: 'number', width: '65px', cellType: 'input' },
+  { key: 'depasVendidas', label: '', group: 'avance', type: 'number', width: '95px', cellType: 'input' },
   { key: 'depasPorcentajeCalc', label: '%', group: 'avance', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
-  { key: 'acabados', label: 'Acabados', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
-  { key: 'redaccionValor', label: 'Redacción Valor', group: 'noheader_redaccion', type: 'redaccion-text', width: '120px', cellType: 'input' },
+  { key: 'acabados', label: '', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
+  { key: 'redaccionValor', label: '', group: 'noheader_redaccion', type: 'redaccion-text', width: '120px', cellType: 'input' },
   { key: 'amenities', label: 'Amenidades', group: 'noheader_amenidades', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
-  { key: 'efficiency', label: 'Eficiencia', group: 'noheader_amenidades', type: 'multiselect-efficiency', width: '90px', cellType: 'dropdown' },
+  { key: 'efficiency', label: 'Eficiencia', group: 'noheader_amenidades', type: 'multiselect-efficiency', width: '100px', cellType: 'dropdown' },
   { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader_preventa', width: '90px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo Transc.', group: 'noheader_preventa', width: '85px', cellType: 'input' },
@@ -256,24 +300,31 @@ const columns: ColumnDef[] = [
   { key: 'pagosNombre', label: 'Nombre', group: 'pagos', width: '100px', cellType: 'input' },
   { key: 'pagosTelefono', label: 'Teléfono', group: 'pagos', width: '90px', cellType: 'input' },
   { key: 'pagosCorreo', label: 'Correo', group: 'pagos', width: '120px', cellType: 'input' },
-  { key: 'location', label: 'Ubicación', group: 'noheader_ubicacion', width: '80px', cellType: 'input' },
-  { key: 'presentacion', label: 'Presentación', group: 'noheader_presentacion', type: 'presentacion-select', width: '100px', cellType: 'dropdown' },
-  { key: 'legalesFolder', label: 'Legales', group: 'noheader_legales', type: 'folder-link', folderSection: 'legales', width: '70px' },
-  { key: 'ventaFolder', label: 'Venta', group: 'noheader_venta', type: 'folder-link', folderSection: 'venta', width: '70px' },
+  { key: 'location', label: '', group: 'noheader_ubicacion', width: '100px', cellType: 'input' },
+  { key: 'presentacion', label: '', group: 'noheader_presentacion', type: 'presentacion-select', width: '120px', cellType: 'dropdown' },
+  { key: 'legalesFolder', label: '', group: 'noheader_legales', type: 'folder-link', folderSection: 'legales', width: '85px' },
+  { key: 'ventaFolder', label: '', group: 'noheader_venta', type: 'folder-link', folderSection: 'venta', width: '80px' },
   { key: 'actions', label: '', group: 'actions', type: 'actions', width: '50px' },
 ];
 
 export function DevelopmentsSpreadsheet() {
   const { toast } = useToast();
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions('desarrollos');
-  const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
-  const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void} | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
+  const editingCellRef = useRef<{id: string, field: string} | null>(null);
+  const setEditingCell = useCallback((v: {id: string, field: string} | null) => { editingCellRef.current = v; setEditingCell_(v); }, []);
+  const [textDetail, setTextDetail] = useState<{title: string, value: string, editable: boolean, onSave?: (v: string) => void, inputFilterType?: InputFilterType} | null>(null);
+  const [editValue, setEditValue_] = useState("");
+  const editValueRef = useRef("");
+  const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const toggleGroupCollapse = (key: string) => {
+    if (activeEditingRowId) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
     setCollapsedGroups(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
@@ -283,6 +334,9 @@ export function DevelopmentsSpreadsheet() {
   const COLLAPSED_COL_WIDTH = 20;
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
   const toggleColumn = (key: string) => {
+    if (activeEditingRowId) {
+      saveRowByIdRef.current(activeEditingRowId);
+    }
     setCollapsedColumns(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
@@ -567,41 +621,40 @@ export function DevelopmentsSpreadsheet() {
     [developments, localEdits]
   );
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      pendingChangesRef.current.forEach((changes, id) => {
-        if (Object.keys(changes).length > 0) {
-          fetch(`/api/developments-entity/${id}`, {
-            method: 'PUT',
-            keepalive: true,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(changes),
-          });
-        }
-      });
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  const flushPendingChanges = useCallback(() => {
+    const ec = editingCellRef.current;
+    if (ec) {
+      const current = pendingChangesRef.current.get(ec.id) || {};
+      pendingChangesRef.current.set(ec.id, { ...current, [ec.field]: editValueRef.current || null });
+    }
+    const pending = pendingChangesRef.current;
+    if (pending.size === 0) return;
+    const sessionId = localStorage.getItem("muros_session");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
+    const promises: Promise<any>[] = [];
+    pending.forEach((changes, id) => {
+      if (!changes || Object.keys(changes).length === 0) return;
+      promises.push(fetch(`/api/developments-entity/${id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(changes),
+        keepalive: true,
+      }));
+    });
+    pending.clear();
+    Promise.all(promises).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/developments-entity"] });
+    });
   }, []);
 
   useEffect(() => {
+    window.addEventListener('beforeunload', flushPendingChanges);
     return () => {
-      const pending = pendingChangesRef.current;
-      if (pending.size === 0) return;
-      const sessionId = localStorage.getItem("muros_session");
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
-      pending.forEach((changes, id) => {
-        if (!changes || Object.keys(changes).length === 0) return;
-        fetch(`/api/developments-entity/${id}`, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify(changes),
-          keepalive: true,
-        });
-      });
+      window.removeEventListener('beforeunload', flushPendingChanges);
+      flushPendingChanges();
     };
-  }, []);
+  }, [flushPendingChanges]);
 
   const developmentsForFilter = useMemo(() => {
     return effectiveDevelopments.map(dev => {
@@ -632,10 +685,6 @@ export function DevelopmentsSpreadsheet() {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setVisibleCount(INITIAL_ROWS);
-  }, [filteredAndSortedData.length]);
-
-  useEffect(() => {
     const sentinel = sentinelRef.current;
     const scrollContainer = contentScrollRef.current;
     if (!sentinel || !scrollContainer) return;
@@ -652,10 +701,96 @@ export function DevelopmentsSpreadsheet() {
     return () => observer.disconnect();
   }, [filteredAndSortedData.length]);
 
+  // WebSocket real-time sync
+  const wsRef = useRef<WebSocket | null>(null);
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    let mounted = true;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      if (!mounted) return;
+      wsRef.current = new WebSocket(wsUrl);
+      wsRef.current.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "development") {
+            queryClient.invalidateQueries({ queryKey: ["/api/developments-entity"] });
+          }
+        } catch (e) {
+          console.error("WebSocket message error:", e);
+        }
+      };
+      wsRef.current.onclose = () => {
+        if (!mounted) return;
+        reconnectTimer = setTimeout(connect, 3000);
+      };
+      wsRef.current.onerror = () => {};
+    };
+    connect();
+    return () => {
+      mounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); }
+    };
+  }, []);
+
   const visibleData = useMemo(
     () => filteredAndSortedData.slice(0, visibleCount),
     [filteredAndSortedData, visibleCount]
   );
+
+  // Stable row numbering (creation-order)
+  const stableRowNumberMap = useMemo(() => {
+    const sorted = [...developments].sort((a, b) =>
+      new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+    );
+    const map = new Map<string, number>();
+    sorted.forEach((t, i) => map.set(t.id, i + 1));
+    return map;
+  }, [developments]);
+
+  // Zoom controls
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [showZoomPopup, setShowZoomPopup] = useState(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleZoomChange = (newZoom: number) => {
+    const clampedZoom = Math.max(50, Math.min(150, newZoom));
+    setZoomLevel(clampedZoom);
+    setShowZoomPopup(true);
+    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
+    zoomTimeoutRef.current = setTimeout(() => setShowZoomPopup(false), 2000);
+  };
+  const zoomIn = () => handleZoomChange(zoomLevel + 5);
+  const zoomOut = () => handleZoomChange(zoomLevel - 5);
+
+  // Auto-scroll to bottom on load and creation
+  const scrollToBottomPhaseRef = useRef<'idle' | 'loading_all' | 'done'>('idle');
+
+  useEffect(() => {
+    if (isLoading || developments.length === 0 || scrollToBottomPhaseRef.current !== 'idle') return;
+    scrollToBottomPhaseRef.current = 'loading_all';
+    setVisibleCount(filteredAndSortedData.length);
+  }, [isLoading, developments]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'loading_all') return;
+    if (visibleCount < filteredAndSortedData.length) return;
+    scrollToBottomPhaseRef.current = 'done';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (contentScrollRef.current) {
+          contentScrollRef.current.scrollTop = contentScrollRef.current.scrollHeight;
+        }
+      });
+    });
+  }, [visibleCount, filteredAndSortedData.length]);
+
+  useEffect(() => {
+    if (scrollToBottomPhaseRef.current !== 'done') return;
+    scrollToBottomPhaseRef.current = 'idle';
+  }, [filteredAndSortedData.length]);
 
   const hasActiveFilters = Object.keys(filterConfigs).length > 0 || sortConfig.direction !== null;
 
@@ -785,7 +920,7 @@ export function DevelopmentsSpreadsheet() {
       </div>
 
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
-        <div className="min-w-max text-xs">
+        <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
           <SpreadsheetHeader
             visibleColumns={visibleColumns}
             visibleColumnGroups={visibleColumnGroups}
@@ -809,7 +944,7 @@ export function DevelopmentsSpreadsheet() {
           {visibleData.map((dev, rowIndex) => {
             const parentDeveloper = developers.find(d => d.id === dev.developerId);
             const isParentDeveloperInactive = parentDeveloper?.active === false;
-            const isRowInactive = dev.active === null || isParentDeveloperInactive;
+            const isRowInactive = dev.active === null;
             const isDeveloperBlocked = !!(parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper)));
             const isActiveRow = activeEditingRowId === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
@@ -837,7 +972,7 @@ export function DevelopmentsSpreadsheet() {
                 const isEditing = editingCell?.id === dev.id && editingCell?.field === col.key;
 
                 if (col.key === 'id') {
-                  const isCompleteForDot = isDevelopmentComplete(dev);
+                  const isCompleteForDot = isDevelopmentComplete(dev, parentDeveloper);
                   const dotColor = dev.active === null
                     ? '#6b7280'
                     : isCompleteForDot
@@ -850,7 +985,7 @@ export function DevelopmentsSpreadsheet() {
                       style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
                       title={dev.id}
                     >
-                      <span className="text-xs font-medium">{rowIndex + 1}</span>
+                      <span className="text-xs font-medium">{stableRowNumberMap.get(dev.id) ?? rowIndex + 1}</span>
                       <span
                         className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
                         style={{ backgroundColor: dotColor }}
@@ -894,17 +1029,21 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'boolean') {
                   if (col.key === 'active') {
-                    const isComplete = isDevelopmentComplete(dev);
+                    const isComplete = isDevelopmentComplete(dev, parentDeveloper);
                     const isDisabled = value === null || value === undefined;
                     const activeState = isDisabled ? "disabled" : (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                     const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
                     const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
                     const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
                     const activeLabel = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
-                    return (
+                    const missingFields = activeState === "incomplete" ? getMissingFieldsDevelopment(dev, parentDeveloper) : [];
+                    const tooltipContent = missingFields.length > 0
+                      ? `Campos vacíos (${missingFields.length}):\n${missingFields.map(f => `• ${f}`).join('\n')}`
+                      : undefined;
+                    const activeCellContent = (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}>
                         {fieldCanEdit ? (
-                          <Select
+                          <ExclusiveSelect
                             value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
                             onValueChange={(val) => {
                               if (val === "disabled") {
@@ -945,7 +1084,7 @@ export function DevelopmentsSpreadsheet() {
                                 </span>
                               </SelectItem>
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
                             <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
@@ -954,6 +1093,15 @@ export function DevelopmentsSpreadsheet() {
                         )}
                       </div>
                     );
+                    if (tooltipContent) {
+                      return (
+                        <Tooltip key={col.key}>
+                          <TooltipTrigger asChild>{activeCellContent}</TooltipTrigger>
+                          <TooltipContent side="right" className="whitespace-pre-line text-xs max-w-[300px]">{tooltipContent}</TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+                    return activeCellContent;
                   }
                   const devTipos = (dev.tipos as string[] | null) || [];
                   const isDepa = devTipos.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
@@ -972,7 +1120,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor }}>
                       {effectiveCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                         >
@@ -991,7 +1139,7 @@ export function DevelopmentsSpreadsheet() {
                             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className={`flex items-center justify-center ${textColorClass}`}>
                           {value === true ? (
@@ -1011,7 +1159,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => {
                             handleSelectChange(dev.id, col.key, v);
@@ -1032,11 +1180,11 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={t} value={t}>{t}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          
+
                         </div>
                       )}
                     </div>
@@ -1081,7 +1229,7 @@ export function DevelopmentsSpreadsheet() {
                           {developerWarningText && (
                             <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 ml-1" />
                           )}
-                          <Select
+                          <ExclusiveSelect
                             value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                           >
@@ -1094,7 +1242,7 @@ export function DevelopmentsSpreadsheet() {
                                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
+                          </ExclusiveSelect>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
@@ -1113,7 +1261,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1126,11 +1274,11 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={c} value={c}>{c}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          
+
                         </div>
                       )}
                     </div>
@@ -1144,7 +1292,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1157,11 +1305,11 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={z} value={z}>{z}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-                          
+
                         </div>
                       )}
                     </div>
@@ -1182,7 +1330,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit && developerTipos.length > 0 ? (
-                        <Select
+                        <ExclusiveSelect
                           value={selectedTipo || '__unassigned__'}
                           onValueChange={(v) => {
                             const newTipos = v === '__unassigned__' ? [] : [v];
@@ -1200,7 +1348,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-1">
                           <span className={!selectedTipo && developerTipos.length > 0 ? 'text-red-500 font-medium text-xs' : cn('text-xs', cellTextClass)}>
@@ -1229,7 +1377,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value?.toString() || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
                         >
@@ -1242,7 +1390,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
@@ -1257,7 +1405,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value?.toString() || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v)}
                         >
@@ -1270,7 +1418,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
@@ -1286,7 +1434,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Popover>
+                        <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
@@ -1320,7 +1468,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Popover>
+                        <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
                               <span className="truncate">{arrValue.length > 0 ? arrValue.join(', ') : ""}</span>
@@ -1383,7 +1531,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Popover>
+                        <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
@@ -1417,7 +1565,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Popover>
+                        <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
@@ -1453,7 +1601,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled }))} style={{ width: col.width, minWidth: col.width, ...(isRowInactive ? inactiveCellStyle : recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }}>
                       {fieldCanEdit && !recamarasDisabled ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1466,7 +1614,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
@@ -1482,7 +1630,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1495,7 +1643,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
                           <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
@@ -1561,7 +1709,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {fieldCanEdit ? (
-                        <Popover>
+                        <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
                               <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : "Seleccionar"}</span>
@@ -1594,7 +1742,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1607,7 +1755,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
@@ -1622,7 +1770,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1635,7 +1783,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
@@ -1650,7 +1798,7 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       {fieldCanEdit ? (
-                        <Select
+                        <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
                         >
@@ -1663,7 +1811,7 @@ export function DevelopmentsSpreadsheet() {
                               <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ExclusiveSelect>
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
@@ -1740,7 +1888,7 @@ export function DevelopmentsSpreadsheet() {
                       data-testid={`cell-${col.key}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
-                        <Popover 
+                        <Popover modal
                           open={openDatePopover === `${dev.id}-${col.key}`}
                           onOpenChange={(open) => setOpenDatePopover(open ? `${dev.id}-${col.key}` : null)}
                         >
@@ -1765,6 +1913,7 @@ export function DevelopmentsSpreadsheet() {
                                   setOpenDatePopover(null);
                                 }}
                                 onKeyDown={(e) => {
+                                  if (e.key === 'Escape') setOpenDatePopover(null);
                                   if (e.key === 'Enter') {
                                     const newValue = (e.target as HTMLInputElement).value;
                                     if (newValue !== dateValue) {
@@ -1828,6 +1977,7 @@ export function DevelopmentsSpreadsheet() {
                               value: String(value || ''),
                               editable: true,
                               onSave: (newVal) => handleFieldChange(dev.id, { [col.key]: newVal || null }),
+                              inputFilterType: getColumnFilterType(col.key),
                             });
                           } else {
                             setTextDetail({ title: col.label, value: String(displayValue || ''), editable: false });
@@ -1857,16 +2007,26 @@ export function DevelopmentsSpreadsheet() {
                     data-testid={`cell-${col.key}-${dev.id}`}
                   >
                     {isEditing && fieldCanEdit ? (
-                      <Input
-                        defaultValue={editValue}
-                        onBlur={(e) => handleCellBlur(dev.id, col.key, col, e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleCellBlur(dev.id, col.key, col, (e.target as HTMLInputElement).value); }}
-                        onFocus={(e) => e.target.select()}
-                        className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                        autoFocus
-                        type={col.type === 'number' ? 'number' : 'text'}
-                        data-testid={`input-${col.key}-${dev.id}`}
-                      />
+                      (() => {
+                        const filterType = getColumnFilterType(col.key);
+                        return (
+                          <Input
+                            defaultValue={editValue}
+                            onBlur={(e) => handleCellBlur(dev.id, col.key, col, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (filterType) createInputFilter(filterType)(e);
+                              if (e.key === 'Enter') handleCellBlur(dev.id, col.key, col, (e.target as HTMLInputElement).value);
+                              if (e.key === 'Escape') setEditingCell(null);
+                            }}
+                            onPaste={filterType ? createPasteFilter(filterType) : undefined}
+                            onFocus={(e) => e.target.select()}
+                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            autoFocus
+                            type={col.type === 'number' ? 'number' : 'text'}
+                            data-testid={`input-${col.key}-${dev.id}`}
+                          />
+                        );
+                      })()
                     ) : (
                       <div
                         className="flex items-center gap-1 cursor-pointer"
@@ -1898,6 +2058,7 @@ export function DevelopmentsSpreadsheet() {
         value={textDetail?.value || ""}
         editable={textDetail?.editable}
         onSave={textDetail?.onSave}
+        inputFilterType={textDetail?.inputFilterType}
       />
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
@@ -1920,6 +2081,20 @@ export function DevelopmentsSpreadsheet() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {showZoomPopup && (
+        <div className="fixed bottom-12 right-4 z-50 bg-background border rounded-md shadow-md px-3 py-1 text-xs font-medium">
+          {zoomLevel}%
+        </div>
+      )}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center bg-background border rounded-md shadow-md p-0">
+        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-b-none" onClick={zoomIn} disabled={zoomLevel >= 150}>
+          <Plus className="h-3 w-3" />
+        </Button>
+        <div className="h-px w-3 bg-border" />
+        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50}>
+          <Minus className="h-3 w-3" />
+        </Button>
+      </div>
     </div>
   );
 }

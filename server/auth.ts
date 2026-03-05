@@ -69,14 +69,15 @@ export async function validateSession(sessionId: string): Promise<User | null> {
 export async function seedAdminUser(): Promise<void> {
   const existingAdmin = await storage.getUserByUsername("admin");
   if (!existingAdmin) {
+    const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "admin123";
     await createUserWithHashedPassword({
       username: "admin",
-      password: "admin123",
+      password: adminPassword,
       name: "Administrador",
       email: "admin@muros.mx",
       role: "admin",
       active: true,
     });
-    console.log("Admin user created: admin / admin123");
+    console.log("Admin user created (change password on first login)");
   }
 }

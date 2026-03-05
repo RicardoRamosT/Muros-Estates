@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { UppyFile } from "@uppy/core";
 
 interface UploadMetadata {
@@ -55,6 +55,8 @@ export function useUpload(options: UseUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [progress, setProgress] = useState(0);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   /**
    * Request a presigned URL from the backend.
@@ -126,18 +128,18 @@ export function useUpload(options: UseUploadOptions = {}) {
         await uploadToPresignedUrl(file, uploadResponse.uploadURL);
 
         setProgress(100);
-        options.onSuccess?.(uploadResponse);
+        optionsRef.current.onSuccess?.(uploadResponse);
         return uploadResponse;
       } catch (err) {
         const error = err instanceof Error ? err : new Error("Upload failed");
         setError(error);
-        options.onError?.(error);
+        optionsRef.current.onError?.(error);
         return null;
       } finally {
         setIsUploading(false);
       }
     },
-    [requestUploadUrl, uploadToPresignedUrl, options]
+    [requestUploadUrl, uploadToPresignedUrl]
   );
 
   /**

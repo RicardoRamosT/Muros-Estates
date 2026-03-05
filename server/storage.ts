@@ -51,7 +51,7 @@ import {
   globalSettings, type GlobalSetting,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, ilike } from "drizzle-orm";
+import { eq, desc, asc, and, or, ilike, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -302,7 +302,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteExpiredSessions(): Promise<void> {
-    await db.delete(sessions).where(eq(sessions.expiresAt, new Date()));
+    await db.delete(sessions).where(lte(sessions.expiresAt, new Date()));
   }
 
   // Properties
@@ -352,7 +352,7 @@ export class DatabaseStorage implements IStorage {
 
   // Clients
   async getAllClients(): Promise<Client[]> {
-    return db.select().from(clients).orderBy(desc(clients.createdAt));
+    return db.select().from(clients).orderBy(clients.createdAt);
   }
 
   async getClient(id: string): Promise<Client | undefined> {
@@ -387,7 +387,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClientsByAsesor(asesorId: string): Promise<Client[]> {
-    return db.select().from(clients).where(eq(clients.assignedTo, asesorId)).orderBy(desc(clients.createdAt));
+    return db.select().from(clients).where(eq(clients.assignedTo, asesorId)).orderBy(clients.createdAt);
   }
 
   // Development Assignments
@@ -421,11 +421,11 @@ export class DatabaseStorage implements IStorage {
 
   // Typologies
   async getAllTypologies(): Promise<Typology[]> {
-    return db.select().from(typologies).orderBy(desc(typologies.createdAt));
+    return db.select().from(typologies).orderBy(typologies.createdAt);
   }
 
   async getActiveTypologies(): Promise<Typology[]> {
-    return db.select().from(typologies).where(eq(typologies.active, true)).orderBy(desc(typologies.createdAt));
+    return db.select().from(typologies).where(eq(typologies.active, true)).orderBy(typologies.createdAt);
   }
 
   async getTypology(id: string): Promise<Typology | undefined> {
@@ -583,7 +583,7 @@ export class DatabaseStorage implements IStorage {
   
   // Developers (empresas desarrolladoras)
   async getAllDevelopers(): Promise<Developer[]> {
-    return db.select().from(developers).orderBy(developers.order, developers.name);
+    return db.select().from(developers).orderBy(developers.createdAt);
   }
 
   async getDeveloper(id: string): Promise<Developer | undefined> {
@@ -611,7 +611,7 @@ export class DatabaseStorage implements IStorage {
   
   // Developments (proyectos/edificios)
   async getAllDevelopmentsEntity(): Promise<Development[]> {
-    return db.select().from(developments).orderBy(developments.order, developments.name);
+    return db.select().from(developments).orderBy(developments.createdAt);
   }
 
   async getDevelopmentEntity(id: string): Promise<Development | undefined> {
@@ -884,11 +884,8 @@ export class DatabaseStorage implements IStorage {
   }
   
   async incrementSharedLinkAccess(id: string): Promise<SharedLink | undefined> {
-    const link = await this.getSharedLink(id);
-    if (!link) return undefined;
-    
     const [updated] = await db.update(sharedLinks).set({
-      accessCount: (link.accessCount || 0) + 1,
+      accessCount: sql`COALESCE(${sharedLinks.accessCount}, 0) + 1`,
       lastAccessedAt: new Date(),
     }).where(eq(sharedLinks.id, id)).returning();
     return updated || undefined;

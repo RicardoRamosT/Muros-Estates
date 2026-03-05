@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { type InputFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 
 interface TextDetailModalProps {
   open: boolean;
@@ -10,9 +11,10 @@ interface TextDetailModalProps {
   value: string;
   editable?: boolean;
   onSave?: (newValue: string) => void;
+  inputFilterType?: InputFilterType;
 }
 
-export function TextDetailModal({ open, onOpenChange, title, value, editable = false, onSave }: TextDetailModalProps) {
+export function TextDetailModal({ open, onOpenChange, title, value, editable = false, onSave, inputFilterType }: TextDetailModalProps) {
   const [editValue, setEditValue] = useState(value);
 
   useEffect(() => {
@@ -36,6 +38,8 @@ export function TextDetailModal({ open, onOpenChange, title, value, editable = f
           <Textarea
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={inputFilterType ? createInputFilter(inputFilterType) : undefined}
+            onPaste={inputFilterType ? createPasteFilter(inputFilterType) : undefined}
             className="min-h-[120px] text-sm"
             data-testid="text-detail-input"
           />

@@ -313,6 +313,85 @@ export interface SpreadsheetColumnGroupRun {
   colspan: number;
 }
 
+// --- Input filter utilities for keystroke-level validation ---
+
+export type InputFilterType = 'phone' | 'email' | 'rfc' | 'name';
+
+const FILTER_PATTERNS: Record<InputFilterType, RegExp> = {
+  phone: /^[0-9+\-() ]$/,
+  email: /^[a-zA-Z0-9@._+\-]$/,
+  rfc: /^[A-Za-z0-9]$/,
+  name: /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ .\-]$/,
+};
+
+const FILTER_STRIP_PATTERNS: Record<InputFilterType, RegExp> = {
+  phone: /[^0-9+\-() ]/g,
+  email: /[^a-zA-Z0-9@._+\-]/g,
+  rfc: /[^A-Za-z0-9]/g,
+  name: /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ .\-]/g,
+};
+
+const COLUMN_FILTER_MAP: Record<string, InputFilterType> = {
+  contactPhone: 'phone',
+  telefono: 'phone',
+  ventasTelefono: 'phone',
+  pagosTelefono: 'phone',
+  contactEmail: 'email',
+  correo: 'email',
+  ventasCorreo: 'email',
+  pagosCorreo: 'email',
+  rfc: 'rfc',
+  nombre: 'name',
+  apellido: 'name',
+  representante: 'name',
+  contactName: 'name',
+  ventasNombre: 'name',
+  pagosNombre: 'name',
+};
+
+export function getColumnFilterType(columnKey: string): InputFilterType | undefined {
+  return COLUMN_FILTER_MAP[columnKey];
+}
+
+export function createInputFilter(type: InputFilterType): (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
+  const pattern = FILTER_PATTERNS[type];
+  return (e) => {
+    // Allow control keys (Backspace, Delete, Tab, arrows, Enter, Escape, etc.)
+    if (e.key.length > 1) return;
+    // Allow Ctrl/Cmd combos (copy, paste, select all, undo, redo)
+    if (e.ctrlKey || e.metaKey) return;
+    if (!pattern.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+}
+
+export function createPasteFilter(type: InputFilterType): (e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
+  const stripPattern = FILTER_STRIP_PATTERNS[type];
+  return (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text');
+    let cleaned = pasted.replace(stripPattern, '');
+    if (type === 'rfc') {
+      cleaned = cleaned.toUpperCase();
+    }
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const start = target.selectionStart ?? 0;
+    const end = target.selectionEnd ?? 0;
+    const current = target.value;
+    const newValue = current.slice(0, start) + cleaned + current.slice(end);
+    // Use native input setter to trigger React's onChange
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      Object.getPrototypeOf(target), 'value'
+    )?.set;
+    nativeInputValueSetter?.call(target, newValue);
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+    // Restore cursor position
+    const newCursorPos = start + cleaned.length;
+    requestAnimationFrame(() => target.setSelectionRange(newCursorPos, newCursorPos));
+  };
+}
+
 export const HEADER_STYLE = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600 font-semibold text-xs uppercase tracking-wide";
 
 export const SECTION_HEADER_COLORS: Record<string, string> = {

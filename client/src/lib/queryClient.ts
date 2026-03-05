@@ -1,7 +1,14 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+export const SESSION_KEY = "muros_session";
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
+    // If session expired, clear it so the user gets redirected to login
+    if (res.status === 401) {
+      localStorage.removeItem(SESSION_KEY);
+      window.location.href = "/login";
+    }
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
@@ -12,21 +19,20 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const sessionId = localStorage.getItem("muros_session");
+  const sessionId = localStorage.getItem(SESSION_KEY);
   const headers: HeadersInit = {};
-  
+
   if (data) {
     headers["Content-Type"] = "application/json";
   }
   if (sessionId) {
     headers["Authorization"] = `Bearer ${sessionId}`;
   }
-  
+
   const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
   });
 
   await throwIfResNotOk(res);
@@ -39,18 +45,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const sessionId = localStorage.getItem("muros_session");
+    const sessionId = localStorage.getItem(SESSION_KEY);
     const headers: HeadersInit = {};
     if (sessionId) {
       headers["Authorization"] = `Bearer ${sessionId}`;
     }
-    
-    const url = queryKey.length === 1 
+
+    const url = queryKey.length === 1
       ? (queryKey[0] as string)
       : queryKey.filter(Boolean).join("/").replace(/\/+/g, "/");
-    
+
     const res = await fetch(url, {
-      credentials: "include",
       headers,
     });
 

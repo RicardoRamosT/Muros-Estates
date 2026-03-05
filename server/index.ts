@@ -54,7 +54,8 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        const responseStr = JSON.stringify(capturedJsonResponse);
+        logLine += ` :: ${responseStr.substring(0, 200)}${responseStr.length > 200 ? '...' : ''}`;
       }
 
       log(logLine);
@@ -99,10 +100,16 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`);
+
+      // Clean expired sessions every hour
+      setInterval(() => {
+        storage.deleteExpiredSessions().catch((err) => {
+          console.error("Failed to clean expired sessions:", err);
+        });
+      }, 60 * 60 * 1000);
     },
   );
 })();

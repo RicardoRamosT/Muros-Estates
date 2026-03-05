@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Building2, Building, Users, TableProperties, LogOut, ChevronDown, LayoutDashboard, FileText, Briefcase, UserPlus, UserCheck, Database } from "lucide-react";
+import { Building2, Building, Users, TableProperties, LogOut, ChevronDown, FileText, Briefcase, UserPlus, UserCheck, Database } from "lucide-react";
 import logoPath from "@assets/logo_1768784773871.png";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +18,7 @@ export function Header() {
   const isAdmin = location.toLowerCase().startsWith("/admin");
   
   const adminLinks = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "actualizador", "asesor", "perfilador"] },
-    { href: "/admin/desarrolladores", label: "Desarrolladores", icon: Briefcase, roles: ["admin", "actualizador"] },
+{ href: "/admin/desarrolladores", label: "Desarrolladores", icon: Briefcase, roles: ["admin", "actualizador"] },
     { href: "/admin/desarrollos", label: "Desarrollos", icon: Building, roles: ["admin", "actualizador"] },
     { href: "/admin/tipologias", label: "Tipologías", icon: TableProperties, roles: ["admin", "actualizador"] },
     { href: "/admin/prospectos", label: "Prospectos", icon: UserPlus, roles: ["admin", "perfilador", "asesor"] },

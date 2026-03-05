@@ -45,13 +45,23 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
     : groups;
   const scrollTo = (group: SectionGroup) => {
     setOpen(false);
-    const container = scrollRef.current;
-    if (!container) return;
-    const cornerWidth = groups[0]?.offset ?? 60;
-    const targetLeft = Math.max(0, group.offset - cornerWidth);
+    setQuery("");
     requestAnimationFrame(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollLeft = targetLeft;
+      const container = scrollRef.current;
+      if (!container) return;
+      const stickyEl = container.querySelector<HTMLElement>('[data-sticky-corner]');
+      const stickyWidth = stickyEl ? stickyEl.clientWidth : 60;
+      const visibleWidth = container.clientWidth - stickyWidth;
+      const el = container.querySelector<HTMLElement>(`[data-section-group="${group.label}"]`);
+      if (el) {
+        const containerRect = container.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const elLeft = elRect.left - containerRect.left + container.scrollLeft;
+        const centeredLeft = Math.max(0, elLeft + elRect.width / 2 - stickyWidth - visibleWidth / 2);
+        container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+      } else {
+        const centeredLeft = Math.max(0, group.offset - stickyWidth - (visibleWidth - group.width) / 2);
+        container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
       }
     });
   };
@@ -157,18 +167,25 @@ export function SpreadsheetHeader({
               const isCollapsed = groupCols[0]?.type === 'group-collapsed';
               if (isCollapsed) {
                 items.push(
-                  <div
-                    key={`r1-group-${group.key}-collapsed`}
-                    data-section-group={group.label}
-                    className="text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                    style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
-                    onClick={() => onToggleGroupCollapse?.(group.key)}
-                    data-testid={`toggle-group-expand-${group.key}`}
-                  >
-                    <Plus className="w-3 h-3" />
-                  </div>
+                  <Tooltip key={`r1-group-${group.key}-collapsed`}>
+                    <TooltipTrigger asChild>
+                      <div
+                        data-section-group={group.label}
+                        className="text-white cursor-pointer flex items-center justify-center flex-shrink-0"
+                        style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                        onClick={() => onToggleGroupCollapse?.(group.key)}
+                        data-testid={`toggle-group-expand-${group.key}`}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      {group.label}
+                    </TooltipContent>
+                  </Tooltip>
                 );
               } else {
+                const isSingleCol = group.colspan === 1;
                 items.push(
                   <div
                     key={`r1-group-${group.key}`}
@@ -176,9 +193,9 @@ export function SpreadsheetHeader({
                     className="flex items-center justify-between h-8 font-medium text-xs flex-shrink-0 text-white overflow-hidden"
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   >
-                    <div style={{ width: 20, flexShrink: 0 }} />
+                    {!isSingleCol && <div style={{ width: 20, flexShrink: 0 }} />}
                     <span className="truncate min-w-0 flex-1 text-center">{group.label}</span>
-                    {onToggleGroupCollapse ? (
+                    {!isSingleCol && onToggleGroupCollapse ? (
                       <button
                         onClick={() => onToggleGroupCollapse(group.key)}
                         className="flex-shrink-0 flex items-center justify-center hover:bg-white/10 h-full cursor-pointer"
@@ -187,9 +204,9 @@ export function SpreadsheetHeader({
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                    ) : (
+                    ) : !isSingleCol ? (
                       <div style={{ width: 20, flexShrink: 0 }} />
-                    )}
+                    ) : null}
                   </div>
                 );
               }
@@ -238,16 +255,23 @@ export function SpreadsheetHeader({
             if (col.type === 'group-collapsed') {
               const groupDef = groupLookupMap[col.group || ''];
               const bg = groupDef?.color || '#9ca3af';
+              const groupLabel = groupDef?.label || col.group || '';
               items.push(
-                <div
-                  key={`r2-${col.key}`}
-                  className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
-                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
-                  onClick={() => onToggleGroupCollapse?.(col.group!)}
-                  data-testid={`toggle-group-expand-r2-${col.group}`}
-                >
-                  <Plus className="w-2.5 h-2.5" />
-                </div>
+                <Tooltip key={`r2-${col.key}`}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
+                      style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                      onClick={() => onToggleGroupCollapse?.(col.group!)}
+                      data-testid={`toggle-group-expand-r2-${col.group}`}
+                    >
+                      <Plus className="w-2.5 h-2.5" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {groupLabel}
+                  </TooltipContent>
+                </Tooltip>
               );
               continue;
             }
@@ -258,15 +282,21 @@ export function SpreadsheetHeader({
 
             if (isColored && isColCollapsed) {
               items.push(
-                <div
-                  key={`r2-${col.key}`}
-                  className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
-                  style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
-                  onClick={() => onToggleColumnCollapse?.(col.key)}
-                  data-testid={`toggle-col-expand-${col.key}`}
-                >
-                  <Plus className="w-2.5 h-2.5" />
-                </div>
+                <Tooltip key={`r2-${col.key}`}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
+                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                      onClick={() => onToggleColumnCollapse?.(col.key)}
+                      data-testid={`toggle-col-expand-${col.key}`}
+                    >
+                      <Plus className="w-2.5 h-2.5" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {col.label}
+                  </TooltipContent>
+                </Tooltip>
               );
               continue;
             }

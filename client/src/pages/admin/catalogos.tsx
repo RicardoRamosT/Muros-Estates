@@ -516,7 +516,7 @@ function ZonesMini() {
                         onKeyDown={(e) => { if (e.key === "Enter") { updateMutation.mutate({ id: zone.id, data: { name: editValue } }); setEditingId(null); } }}
                         autoFocus className="h-5 text-xs border-0 p-0 focus-visible:ring-0" />
                     ) : (
-                      <span className="block cursor-text truncate" onClick={() => { setEditingId(zone.id); setEditValue(zone.name); }}>{zone.name}</span>
+                      <span className="block cursor-text truncate min-h-[20px]" onClick={() => { setEditingId(zone.id); setEditValue(zone.name); }}>{zone.name || "\u00A0"}</span>
                     )}
                   </td>
                   <td className="w-6 text-center">
