@@ -1,0 +1,20 @@
+databases:
+  - name: muros-estates-db
+    plan: free
+    databaseName: muros_estates
+    user: muros_user
+
+services:
+  - type: web
+    name: muros-estates
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: muros-estates-db
+          property: connectionString
