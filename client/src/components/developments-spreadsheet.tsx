@@ -223,9 +223,10 @@ function isDevelopmentComplete(dev: Development, parentDeveloper?: Developer | n
     return false;
   }
   return !!(
-    dev.developerId && dev.name && dev.city &&
-    dev.tipos?.length && dev.vistas?.length && dev.niveles &&
-    dev.entregaProyectada
+    dev.empresaTipo && dev.developerId && dev.name && dev.city &&
+    dev.tipos?.length && dev.recamaras && dev.banos &&
+    dev.inicioProyectado && dev.entregaProyectada &&
+    dev.ventasNombre && dev.ventasTelefono
   );
 }
 
@@ -240,13 +241,17 @@ function getMissingFieldsDevelopment(dev: Development, parentDeveloper?: Develop
   if (parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper))) {
     missing.push("Desarrollador padre (inactivo o incompleto)");
   }
+  if (!dev.empresaTipo) missing.push("Tipo empresa");
   if (!dev.developerId) missing.push("Desarrollador");
   if (!dev.name) missing.push("Nombre");
   if (!dev.city) missing.push("Ciudad");
   if (!dev.tipos?.length) missing.push("Tipos");
-  if (!dev.vistas?.length) missing.push("Vistas");
-  if (!dev.niveles) missing.push("Niveles");
+  if (!dev.recamaras) missing.push("Recámaras");
+  if (!dev.banos) missing.push("Baños");
+  if (!dev.inicioProyectado) missing.push("Inicio proyectado");
   if (!dev.entregaProyectada) missing.push("Entrega proyectada");
+  if (!dev.ventasNombre) missing.push("Ventas - Nombre");
+  if (!dev.ventasTelefono) missing.push("Ventas - Teléfono");
   return missing;
 }
 
@@ -465,8 +470,13 @@ export function DevelopmentsSpreadsheet() {
       setLocalEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
       setSaveFlash(true);
       setTimeout(() => setSaveFlash(false), 1200);
-    } catch {
-      toast({ title: "Error al guardar", variant: "destructive" });
+    } catch (err: any) {
+      let msg = "Error al guardar";
+      try {
+        const parsed = JSON.parse(err?.message?.split(': ').slice(1).join(': ') || '');
+        if (parsed.error) msg = parsed.error;
+      } catch {}
+      toast({ title: msg, variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
