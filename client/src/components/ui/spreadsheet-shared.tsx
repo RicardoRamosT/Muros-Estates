@@ -145,6 +145,13 @@ export function SpreadsheetHeader({
   const getColW = (col: SpreadsheetColumnDef) =>
     collapsedColumns?.has(col.key) ? COLLAPSED_COL_WIDTH : parseInt(col.width);
 
+  // Single-column groups with a label: ROW1 already shows the name, so hide ROW2 label
+  const singleColGroupKeys = new Set(
+    visibleColumnGroups
+      .filter(g => g.colspan === 1 && g.label && g.key !== 'corner')
+      .map(g => g.key)
+  );
+
   return (
     <div className="sticky top-0 z-20">
       {/* Row 1: Group labels */}
@@ -315,7 +322,7 @@ export function SpreadsheetHeader({
                 }}
               >
                 <div style={{ width: isColored ? 20 : 8, flexShrink: 0 }} />
-                <span className="truncate min-w-0 flex-1 text-center">{col.label}</span>
+                <span className="truncate min-w-0 flex-1 text-center">{singleColGroupKeys.has(col.group || '') ? '' : col.label}</span>
                 {isColored && onToggleColumnCollapse ? (
                   <button
                     onClick={() => onToggleColumnCollapse(col.key)}

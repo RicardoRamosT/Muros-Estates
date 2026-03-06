@@ -51,7 +51,7 @@ import {
   globalSettings, type GlobalSetting,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, ilike, lte, sql } from "drizzle-orm";
+import { eq, desc, asc, and, or, ilike, lte, sql, isNull, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -82,6 +82,8 @@ export interface IStorage {
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>): Promise<Client | undefined>;
   deleteClient(id: string): Promise<boolean>;
+  getDeletedClients(): Promise<Client[]>;
+  restoreClient(id: string): Promise<boolean>;
   getClientsByAsesor(asesorId: string): Promise<Client[]>;
   
   // Development Assignments
@@ -102,6 +104,8 @@ export interface IStorage {
   createTypology(typology: InsertTypology): Promise<Typology>;
   updateTypology(id: string, typology: Partial<InsertTypology>): Promise<Typology | undefined>;
   deleteTypology(id: string): Promise<boolean>;
+  getDeletedTypologies(): Promise<Typology[]>;
+  restoreTypology(id: string): Promise<boolean>;
   deleteTypologyByPropertyId(propertyId: string): Promise<boolean>;
   syncPropertiesToTypologies(): Promise<void>;
   
@@ -130,7 +134,9 @@ export interface IStorage {
   createDeveloper(developer: InsertDeveloper): Promise<Developer>;
   updateDeveloper(id: string, developer: Partial<InsertDeveloper>): Promise<Developer | undefined>;
   deleteDeveloper(id: string): Promise<boolean>;
-  
+  getDeletedDevelopers(): Promise<Developer[]>;
+  restoreDeveloper(id: string): Promise<boolean>;
+
   // Developments (proyectos/edificios)
   getAllDevelopmentsEntity(): Promise<Development[]>;
   getDevelopmentEntity(id: string): Promise<Development | undefined>;
@@ -138,6 +144,8 @@ export interface IStorage {
   createDevelopmentEntity(development: InsertDevelopment): Promise<Development>;
   updateDevelopmentEntity(id: string, development: Partial<InsertDevelopment>): Promise<Development | undefined>;
   deleteDevelopmentEntity(id: string): Promise<boolean>;
+  getDeletedDevelopments(): Promise<Development[]>;
+  restoreDevelopment(id: string): Promise<boolean>;
   clearTypologyFieldByValue(field: "developer" | "development", value: string): Promise<void>;
   
   // Catalogs
@@ -352,7 +360,7 @@ export class DatabaseStorage implements IStorage {
 
   // Clients
   async getAllClients(): Promise<Client[]> {
-    return db.select().from(clients).orderBy(clients.createdAt);
+    return db.select().from(clients).where(isNull(clients.deletedAt)).orderBy(clients.createdAt);
   }
 
   async getClient(id: string): Promise<Client | undefined> {
@@ -382,7 +390,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteClient(id: string): Promise<boolean> {
-    await db.delete(clients).where(eq(clients.id, id));
+    await db.update(clients).set({ deletedAt: new Date() }).where(eq(clients.id, id));
+    return true;
+  }
+
+  async getDeletedClients(): Promise<Client[]> {
+    return db.select().from(clients).where(isNotNull(clients.deletedAt)).orderBy(desc(clients.deletedAt));
+  }
+
+  async restoreClient(id: string): Promise<boolean> {
+    await db.update(clients).set({ deletedAt: null }).where(eq(clients.id, id));
     return true;
   }
 
@@ -421,11 +438,11 @@ export class DatabaseStorage implements IStorage {
 
   // Typologies
   async getAllTypologies(): Promise<Typology[]> {
-    return db.select().from(typologies).orderBy(typologies.createdAt);
+    return db.select().from(typologies).where(isNull(typologies.deletedAt)).orderBy(typologies.createdAt);
   }
 
   async getActiveTypologies(): Promise<Typology[]> {
-    return db.select().from(typologies).where(eq(typologies.active, true)).orderBy(typologies.createdAt);
+    return db.select().from(typologies).where(and(eq(typologies.active, true), isNull(typologies.deletedAt))).orderBy(typologies.createdAt);
   }
 
   async getTypology(id: string): Promise<Typology | undefined> {
@@ -447,7 +464,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTypology(id: string): Promise<boolean> {
-    await db.delete(typologies).where(eq(typologies.id, id));
+    await db.update(typologies).set({ deletedAt: new Date() }).where(eq(typologies.id, id));
+    return true;
+  }
+
+  async getDeletedTypologies(): Promise<Typology[]> {
+    return db.select().from(typologies).where(isNotNull(typologies.deletedAt)).orderBy(desc(typologies.deletedAt));
+  }
+
+  async restoreTypology(id: string): Promise<boolean> {
+    await db.update(typologies).set({ deletedAt: null }).where(eq(typologies.id, id));
     return true;
   }
 
@@ -583,7 +609,7 @@ export class DatabaseStorage implements IStorage {
   
   // Developers (empresas desarrolladoras)
   async getAllDevelopers(): Promise<Developer[]> {
-    return db.select().from(developers).orderBy(developers.createdAt);
+    return db.select().from(developers).where(isNull(developers.deletedAt)).orderBy(developers.createdAt);
   }
 
   async getDeveloper(id: string): Promise<Developer | undefined> {
@@ -605,13 +631,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDeveloper(id: string): Promise<boolean> {
-    await db.delete(developers).where(eq(developers.id, id));
+    await db.update(developers).set({ deletedAt: new Date() }).where(eq(developers.id, id));
     return true;
   }
-  
+
+  async getDeletedDevelopers(): Promise<Developer[]> {
+    return db.select().from(developers).where(isNotNull(developers.deletedAt)).orderBy(desc(developers.deletedAt));
+  }
+
+  async restoreDeveloper(id: string): Promise<boolean> {
+    await db.update(developers).set({ deletedAt: null }).where(eq(developers.id, id));
+    return true;
+  }
+
   // Developments (proyectos/edificios)
   async getAllDevelopmentsEntity(): Promise<Development[]> {
-    return db.select().from(developments).orderBy(developments.createdAt);
+    return db.select().from(developments).where(isNull(developments.deletedAt)).orderBy(developments.createdAt);
   }
 
   async getDevelopmentEntity(id: string): Promise<Development | undefined> {
@@ -620,7 +655,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDevelopmentsByDeveloper(developerId: string): Promise<Development[]> {
-    return db.select().from(developments).where(eq(developments.developerId, developerId)).orderBy(developments.order, developments.name);
+    return db.select().from(developments).where(and(eq(developments.developerId, developerId), isNull(developments.deletedAt))).orderBy(developments.order, developments.name);
   }
 
   async createDevelopmentEntity(development: InsertDevelopment): Promise<Development> {
@@ -637,7 +672,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDevelopmentEntity(id: string): Promise<boolean> {
-    await db.delete(developments).where(eq(developments.id, id));
+    await db.update(developments).set({ deletedAt: new Date() }).where(eq(developments.id, id));
+    return true;
+  }
+
+  async getDeletedDevelopments(): Promise<Development[]> {
+    return db.select().from(developments).where(isNotNull(developments.deletedAt)).orderBy(desc(developments.deletedAt));
+  }
+
+  async restoreDevelopment(id: string): Promise<boolean> {
+    await db.update(developments).set({ deletedAt: null }).where(eq(developments.id, id));
     return true;
   }
 

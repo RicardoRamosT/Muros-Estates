@@ -26,6 +26,7 @@ import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, 
 import { DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
+import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { cn } from "@/lib/utils";
 
 const ActiveDropdownRef = { current: null as (() => void) | null };
@@ -257,7 +258,7 @@ const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime
 
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
-  { key: 'active', label: 'Act.', group: 'registro', type: 'boolean', width: '70px', cellType: 'checkbox' },
+  { key: 'active', label: 'Activo', group: 'registro', type: 'boolean', width: '80px', cellType: 'checkbox' },
   { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '80px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '66px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
@@ -278,17 +279,17 @@ const columns: ColumnDef[] = [
   { key: 'lockOff', label: '', group: 'noheader_lockoff', type: 'boolean', width: '110px', cellType: 'checkbox' },
   { key: 'recamaras', label: 'Recámaras', group: 'distribucion', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
   { key: 'banos', label: 'Baños', group: 'distribucion', type: 'banos-select', width: '80px', cellType: 'dropdown' },
-  { key: 'depasUnidades', label: 'Uds', group: 'depas', type: 'number', width: '55px', cellType: 'input' },
+  { key: 'depasUnidades', label: 'Unidades', group: 'depas', type: 'number', width: '85px', cellType: 'input' },
   { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
   { key: 'depasVendidas', label: '', group: 'avance', type: 'number', width: '95px', cellType: 'input' },
-  { key: 'depasPorcentajeCalc', label: '%', group: 'avance', type: 'calculated-percent', width: '55px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
+  { key: 'depasPorcentajeCalc', label: 'Porcentaje', group: 'avance', type: 'calculated-percent', width: '90px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
   { key: 'acabados', label: '', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'redaccionValor', label: '', group: 'noheader_redaccion', type: 'redaccion-text', width: '120px', cellType: 'input' },
   { key: 'amenities', label: 'Amenidades', group: 'noheader_amenidades', type: 'multiselect-amenities', width: '95px', cellType: 'dropdown' },
   { key: 'efficiency', label: 'Eficiencia', group: 'noheader_amenidades', type: 'multiselect-efficiency', width: '100px', cellType: 'dropdown' },
   { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
-  { key: 'inicioPreventa', label: 'Inicio Prev.', group: 'noheader_preventa', width: '90px', cellType: 'input' },
-  { key: 'tiempoTransc', label: 'Tiempo Transc.', group: 'noheader_preventa', width: '85px', cellType: 'input' },
+  { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader_preventa', width: '120px', cellType: 'input' },
+  { key: 'tiempoTransc', label: 'Tiempo Transcurrido', group: 'noheader_preventa', width: '140px', cellType: 'input' },
   { key: 'inicioProyectado', label: 'Inicio', group: 'obra', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'entregaProyectada', label: 'Entrega', group: 'obra', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
@@ -1040,9 +1041,8 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'group-collapsed') {
-                  const groupDef = groupLookupMap[col.group || ''];
                   return (
-                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: isRowInactive ? '#9ca3af' : (groupDef?.color ? `${groupDef.color}22` : '#f3f4f6') }} />
+                    <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: isRowInactive ? '#9ca3af' : '#ffffff' }} />
                   );
                 }
 
@@ -1051,7 +1051,7 @@ export function DevelopmentsSpreadsheet() {
                     <div
                       key={col.key}
                       className="spreadsheet-cell flex-shrink-0"
-                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
+                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, backgroundColor: isRowInactive ? '#9ca3af' : '#ffffff' }}
                     />
                   );
                 }
@@ -2123,6 +2123,16 @@ export function DevelopmentsSpreadsheet() {
           <Minus className="h-3 w-3" />
         </Button>
       </div>
+      {hasFullAccess && (
+        <RecycleBinDrawer config={{
+          entityLabel: "Desarrollos",
+          deletedEndpoint: "/api/developments-entity/deleted",
+          restoreEndpoint: (id) => `/api/developments-entity/${id}/restore`,
+          invalidateKeys: ["/api/developments-entity"],
+          getItemLabel: (item) => item.name || 'Sin nombre',
+          getItemSubLabel: (item) => item.city || '',
+        }} />
+      )}
     </div>
   );
 }

@@ -3,8 +3,8 @@ import { developers, developments, typologies, clients, properties } from "../sh
 import { sql } from "drizzle-orm";
 
 const CITIES_ZONES: Record<string, string[]> = {
-  "Monterrey": ["Apodaca","Carretera Nacional","Centro","Contry","Cumbres","Del Valle","Escobedo","Guadalupe","La Huasteca","Linda Vista","Mitras","Monterrey Sur","Obispado","San Jerónimo","San Nicolás","San Pedro Garza García","Santa Catarina","Tecnológico"],
-  "CDMX": ["Condesa","Coyoacán","Del Valle","Interlomas","Nápoles","Polanco","Roma","Santa Fe"],
+  "Monterrey": ["San Pedro Garza García", "Carretera Nacional"],
+  "CDMX": ["Polanco", "Santa Fe"],
 };
 
 const DEV_TYPES = ["Residencial","Comercial","Oficinas","Salud"];
@@ -20,22 +20,6 @@ const DEVELOPER_NAMES = [
   "Desarrollos Capital",
   "Vertice Construcciones",
   "Terra Proyectos",
-  "Habitat Urbano",
-  "Monarca Residencial",
-  "Quantum Desarrollos",
-  "Atlas Inmobiliaria",
-  "Pinnacle Group",
-  "Nexus Desarrollos",
-  "Traza Arquitectos",
-  "Edificar MX",
-  "Reforma Capital",
-  "Urban Living",
-  "Grupo Altta",
-  "Construye Bien",
-  "Prisma Desarrollos",
-  "Enlace Inmobiliario",
-  "Cumbre Residencial",
-  "Vanguardia Proyectos",
 ];
 
 const DEVELOPMENT_PREFIXES = [
@@ -112,7 +96,7 @@ async function seed() {
   const insertedDevs: { id: string; name: string }[] = [];
   const insertedDevps: { id: string; name: string; city: string; zone: string; developerName: string }[] = [];
 
-  console.log("Inserting 20 developers...");
+  console.log("Inserting 4 developers...");
   for (const devName of DEVELOPER_NAMES) {
     const tipos = pickN(DEV_TYPES, rand(1, 3));
     const [inserted] = await db.insert(developers).values({
@@ -137,7 +121,7 @@ async function seed() {
   const usedDevpNames = new Set<string>();
 
   for (const dev of insertedDevs) {
-    const numDevps = rand(1, 3);
+    const numDevps = 2;
     for (let i = 0; i < numDevps; i++) {
       let devpName: string;
       do {
@@ -191,7 +175,7 @@ async function seed() {
   let typoCount = 0;
 
   for (const devp of insertedDevps) {
-    const numTypos = rand(2, 4);
+    const numTypos = 2;
     for (let i = 0; i < numTypos; i++) {
       const size = rand(35, 200);
       const pricePerM2 = roundTo1000(rand(25, 120) * 1000);
@@ -285,8 +269,8 @@ async function seed() {
   }
   console.log(`Inserted ${typoCount} typologies.`);
 
-  console.log("Inserting 100 prospects...");
-  for (let i = 0; i < 100; i++) {
+  console.log("Inserting 20 prospects...");
+  for (let i = 0; i < 20; i++) {
     const nombre = pick(NOMBRES);
     const apellido = pick(APELLIDOS);
     const devp = pick(insertedDevps);
@@ -319,7 +303,7 @@ async function seed() {
       updatedAt: randomDate,
     });
   }
-  console.log("Inserted 100 prospects.");
+  console.log("Inserted 20 prospects.");
 
   console.log("Seed complete!");
   process.exit(0);

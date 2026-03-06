@@ -33,6 +33,7 @@ import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, Chev
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
+import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import type { Developer } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -79,11 +80,114 @@ const COLUMN_GROUPS_DEV = [
   { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_DARK },
   { key: 'antiguedad', label: 'ANTIGÜEDAD', color: SHEET_COLOR_LIGHT },
   { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_DARK },
-  { key: 'representante', label: 'REPRESENTANTE', color: SHEET_COLOR_LIGHT },
-  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
+  { key: 'contratos', label: 'CONTRATOS', color: SHEET_COLOR_LIGHT },
+  { key: 'representante', label: 'REPRESENTANTE', color: SHEET_COLOR_DARK },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
   { key: 'docs', label: '', color: '' },
 ];
 
+
+function parsePhoneList(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('[')) {
+    try { return JSON.parse(trimmed); } catch { return [trimmed]; }
+  }
+  return [trimmed];
+}
+
+function PhoneListDialog({
+  phones: initialPhones,
+  onSave,
+  editable,
+}: {
+  phones: string[];
+  onSave: (phones: string[]) => void;
+  editable: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [phones, setPhones] = useState<string[]>(initialPhones.length ? initialPhones : ['']);
+
+  const handleOpen = (isOpen: boolean) => {
+    if (isOpen) setPhones(initialPhones.length ? [...initialPhones] : ['']);
+    setOpen(isOpen);
+  };
+
+  const firstPhone = initialPhones[0] || '';
+  const extraCount = initialPhones.length > 1 ? initialPhones.length - 1 : 0;
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogTrigger asChild>
+        <div className="flex items-center gap-1 cursor-pointer w-full overflow-hidden">
+          <span className="truncate text-xs">{firstPhone}</span>
+          {extraCount > 0 && (
+            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 flex-shrink-0">+{extraCount}</Badge>
+          )}
+        </div>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Teléfonos</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {phones.map((phone, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <Input
+                value={phone}
+                onChange={(e) => {
+                  const updated = [...phones];
+                  updated[idx] = e.target.value;
+                  setPhones(updated);
+                }}
+                placeholder="Número de teléfono"
+                className="text-sm"
+                disabled={!editable}
+              />
+              {editable && phones.length > 1 && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 flex-shrink-0 text-destructive"
+                  onClick={() => setPhones(phones.filter((_, i) => i !== idx))}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+        {editable && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPhones([...phones, ''])}
+            className="w-full"
+          >
+            <Plus className="w-3 h-3 mr-1" /> Agregar teléfono
+          </Button>
+        )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" size="sm">Cancelar</Button>
+          </DialogClose>
+          {editable && (
+            <Button
+              size="sm"
+              onClick={() => {
+                const filtered = phones.map(p => p.trim()).filter(Boolean);
+                onSave(filtered);
+                setOpen(false);
+              }}
+            >
+              <Save className="w-3 h-3 mr-1" /> Guardar
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function calcAntiguedad(fecha: Date | string | null): string {
   if (!fecha) return "";
@@ -112,7 +216,7 @@ interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'select';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'select' | 'phone-list' | 'group-collapsed';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -207,10 +311,10 @@ export function DevelopersSpreadsheet() {
     { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", cellType: "date", group: "antiguedad" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
-    { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown", group: "contratos" },
     { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "representante" },
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
-    { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input", group: "contacto" },
+    { key: "contactPhone", label: "Teléfono", width: "110px", type: "phone-list", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
     { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions", group: "docs" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions", group: "docs" },
@@ -802,13 +906,8 @@ export function DevelopersSpreadsheet() {
                   const isDisabled = dev.active === null || dev.active === undefined;
                   const activeState = isDisabled ? "disabled" : (dev.active === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                   const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
-                  const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
                   const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
                   const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
-                  const missingFields = activeState === "incomplete" ? getMissingFieldsDeveloper(dev) : [];
-                  const tooltipContent = missingFields.length > 0
-                    ? `Campos vacíos (${missingFields.length}):\n${missingFields.map(f => `• ${f}`).join('\n')}`
-                    : undefined;
                   const cellContent = (
                     <div
                       key={field}
@@ -829,7 +928,6 @@ export function DevelopersSpreadsheet() {
                             style={textStyle}
                             data-testid={`toggle-active-${dev.id}`}
                           >
-                            <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                             <span className="truncate">{label}</span>
                           </SelectTrigger>
                           <SelectContent>
@@ -854,21 +952,12 @@ export function DevelopersSpreadsheet() {
                           </SelectContent>
                         </ExclusiveSelect>
                       ) : (
-                        <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
-                          <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
+                        <div className="flex items-center justify-center px-1" style={textStyle}>
                           <span>{label}</span>
                         </div>
                       )}
                     </div>
                   );
-                  if (tooltipContent) {
-                    return (
-                      <Tooltip key={field}>
-                        <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
-                        <TooltipContent side="right" className="whitespace-pre-line text-xs max-w-[300px]">{tooltipContent}</TooltipContent>
-                      </Tooltip>
-                    );
-                  }
                   return cellContent;
                 }
                 
@@ -1155,6 +1244,28 @@ export function DevelopersSpreadsheet() {
                   );
                 }
                 
+                if (col.type === 'phone-list') {
+                  const rawPhone = dev[field as keyof Developer] as string;
+                  const phoneList = parsePhoneList(rawPhone);
+                  return (
+                    <div
+                      key={field}
+                      className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: cellType, disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
+                      data-testid={`cell-${field}-${dev.id}`}
+                    >
+                      <PhoneListDialog
+                        phones={phoneList}
+                        editable={fieldCanEdit}
+                        onSave={(phones) => {
+                          const stored = phones.length <= 1 ? (phones[0] || '') : JSON.stringify(phones);
+                          handleFieldChange(dev.id, { [field]: stored || null } as any);
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
                 const value = dev[field as keyof Developer] as string;
 
                 return (
@@ -1225,6 +1336,16 @@ export function DevelopersSpreadsheet() {
           <Minus className="h-3 w-3" />
         </Button>
       </div>
+      {hasFullAccess && (
+        <RecycleBinDrawer config={{
+          entityLabel: "Desarrolladores",
+          deletedEndpoint: "/api/developers/deleted",
+          restoreEndpoint: (id) => `/api/developers/${id}/restore`,
+          invalidateKeys: ["/api/developers"],
+          getItemLabel: (item) => item.name || 'Sin nombre',
+          getItemSubLabel: (item) => item.tipo || '',
+        }} />
+      )}
     </div>
   );
 }

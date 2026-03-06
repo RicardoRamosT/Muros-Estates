@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
+import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
 
@@ -1729,6 +1730,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           <Minus className="h-3 w-3" />
         </Button>
       </div>
+      {hasFullAccess && (
+        <RecycleBinDrawer config={{
+          entityLabel: "Prospectos",
+          deletedEndpoint: "/api/clients/deleted",
+          restoreEndpoint: (id) => `/api/clients/${id}/restore`,
+          invalidateKeys: ["/api/clients"],
+          getItemLabel: (item) => `${item.nombre || ''} ${item.apellido || ''}`.trim() || 'Sin nombre',
+          getItemSubLabel: (item) => item.telefono || '',
+        }} />
+      )}
     </div>
   );
 }

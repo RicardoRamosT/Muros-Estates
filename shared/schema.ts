@@ -710,12 +710,14 @@ export const developers = pgTable("developers", {
   order: integer("order").default(0), // Para ordenar en listas
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const insertDeveloperSchema = createInsertSchema(developers).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true,
 });
 
 export type InsertDeveloper = z.infer<typeof insertDeveloperSchema>;
@@ -832,12 +834,14 @@ export const developments = pgTable("developments", {
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const insertDevelopmentSchema = createInsertSchema(developments).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true,
 });
 
 export type InsertDevelopment = z.infer<typeof insertDevelopmentSchema>;
@@ -944,12 +948,14 @@ export const clients = pgTable("clients", {
   source: text("source"),
   assignedTo: varchar("assigned_to").references(() => users.id),
   developmentInterest: text("development_interest"),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true,
 });
 
 export type InsertClient = z.infer<typeof insertClientSchema>;
@@ -1193,12 +1199,14 @@ export const typologies = pgTable("typologies", {
   updatedAt: timestamp("updated_at").defaultNow(),
   createdBy: varchar("created_by").references(() => users.id),
   updatedBy: varchar("updated_by").references(() => users.id),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const insertTypologySchema = createInsertSchema(typologies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true,
 });
 
 export type InsertTypology = z.infer<typeof insertTypologySchema>;

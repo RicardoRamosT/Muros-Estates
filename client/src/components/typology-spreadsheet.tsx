@@ -53,6 +53,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
+import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 
 type TypologyField = keyof Typology;
 
@@ -5166,6 +5167,16 @@ export function TypologySpreadsheet() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {hasFullAccess && (
+        <RecycleBinDrawer config={{
+          entityLabel: "Tipologías",
+          deletedEndpoint: "/api/typologies/deleted",
+          restoreEndpoint: (id) => `/api/typologies/${id}/restore`,
+          invalidateKeys: ["/api/typologies"],
+          getItemLabel: (item) => `${item.development || ''} - ${item.type || ''}`,
+          getItemSubLabel: (item) => item.city || '',
+        }} />
+      )}
     </div>
   );
 }

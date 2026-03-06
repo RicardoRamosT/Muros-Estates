@@ -473,6 +473,17 @@ export async function registerRoutes(
     }
   });
   
+  app.get("/api/clients/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
+    const items = await storage.getDeletedClients();
+    res.json(items);
+  });
+
+  app.post("/api/clients/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.restoreClient(req.params.id as string);
+    broadcastClientUpdate("create", { id: req.params.id });
+    res.json({ ok: true });
+  });
+
   app.get("/api/clients/:id", requireAuth, requireRole("admin", "perfilador", "asesor"), async (req, res) => {
     try {
       const client = await storage.getClient(req.params.id as string);
@@ -899,6 +910,17 @@ export async function registerRoutes(
     }
   });
   
+  app.get("/api/typologies/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
+    const items = await storage.getDeletedTypologies();
+    res.json(items);
+  });
+
+  app.post("/api/typologies/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.restoreTypology(req.params.id as string);
+    broadcastTypologyUpdate("create", { id: req.params.id } as any);
+    res.json({ ok: true });
+  });
+
   app.get("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador", "asesor"), async (req, res) => {
     try {
       const typology = await storage.getTypology(req.params.id as string);
@@ -1144,6 +1166,17 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/developers/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
+    const items = await storage.getDeletedDevelopers();
+    res.json(items);
+  });
+
+  app.post("/api/developers/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.restoreDeveloper(req.params.id as string);
+    broadcastDeveloperUpdate("create", { id: req.params.id });
+    res.json({ ok: true });
+  });
+
   app.get("/api/developers/:id", async (req, res) => {
     try {
       const dev = await storage.getDeveloper(req.params.id);
@@ -1239,6 +1272,17 @@ export async function registerRoutes(
       console.error("Error getting developments:", error);
       res.status(500).json({ error: "Error al obtener desarrollos" });
     }
+  });
+
+  app.get("/api/developments-entity/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
+    const items = await storage.getDeletedDevelopments();
+    res.json(items);
+  });
+
+  app.post("/api/developments-entity/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.restoreDevelopment(req.params.id as string);
+    broadcastDevelopmentUpdate("create", { id: req.params.id });
+    res.json({ ok: true });
   });
 
   app.get("/api/developments-entity/:id", async (req, res) => {
@@ -2825,6 +2869,14 @@ export async function registerRoutes(
   app.delete("/api/catalog/si-no/:id", requireAuth, requireRole("admin"), async (req, res) => {
     await storage.deleteCatalogSiNo(req.params.id as string);
     res.json({ success: true });
+  });
+
+  // My permissions endpoint — returns DB overrides for current user's role
+  app.get("/api/my-permissions", requireAuth, async (req: any, res) => {
+    const user = req.user as User;
+    const allPerms = await storage.getRolePermissions();
+    const myPerms = allPerms.filter(p => p.role === user.role);
+    res.json(myPerms);
   });
 
   // Role Permissions API
