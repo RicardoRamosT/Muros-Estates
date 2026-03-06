@@ -50,10 +50,7 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
   return <Select {...props} open={open} onOpenChange={handleOpenChange}>{children}</Select>;
 }
 
-const TORRES_OPTIONS = Array.from({ length: 9 }, (_, i) => i + 1);
-const NIVELES_OPTIONS = Array.from({ length: 110 }, (_, i) => i + 1);
 const EMPRESA_TIPO_OPTIONS = ['Desarrollador', 'Comercializadora', 'Constructora', 'Arquitectos'] as const;
-// Recámaras options loaded from catalog below
 
 
 interface ColumnDef {
@@ -414,6 +411,13 @@ export function DevelopmentsSpreadsheet() {
     queryKey: ["/api/catalog/recamaras"],
   });
 
+  const { data: catalogTorres = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/torres"],
+  });
+
+  const { data: catalogNiveles = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/niveles"],
+  });
 
   const isLoading = authLoading || developmentsLoading;
   const shouldCheckAccess = !authLoading;
@@ -1408,8 +1412,8 @@ export function DevelopmentsSpreadsheet() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__unassigned__">-</SelectItem>
-                            {TORRES_OPTIONS.map(n => (
-                              <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                            {catalogTorres.filter((t: any) => t.active !== false).map((t: any) => (
+                              <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </ExclusiveSelect>
@@ -1436,8 +1440,8 @@ export function DevelopmentsSpreadsheet() {
                           </SelectTrigger>
                           <SelectContent className="max-h-60">
                             <SelectItem value="__unassigned__">-</SelectItem>
-                            {NIVELES_OPTIONS.map(n => (
-                              <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                            {catalogNiveles.filter((n: any) => n.active !== false).map((n: any) => (
+                              <SelectItem key={n.id} value={n.name}>{n.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </ExclusiveSelect>
