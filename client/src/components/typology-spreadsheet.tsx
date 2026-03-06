@@ -4879,9 +4879,9 @@ export function TypologySpreadsheet() {
                         const devHasTipos = !!(selectedDev && (selectedDev as any).tipos && ((selectedDev as any).tipos as string[]).length > 0);
                         let isLockedByFlow = false;
                         if (!ALWAYS_UNLOCKED.has(col.key) && !col.calculated) {
-                          if (isDeveloperInactive) {
+                          if (!hasFullAccess && isDeveloperInactive) {
                             isLockedByFlow = true;
-                          } else if (!hasDevelopment || isDevIncomplete) {
+                          } else if (!hasFullAccess && (!hasDevelopment || isDevIncomplete)) {
                             isLockedByFlow = true;
                           } else if (devHasTipos && !hasTipoDesarrollo && (col.key as string) !== "tipoDesarrollo") {
                             isLockedByFlow = true;
@@ -4904,7 +4904,7 @@ export function TypologySpreadsheet() {
                             city={mergedRow.city || undefined}
                             developer={mergedRow.developer || undefined}
                             onChange={(newVal) => handleCellChange(row.id, col.key, newVal)}
-                            disabled={isConditionallyDisabled || isLockedByFlow || (col.key === "development" && (!mergedRow.developer || !selectedTypologyDeveloper || isDeveloperInactive))}
+                            disabled={isConditionallyDisabled || isLockedByFlow || (col.key === "development" && (!mergedRow.developer || !selectedTypologyDeveloper || (!hasFullAccess && isDeveloperInactive)))}
                             dynamicOptions={dynamicOpts}
                             allDevelopments={dbDevelopments}
                             allDevelopers={dbDevelopers}
