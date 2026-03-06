@@ -4930,7 +4930,7 @@ export function TypologySpreadsheet() {
                             isComplete={col.key === "active" ? isTypologyComplete(mergedRow as Partial<Typology>, validEntities) : undefined}
                             validEntities={col.key === "active" ? validEntities : undefined}
                             isRowDisabled={isRowGray}
-                            devWarning={col.key === "development" ? devWarningText : col.key === "developer" ? developerWarningText : undefined}
+                            devWarning={undefined}
                           />
                         );
 
