@@ -940,7 +940,7 @@ export function DevelopmentsSpreadsheet() {
             const parentDeveloper = developers.find(d => d.id === dev.developerId);
             const isParentDeveloperInactive = parentDeveloper?.active === false;
             const isRowInactive = dev.active === null;
-            const isDeveloperBlocked = !!(parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper)));
+            const isDeveloperBlocked = !hasFullAccess && !!(parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper)));
             const isActiveRow = activeEditingRowId === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
               ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
@@ -1114,7 +1114,7 @@ export function DevelopmentsSpreadsheet() {
                   }
                   const devTipos = (dev.tipos as string[] | null) || [];
                   const isDepa = devTipos.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
-                  const isLockOffDisabledByTipo = col.key === 'lockOff' && !isDepa;
+                  const isLockOffDisabledByTipo = col.key === 'lockOff' && !isDepa && !hasFullAccess;
                   const cellBgColor = value === true 
                     ? isLockOffDisabledByTipo ? '#e5e7eb' : '#dcfce7'
                     : value === false 
@@ -1605,7 +1605,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'recamaras-select') {
                   const devTiposR = (dev.tipos as string[] | null) || [];
                   const isDepaR = devTiposR.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
-                  const recamarasDisabled = !isDepaR;
+                  const recamarasDisabled = !isDepaR && !hasFullAccess;
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled }))} style={{ width: col.width, minWidth: col.width, ...(isRowInactive ? inactiveCellStyle : recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }}>
                       {fieldCanEdit && !recamarasDisabled ? (
