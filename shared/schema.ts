@@ -47,7 +47,7 @@ export const PAGE_PERMISSIONS = {
       // 1. id - Admin:1, Updater:1, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       id: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 2. tipo - Admin:2, Updater:1, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
-      tipo: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tipo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 3. active - Admin:2, Updater:2, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       active: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 4. name - Admin:2, Updater:2, Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1

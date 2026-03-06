@@ -52,7 +52,7 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
 
 const TORRES_OPTIONS = Array.from({ length: 9 }, (_, i) => i + 1);
 const NIVELES_OPTIONS = Array.from({ length: 110 }, (_, i) => i + 1);
-const EMPRESA_TIPO_OPTIONS = ['Desarrollador', 'Comercializadora'] as const;
+const EMPRESA_TIPO_OPTIONS = ['Desarrollador', 'Comercializadora', 'Constructora', 'Arquitectos'] as const;
 const RECAMARAS_OPTIONS = ['Loft', '1 + flex', '2 + flex', '3 + flex'] as const;
 
 
@@ -1165,19 +1165,17 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'empresa-tipo-select') {
+                  const hasDeveloper = !!dev.developerId;
+                  const developerTipo = parentDeveloper?.tipo || null;
+                  const tipoIsAutoFilled = hasDeveloper && !!developerTipo;
+                  const tipoDisabled = !hasDeveloper || tipoIsAutoFilled || !fieldCanEdit;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
-                      {fieldCanEdit ? (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: tipoDisabled }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                      {hasDeveloper && fieldCanEdit && !tipoIsAutoFilled ? (
                         <ExclusiveSelect
                           value={value || "__unassigned__"}
                           onValueChange={(v) => {
                             handleSelectChange(dev.id, col.key, v);
-                            if (dev.developerId) {
-                              const selectedDev = developers.find(d => d.id === dev.developerId);
-                              if (selectedDev && selectedDev.tipo !== (v === '__unassigned__' ? null : v)) {
-                                handleFieldChange(dev.id, { developerId: null });
-                              }
-                            }
                           }}
                         >
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
@@ -1193,7 +1191,6 @@ export function DevelopmentsSpreadsheet() {
                       ) : (
                         <div className="flex items-center gap-1 px-3">
                           <span>{value || ""}</span>
-
                         </div>
                       )}
                     </div>
@@ -1201,13 +1198,7 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'developer-select') {
-                  const filteredDevs = developers.filter(d => {
-                    if (!d.active) return false;
-                    if (dev.empresaTipo) {
-                      return d.tipo === dev.empresaTipo;
-                    }
-                    return d.tipo === 'Desarrollador' || d.tipo === 'Comercializadora';
-                  });
+                  const filteredDevs = developers.filter(d => d.active);
                   const developerWarningText = (() => {
                     if (!parentDeveloper) return "";
                     if (parentDeveloper.active === null) return "Desarrollador deshabilitado";
@@ -1240,7 +1231,15 @@ export function DevelopmentsSpreadsheet() {
                           )}
                           <ExclusiveSelect
                             value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(dev.id, col.key, v)}
+                            onValueChange={(v) => {
+                              const devId = v === '__unassigned__' ? null : (v || null);
+                              const selectedDev = devId ? developers.find(d => d.id === devId) : null;
+                              handleFieldChange(dev.id, {
+                                developerId: devId,
+                                empresaTipo: selectedDev?.tipo || null,
+                              });
+                              setEditingCell(null);
+                            }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent flex-1 min-w-0">
                               <SelectValue placeholder="Seleccionar" />
