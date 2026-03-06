@@ -2013,21 +2013,28 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       } else {
         options = [];
       }
-      if (rowDev) {
-        const devConfig = tipologiasConfigByDevelopment?.[rowDev];
-        options = options.filter(tipologia =>
-          devConfig ? ((devConfig[tipologia] || []) as string[]).length > 0 : false
+      // Only filter by tipologiasConfig if config exists for this development
+      const devConfig = rowDev ? tipologiasConfigByDevelopment?.[rowDev] : undefined;
+      if (devConfig) {
+        // Filter to tipologías that have at least one tipo configured
+        const configFiltered = options.filter(tipologia =>
+          ((devConfig[tipologia] || []) as string[]).length > 0
         );
-      }
-      const currentTipoDesarrollo = Array.isArray(row?.tipoDesarrollo)
-        ? (row?.tipoDesarrollo as string[])[0]
-        : (row?.tipoDesarrollo as string | null | undefined);
-      if (currentTipoDesarrollo && tipologiasConfigByDevelopment && rowDev) {
-        const devConfig = tipologiasConfigByDevelopment[rowDev];
-        if (devConfig) {
-          options = options.filter(tipologia =>
+        // Only apply filter if it doesn't remove everything (config may be partial)
+        if (configFiltered.length > 0) {
+          options = configFiltered;
+        }
+        // Further filter by current tipoDesarrollo if set
+        const currentTipoDesarrollo = Array.isArray(row?.tipoDesarrollo)
+          ? (row?.tipoDesarrollo as string[])[0]
+          : (row?.tipoDesarrollo as string | null | undefined);
+        if (currentTipoDesarrollo) {
+          const tipoFiltered = options.filter(tipologia =>
             ((devConfig[tipologia] || []) as string[]).includes(currentTipoDesarrollo)
           );
+          if (tipoFiltered.length > 0) {
+            options = tipoFiltered;
+          }
         }
       }
     }
