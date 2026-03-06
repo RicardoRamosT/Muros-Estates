@@ -2449,7 +2449,7 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
 export function TypologySpreadsheet() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const canEdit = user?.role === "Admin" || user?.role === "Actualizador";
+  const hasFullAccess = user?.role === "admin" || user?.role === "actualizador";
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(SECTIONS.map(s => s.id))
   );
@@ -4617,9 +4617,9 @@ export function TypologySpreadsheet() {
             const isRowDisabled = mergedRow.active === null;
             const parentDevelopment = dbDevelopments.find((d: any) => d.name === mergedRow.development);
             const parentDeveloper = dbDevelopers.find((d: any) => d.name === mergedRow.developer);
-            const isCascadeInactive =
+            const isCascadeInactive = !hasFullAccess && (
               (mergedRow.developer && (!parentDeveloper || parentDeveloper.active !== true)) ||
-              (mergedRow.development && (!parentDevelopment || parentDevelopment.active !== true));
+              (mergedRow.development && (!parentDevelopment || parentDevelopment.active !== true)));
             const isRowGray = isRowDisabled || isCascadeInactive;
             return (
               <div
