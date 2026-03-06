@@ -1966,7 +1966,7 @@ export function DevelopmentsSpreadsheet() {
 
                 const rawDisplayValue = Array.isArray(value) ? value.join(', ') : String(value ?? '');
                 const displayValue = rawDisplayValue && col.suffix ? `${rawDisplayValue} ${col.suffix}` : rawDisplayValue;
-                const isLongText = ['name', 'ventasNombre', 'ventasCorreo', 'ventasTelefono', 'pagosNombre', 'pagosCorreo', 'pagosTelefono', 'location'].includes(col.key);
+                const isLongText = ['name'].includes(col.key);
 
                 if (isLongText && col.type !== 'number') {
                   return (
