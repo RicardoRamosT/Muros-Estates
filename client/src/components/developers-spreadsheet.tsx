@@ -77,7 +77,9 @@ const COLUMN_GROUPS_DEV = [
   { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
   { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
   { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_DARK },
-  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_LIGHT },
+  { key: 'antiguedad', label: 'ANTIGÜEDAD', color: SHEET_COLOR_LIGHT },
+  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_DARK },
+  { key: 'representante', label: 'REPRESENTANTE', color: SHEET_COLOR_LIGHT },
   { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
   { key: 'docs', label: '', color: '' },
 ];
@@ -195,7 +197,6 @@ export function DevelopersSpreadsheet() {
     { key: "active", label: "Act.", width: "70px", type: "toggle", cellType: "checkbox", group: "registro" },
     { key: "createdDate", label: "Fecha", width: "80px", type: "date-display", group: "registro", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "66px", type: "time-display", group: "registro", cellType: "readonly" },
-    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "empresa" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "empresa" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "empresa" },
     { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown", group: "empresa" },
@@ -203,9 +204,11 @@ export function DevelopersSpreadsheet() {
     { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input", group: "fiscal" },
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input", group: "fiscal" },
     { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input", group: "fiscal" },
+    { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", cellType: "date", group: "antiguedad" },
+    { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
     { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
-    { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "contacto" },
+    { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "representante" },
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
     { key: "contactPhone", label: "Teléfono", width: "110px", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
@@ -957,7 +960,7 @@ export function DevelopersSpreadsheet() {
                 }
 
                 if (col.key === 'antiguedadCalc') {
-                  const calculated = calcAntiguedad(dev.createdAt);
+                  const calculated = calcAntiguedad(dev.fechaAntiguedad);
                   return (
                     <div
                       key={field}
