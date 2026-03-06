@@ -4793,7 +4793,7 @@ export function TypologySpreadsheet() {
                           const devVistas = vistasByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devVistas.length > 0 ? devVistas : vistaOptions;
                         }
-                        if ((col.key as string) === "developmentType") {
+                        if (col.key === "type") {
                           const devTypes = typesByDevelopment[mergedRow.development || ""] || [];
                           dynamicOpts = devTypes.length > 0 ? devTypes : tipologiaOptions;
                         }
