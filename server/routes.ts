@@ -60,7 +60,7 @@ function isDeveloperComplete(d: Record<string, any>): boolean {
 
 function isDevelopmentComplete(d: Record<string, any>): boolean {
   return !!(d.empresaTipo && d.developerId && d.name && d.city &&
-    d.tipos?.length && d.recamaras && d.banos &&
+    d.tipos?.length && d.tipologiasList?.length && d.recamaras && d.banos &&
     d.inicioProyectado && d.entregaProyectada &&
     d.ventasNombre && d.ventasTelefono);
 }

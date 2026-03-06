@@ -221,7 +221,7 @@ function isDevelopmentComplete(dev: Development, parentDeveloper?: Developer | n
   }
   return !!(
     dev.empresaTipo && dev.developerId && dev.name && dev.city &&
-    dev.tipos?.length && dev.recamaras && dev.banos &&
+    dev.tipos?.length && dev.tipologiasList?.length && dev.recamaras && dev.banos &&
     dev.inicioProyectado && dev.entregaProyectada &&
     dev.ventasNombre && dev.ventasTelefono
   );
@@ -243,6 +243,7 @@ function getMissingFieldsDevelopment(dev: Development, parentDeveloper?: Develop
   if (!dev.name) missing.push("Nombre");
   if (!dev.city) missing.push("Ciudad");
   if (!dev.tipos?.length) missing.push("Tipos");
+  if (!dev.tipologiasList?.length) missing.push("Tipologías");
   if (!dev.recamaras) missing.push("Recámaras");
   if (!dev.banos) missing.push("Baños");
   if (!dev.inicioProyectado) missing.push("Inicio proyectado");
@@ -267,6 +268,7 @@ const columns: ColumnDef[] = [
   { key: 'zone2', label: 'Zona 2', group: 'ubicacion', type: 'zone-select', width: '95px', cellType: 'dropdown' },
   { key: 'zone3', label: 'Zona 3', group: 'ubicacion', type: 'zone-select', width: '95px', cellType: 'dropdown' },
   { key: 'tipos', label: 'Tipos', group: 'estructura', type: 'multiselect-tipos', width: '110px', cellType: 'dropdown' },
+  { key: 'tipologiasList', label: 'Tipologías', group: 'estructura', type: 'multiselect-creatable', width: '110px', cellType: 'dropdown' },
   { key: 'nivel', label: 'Nivel', group: 'estructura', type: 'nivel-select', width: '110px', cellType: 'dropdown' },
   { key: 'torres', label: 'Torres', group: 'estructura', type: 'torres-select', width: '78px', cellType: 'dropdown' },
   { key: 'niveles', label: 'Niveles', group: 'estructura', type: 'niveles-select', width: '78px', cellType: 'dropdown' },
