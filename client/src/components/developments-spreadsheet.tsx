@@ -53,7 +53,7 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
 const TORRES_OPTIONS = Array.from({ length: 9 }, (_, i) => i + 1);
 const NIVELES_OPTIONS = Array.from({ length: 110 }, (_, i) => i + 1);
 const EMPRESA_TIPO_OPTIONS = ['Desarrollador', 'Comercializadora', 'Constructora', 'Arquitectos'] as const;
-const RECAMARAS_OPTIONS = ['Loft', '1 + flex', '2 + flex', '3 + flex'] as const;
+// Recámaras options loaded from catalog below
 
 
 interface ColumnDef {
@@ -408,6 +408,10 @@ export function DevelopmentsSpreadsheet() {
 
   const { data: catalogBanos = [] } = useQuery<any[]>({
     queryKey: ["/api/catalog/banos"],
+  });
+
+  const { data: catalogRecamaras = [] } = useQuery<any[]>({
+    queryKey: ["/api/catalog/recamaras"],
   });
 
 
@@ -1628,8 +1632,8 @@ export function DevelopmentsSpreadsheet() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__unassigned__">Seleccionar</SelectItem>
-                            {RECAMARAS_OPTIONS.map(opt => (
-                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            {catalogRecamaras.filter((r: any) => r.active !== false).map((r: any) => (
+                              <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </ExclusiveSelect>
