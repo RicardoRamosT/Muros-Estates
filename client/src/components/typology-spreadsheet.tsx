@@ -156,9 +156,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-50/30 dark:bg-gray-900/10",
     columns: [
-      { key: "active", label: "Activo", type: "boolean", width: 80 },
-      { key: "createdDate", label: "Fecha", type: "text", width: 80, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 65, calculated: true, centerCells: true },
+      { key: "active", label: "Activo", type: "boolean", width: 62 },
+      { key: "createdDate", label: "Fecha", type: "text", width: 62, calculated: true, centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 47, calculated: true, centerCells: true },
     ],
   },
   {
