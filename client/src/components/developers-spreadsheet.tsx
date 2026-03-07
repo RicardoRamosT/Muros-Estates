@@ -907,7 +907,7 @@ export function DevelopersSpreadsheet() {
                   const activeState = isDisabled ? "disabled" : (dev.active === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                   const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
                   const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
-                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
+                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "—" : "No";
                   const cellContent = (
                     <div
                       key={field}

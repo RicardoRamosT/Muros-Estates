@@ -1064,7 +1064,7 @@ export function DevelopmentsSpreadsheet() {
                     const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
                     const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
                     const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
-                    const activeLabel = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
+                    const activeLabel = activeState === "active" ? "Sí" : activeState === "disabled" ? "—" : "No";
                     const missingFields = activeState === "incomplete" ? getMissingFieldsDevelopment(dev, parentDeveloper) : [];
                     const tooltipContent = missingFields.length > 0
                       ? `Campos vacíos (${missingFields.length}):\n${missingFields.map(f => `• ${f}`).join('\n')}`
