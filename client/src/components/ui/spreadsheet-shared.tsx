@@ -178,12 +178,12 @@ export function SpreadsheetHeader({
                     <TooltipTrigger asChild>
                       <div
                         data-section-group={group.label}
-                        className="text-white cursor-pointer flex items-center justify-center flex-shrink-0"
-                        style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                        className="cursor-pointer flex items-center justify-center flex-shrink-0"
+                        style={{ width: 30, minWidth: 30, height: 32, backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}
                         onClick={() => onToggleGroupCollapse?.(group.key)}
                         data-testid={`toggle-group-expand-${group.key}`}
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3 text-gray-500" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="text-xs">
@@ -267,12 +267,12 @@ export function SpreadsheetHeader({
                 <Tooltip key={`r2-${col.key}`}>
                   <TooltipTrigger asChild>
                     <div
-                      className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
-                      style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                      className="flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-gray-100"
+                      style={{ width: 30, minWidth: 30, height: 32, backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}
                       onClick={() => onToggleGroupCollapse?.(col.group!)}
                       data-testid={`toggle-group-expand-r2-${col.group}`}
                     >
-                      <Plus className="w-2.5 h-2.5" />
+                      <Plus className="w-2.5 h-2.5 text-gray-500" />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">
@@ -379,13 +379,11 @@ export function SpreadsheetHeader({
         {visibleColumns.map(col => {
           if (col.group === 'corner') return null;
           if (col.type === 'group-collapsed') {
-            const groupDef = groupLookupMap[col.group || ''];
-            const bg = groupDef?.color || '#9ca3af';
             return (
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: bg, opacity: 0.35, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb' }}
               />
             );
           }
