@@ -176,6 +176,17 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     queryKey: ["/api/developments-entity"],
   });
 
+  // Prospect catalog queries
+  const { data: catalogTipo = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/tipo-cliente"] });
+  const { data: catalogPerfil = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/perfil"] });
+  const { data: catalogFuente = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/fuente"] });
+  const { data: catalogEstatus = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/status-prospecto"] });
+  const { data: catalogEtapa = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/etapa-embudo"] });
+  const { data: catalogComoPaga = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/como-paga"] });
+  const { data: catalogPositivos = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/positivos"] });
+  const { data: catalogNegativos = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/negativos"] });
+  const { data: catalogEtapaClientes = [] } = useQuery<any[]>({ queryKey: ["/api/catalog/etapa-clientes"] });
+
   const prospects = allClients.filter(c => isClientView ? c.isClient === true : c.isClient !== true);
 
   const createMutation = useMutation({
@@ -303,7 +314,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = value === '__unassigned__' ? null : (value || null);
     
-    const clientFunnelStages = ['separado', 'enganche_firma'];
+    const clientFunnelStages = ['separado', 'enganche_firma', 'Separado', 'Enganche y Firma'];
     
     if (field === 'embudo') {
       const currentRecord = prospects.find(p => p.id === id);
@@ -355,8 +366,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     createMutation.mutate({
       nombre: isClientView ? "Nuevo Cliente" : "Nuevo Prospecto",
       telefono: "",
-      estatus: "activo",
-      embudo: "nuevo",
+      estatus: "Activo",
+      embudo: "Nuevo",
       comoLlega: "web",
       ...(isClientView ? { isClient: true } : {}),
     } as any);
@@ -471,95 +482,34 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const allColumns = isClientView ? clientColumns : prospectColumns;
 
-  const tipoOptions = [
-    { value: "inversionista", label: "Inversionista" },
-    { value: "uso_propio", label: "Uso Propio" },
-    { value: "revender", label: "Revender" },
-  ];
+  const catalogToOptions = (items: any[]) =>
+    items
+      .filter(i => i.active !== false)
+      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+      .map((i: any) => ({ value: i.name, label: i.name, color: i.color || null }));
 
-  const perfilOptions = [
-    { value: "estudiante", label: "Estudiante" },
-    { value: "profesionista", label: "Profesionista" },
-    { value: "pareja", label: "Pareja" },
-    { value: "familia_joven", label: "Familia Joven" },
-    { value: "familia_grande", label: "Familia Grande" },
-    { value: "tercera_edad", label: "Tercera Edad" },
-  ];
+  const tipoOptions = useMemo(() => catalogToOptions(catalogTipo), [catalogTipo]);
+  const perfilOptions = useMemo(() => catalogToOptions(catalogPerfil), [catalogPerfil]);
+  const fuenteOptions = useMemo(() => catalogToOptions(catalogFuente), [catalogFuente]);
+  const estatusOptions = useMemo(() => catalogToOptions(catalogEstatus), [catalogEstatus]);
+  const embudoOptions = useMemo(() => catalogToOptions(catalogEtapa), [catalogEtapa]);
+  const comoPagaOptions = useMemo(() => catalogToOptions(catalogComoPaga), [catalogComoPaga]);
+  const positivosOptions = useMemo(() => catalogToOptions(catalogPositivos), [catalogPositivos]);
+  const negativosOptions = useMemo(() => catalogToOptions(catalogNegativos), [catalogNegativos]);
+  const etapaClientesOptions = useMemo(() => catalogToOptions(catalogEtapaClientes), [catalogEtapaClientes]);
 
-  const fuenteOptions = [
-    { value: "instagram_ads", label: "Instagram Ads" },
-    { value: "instagram_follower", label: "Instagram Follower" },
-    { value: "facebook_ads", label: "Facebook Ads" },
-    { value: "facebook_fan", label: "Facebook Fan" },
-    { value: "landing_page", label: "Landing Page" },
-    { value: "grupo_facebook", label: "Grupo Facebook" },
-    { value: "fb_marketplace", label: "FB Marketplace" },
-    { value: "broker_externo", label: "Broker Externo" },
-    { value: "referido", label: "Referido" },
-    { value: "lead_pasado", label: "Lead Pasado" },
-    { value: "conocido_asesor", label: "Conocido de Asesor" },
-    { value: "base_datos", label: "Base de Datos" },
-    { value: "periodico", label: "Periódico" },
-    { value: "flyer", label: "Flyer" },
-    { value: "rotulo", label: "Rótulo" },
-    { value: "google_ads", label: "Google Ads" },
-    { value: "linkedin", label: "LinkedIn" },
-    { value: "tiktok", label: "TikTok" },
-    { value: "twitter", label: "Twitter" },
-  ];
+  // Helper: determine if a background color needs white text
+  const needsWhiteText = (hex: string | null) => {
+    if (!hex) return false;
+    const c = hex.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.55;
+  };
 
-  const estatusOptions = [
-    { value: "activo", label: "Activo", order: 1 },
-    { value: "en_hold", label: "En Hold", order: 2 },
-    { value: "no_activo", label: "No Activo", order: 3 },
-  ];
-
-  const embudoOptions = [
-    { value: "nuevo", label: "Nuevo", order: 1, color: "#87CEEB" },
-    { value: "asignado", label: "Asignado", order: 2, color: "#90EE90" },
-    { value: "no_contesta", label: "No Contesta", order: 3, color: "#FFD700" },
-    { value: "no_le_intereso", label: "No le Interesó", order: 4, color: "#FF6B6B" },
-    { value: "validado", label: "Validado", order: 5, color: "#32CD32" },
-    { value: "envio_info", label: "Envío de Info", order: 6, color: "#9370DB" },
-    { value: "muestra_interes", label: "Muestra Interés", order: 7, color: "#FF69B4" },
-    { value: "presentacion", label: "Presentación", order: 8, color: "#FFA500" },
-    { value: "showroom", label: "Showroom", order: 9, color: "#4169E1" },
-    { value: "evaluando", label: "Evaluando", order: 10, color: "#40E0D0" },
-    { value: "negociacion", label: "Negociación", order: 11, color: "#228B22" },
-    { value: "cierre_ganado", label: "Cierre Ganado", order: 12, color: "#00FF00" },
-    { value: "cierre_perdido", label: "Cierre Perdido", order: 13, color: "#DC143C" },
-    { value: "separado", label: "Separado", order: 14, color: "#FF1493" },
-    { value: "enganche_firma", label: "Enganche y Firma", order: 15, color: "#8B008B" },
-  ];
-
-  const comoPagaOptions = [
-    { value: "enganche_bajo", label: "Enganche Bajo" },
-    { value: "enganche_alto", label: "Enganche Alto" },
-    { value: "capital_semilla", label: "Capital Semilla" },
-  ];
-
-  const positivosOptions = [
-    { value: "precio", label: "Precio" },
-    { value: "ubicacion", label: "Ubicación" },
-    { value: "diseno", label: "Diseño" },
-    { value: "tamano", label: "Tamaño" },
-    { value: "amenidades", label: "Amenidades" },
-    { value: "esquema_pagos", label: "Esquema de Pagos" },
-  ];
-
-  const negativosOptions = [
-    { value: "precio", label: "Precio" },
-    { value: "ubicacion", label: "Ubicación" },
-    { value: "diseno", label: "Diseño" },
-    { value: "tamano", label: "Tamaño" },
-    { value: "amenidades", label: "Amenidades" },
-    { value: "esquema_pagos", label: "Esquema de Pagos" },
-    { value: "permisos", label: "Permisos" },
-    { value: "desarrollador", label: "Desarrollador" },
-    { value: "tiempo_entrega", label: "Tiempo de Entrega" },
-  ];
-
-  const optionsMap: Record<string, { value: string; label: string }[]> = {
+  const optionsMap: Record<string, { value: string; label: string; color?: string | null }[]> = useMemo(() => ({
     tipofil: tipoOptions,
     perfil: perfilOptions,
     comoLlega: fuenteOptions,
@@ -568,7 +518,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     comoPaga: comoPagaOptions,
     positivos: positivosOptions,
     negativos: negativosOptions,
-  };
+  }), [tipoOptions, perfilOptions, fuenteOptions, estatusOptions, embudoOptions, comoPagaOptions, positivosOptions, negativosOptions]);
 
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
@@ -644,21 +594,21 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   // Create order maps for options-select columns (for proper sorting by position)
   const orderMaps = useMemo(() => {
     const maps: Record<string, Record<string, number>> = {};
-    
+
     // Estatus order map
     maps['estatus'] = {};
     estatusOptions.forEach((opt, idx) => {
       maps['estatus'][opt.value] = idx;
     });
-    
+
     // Embudo order map
     maps['embudo'] = {};
     embudoOptions.forEach((opt, idx) => {
       maps['embudo'][opt.value] = idx;
     });
-    
+
     return maps;
-  }, []);
+  }, [estatusOptions, embudoOptions]);
 
   // Create label maps for columns that need display transformations (e.g., IDs to names)
   const labelMaps = useMemo(() => {
@@ -1178,28 +1128,30 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   }
 
                   if (col.key === 'estatus') {
-                    const value = (prospect as any).estatus || (prospect as any).status || 'nuevo';
+                    const value = (prospect as any).estatus || (prospect as any).status || '';
+                    const estatusOpt = estatusOptions.find(o => o.value === value);
+                    const estatusColor = estatusOpt?.color || null;
+                    const estatusTextColor = needsWhiteText(estatusColor) ? 'white' : 'black';
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...(estatusColor ? { backgroundColor: estatusColor } : {}) }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
-                            value={value}
+                            value={value || "__unassigned__"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'estatus', v)}
                           >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue />
+                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent font-medium" style={estatusColor ? { color: estatusTextColor } : {}}>
+                              <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="__unassigned__">—</SelectItem>
                               {estatusOptions.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                <SelectItem key={opt.value} value={opt.value} style={opt.color ? { backgroundColor: opt.color, color: needsWhiteText(opt.color) ? 'white' : 'black' } : {}}>{opt.label}</SelectItem>
                               ))}
                             </SelectContent>
                           </ExclusiveSelect>
                         ) : (
-                          <div className="flex items-center gap-1 px-3">
-                            <Badge variant="outline" className="text-xs">
-                              {estatusOptions.find(o => o.value === value)?.label || value}
-                            </Badge>
+                          <div className="flex items-center gap-1 px-3 font-medium" style={estatusColor ? { color: estatusTextColor } : {}}>
+                            <span>{estatusOpt?.label || value || '-'}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -1408,7 +1360,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     );
                   }
 
-                  // Handle options-select fields (tipofil, perfil, comoLlega, estatus, embudo, comoPaga)
+                  // Handle options-select fields (tipofil, perfil, comoLlega, embudo, comoPaga)
                   if (col.type === 'options-select') {
                     const value = (prospect as any)[col.key];
                     const options = optionsMap[col.key] || [];
@@ -1416,34 +1368,37 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const displayLabel = selectedOption?.label || value || null;
                     const isComoPaga = col.key === 'comoPaga';
                     const isEmbudo = col.key === 'embudo';
-                    const embudoColor = isEmbudo && selectedOption ? (selectedOption as any).color : null;
+                    const optColor = selectedOption?.color || null;
+                    const optTextColor = needsWhiteText(optColor) ? 'white' : 'black';
                     const cellClasses = getCellStyle({ type: "dropdown", disabled: !fieldCanEdit });
-                    const effectiveClasses = isEmbudo && embudoColor
+                    const effectiveClasses = optColor
                       ? cellClasses.replace(/\bbg-\S+/g, '')
                       : cellClasses;
 
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", effectiveClasses)} style={{ width: col.width, minWidth: col.width, ...(isEmbudo && embudoColor ? { backgroundColor: embudoColor } : {}) }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", effectiveClasses)} style={{ width: col.width, minWidth: col.width, ...(optColor ? { backgroundColor: optColor } : {}) }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
-                            value={value || "__unassigned__"}
+                            value={isEmbudo ? (value || "Nuevo") : (value || "__unassigned__")}
                             onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
                           >
                             <SelectTrigger
-                              className={`h-6 text-xs border-0 bg-transparent ${isComoPaga && !value ? 'text-red-500 font-medium' : ''}`}
-                              style={embudoColor ? { backgroundColor: embudoColor, color: '#000', fontWeight: 500 } : {}}
+                              className={`h-6 text-xs border-0 bg-transparent font-medium ${isComoPaga && !value ? 'text-red-500' : ''}`}
+                              style={optColor ? { color: optTextColor } : {}}
                             >
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__" className={isComoPaga ? 'text-red-500 font-medium' : ''}>
-                                {isComoPaga ? '-' : '-'}
-                              </SelectItem>
+                              {!isEmbudo && (
+                                <SelectItem value="__unassigned__" className={isComoPaga ? 'text-red-500 font-medium' : ''}>
+                                  {isComoPaga ? '-' : '—'}
+                                </SelectItem>
+                              )}
                               {options.map(opt => (
                                 <SelectItem
                                   key={opt.value}
                                   value={opt.value}
-                                  style={isEmbudo && (opt as any).color ? { backgroundColor: (opt as any).color } : {}}
+                                  style={opt.color ? { backgroundColor: opt.color, color: needsWhiteText(opt.color) ? 'white' : 'black' } : {}}
                                 >
                                   {opt.label}
                                 </SelectItem>
@@ -1451,17 +1406,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </SelectContent>
                           </ExclusiveSelect>
                         ) : (
-                          <div className="flex items-center gap-1 px-3">
+                          <div className="flex items-center gap-1 px-3 font-medium" style={optColor ? { color: optTextColor } : {}}>
                             {displayLabel ? (
-                              isEmbudo && embudoColor ? (
-                                <span className="text-xs font-medium" style={{ color: '#000' }}>
-                                  {displayLabel}
-                                </span>
-                              ) : (
-                                <span>{displayLabel}</span>
-                              )
+                              <span>{displayLabel}</span>
                             ) : (
-                              <span className={isComoPaga ? 'text-red-500 font-medium' : ''}>
+                              <span className={isComoPaga ? 'text-red-500' : ''}>
                                 {isComoPaga ? 'SIN ASIGNAR' : '-'}
                               </span>
                             )}
