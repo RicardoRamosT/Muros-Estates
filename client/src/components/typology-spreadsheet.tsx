@@ -1685,33 +1685,28 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     const activeState = isDisabled ? "disabled" : (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
 
     let bgColor: string;
-    let dotColor: string;
     let textColorStyle: React.CSSProperties;
     let label: string;
 
     switch (activeState) {
       case "active":
         bgColor = "#dcfce7";
-        dotColor = "#15803d";
         textColorStyle = { color: "#15803d", fontWeight: 600 };
         label = "Sí";
         break;
       case "ready":
         bgColor = "#FDCDB0";
-        dotColor = "#F16100";
         textColorStyle = { color: "#C04D00", fontWeight: 600 };
         label = "No";
         break;
       case "disabled":
         bgColor = "#9ca3af";
-        dotColor = "#1f2937";
         textColorStyle = { color: "#1f2937", fontWeight: 500 };
         label = "—";
         break;
       case "incomplete":
       default:
         bgColor = "#fee2e2";
-        dotColor = "#dc2626";
         textColorStyle = { color: "#dc2626", fontWeight: 500 };
         label = "No";
         break;
@@ -1725,7 +1720,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
 
     return (
       <div
-        className={cn("spreadsheet-cell px-0 relative group", cellBorderClass)}
+        className={cn("spreadsheet-cell flex-shrink-0 px-0 relative group", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, backgroundColor: bgColor }}
       >
         <ExclusiveSelect
@@ -4754,11 +4749,11 @@ export function TypologySpreadsheet() {
                           return (
                             <div
                               key={col.key}
-                              className="spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default"
+                              className="spreadsheet-cell flex-shrink-0 px-1 text-xs justify-center cursor-default"
                               style={{ width: (col.width || 75) + SORT_ICON_WIDTH, backgroundColor: isRowGray ? '#9ca3af' : 'white' }}
                               data-testid={`cell-createdDate-${row.id}`}
                             >
-                              {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
+                              <span className="text-xs">{formatDate(row.createdAt)}</span>
                             </div>
                           );
                         }
@@ -4767,11 +4762,11 @@ export function TypologySpreadsheet() {
                           return (
                             <div
                               key={col.key}
-                              className="spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default"
+                              className="spreadsheet-cell flex-shrink-0 px-1 text-xs justify-center cursor-default"
                               style={{ width: (col.width || 40) + SORT_ICON_WIDTH, backgroundColor: isRowGray ? '#9ca3af' : 'white' }}
                               data-testid={`cell-createdTime-${row.id}`}
                             >
-                              {formatTime(row.createdAt)}
+                              <span className="text-xs">{formatTime(row.createdAt)}</span>
                             </div>
                           );
                         }
