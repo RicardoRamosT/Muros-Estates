@@ -1702,7 +1702,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       case "disabled":
         bgColor = "#9ca3af";
         textColorStyle = { color: "#1f2937", fontWeight: 500 };
-        label = "—";
+        label = "Deshabilitado";
         break;
       case "incomplete":
       default:
@@ -4632,9 +4632,9 @@ export function TypologySpreadsheet() {
                 {(() => {
                   const isComplete = isTypologyComplete(mergedRow as Partial<Typology>, validEntities);
                   const dotColor = mergedRow.active === null
-                    ? "#6b7280"
+                    ? "#1f2937"
                     : isComplete
-                      ? (mergedRow.active === true ? "#15803d" : "#F16100")
+                      ? (mergedRow.active === true ? "#449964" : "#F16100")
                       : "#ef4444";
                   const missingForDot = !isComplete ? getMissingFields(mergedRow as Partial<Typology>, validEntities) : [];
                   const dotTooltip = missingForDot.length > 0

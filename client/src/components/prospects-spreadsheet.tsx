@@ -1010,7 +1010,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
 
                   if (col.type === 'index') {
-                    const dotColor = (prospect as any).active === true ? '#15803d' : (prospect as any).active === false ? '#F16100' : '#6b7280';
+                    const dotColor = (prospect as any).active === true ? '#449964' : (prospect as any).active === false ? '#F16100' : '#1f2937';
                     return (
                       <div
                         key={col.key}

@@ -809,7 +809,7 @@ export function DevelopersSpreadsheet() {
             const inactiveCellStyle: React.CSSProperties = isRowInactive
               ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
               : {};
-            const cellTextClass = isRowInactive ? "text-gray-700" : "text-muted-foreground";
+            const cellTextClass = isRowInactive ? "text-gray-700" : "";
             return (
             <div
               key={dev.id}
@@ -834,9 +834,9 @@ export function DevelopersSpreadsheet() {
                 if (col.type === 'index') {
                   const isCompleteForDot = isDeveloperComplete(dev);
                   const dotColor = dev.active === null
-                    ? '#6b7280'
+                    ? '#1f2937'
                     : isCompleteForDot
-                      ? (dev.active === true ? '#15803d' : '#F16100')
+                      ? (dev.active === true ? '#449964' : '#F16100')
                       : '#ef4444';
                   const missingForDot = !isCompleteForDot ? getMissingFieldsDeveloper(dev) : [];
                   const dotTooltip = missingForDot.length > 0
@@ -907,7 +907,7 @@ export function DevelopersSpreadsheet() {
                   const activeState = isDisabled ? "disabled" : (dev.active === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                   const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
                   const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
-                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "—" : "No";
+                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
                   const cellContent = (
                     <div
                       key={field}
