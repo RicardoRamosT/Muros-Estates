@@ -347,7 +347,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
   }, [typologies, handleFieldChange]);
 
-  const handleActiveToggle = useCallback((id: string, newValue: boolean) => {
+  const handleActiveToggle = useCallback((id: string, newValue: boolean | null) => {
     updateMutation.mutate({ id, data: { active: newValue } });
   }, [updateMutation]);
 
@@ -1021,7 +1021,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           />
 
           {visibleData.map((prospect, index) => {
-            const isRowInactive = (prospect as any).active === false;
+            const isRowInactive = (prospect as any).active === null;
             const isActiveRow = activeEditingRowId === prospect.id;
             return (
             <div
@@ -1047,7 +1047,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
 
                   if (col.type === 'index') {
-                    const dotColor = (prospect as any).active === true ? '#449964' : (prospect as any).active === false ? '#F16100' : '#1f2937';
+                    const dotColor = (prospect as any).active === true ? '#449964' : (prospect as any).active === null ? '#1f2937' : '#F16100';
                     return (
                       <div
                         key={col.key}
@@ -1062,34 +1062,42 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   }
 
                   if (col.type === 'toggle') {
-                    const isActive = (prospect as any).active ?? true;
-                    const cellBgColor = isRowInactive ? '#9ca3af' : (isActive ? '#dcfce7' : '#fee2e2');
-                    const textColorClass = isRowInactive ? 'text-gray-600' : (isActive ? 'text-green-700' : 'text-red-600');
+                    const activeVal = (prospect as any).active;
+                    const isActive = activeVal === true;
+                    const isDisabled = activeVal === null;
+                    const bgColor = isRowInactive ? '#9ca3af' : isActive ? '#dcfce7' : '#9ca3af';
+                    const textStyle: React.CSSProperties = isActive ? { color: '#15803d', fontWeight: 600 } : { color: '#4b5563', fontWeight: 500 };
+                    const label = isActive ? 'Sí' : '—';
                     return (
                       <div
                         key={col.key}
                         className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
-                        style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
+                        style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}
                       >
                         {fieldCanEdit ? (
                           <ExclusiveSelect
-                            value={isActive ? "si" : "no"}
-                            onValueChange={(v) => handleActiveToggle(prospect.id, v === "si")}
+                            value={isActive ? "active" : "disabled"}
+                            onValueChange={(v) => handleActiveToggle(prospect.id, v === "active" ? true : null)}
                           >
                             <SelectTrigger
-                              className={`h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0 font-medium ${textColorClass}`}
+                              className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
+                              style={textStyle}
                               data-testid={`toggle-active-${prospect.id}`}
                             >
-                              <span className="truncate">{isActive ? 'Sí' : 'No'}</span>
+                              <span className="truncate">{label}</span>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
-                              <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
+                              <SelectItem value="active" className="text-xs">
+                                <span style={{ color: '#15803d', fontWeight: 500 }}>Sí</span>
+                              </SelectItem>
+                              <SelectItem value="disabled" className="text-xs">
+                                <span style={{ color: '#4b5563', fontWeight: 500 }}>—</span>
+                              </SelectItem>
                             </SelectContent>
                           </ExclusiveSelect>
                         ) : (
-                          <div className="flex items-center justify-center px-1" style={{ color: isActive ? '#15803d' : '#dc2626', fontWeight: 600 }}>
-                            <span>{isActive ? 'Sí' : 'No'}</span>
+                          <div className="flex items-center justify-center px-1" style={textStyle}>
+                            <span>{label}</span>
                           </div>
                         )}
                       </div>
