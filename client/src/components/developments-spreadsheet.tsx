@@ -1090,33 +1090,22 @@ export function DevelopmentsSpreadsheet() {
                             }}
                           >
                             <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0" style={textStyle} data-testid={`boolean-${col.key}-${dev.id}`}>
-                              <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                               <span className="truncate">{activeLabel}</span>
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="active" disabled={!isComplete} className="text-xs">
-                                <span className="flex items-center gap-1.5">
-                                  <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
-                                  <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
-                                </span>
+                                <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
                               </SelectItem>
                               <SelectItem value="no" className="text-xs">
-                                <span className="flex items-center gap-1.5">
-                                  <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
-                                  <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
-                                </span>
+                                <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
                               </SelectItem>
                               <SelectItem value="disabled" className="text-xs">
-                                <span className="flex items-center gap-1.5">
-                                  <span style={{ color: "#1f2937" }} className="text-[8px] leading-none">●</span>
-                                  <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
-                                </span>
+                                <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
                               </SelectItem>
                             </SelectContent>
                           </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center justify-center gap-1 px-1" style={textStyle}>
-                            <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
                             <span>{activeLabel}</span>
                           </div>
                         )}
