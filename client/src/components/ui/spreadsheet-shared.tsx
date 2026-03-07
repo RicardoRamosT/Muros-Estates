@@ -326,11 +326,11 @@ export function SpreadsheetHeader({
                 {isColored && onToggleColumnCollapse ? (
                   <button
                     onClick={() => onToggleColumnCollapse(col.key)}
-                    className="flex-shrink-0 flex items-center justify-center hover:bg-white/20 cursor-pointer h-full"
-                    style={{ width: 16 }}
+                    className="flex-shrink-0 flex items-center justify-center hover:bg-white/10 cursor-pointer h-full"
+                    style={{ width: 20 }}
                     data-testid={`toggle-col-collapse-${col.key}`}
                   >
-                    <Minus className="w-2.5 h-2.5 text-white/80" />
+                    <Minus className="w-3 h-3" />
                   </button>
                 ) : (
                   <div style={{ width: 8, flexShrink: 0 }} />

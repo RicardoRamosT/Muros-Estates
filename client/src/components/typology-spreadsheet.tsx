@@ -1706,7 +1706,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         bgColor = "#9ca3af";
         dotColor = "#1f2937";
         textColorStyle = { color: "#1f2937", fontWeight: 500 };
-        label = "Deshabilitado";
+        label = "—";
         break;
       case "incomplete":
       default:
@@ -1745,27 +1745,17 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
             style={textColorStyle}
             data-testid={`active-${rowId}`}
           >
-            <span style={{ color: dotColor }} className="text-[8px] leading-none">●</span>
             <span className="truncate">{label}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="active" disabled={!isComplete} className="text-xs">
-              <span className="flex items-center gap-1.5">
-                <span style={{ color: "#15803d" }} className="text-[8px] leading-none">●</span>
-                <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
-              </span>
+              <span style={{ color: "#15803d", fontWeight: 500 }}>Sí</span>
             </SelectItem>
             <SelectItem value="no" className="text-xs">
-              <span className="flex items-center gap-1.5">
-                <span style={{ color: isComplete ? "#f97316" : "#dc2626" }} className="text-[8px] leading-none">●</span>
-                <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
-              </span>
+              <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
             </SelectItem>
             <SelectItem value="disabled" className="text-xs">
-              <span className="flex items-center gap-1.5">
-                <span style={{ color: "#1f2937" }} className="text-[8px] leading-none">●</span>
-                <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
-              </span>
+              <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
             </SelectItem>
           </SelectContent>
         </ExclusiveSelect>

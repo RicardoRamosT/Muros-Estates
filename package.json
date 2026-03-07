@@ -8,7 +8,8 @@
     "build": "cross-env tsx --env-file=.env script/build.ts",
     "start": "cross-env NODE_ENV=production node --env-file=.env dist/index.cjs",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx --env-file=.env scripts/seed-data.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

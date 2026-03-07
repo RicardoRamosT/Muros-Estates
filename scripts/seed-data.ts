@@ -1,6 +1,6 @@
 import { db } from "../server/db";
-import { developers, developments, typologies, clients, properties } from "../shared/schema";
-import { sql } from "drizzle-orm";
+import { developers, developments, typologies, clients, properties, users, catalogCities, catalogZones } from "../shared/schema";
+import { sql, eq } from "drizzle-orm";
 
 const CITIES_ZONES: Record<string, string[]> = {
   "Monterrey": ["San Pedro Garza García", "Carretera Nacional"],
@@ -82,15 +82,33 @@ async function seed() {
   await db.delete(developments);
   await db.delete(developers);
   await db.delete(clients);
+  await db.delete(catalogZones);
+  await db.delete(catalogCities);
   console.log("Cleared.");
 
-  const asesorIds = [
-    "c7b88a1e-a7a9-41af-9975-b767d2785387",
-    "6060a364-00f8-4152-8d76-1a968f29a9e4",
-    "c0c392b5-4f26-40b3-808b-4887d60d3d81",
-    "b7ee54c0-7165-4701-903b-62167a582d70",
-    "8ffbef82-5a2d-44a1-8cba-38dbe03fd487",
-  ];
+  // Seed catalog cities & zones
+  console.log("Inserting catalog cities & zones...");
+  const cityMap: Record<string, string> = {};
+  for (const cityName of Object.keys(CITIES_ZONES)) {
+    const [city] = await db.insert(catalogCities).values({ name: cityName }).returning({ id: catalogCities.id });
+    cityMap[cityName] = city.id;
+  }
+  for (const [cityName, zones] of Object.entries(CITIES_ZONES)) {
+    for (const zoneName of zones) {
+      await db.insert(catalogZones).values({ name: zoneName, cityId: cityMap[cityName] });
+    }
+  }
+  console.log("Inserted catalog cities & zones.");
+
+  // Fetch real user IDs for asesorId FK
+  let asesorIds: string[];
+  const existingUsers = await db.select({ id: users.id }).from(users).where(eq(users.active, true));
+  if (existingUsers.length > 0) {
+    asesorIds = existingUsers.map(u => u.id);
+  } else {
+    console.log("No users found — prospects will have null asesorId.");
+    asesorIds = [];
+  }
 
   const allCities = Object.keys(CITIES_ZONES);
   const insertedDevs: { id: string; name: string }[] = [];
@@ -102,7 +120,8 @@ async function seed() {
     const [inserted] = await db.insert(developers).values({
       name: devName,
       active: true,
-      tipo: pick(["Nacional","Regional","Internacional"]),
+      tipo: pick(["Desarrollador","Comercializadora","Constructora"]),
+      contratos: pickN(["Compraventa","Promesa","Cesión de derechos","Fideicomiso"], rand(1, 3)),
       tipos,
       razonSocial: `${devName} S.A. de C.V.`,
       rfc: `${devName.substring(0,3).toUpperCase()}${rand(100000,999999)}${String.fromCharCode(65+rand(0,25))}${rand(10,99)}`,
@@ -141,6 +160,9 @@ async function seed() {
       const niveles = rand(5, 30);
       const totalUnits = rand(20, 200);
       const vendidas = rand(0, totalUnits);
+      const typoLabels = pickN(UNIT_TYPES, 2);
+      const bedroomOptions = [1, 2, 3, 4].slice(0, rand(2, 4));
+      const bathroomOptions = [1, 1.5, 2, 2.5, 3].slice(0, rand(2, 4));
 
       const [inserted] = await db.insert(developments).values({
         developerId: dev.id,
@@ -164,6 +186,14 @@ async function seed() {
         deliveryDate: pick(DELIVERY_DATES),
         totalUnits,
         availableUnits: totalUnits - vendidas,
+        empresaTipo: pick(["Desarrollador","Comercializadora","Constructora"]),
+        tipologiasList: typoLabels,
+        recamaras: bedroomOptions.join(","),
+        banos: bathroomOptions.join(","),
+        inicioProyectado: pick(["Q1 2025","Q2 2025","Q3 2025","Q4 2025"]),
+        entregaProyectada: pick(DELIVERY_DATES),
+        ventasNombre: `${pick(NOMBRES)} ${pick(APELLIDOS)}`,
+        ventasTelefono: genPhone(),
       }).returning({ id: developments.id });
 
       insertedDevps.push({ id: inserted.id, name: devpName, city, zone, developerName: dev.name });
@@ -284,7 +314,7 @@ async function seed() {
       apellido,
       telefono: genPhone(),
       correo: genEmail(nombre, apellido),
-      asesorId: pick(asesorIds),
+      asesorId: asesorIds.length > 0 ? pick(asesorIds) : null,
       ciudad: devp.city,
       zona: devp.zone,
       desarrollador: devp.developerName,
