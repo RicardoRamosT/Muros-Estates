@@ -156,9 +156,9 @@ const SECTIONS: SectionDef[] = [
     columnHeaderColor: "",
     cellColor: "bg-gray-50/30 dark:bg-gray-900/10",
     columns: [
-      { key: "active", label: "Act.", type: "boolean", width: 60 },
-      { key: "createdDate", label: "Fecha", type: "text", width: 58, calculated: true, centerCells: true },
-      { key: "createdTime", label: "Hora", type: "text", width: 52, calculated: true, centerCells: true },
+      { key: "active", label: "Activo", type: "boolean", width: 80 },
+      { key: "createdDate", label: "Fecha", type: "text", width: 80, calculated: true, centerCells: true },
+      { key: "createdTime", label: "Hora", type: "text", width: 65, calculated: true, centerCells: true },
     ],
   },
   {
@@ -4764,11 +4764,8 @@ export function TypologySpreadsheet() {
                           return (
                             <div
                               key={col.key}
-                              className={cn(
-                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
-                                !isRowGray && section.cellColor
-                              )}
-                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH, ...(isRowGray ? { backgroundColor: '#9ca3af' } : {}) }}
+                              className="spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default"
+                              style={{ width: (col.width || 75) + SORT_ICON_WIDTH, backgroundColor: isRowGray ? '#9ca3af' : 'white' }}
                               data-testid={`cell-createdDate-${row.id}`}
                             >
                               {row.createdAt ? new Date(row.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "-"}
@@ -4780,11 +4777,8 @@ export function TypologySpreadsheet() {
                           return (
                             <div
                               key={col.key}
-                              className={cn(
-                                "spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default",
-                                !isRowGray && section.cellColor
-                              )}
-                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH, ...(isRowGray ? { backgroundColor: '#9ca3af' } : {}) }}
+                              className="spreadsheet-cell px-2 text-xs truncate justify-center text-center cursor-default"
+                              style={{ width: (col.width || 40) + SORT_ICON_WIDTH, backgroundColor: isRowGray ? '#9ca3af' : 'white' }}
                               data-testid={`cell-createdTime-${row.id}`}
                             >
                               {formatTime(row.createdAt)}

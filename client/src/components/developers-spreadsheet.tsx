@@ -298,9 +298,9 @@ export function DevelopersSpreadsheet() {
 
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
-    { key: "active", label: "Act.", width: "70px", type: "toggle", cellType: "checkbox", group: "registro" },
+    { key: "active", label: "Activo", width: "80px", type: "toggle", cellType: "checkbox", group: "registro" },
     { key: "createdDate", label: "Fecha", width: "80px", type: "date-display", group: "registro", cellType: "readonly" },
-    { key: "createdTime", label: "Hora", width: "66px", type: "time-display", group: "registro", cellType: "readonly" },
+    { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "registro", cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "empresa" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "empresa" },
     { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown", group: "empresa" },
@@ -870,7 +870,7 @@ export function DevelopersSpreadsheet() {
                 
                 if (col.type === 'date-display') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
                       <span className={cn("text-xs", cellTextClass)}>{formatDate(dev.createdAt)}</span>
                     </div>
                   );
@@ -878,7 +878,7 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'time-display') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
                       <span className={cn("text-xs", cellTextClass)}>{formatTime(dev.createdAt)}</span>
                     </div>
                   );

@@ -260,7 +260,7 @@ const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'active', label: 'Activo', group: 'registro', type: 'boolean', width: '80px', cellType: 'checkbox' },
   { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '80px', cellType: 'readonly' },
-  { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '72px', cellType: 'readonly' },
+  { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
   { key: 'name', label: 'Desarrollo', group: 'empresa', width: '130px', cellType: 'input' },
@@ -1026,7 +1026,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'date-display') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       <span className={cn("text-xs px-1", cellTextClass)}>{formatDate(dev.createdAt)}</span>
                     </div>
                   );
@@ -1034,7 +1034,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'time-display') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
                       <span className={cn("text-xs px-1", cellTextClass)}>{formatTime(dev.createdAt)}</span>
                     </div>
                   );

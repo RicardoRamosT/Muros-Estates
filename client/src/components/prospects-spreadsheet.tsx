@@ -362,8 +362,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const prospectColumns = [
     { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
-    { key: "active", label: "Activo", width: "68px", type: "toggle", group: "registro" },
-    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "registro" },
+    { key: "active", label: "Activo", width: "80px", type: "toggle", group: "registro" },
+    { key: "fecha", label: "Fecha", width: "80px", type: "date-display", field: "createdAt", group: "registro" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "registro" },
     { key: "asesorId", label: "", width: "130px", type: "select", group: "asesor" },
     { key: "nombre", label: "Nombre", width: "120px", group: "prospecto" },
@@ -401,8 +401,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const clientColumns = [
     { key: "index",   label: "ID",   width: "60px",  type: "index",        group: "corner" },
     // REGISTRO
-    { key: "active",  label: "Activo", width: "68px", type: "toggle",      group: "cregistro" },
-    { key: "fecha",   label: "Fecha",  width: "85px", type: "date-display", field: "createdAt", group: "cregistro" },
+    { key: "active",  label: "Activo", width: "80px", type: "toggle",      group: "cregistro" },
+    { key: "fecha",   label: "Fecha",  width: "80px", type: "date-display", field: "createdAt", group: "cregistro" },
     { key: "hora",    label: "Hora",   width: "65px", type: "time-display", field: "createdAt", group: "cregistro" },
     // ASESOR
     { key: "asesorId", label: "", width: "130px", type: "select",    group: "casesor" },
@@ -1029,9 +1029,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const cellBgColor = isRowInactive ? '#9ca3af' : (isActive ? '#dcfce7' : '#fee2e2');
                     const textColorClass = isRowInactive ? 'text-gray-600' : (isActive ? 'text-green-700' : 'text-red-600');
                     return (
-                      <div 
-                        key={col.key} 
-                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      <div
+                        key={col.key}
+                        className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
                         style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}
                       >
                         {fieldCanEdit ? (
@@ -1040,12 +1040,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => handleActiveToggle(prospect.id, v === "si")}
                           >
                             <SelectTrigger
-                              className={`h-6 text-xs border-0 bg-transparent px-1 font-medium ${textColorClass}`}
+                              className={`h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0 font-medium ${textColorClass}`}
                               data-testid={`toggle-active-${prospect.id}`}
                             >
-                              <SelectValue>
-                                {isActive ? <span>Sí</span> : <span>No</span>}
-                              </SelectValue>
+                              <span className="truncate">{isActive ? 'Sí' : 'No'}</span>
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
@@ -1053,9 +1051,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </SelectContent>
                           </ExclusiveSelect>
                         ) : (
-                          <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
+                          <div className="flex items-center justify-center px-1" style={{ color: isActive ? '#15803d' : '#dc2626', fontWeight: 600 }}>
                             <span>{isActive ? 'Sí' : 'No'}</span>
-                            <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
                       </div>
@@ -1064,16 +1061,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
                   if (col.type === 'date-display') {
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-fecha-${prospect.id}`}>
-                        <span className="text-xs text-muted-foreground px-1">{formatDate(prospect.createdAt)}</span>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default' }} data-testid={`cell-fecha-${prospect.id}`}>
+                        <span className="text-xs px-1">{formatDate(prospect.createdAt)}</span>
                       </div>
                     );
                   }
 
                   if (col.type === 'time-display') {
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width }} data-testid={`cell-hora-${prospect.id}`}>
-                        <span className="text-xs text-muted-foreground px-1">{formatTime(prospect.createdAt)}</span>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default' }} data-testid={`cell-hora-${prospect.id}`}>
+                        <span className="text-xs px-1">{formatTime(prospect.createdAt)}</span>
                       </div>
                     );
                   }
