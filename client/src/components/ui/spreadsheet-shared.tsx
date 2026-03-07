@@ -200,9 +200,8 @@ export function SpreadsheetHeader({
                     className="flex items-center justify-between h-8 font-medium text-xs flex-shrink-0 text-white overflow-hidden"
                     style={{ width: totalWidth, minWidth: totalWidth, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                   >
-                    {!isSingleCol && <div style={{ width: 20, flexShrink: 0 }} />}
                     <span className="truncate min-w-0 flex-1 text-center">{group.label}</span>
-                    {!isSingleCol && onToggleGroupCollapse ? (
+                    {onToggleGroupCollapse ? (
                       <button
                         onClick={() => onToggleGroupCollapse(group.key)}
                         className="flex-shrink-0 flex items-center justify-center hover:bg-white/10 h-full cursor-pointer"
@@ -211,8 +210,6 @@ export function SpreadsheetHeader({
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                    ) : !isSingleCol ? (
-                      <div style={{ width: 20, flexShrink: 0 }} />
                     ) : null}
                   </div>
                 );
@@ -321,9 +318,9 @@ export function SpreadsheetHeader({
                   borderBottom: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
-                <div style={{ width: isColored ? 20 : 8, flexShrink: 0 }} />
+                <div style={{ width: 8, flexShrink: 0 }} />
                 <span className="truncate min-w-0 flex-1 text-center">{singleColGroupKeys.has(col.group || '') ? '' : col.label}</span>
-                {isColored && onToggleColumnCollapse ? (
+                {isColored && onToggleColumnCollapse && !singleColGroupKeys.has(col.group || '') ? (
                   <button
                     onClick={() => onToggleColumnCollapse(col.key)}
                     className="flex-shrink-0 flex items-center justify-center hover:bg-white/10 cursor-pointer h-full"

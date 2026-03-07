@@ -121,8 +121,8 @@ export function ColumnFilter({
 
   const SortIcon = () => {
     if (sortDirection === "asc" || sortDirection === "desc") {
-      const topSign = sortDirection === "asc" ? "+" : "−";
-      const bottomSign = sortDirection === "asc" ? "−" : "+";
+      const topSign = sortDirection === "asc" ? "−" : "+";
+      const bottomSign = sortDirection === "asc" ? "+" : "−";
       return (
         <span className="flex items-center gap-0 flex-shrink-0" style={{ width: 20, height: 14 }}>
           <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
@@ -340,13 +340,21 @@ export function useColumnFilters<T extends Record<string, any>>(
   data: T[],
   columns: { key: string; type?: string }[],
   orderMaps?: Record<string, Record<string, number>>,
-  options?: { defaultSortKey?: string; defaultSortDirection?: "asc" | "desc" }
+  options?: {
+    defaultSortKey?: string;
+    defaultSortDirection?: "asc" | "desc";
+    initialSortConfig?: { key: string; direction: SortDirection };
+    initialFilterConfigs?: Record<string, FilterState>;
+    onSortChange?: (config: { key: string; direction: SortDirection }) => void;
+    onFilterChange?: (configs: Record<string, FilterState>) => void;
+  }
 ) {
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({
-    key: "",
-    direction: null,
-  });
-  const [filterConfigs, setFilterConfigs] = useState<Record<string, FilterState>>({});
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>(
+    options?.initialSortConfig ?? { key: "", direction: null }
+  );
+  const [filterConfigs, setFilterConfigs] = useState<Record<string, FilterState>>(
+    options?.initialFilterConfigs ?? {}
+  );
 
   const extractValues = (value: any): string[] => {
     if (value === null || value === undefined) return [];
@@ -457,17 +465,22 @@ export function useColumnFilters<T extends Record<string, any>>(
   }, [data, sortConfig, filterConfigs, orderMaps, options?.defaultSortKey, options?.defaultSortDirection]);
 
   const handleSort = (key: string, direction: SortDirection) => {
-    setSortConfig({ key, direction });
+    const next = { key, direction };
+    setSortConfig(next);
+    options?.onSortChange?.(next);
   };
 
   const handleFilter = (key: string, state: FilterState) => {
     setFilterConfigs((prev) => {
+      let next: Record<string, FilterState>;
       if (state.selectedValues.size === 0) {
-        const next = { ...prev };
+        next = { ...prev };
         delete next[key];
-        return next;
+      } else {
+        next = { ...prev, [key]: state };
       }
-      return { ...prev, [key]: state };
+      options?.onFilterChange?.(next);
+      return next;
     });
   };
 
@@ -475,13 +488,17 @@ export function useColumnFilters<T extends Record<string, any>>(
     setFilterConfigs((prev) => {
       const next = { ...prev };
       delete next[key];
+      options?.onFilterChange?.(next);
       return next;
     });
   };
 
   const clearAllFilters = () => {
-    setSortConfig({ key: "", direction: null });
+    const nextSort = { key: "", direction: null as SortDirection };
+    setSortConfig(nextSort);
     setFilterConfigs({});
+    options?.onSortChange?.(nextSort);
+    options?.onFilterChange?.({});
   };
 
   return {

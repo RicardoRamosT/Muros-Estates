@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, RotateCcw, Loader2 } from "lucide-react";
+import { Recycle, RotateCcw, Loader2 } from "lucide-react";
 
 interface RecycleBinConfig {
   entityLabel: string;
@@ -23,6 +23,7 @@ export function RecycleBinDrawer({ config }: { config: RecycleBinConfig }) {
   const { data: deletedItems = [], isLoading } = useQuery<any[]>({
     queryKey: [config.deletedEndpoint],
     enabled: open,
+    staleTime: 0,
   });
 
   const restoreMutation = useMutation({
@@ -45,12 +46,12 @@ export function RecycleBinDrawer({ config }: { config: RecycleBinConfig }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
-          className="fixed bottom-4 left-4 z-50 flex items-center gap-1.5 bg-background border rounded-md shadow-md px-2.5 py-1.5 text-xs hover:bg-muted transition-colors"
+          className="relative flex items-center justify-center h-6 w-6 rounded-t-none hover:bg-muted transition-colors cursor-pointer"
           data-testid="button-recycle-bin"
         >
-          <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+          <Recycle className="w-3 h-3 text-muted-foreground" />
           {count > 0 && (
-            <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">
+            <Badge variant="destructive" className="absolute -top-1.5 -right-1.5 text-[8px] px-0.5 py-0 h-3.5 min-w-[14px] flex items-center justify-center">
               {count}
             </Badge>
           )}
@@ -59,7 +60,7 @@ export function RecycleBinDrawer({ config }: { config: RecycleBinConfig }) {
       <SheetContent side="left" className="w-[380px] sm:w-[420px]">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Trash2 className="w-4 h-4" />
+            <Recycle className="w-4 h-4" />
             Papelera — {config.entityLabel}
           </SheetTitle>
         </SheetHeader>

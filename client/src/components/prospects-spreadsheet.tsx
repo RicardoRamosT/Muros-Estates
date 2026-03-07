@@ -18,6 +18,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
+import { useAuth } from "@/lib/auth";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
 import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -92,6 +95,8 @@ interface ProspectsSpreadsheetProps {
 
 export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsheetProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const uid = user?.id ?? "anon";
   const pageName = isClientView ? 'clientes' : 'prospectos';
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions(pageName as any);
   const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
@@ -102,7 +107,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const editValueRef = useRef("");
   const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, pageName, "collapsedGroups"), () => new Set(), setSerializer
+  );
   const toggleGroupCollapse = (key: string) => {
     if (activeEditingRowId) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -114,7 +121,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     });
   };
   const COLLAPSED_COL_WIDTH = 20;
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const [collapsedColumns, setCollapsedColumns] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, pageName, "collapsedColumns"), () => new Set(), setSerializer
+  );
   const toggleColumn = (key: string) => {
     if (activeEditingRowId) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -739,6 +748,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [flushPendingChanges]);
 
   // Column filtering and sorting
+  const prospSortKey = spreadsheetKey(uid, pageName, "sortConfig");
+  const prospFilterKey = spreadsheetKey(uid, pageName, "filterConfigs");
+  const readProspInitialSort = () => {
+    try { const raw = localStorage.getItem(prospSortKey); if (raw) return JSON.parse(raw); } catch {}
+    return undefined;
+  };
+  const readProspInitialFilters = () => {
+    try { const raw = localStorage.getItem(prospFilterKey); if (raw) return filterConfigsSerializer.deserialize(raw); } catch {}
+    return undefined;
+  };
   const {
     sortConfig,
     filterConfigs,
@@ -749,7 +768,23 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     handleClearFilter,
     clearAllFilters,
     availableValuesMap,
-  } = useColumnFilters(effectiveProspects, columns, orderMaps, { defaultSortKey: "createdAt" });
+  } = useColumnFilters(effectiveProspects, columns, orderMaps, {
+    defaultSortKey: "createdAt",
+    initialSortConfig: readProspInitialSort(),
+    initialFilterConfigs: readProspInitialFilters(),
+    onSortChange: (c) => {
+      try {
+        if (!c.key && c.direction === null) localStorage.removeItem(prospSortKey);
+        else localStorage.setItem(prospSortKey, JSON.stringify(c));
+      } catch {}
+    },
+    onFilterChange: (c) => {
+      try {
+        if (Object.keys(c).length === 0) localStorage.removeItem(prospFilterKey);
+        else localStorage.setItem(prospFilterKey, filterConfigsSerializer.serialize(c));
+      } catch {}
+    },
+  });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -828,7 +863,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [prospects]);
 
   // Zoom controls
-  const [zoomLevel, setZoomLevel] = useState(100);
+  const [zoomLevel, setZoomLevel] = usePersistedState<number>(
+    spreadsheetKey(uid, pageName, "zoomLevel"), 100
+  );
   const [showZoomPopup, setShowZoomPopup] = useState(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleZoomChange = (newZoom: number) => {
@@ -1723,20 +1760,23 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           <Plus className="h-3 w-3" />
         </Button>
         <div className="h-px w-3 bg-border" />
-        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50}>
+        <Button size="icon" variant="ghost" className={cn("h-6 w-6", hasFullAccess ? "rounded-none" : "rounded-t-none")} onClick={zoomOut} disabled={zoomLevel <= 50}>
           <Minus className="h-3 w-3" />
         </Button>
+        {hasFullAccess && (
+          <>
+            <div className="h-px w-3 bg-border" />
+            <RecycleBinDrawer config={{
+              entityLabel: "Prospectos",
+              deletedEndpoint: "/api/clients/deleted",
+              restoreEndpoint: (id) => `/api/clients/${id}/restore`,
+              invalidateKeys: ["/api/clients"],
+              getItemLabel: (item) => `${item.nombre || ''} ${item.apellido || ''}`.trim() || 'Sin nombre',
+              getItemSubLabel: (item) => item.telefono || '',
+            }} />
+          </>
+        )}
       </div>
-      {hasFullAccess && (
-        <RecycleBinDrawer config={{
-          entityLabel: "Prospectos",
-          deletedEndpoint: "/api/clients/deleted",
-          restoreEndpoint: (id) => `/api/clients/${id}/restore`,
-          invalidateKeys: ["/api/clients"],
-          getItemLabel: (item) => `${item.nombre || ''} ${item.apellido || ''}`.trim() || 'Sin nombre',
-          getItemSubLabel: (item) => item.telefono || '',
-        }} />
-      )}
     </div>
   );
 }

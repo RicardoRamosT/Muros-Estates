@@ -29,6 +29,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } from "@/components/ui/column-filter";
+import { useAuth } from "@/lib/auth";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
 import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
@@ -240,6 +243,8 @@ function getMissingFieldsDeveloper(dev: Developer): string[] {
 
 export function DevelopersSpreadsheet() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const uid = user?.id ?? "anon";
   const { canView, canEdit, hasFullAccess, role, canAccess } = useFieldPermissions('desarrolladores');
   const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
   const editingCellRef = useRef<{id: string, field: string} | null>(null);
@@ -249,7 +254,9 @@ export function DevelopersSpreadsheet() {
   const editValueRef = useRef("");
   const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "developers", "collapsedGroups"), () => new Set(), setSerializer
+  );
   const toggleGroupCollapse = (key: string) => {
     if (activeEditingRowId) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -261,7 +268,9 @@ export function DevelopersSpreadsheet() {
     });
   };
   const COLLAPSED_COL_WIDTH = 20;
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const [collapsedColumns, setCollapsedColumns] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "developers", "collapsedColumns"), () => new Set(), setSerializer
+  );
   const toggleColumn = (key: string) => {
     if (activeEditingRowId) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -393,6 +402,16 @@ export function DevelopersSpreadsheet() {
     };
   }, [flushPendingChanges]);
 
+  const sortKey = spreadsheetKey(uid, "developers", "sortConfig");
+  const filterKey = spreadsheetKey(uid, "developers", "filterConfigs");
+  const readInitialSort = () => {
+    try { const raw = localStorage.getItem(sortKey); if (raw) return JSON.parse(raw); } catch {}
+    return undefined;
+  };
+  const readInitialFilters = () => {
+    try { const raw = localStorage.getItem(filterKey); if (raw) return filterConfigsSerializer.deserialize(raw); } catch {}
+    return undefined;
+  };
   const {
     sortConfig,
     filterConfigs,
@@ -403,7 +422,23 @@ export function DevelopersSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(effectiveDevelopers, columns, undefined, { defaultSortKey: "createdAt" });
+  } = useColumnFilters(effectiveDevelopers, columns, undefined, {
+    defaultSortKey: "createdAt",
+    initialSortConfig: readInitialSort(),
+    initialFilterConfigs: readInitialFilters(),
+    onSortChange: (c) => {
+      try {
+        if (!c.key && c.direction === null) localStorage.removeItem(sortKey);
+        else localStorage.setItem(sortKey, JSON.stringify(c));
+      } catch {}
+    },
+    onFilterChange: (c) => {
+      try {
+        if (Object.keys(c).length === 0) localStorage.removeItem(filterKey);
+        else localStorage.setItem(filterKey, filterConfigsSerializer.serialize(c));
+      } catch {}
+    },
+  });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -478,7 +513,9 @@ export function DevelopersSpreadsheet() {
   }, [developers]);
 
   // Zoom controls
-  const [zoomLevel, setZoomLevel] = useState(100);
+  const [zoomLevel, setZoomLevel] = usePersistedState<number>(
+    spreadsheetKey(uid, "developers", "zoomLevel"), 100
+  );
   const [showZoomPopup, setShowZoomPopup] = useState(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleZoomChange = (newZoom: number) => {
@@ -906,8 +943,8 @@ export function DevelopersSpreadsheet() {
                   const isDisabled = dev.active === null || dev.active === undefined;
                   const activeState = isDisabled ? "disabled" : (dev.active === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                   const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
-                  const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
-                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
+                  const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#4b5563", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
+                  const label = activeState === "active" ? "Sí" : activeState === "disabled" ? "In" : "No";
                   const cellContent = (
                     <div
                       key={field}
@@ -938,7 +975,7 @@ export function DevelopersSpreadsheet() {
                               <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
                             </SelectItem>
                             <SelectItem value="disabled" className="text-xs">
-                              <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
+                              <span style={{ color: "#4b5563", fontWeight: 500 }}>Inhabilitado</span>
                             </SelectItem>
                           </SelectContent>
                         </ExclusiveSelect>
@@ -1323,20 +1360,23 @@ export function DevelopersSpreadsheet() {
           <Plus className="h-3 w-3" />
         </Button>
         <div className="h-px w-3 bg-border" />
-        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50}>
+        <Button size="icon" variant="ghost" className={cn("h-6 w-6", hasFullAccess ? "rounded-none" : "rounded-t-none")} onClick={zoomOut} disabled={zoomLevel <= 50}>
           <Minus className="h-3 w-3" />
         </Button>
+        {hasFullAccess && (
+          <>
+            <div className="h-px w-3 bg-border" />
+            <RecycleBinDrawer config={{
+              entityLabel: "Desarrolladores",
+              deletedEndpoint: "/api/developers/deleted",
+              restoreEndpoint: (id) => `/api/developers/${id}/restore`,
+              invalidateKeys: ["/api/developers"],
+              getItemLabel: (item) => item.name || 'Sin nombre',
+              getItemSubLabel: (item) => item.tipo || '',
+            }} />
+          </>
+        )}
       </div>
-      {hasFullAccess && (
-        <RecycleBinDrawer config={{
-          entityLabel: "Desarrolladores",
-          deletedEndpoint: "/api/developers/deleted",
-          restoreEndpoint: (id) => `/api/developers/${id}/restore`,
-          invalidateKeys: ["/api/developers"],
-          getItemLabel: (item) => item.name || 'Sin nombre',
-          getItemSubLabel: (item) => item.tipo || '',
-        }} />
-      )}
     </div>
   );
 }

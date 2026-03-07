@@ -19,6 +19,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
+import { useAuth } from "@/lib/auth";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
 import { Plus, Minus, Trash2, Building, Loader2, Lock, AlertCircle, FolderOpen, X, Save, Check, ChevronDown, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "wouter";
@@ -309,6 +312,8 @@ const columns: ColumnDef[] = [
 
 export function DevelopmentsSpreadsheet() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const uid = user?.id ?? "anon";
   const { canView, canEdit, hasFullAccess, role, canAccess, isLoading: authLoading } = useFieldPermissions('desarrollos');
   const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
   const editingCellRef = useRef<{id: string, field: string} | null>(null);
@@ -320,7 +325,9 @@ export function DevelopmentsSpreadsheet() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "developments", "collapsedGroups"), () => new Set(), setSerializer
+  );
   const toggleGroupCollapse = (key: string) => {
     if (activeEditingRowId) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -332,7 +339,9 @@ export function DevelopmentsSpreadsheet() {
     });
   };
   const COLLAPSED_COL_WIDTH = 20;
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const [collapsedColumns, setCollapsedColumns] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "developments", "collapsedColumns"), () => new Set(), setSerializer
+  );
   const toggleColumn = (key: string) => {
     if (activeEditingRowId) {
       saveRowByIdRef.current(activeEditingRowId);
@@ -683,6 +692,16 @@ export function DevelopmentsSpreadsheet() {
     });
   }, [effectiveDevelopments, getTypeFromDeveloper]);
 
+  const devSortKey = spreadsheetKey(uid, "developments", "sortConfig");
+  const devFilterKey = spreadsheetKey(uid, "developments", "filterConfigs");
+  const readDevInitialSort = () => {
+    try { const raw = localStorage.getItem(devSortKey); if (raw) return JSON.parse(raw); } catch {}
+    return undefined;
+  };
+  const readDevInitialFilters = () => {
+    try { const raw = localStorage.getItem(devFilterKey); if (raw) return filterConfigsSerializer.deserialize(raw); } catch {}
+    return undefined;
+  };
   const {
     sortConfig,
     filterConfigs,
@@ -693,7 +712,23 @@ export function DevelopmentsSpreadsheet() {
     handleFilter,
     handleClearFilter,
     clearAllFilters,
-  } = useColumnFilters(developmentsForFilter, visibleColumns, { developerId: developerOrderMap }, { defaultSortKey: "createdAt" });
+  } = useColumnFilters(developmentsForFilter, visibleColumns, { developerId: developerOrderMap }, {
+    defaultSortKey: "createdAt",
+    initialSortConfig: readDevInitialSort(),
+    initialFilterConfigs: readDevInitialFilters(),
+    onSortChange: (c) => {
+      try {
+        if (!c.key && c.direction === null) localStorage.removeItem(devSortKey);
+        else localStorage.setItem(devSortKey, JSON.stringify(c));
+      } catch {}
+    },
+    onFilterChange: (c) => {
+      try {
+        if (Object.keys(c).length === 0) localStorage.removeItem(devFilterKey);
+        else localStorage.setItem(devFilterKey, filterConfigsSerializer.serialize(c));
+      } catch {}
+    },
+  });
 
   const INITIAL_ROWS = 50;
   const LOAD_MORE = 30;
@@ -768,7 +803,9 @@ export function DevelopmentsSpreadsheet() {
   }, [developments]);
 
   // Zoom controls
-  const [zoomLevel, setZoomLevel] = useState(100);
+  const [zoomLevel, setZoomLevel] = usePersistedState<number>(
+    spreadsheetKey(uid, "developments", "zoomLevel"), 100
+  );
   const [showZoomPopup, setShowZoomPopup] = useState(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleZoomChange = (newZoom: number) => {
@@ -1063,8 +1100,8 @@ export function DevelopmentsSpreadsheet() {
                     const activeState = isDisabled ? "disabled" : (value === true && isComplete) ? "active" : (isComplete ? "ready" : "incomplete");
                     const bgColor = isRowInactive ? '#9ca3af' : activeState === "active" ? "#dcfce7" : activeState === "ready" ? "#FDCDB0" : activeState === "disabled" ? "#9ca3af" : "#fee2e2";
                     const dotColor = activeState === "active" ? "#15803d" : activeState === "ready" ? "#F16100" : activeState === "disabled" ? "#1f2937" : "#dc2626";
-                    const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#1f2937", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
-                    const activeLabel = activeState === "active" ? "Sí" : activeState === "disabled" ? "Deshabilitado" : "No";
+                    const textStyle: React.CSSProperties = activeState === "active" ? { color: "#15803d", fontWeight: 600 } : activeState === "ready" ? { color: "#C04D00", fontWeight: 600 } : activeState === "disabled" ? { color: "#4b5563", fontWeight: 500 } : { color: "#dc2626", fontWeight: 500 };
+                    const activeLabel = activeState === "active" ? "Sí" : activeState === "disabled" ? "In" : "No";
                     const missingFields = activeState === "incomplete" ? getMissingFieldsDevelopment(dev, parentDeveloper) : [];
                     const tooltipContent = missingFields.length > 0
                       ? `Campos vacíos (${missingFields.length}):\n${missingFields.map(f => `• ${f}`).join('\n')}`
@@ -1100,7 +1137,7 @@ export function DevelopmentsSpreadsheet() {
                                 <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
                               </SelectItem>
                               <SelectItem value="disabled" className="text-xs">
-                                <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
+                                <span style={{ color: "#4b5563", fontWeight: 500 }}>Inhabilitado</span>
                               </SelectItem>
                             </SelectContent>
                           </ExclusiveSelect>
@@ -1121,22 +1158,34 @@ export function DevelopmentsSpreadsheet() {
                     }
                     return activeCellContent;
                   }
+                  if (isRowInactive) {
+                    const disLabel = value === true ? "Sí" : value === false ? "No" : "-";
+                    const disBg = value === true ? '#a8d5b5' : value === false ? '#f0b8b8' : '#9ca3af';
+                    const disColor = value === true ? '#4a7c59' : value === false ? '#a05050' : '#6b7280';
+                    return (
+                      <div key={col.key} className="spreadsheet-cell flex-shrink-0 justify-center gap-0.5 text-xs font-medium"
+                        style={{ width: col.width, minWidth: col.width, backgroundColor: disBg, color: disColor, pointerEvents: 'none', cursor: 'default' }}>
+                        <span>{disLabel}</span>
+                        <ChevronDown className="w-3 h-3 shrink-0 opacity-50" />
+                      </div>
+                    );
+                  }
                   const devTipos = (dev.tipos as string[] | null) || [];
                   const isDepa = devTipos.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
                   const isLockOffDisabledByTipo = col.key === 'lockOff' && !isDepa && !hasFullAccess;
-                  const cellBgColor = value === true 
+                  const cellBgColor = value === true
                     ? isLockOffDisabledByTipo ? '#e5e7eb' : '#dcfce7'
-                    : value === false 
+                    : value === false
                       ? isLockOffDisabledByTipo ? '#e5e7eb' : '#fee2e2'
                       : undefined;
-                  const textColorClass = value === true 
-                    ? isLockOffDisabledByTipo ? (isRowInactive ? 'text-gray-600' : 'text-gray-400') : 'text-green-700 font-medium' 
-                    : value === false 
-                      ? isLockOffDisabledByTipo ? (isRowInactive ? 'text-gray-600' : 'text-gray-400') : 'text-red-600 font-medium' 
+                  const textColorClass = value === true
+                    ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-green-700 font-medium'
+                    : value === false
+                      ? isLockOffDisabledByTipo ? 'text-gray-400' : 'text-red-600 font-medium'
                       : cellTextClass;
                   const effectiveCanEdit = fieldCanEdit && !isLockOffDisabledByTipo;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#9ca3af' : cellBgColor }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
                       {effectiveCanEdit ? (
                         <ExclusiveSelect
                           value={value === true ? "si" : value === false ? "no" : ""}
@@ -1179,7 +1228,7 @@ export function DevelopmentsSpreadsheet() {
                   const tipoIsAutoFilled = hasDeveloper && !!developerTipo;
                   const tipoDisabled = !hasDeveloper || tipoIsAutoFilled || !fieldCanEdit;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: tipoDisabled }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: tipoDisabled }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#b8b3a8' : 'rgb(255,241,220)', color: 'black', ...(isRowInactive ? { pointerEvents: 'none' as const, cursor: 'default' } : {}) }}>
                       {hasDeveloper && fieldCanEdit && !tipoIsAutoFilled ? (
                         <ExclusiveSelect
                           value={value || "__unassigned__"}
@@ -2108,20 +2157,23 @@ export function DevelopmentsSpreadsheet() {
           <Plus className="h-3 w-3" />
         </Button>
         <div className="h-px w-3 bg-border" />
-        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50}>
+        <Button size="icon" variant="ghost" className={cn("h-6 w-6", hasFullAccess ? "rounded-none" : "rounded-t-none")} onClick={zoomOut} disabled={zoomLevel <= 50}>
           <Minus className="h-3 w-3" />
         </Button>
+        {hasFullAccess && (
+          <>
+            <div className="h-px w-3 bg-border" />
+            <RecycleBinDrawer config={{
+              entityLabel: "Desarrollos",
+              deletedEndpoint: "/api/developments-entity/deleted",
+              restoreEndpoint: (id) => `/api/developments-entity/${id}/restore`,
+              invalidateKeys: ["/api/developments-entity"],
+              getItemLabel: (item) => item.name || 'Sin nombre',
+              getItemSubLabel: (item) => item.city || '',
+            }} />
+          </>
+        )}
       </div>
-      {hasFullAccess && (
-        <RecycleBinDrawer config={{
-          entityLabel: "Desarrollos",
-          deletedEndpoint: "/api/developments-entity/deleted",
-          restoreEndpoint: (id) => `/api/developments-entity/${id}/restore`,
-          invalidateKeys: ["/api/developments-entity"],
-          getItemLabel: (item) => item.name || 'Sin nombre',
-          getItemSubLabel: (item) => item.city || '',
-        }} />
-      )}
     </div>
   );
 }

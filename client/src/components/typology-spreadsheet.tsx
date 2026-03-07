@@ -39,6 +39,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import { spreadsheetKey, setSerializer, columnFiltersSerializer } from "@/lib/spreadsheet-persistence";
 import type { Typology, CatalogAviso } from "@shared/schema";
 import {
   AlertDialog,
@@ -1701,8 +1703,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         break;
       case "disabled":
         bgColor = "#9ca3af";
-        textColorStyle = { color: "#1f2937", fontWeight: 500 };
-        label = "Deshabilitado";
+        textColorStyle = { color: "#4b5563", fontWeight: 500 };
+        label = "In";
         break;
       case "incomplete":
       default:
@@ -1750,7 +1752,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
               <span style={{ color: isComplete ? "#f97316" : "#dc2626", fontWeight: 500 }}>No</span>
             </SelectItem>
             <SelectItem value="disabled" className="text-xs">
-              <span style={{ color: "#1f2937", fontWeight: 500 }}>Deshabilitado</span>
+              <span style={{ color: "#4b5563", fontWeight: 500 }}>Inhabilitado</span>
             </SelectItem>
           </SelectContent>
         </ExclusiveSelect>
@@ -2162,53 +2164,14 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
 
     if (availableTypes.length === 0 || disabled) {
-      if (devWarning) {
-        return (
-          <Popover modal>
-            <PopoverTrigger asChild>
-              <div 
-                className={cn("spreadsheet-cell px-1 cursor-pointer", !rowDisabledStyle && "bg-amber-50 dark:bg-amber-950/30 border-amber-300", cellBorderClass)}
-                style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
-                title="Advertencia"
-              >
-                <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5 px-1">
-                  <AlertCircle className="w-3 h-3 shrink-0" />
-                  <span className="truncate">Advertencia</span>
-                </span>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-3 z-[200]" side="bottom" align="start">
-              <p className="text-xs font-semibold text-amber-700 mb-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                Advertencia
-              </p>
-              <p className="text-xs text-muted-foreground mb-2">Se detectaron los siguientes problemas:</p>
-              <div className="text-xs space-y-0.5">
-                {devWarning.split('\n').map((line, i) => (
-                  <div key={i} className="flex items-start gap-1">
-                    <span className="text-amber-500 shrink-0">•</span>
-                    <span>{line}</span>
-                  </div>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        );
-      }
       return (
-        <div 
-          className={cn("spreadsheet-cell px-1 cursor-not-allowed", !rowDisabledStyle && "bg-amber-50/60 dark:bg-amber-950/20", cellBorderClass)}
+        <div
+          className={cn("spreadsheet-cell px-1", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
-          title="Este desarrollo no tiene tipos configurados. Agrégalos en el catálogo del desarrollo."
         >
           {selectedType ? (
             <span className="text-xs text-muted-foreground px-1 truncate">{selectedType}</span>
-          ) : (
-            <span className="flex items-center gap-0.5 text-[10px] text-amber-600 px-0.5">
-              <Info className="w-3 h-3 shrink-0" />
-              <span className="truncate">Sin tipos</span>
-            </span>
-          )}
+          ) : null}
         </div>
       );
     }
@@ -2443,14 +2406,27 @@ export function TypologySpreadsheet() {
   const { toast } = useToast();
   const { user } = useAuth();
   const hasFullAccess = user?.role === "admin" || user?.role === "actualizador";
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(SECTIONS.map(s => s.id))
+  const uid = user?.id ?? "anon";
+  const [expandedSections, setExpandedSections] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "typologies", "expandedSections"),
+    () => new Set(SECTIONS.map(s => s.id)),
+    setSerializer
   );
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
-  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
-  const [columnSorts, setColumnSorts] = useState<ColumnSorts>({});
-  const [rangeFilters, setRangeFilters] = useState<RangeFilters>({});
+  const [collapsedGroups, setCollapsedGroups] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "typologies", "collapsedGroups"), () => new Set(), setSerializer
+  );
+  const [collapsedColumns, setCollapsedColumns] = usePersistedState<Set<string>>(
+    spreadsheetKey(uid, "typologies", "collapsedColumns"), () => new Set(), setSerializer
+  );
+  const [columnFilters, setColumnFilters] = usePersistedState<ColumnFilters>(
+    spreadsheetKey(uid, "typologies", "columnFilters"), () => ({}), columnFiltersSerializer
+  );
+  const [columnSorts, setColumnSorts] = usePersistedState<ColumnSorts>(
+    spreadsheetKey(uid, "typologies", "columnSorts"), () => ({})
+  );
+  const [rangeFilters, setRangeFilters] = usePersistedState<RangeFilters>(
+    spreadsheetKey(uid, "typologies", "rangeFilters"), () => ({})
+  );
   const pendingChangesRef = useRef<Map<string, Partial<Typology>>>(new Map());
   const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
   const pendingChanges = pendingChangesRef.current;
@@ -3681,7 +3657,9 @@ export function TypologySpreadsheet() {
     });
   }, [visibleCount, typologies.length]);
 
-  const [zoomLevel, setZoomLevel] = useState(100);
+  const [zoomLevel, setZoomLevel] = usePersistedState<number>(
+    spreadsheetKey(uid, "typologies", "zoomLevel"), 100
+  );
   const [showZoomPopup, setShowZoomPopup] = useState(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -4027,9 +4005,6 @@ export function TypologySpreadsheet() {
                       }}
                     >
                       {showLabel && (
-                        <div className="pointer-events-none" style={{ width: 20 }} />
-                      )}
-                      {showLabel && (
                         <TruncatedLabel 
                           label={displayLabel.toUpperCase()} 
                           columnKey={groupKey} 
@@ -4130,7 +4105,6 @@ export function TypologySpreadsheet() {
                 </Tooltip>
               ) : (
                 <div className="flex-shrink-0 flex items-center justify-between h-full text-white" style={{ backgroundColor: MEDIOS_COLOR, width: 96 }}>
-                  <div className="pointer-events-none" style={{ width: 20 }} />
                   <TruncatedLabel label="MEDIOS" columnKey="medios" uppercaseTooltip={true} />
                   <button
                     onClick={() => setCollapsedColumns(prev => { const n = new Set(prev); n.add("medios"); return n; })}
@@ -4359,7 +4333,6 @@ export function TypologySpreadsheet() {
                           }}
                         >
                           <div className="flex items-center justify-between w-full h-full">
-                            <div className="pointer-events-none" style={{ width: 20 }} />
                             <TruncatedLabel label={section.label} columnKey={section.id} />
                             {allColsCollapsedInSection ? (
                               <Tooltip>
@@ -4428,7 +4401,6 @@ export function TypologySpreadsheet() {
                         </Tooltip>
                       ) : (
                         <>
-                          <div style={{ width: 20 }} />
                           <TruncatedLabel label={col.label} fullLabel={col.fullLabel} columnKey={col.key} />
                           <button onClick={() => toggleColumn(col.key)} className="w-4 h-full flex items-center justify-center cursor-pointer hover:bg-white/10"><Minus className="w-3 h-3 text-white" /></button>
                         </>
@@ -4457,7 +4429,6 @@ export function TypologySpreadsheet() {
                   }
                   return (
                     <div key={`unified-${key}`} className="flex-shrink-0 h-full flex items-center justify-between text-white" style={{ backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex), width: totalW, borderLeft: !isFirstInSection ? '1px solid rgba(255,255,255,0.15)' : undefined, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-                      <div style={{ width: 20 }} />
                       <TruncatedLabel label={label} columnKey={key} allowTruncationTooltip={true} />
                       <button onClick={() => toggleColumns(colKeys)} className="flex items-center justify-center h-full flex-shrink-0 cursor-pointer hover:bg-white/10" style={{ width: 20 }} data-testid={`unified-collapse-${key}`}>
                         <Minus className="w-3 h-3 text-white" />
@@ -4573,7 +4544,7 @@ export function TypologySpreadsheet() {
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false_ready", "false_red", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
                               dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#F16100", "false_red": "#dc2626", "null": "#1f2937" } : undefined}
-                              labelMap={col.key === "active" ? { "true": "Sí", "false_ready": "No Naranja", "false_red": "No Rojo", "null": "Deshabilitado" } : undefined}
+                              labelMap={col.key === "active" ? { "true": "Sí", "false_ready": "No Naranja", "false_red": "No Rojo", "null": "Inhabilitado" } : undefined}
                               hasParentGroup={!!section.parentLabel}
                             />
                           )}
@@ -5025,9 +4996,22 @@ export function TypologySpreadsheet() {
           <Plus className="h-3 w-3" />
         </Button>
         <div className="h-px w-3 bg-border" />
-        <Button size="icon" variant="ghost" className="h-6 w-6 rounded-t-none" onClick={zoomOut} disabled={zoomLevel <= 50} data-testid="zoom-out">
+        <Button size="icon" variant="ghost" className={cn("h-6 w-6", hasFullAccess ? "rounded-none" : "rounded-t-none")} onClick={zoomOut} disabled={zoomLevel <= 50} data-testid="zoom-out">
           <Minus className="h-3 w-3" />
         </Button>
+        {hasFullAccess && (
+          <>
+            <div className="h-px w-3 bg-border" />
+            <RecycleBinDrawer config={{
+              entityLabel: "Tipologías",
+              deletedEndpoint: "/api/typologies/deleted",
+              restoreEndpoint: (id) => `/api/typologies/${id}/restore`,
+              invalidateKeys: ["/api/typologies"],
+              getItemLabel: (item) => `${item.development || ''} - ${item.type || ''}`,
+              getItemSubLabel: (item) => item.city || '',
+            }} />
+          </>
+        )}
       </div>
 
       <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
@@ -5146,16 +5130,6 @@ export function TypologySpreadsheet() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {hasFullAccess && (
-        <RecycleBinDrawer config={{
-          entityLabel: "Tipologías",
-          deletedEndpoint: "/api/typologies/deleted",
-          restoreEndpoint: (id) => `/api/typologies/${id}/restore`,
-          invalidateKeys: ["/api/typologies"],
-          getItemLabel: (item) => `${item.development || ''} - ${item.type || ''}`,
-          getItemSubLabel: (item) => item.city || '',
-        }} />
-      )}
     </div>
   );
 }
