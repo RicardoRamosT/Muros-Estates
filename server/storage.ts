@@ -147,6 +147,7 @@ export interface IStorage {
   getDeletedDevelopments(): Promise<Development[]>;
   restoreDevelopment(id: string): Promise<boolean>;
   clearTypologyFieldByValue(field: "developer" | "development", value: string): Promise<void>;
+  updateTypologyFieldByValue(matchField: "developer" | "development", oldValue: string, updates: Partial<InsertTypology>): Promise<number>;
   
   // Catalogs
   getCatalogCities(): Promise<CatalogCity[]>;
@@ -689,6 +690,14 @@ export class DatabaseStorage implements IStorage {
     await db.update(typologies)
       .set({ [field]: null } as any)
       .where(eq(typologies[field], value));
+  }
+
+  async updateTypologyFieldByValue(matchField: "developer" | "development", oldValue: string, updates: Partial<InsertTypology>): Promise<number> {
+    const result = await db.update(typologies)
+      .set(updates as any)
+      .where(eq(typologies[matchField], oldValue))
+      .returning();
+    return result.length;
   }
   
   // Catalog Cities

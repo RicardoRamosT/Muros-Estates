@@ -1210,12 +1210,14 @@ export async function registerRoutes(
         data.fechaAntiguedad = new Date(data.fechaAntiguedad);
       }
 
+      // Fetch existing developer for activation check and name-change propagation
+      const existing = await storage.getDeveloper(id);
+      if (!existing) {
+        return res.status(404).json({ error: "Desarrollador no encontrado" });
+      }
+
       // Prevent activating an incomplete developer
       if (data.active === true) {
-        const existing = await storage.getDeveloper(id);
-        if (!existing) {
-          return res.status(404).json({ error: "Desarrollador no encontrado" });
-        }
         const merged = { ...existing, ...data };
         if (!isDeveloperComplete(merged)) {
           return res.status(400).json({ error: "No se puede activar un desarrollador con datos incompletos" });
@@ -1226,6 +1228,19 @@ export async function registerRoutes(
       if (!dev) {
         return res.status(404).json({ error: "Desarrollador no encontrado" });
       }
+
+      // Propagate developer name change to typologies
+      if ('name' in data && existing.name && dev.name && existing.name !== dev.name) {
+        try {
+          const count = await storage.updateTypologyFieldByValue("developer", existing.name, { developer: dev.name });
+          if (count > 0) {
+            console.log(`Propagated developer name change "${existing.name}" → "${dev.name}" to ${count} typologies`);
+          }
+        } catch (propError) {
+          console.error("Error propagating developer name to typologies:", propError);
+        }
+      }
+
       broadcastDeveloperUpdate("update", dev);
       res.json(dev);
     } catch (error) {
@@ -1313,12 +1328,14 @@ export async function registerRoutes(
     try {
       const id = req.params.id as string;
 
+      // Fetch existing development for activation check and propagation
+      const existing = await storage.getDevelopmentEntity(id);
+      if (!existing) {
+        return res.status(404).json({ error: "Desarrollo no encontrado" });
+      }
+
       // Prevent activating an incomplete development or one with inactive parent
       if (req.body.active === true) {
-        const existing = await storage.getDevelopmentEntity(id);
-        if (!existing) {
-          return res.status(404).json({ error: "Desarrollo no encontrado" });
-        }
         const merged = { ...existing, ...req.body };
         if (!isDevelopmentComplete(merged)) {
           return res.status(400).json({ error: "No se puede activar un desarrollo con datos incompletos" });
@@ -1336,23 +1353,45 @@ export async function registerRoutes(
       if (!dev) {
         return res.status(404).json({ error: "Desarrollo no encontrado" });
       }
-      
-      // If entregaProyectada was updated, propagate to typologies
+
+      // Propagate development name change to typologies
+      if ('name' in req.body && existing.name && dev.name && existing.name !== dev.name) {
+        try {
+          const count = await storage.updateTypologyFieldByValue("development", existing.name, { development: dev.name });
+          if (count > 0) {
+            console.log(`Propagated development name change "${existing.name}" → "${dev.name}" to ${count} typologies`);
+          }
+        } catch (propError) {
+          console.error("Error propagating development name to typologies:", propError);
+        }
+      }
+
+      // Propagate city/zone changes to typologies that reference this development
+      if (('city' in req.body || 'zone' in req.body) && dev.name) {
+        try {
+          const updates: Record<string, string | null> = {};
+          if ('city' in req.body) updates.city = dev.city;
+          if ('zone' in req.body) updates.zone = dev.zone;
+          // Use the current development name (possibly just renamed above)
+          const matchName = 'name' in req.body && existing.name !== dev.name ? dev.name : (existing.name || dev.name);
+          if (matchName) {
+            const count = await storage.updateTypologyFieldByValue("development", matchName, updates as any);
+            if (count > 0) {
+              console.log(`Propagated city/zone change to ${count} typologies for development ${matchName}`);
+            }
+          }
+        } catch (propError) {
+          console.error("Error propagating city/zone to typologies:", propError);
+        }
+      }
+
+      // Propagate entregaProyectada to typologies
       if ('entregaProyectada' in req.body && dev.name) {
         try {
-          // Find typologies by development name and update their deliveryDate
-          const typologies = await storage.getAllTypologies();
-          const matchingTypologies = typologies.filter((t: { development: string | null }) => t.development === dev.name);
-          
-          // Use the date value from the update (can be null to clear)
           const deliveryDate = req.body.entregaProyectada || null;
-          
-          for (const typology of matchingTypologies) {
-            await storage.updateTypology(typology.id, { deliveryDate });
-          }
-          
-          if (matchingTypologies.length > 0) {
-            console.log(`Propagated entregaProyectada to ${matchingTypologies.length} typologies for development ${dev.name}`);
+          const count = await storage.updateTypologyFieldByValue("development", dev.name, { deliveryDate } as any);
+          if (count > 0) {
+            console.log(`Propagated entregaProyectada to ${count} typologies for development ${dev.name}`);
           }
         } catch (propError) {
           console.error("Error propagating date to typologies:", propError);
