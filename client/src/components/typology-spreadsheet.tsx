@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
   Loader2, AlertCircle, Search, Info,
-  Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, GripVertical, Lock, Maximize2
+  Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, FolderOpen, GripVertical, Lock, Maximize2
 } from "lucide-react";
 import {
   DndContext,
@@ -4959,7 +4959,7 @@ export function TypologySpreadsheet() {
                           {getTypologyDocCount(row.id) > 0 && (
                             <span className="text-xs font-medium mr-0.5">{getTypologyDocCount(row.id)}</span>
                           )}
-                          <Eye className="w-3.5 h-3.5 text-foreground" />
+                          <FolderOpen className="w-3.5 h-3.5 text-foreground" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>

@@ -293,6 +293,7 @@ const columns: ColumnDef[] = [
   { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input' },
   { key: 'tiempoTransc', label: 'Tiempo Transcurrido', group: 'noheader_preventa', width: '190px', cellType: 'input' },
+  { key: 'finPreventa', label: 'Fin de Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input' },
   { key: 'inicioProyectado', label: 'Inicio', group: 'obra', width: '85px', cellType: 'input', hasInmediato: true },
   { key: 'entregaProyectada', label: 'Entrega', group: 'obra', width: '100px', cellType: 'input', hasInmediato: true },
   { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
@@ -429,6 +430,15 @@ export function DevelopmentsSpreadsheet() {
 
   const { data: catalogNiveles = [] } = useQuery<any[]>({
     queryKey: ["/api/catalog/niveles"],
+  });
+
+  // Document counts for folder columns
+  const { data: devDocCounts = {} } = useQuery<Record<string, number>>({
+    queryKey: ["/api/documents/counts", "development"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/documents/counts?entityType=development");
+      return res.json();
+    },
   });
 
   const isLoading = authLoading || developmentsLoading;
@@ -1897,6 +1907,7 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'folder-link') {
+                  const docCount = devDocCounts[dev.id] || 0;
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", !isRowInactive && "bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <Link
@@ -1904,6 +1915,7 @@ export function DevelopmentsSpreadsheet() {
                         className="text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 flex items-center justify-center gap-1"
                         data-testid={`link-${col.folderSection}-${dev.id}`}
                       >
+                        {docCount > 0 && <span className="text-xs font-medium">{docCount}</span>}
                         <FolderOpen className="w-4 h-4" />
                       </Link>
                     </div>

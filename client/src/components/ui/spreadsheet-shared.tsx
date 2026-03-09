@@ -13,7 +13,7 @@ import {
 
 const NO_FILTER_TYPES = new Set([
   'actions', 'folder-link', 'group-collapsed', 'calculated-percent',
-  'date-display', 'time-display', 'typology-type',
+  'typology-type',
 ]);
 
 const COLLAPSED_COL_WIDTH = 20;
@@ -59,6 +59,8 @@ export function SpreadsheetSectionSearch({ groups, scrollRef }: SpreadsheetSecti
         const elLeft = elRect.left - containerRect.left + container.scrollLeft;
         const centeredLeft = Math.max(0, elLeft + elRect.width / 2 - stickyWidth - visibleWidth / 2);
         container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+        el.classList.add('section-flash');
+        setTimeout(() => el.classList.remove('section-flash'), 1500);
       } else {
         const centeredLeft = Math.max(0, group.offset - stickyWidth - (visibleWidth - group.width) / 2);
         container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
@@ -179,11 +181,11 @@ export function SpreadsheetHeader({
                       <div
                         data-section-group={group.label}
                         className="cursor-pointer flex items-center justify-center flex-shrink-0"
-                        style={{ width: 30, minWidth: 30, height: 32, backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}
+                        style={{ width: 30, minWidth: 30, height: 32, backgroundColor: group.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                         onClick={() => onToggleGroupCollapse?.(group.key)}
                         data-testid={`toggle-group-expand-${group.key}`}
                       >
-                        <Plus className="w-3 h-3 text-gray-500" />
+                        <Plus className="w-3 h-3 text-white" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="text-xs">
@@ -261,21 +263,11 @@ export function SpreadsheetHeader({
               const bg = groupDef?.color || '#9ca3af';
               const groupLabel = groupDef?.label || col.group || '';
               items.push(
-                <Tooltip key={`r2-${col.key}`}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-gray-100"
-                      style={{ width: 30, minWidth: 30, height: 32, backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}
-                      onClick={() => onToggleGroupCollapse?.(col.group!)}
-                      data-testid={`toggle-group-expand-r2-${col.group}`}
-                    >
-                      <Plus className="w-2.5 h-2.5 text-gray-500" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">
-                    {groupLabel}
-                  </TooltipContent>
-                </Tooltip>
+                <div
+                  key={`r2-${col.key}`}
+                  className="flex-shrink-0"
+                  style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                />
               );
               continue;
             }
@@ -380,7 +372,7 @@ export function SpreadsheetHeader({
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb' }}
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: groupLookupMap[col.group || '']?.color || '#d1d5db', borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }

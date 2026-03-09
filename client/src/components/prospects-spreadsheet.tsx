@@ -21,7 +21,7 @@ import { ColumnFilter, useColumnFilters } from "@/components/ui/column-filter";
 import { useAuth } from "@/lib/auth";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
-import { Plus, Minus, Trash2, Users, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
+import { Plus, Minus, Trash2, UserPlus, UserCheck, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
@@ -482,11 +482,23 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
 
   const allColumns = isClientView ? clientColumns : prospectColumns;
 
-  const catalogToOptions = (items: any[]) =>
-    items
+  const catalogToOptions = (items: any[]) => {
+    const seen = new Set<string>();
+    return items
       .filter(i => i.active !== false)
-      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+      .sort((a: any, b: any) => {
+        // Prioritize entries with color
+        if (a.color && !b.color) return -1;
+        if (!a.color && b.color) return 1;
+        return (a.order || 0) - (b.order || 0);
+      })
+      .filter((i: any) => {
+        if (seen.has(i.name)) return false;
+        seen.add(i.name);
+        return true;
+      })
       .map((i: any) => ({ value: i.name, label: i.name, color: i.color || null }));
+  };
 
   const tipoOptions = useMemo(() => catalogToOptions(catalogTipo), [catalogTipo]);
   const perfilOptions = useMemo(() => catalogToOptions(catalogPerfil), [catalogPerfil]);
@@ -880,7 +892,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     <div className="flex flex-col h-full" data-testid="prospects-spreadsheet">
       <div className="flex items-center justify-between px-3 py-1.5 border-b">
         <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-primary" />
+          {isClientView ? <UserCheck className="w-4 h-4 text-primary" /> : <UserPlus className="w-4 h-4 text-primary" />}
           <h1 className="text-sm font-bold" data-testid="text-page-title">{isClientView ? "Clientes" : "Prospectos"}</h1>
           {!hasFullAccess && (
             <Badge variant="outline" className="text-xs">
@@ -981,7 +993,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                 isRowInactive
                   ? ""
                   : isActiveRow
-                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    ? "ring-1 ring-blue-400/50"
                     : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}

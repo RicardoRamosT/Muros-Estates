@@ -1492,6 +1492,16 @@ export async function registerRoutes(
     },
   });
   
+  // Get document counts by entity type
+  app.get("/api/documents/counts", requireAuth, async (req, res) => {
+    const entityType = req.query.entityType as string;
+    if (!entityType) {
+      return res.json({});
+    }
+    const counts = await storage.getDocumentCountsByEntityType(entityType);
+    res.json(counts);
+  });
+
   // Get all documents (with filters)
   app.get("/api/documents", requireAuth, requireDocumentPermission("view"), async (req, res) => {
     try {

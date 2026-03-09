@@ -32,12 +32,12 @@ import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } 
 import { useAuth } from "@/lib/auth";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
-import { Plus, Minus, Trash2, Building2, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
+import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
-import type { Developer } from "@shared/schema";
+import type { Developer, Development } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
 const ActiveDropdownRef = { current: null as (() => void) | null };
@@ -79,13 +79,15 @@ const EMPRESA_TIPOS = [
 const COLUMN_GROUPS_DEV = [
   { key: 'corner', label: '', color: '' },
   { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
-  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
-  { key: 'fiscal', label: 'FISCAL', color: SHEET_COLOR_DARK },
-  { key: 'antiguedad', label: 'ANTIGÜEDAD', color: SHEET_COLOR_LIGHT },
-  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_DARK },
+  { key: 'generales', label: 'GENERALES', color: SHEET_COLOR_LIGHT },
+  { key: 'antiguedad', label: 'ANTIGÜEDAD', color: SHEET_COLOR_DARK },
+  { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_LIGHT },
+  { key: 'preventa', label: 'PREVENTA', color: SHEET_COLOR_DARK },
+  { key: 'obra', label: 'OBRA', color: SHEET_COLOR_LIGHT },
+  { key: 'entregados', label: 'ENTREGADOS', color: SHEET_COLOR_DARK },
   { key: 'contratos', label: 'CONTRATOS', color: SHEET_COLOR_LIGHT },
-  { key: 'representante', label: 'REPRESENTANTE', color: SHEET_COLOR_DARK },
-  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
+  { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
+  { key: 'legales', label: 'LEGALES', color: SHEET_COLOR_LIGHT },
   { key: 'docs', label: '', color: '' },
 ];
 
@@ -110,10 +112,16 @@ function PhoneListDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [phones, setPhones] = useState<string[]>(initialPhones.length ? initialPhones : ['']);
+  const { toast: phoneToast } = useToast();
 
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) setPhones(initialPhones.length ? [...initialPhones] : ['']);
     setOpen(isOpen);
+  };
+
+  const isPhoneValid = (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    return digits.length === 10;
   };
 
   const firstPhone = initialPhones[0] || '';
@@ -144,7 +152,7 @@ function PhoneListDialog({
                   setPhones(updated);
                 }}
                 placeholder="Número de teléfono"
-                className="text-sm"
+                className={cn("text-sm", phone.trim() && !isPhoneValid(phone) ? "border-red-500 focus-visible:ring-red-500" : "")}
                 disabled={!editable}
               />
               {editable && phones.length > 1 && (
@@ -179,6 +187,11 @@ function PhoneListDialog({
               size="sm"
               onClick={() => {
                 const filtered = phones.map(p => p.trim()).filter(Boolean);
+                const invalid = filtered.filter(p => !isPhoneValid(p));
+                if (invalid.length > 0) {
+                  phoneToast({ title: "Teléfono inválido", description: "Cada número debe tener exactamente 10 dígitos.", variant: "destructive" });
+                  return;
+                }
                 onSave(filtered);
                 setOpen(false);
               }}
@@ -219,7 +232,7 @@ interface ColumnDef {
   key: string;
   label: string;
   width: string;
-  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'select' | 'phone-list' | 'group-collapsed';
+  type?: 'index' | 'toggle' | 'text' | 'actions' | 'folder-link' | 'date' | 'multiselect' | 'rfc' | 'tipo-select' | 'date-display' | 'time-display' | 'select' | 'phone-list' | 'group-collapsed' | 'dev-count';
   autoField?: boolean;
   group?: string;
   cellType?: CellType;
@@ -305,27 +318,75 @@ export function DevelopersSpreadsheet() {
     queryKey: ["/api/catalog/zones"],
   });
 
+  const { data: allDevelopments = [] } = useQuery<Development[]>({
+    queryKey: ["/api/developments-entity"],
+  });
+
+  // PREVENTA/OBRA/ENTREGADOS counts per developer
+  const devCounts = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const counts: Record<string, { preventa: Development[]; obra: Development[]; entregados: Development[] }> = {};
+    for (const d of allDevelopments) {
+      if (!d.developerId) continue;
+      if (!counts[d.developerId]) counts[d.developerId] = { preventa: [], obra: [], entregados: [] };
+      const entry = counts[d.developerId];
+
+      const entregaDate = d.entregaActualizada || d.entregaProyectada;
+      const inicioObraDate = d.inicioReal || d.inicioProyectado;
+
+      // ENTREGADOS: entrega date <= today
+      if (entregaDate && new Date(entregaDate) <= today) {
+        entry.entregados.push(d);
+      }
+      // OBRA: inicio obra <= today AND not entregados
+      else if (inicioObraDate && new Date(inicioObraDate) <= today) {
+        entry.obra.push(d);
+      }
+      // PREVENTA: inicioPreventa set AND (finPreventa not set OR finPreventa > today)
+      else if (d.inicioPreventa) {
+        const finPreventa = (d as any).finPreventa;
+        if (!finPreventa || new Date(finPreventa) > today) {
+          entry.preventa.push(d);
+        }
+      }
+    }
+    return counts;
+  }, [allDevelopments]);
+
+  // Document counts for legales
+  const { data: docCounts = {} } = useQuery<Record<string, number>>({
+    queryKey: ["/api/documents/counts", "developer"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/documents/counts?entityType=developer");
+      return res.json();
+    },
+  });
+
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", cellType: "checkbox", group: "registro" },
     { key: "createdDate", label: "Fecha", width: "80px", type: "date-display", group: "registro", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "registro", cellType: "readonly" },
-    { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "empresa" },
-    { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "empresa" },
-    { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown", group: "empresa" },
-    { key: "name", label: "Desarrollador", width: "170px", cellType: "input", group: "empresa" },
-    { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input", group: "fiscal" },
-    { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input", group: "fiscal" },
-    { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input", group: "fiscal" },
+    { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "generales" },
+    { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "generales" },
+    { key: "zona", label: "Zona", width: "120px", type: "select", cellType: "dropdown", group: "generales" },
+    { key: "name", label: "Nombre", width: "170px", cellType: "input", group: "generales" },
+    { key: "razonSocial", label: "Razón Social", width: "250px", cellType: "input", group: "generales" },
+    { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input", group: "generales" },
+    { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input", group: "generales" },
+    { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "generales" },
     { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", cellType: "date", group: "antiguedad" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "preventaCount", label: "Preventa", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "preventa" },
+    { key: "obraCount", label: "Obra", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "obra" },
+    { key: "entregadosCount", label: "Entregados", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
     { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown", group: "contratos" },
-    { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "representante" },
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
     { key: "contactPhone", label: "Teléfono", width: "110px", type: "phone-list", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
-    { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions", group: "docs" },
+    { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions", group: "legales" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions", group: "docs" },
   ];
 
@@ -724,7 +785,7 @@ export function DevelopersSpreadsheet() {
     // Generate unique name with random suffix to avoid duplicate key errors
     const uniqueSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
     createMutation.mutate({
-      name: `Nuevo Desarrollador ${uniqueSuffix}`,
+      name: "",
       active: false,
     });
   };
@@ -756,7 +817,7 @@ export function DevelopersSpreadsheet() {
     <div className="flex flex-col h-full" data-testid="developers-spreadsheet">
       <div className="flex items-center justify-between px-3 py-1.5 border-b">
         <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-primary" />
+          <Briefcase className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrolladores</h1>
           {!hasFullAccess && (
             <Badge variant="outline" className="text-xs">
@@ -841,10 +902,10 @@ export function DevelopersSpreadsheet() {
 
           {/* Data rows */}
           {visibleData.map((dev, index) => {
-            const isRowInactive = dev.active === null;
+            const isRowInactive = dev.active === null && dev.name !== "";
             const isActiveRow = activeEditingRowId === dev.id;
             const inactiveCellStyle: React.CSSProperties = isRowInactive
-              ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
+              ? { backgroundColor: '#9ca3af', cursor: 'default', color: 'black' }
               : {};
             const cellTextClass = isRowInactive ? "text-gray-700" : "";
             return (
@@ -917,6 +978,33 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
                       <span className={cn("text-xs", cellTextClass)}>{formatTime(dev.createdAt)}</span>
+                    </div>
+                  );
+                }
+
+                if (col.type === 'dev-count') {
+                  const counts = devCounts[dev.id];
+                  const list = col.key === 'preventaCount' ? counts?.preventa : col.key === 'obraCount' ? counts?.obra : counts?.entregados;
+                  const count = list?.length || 0;
+                  return (
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
+                      {count > 0 ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="text-xs font-medium text-blue-600 hover:underline cursor-pointer">{count}</button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48 p-2" align="start">
+                            <div className="text-xs font-semibold mb-1">{col.label}</div>
+                            <div className="space-y-0.5 max-h-32 overflow-y-auto">
+                              {list!.map(d => (
+                                <div key={d.id} className="text-xs text-muted-foreground truncate">{d.name}</div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">0</span>
+                      )}
                     </div>
                   );
                 }
@@ -1091,6 +1179,7 @@ export function DevelopersSpreadsheet() {
                 }
 
                 if (col.type === 'folder-link') {
+                  const docCount = docCounts[dev.id] || 0;
                   return (
                     <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center", !isRowInactive && "bg-yellow-100 dark:bg-yellow-900/30", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <a
@@ -1098,8 +1187,8 @@ export function DevelopersSpreadsheet() {
                         className="inline-flex items-center gap-1.5 text-amber-700 hover:underline text-xs"
                         data-testid={`link-legales-${dev.id}`}
                       >
+                        {docCount > 0 && <span className="font-medium">{docCount}</span>}
                         <FolderOpen className="w-4 h-4" />
-                        <span>Ver</span>
                       </a>
                     </div>
                   );

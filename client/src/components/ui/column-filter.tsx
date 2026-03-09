@@ -126,9 +126,9 @@ export function ColumnFilter({
       return (
         <span className="flex items-center gap-0 flex-shrink-0" style={{ width: 20, height: 14 }}>
           <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-            <path d="M4 0.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 0.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: 12, height: 14, fontSize: 10, lineHeight: 1, fontWeight: 300, color: 'white', flexShrink: 0 }}>
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', width: 12, height: 14, fontSize: 10, lineHeight: 1, fontWeight: 300, color: 'currentColor', flexShrink: 0 }}>
             <span style={{ height: 7, display: 'flex', alignItems: 'center' }}>{topSign}</span>
             <span style={{ height: 7, display: 'flex', alignItems: 'center' }}>{bottomSign}</span>
           </span>
@@ -138,10 +138,10 @@ export function ColumnFilter({
     return (
       <span className="flex items-center gap-0 flex-shrink-0" style={{ width: 16, height: 14 }}>
         <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-          <path d="M4 12.5L4 1.5M4 1.5L1.5 4.5M4 1.5L6.5 4.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 12.5L4 1.5M4 1.5L1.5 4.5M4 1.5L6.5 4.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
         <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-          <path d="M4 1.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 1.5L4 12.5M4 12.5L1.5 9.5M4 12.5L6.5 9.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </span>
     );
@@ -150,7 +150,7 @@ export function ColumnFilter({
   const isChecked = (value: string) => selectedValues.size === 0 || selectedValues.has(value);
 
   return (
-    <div className="w-full h-full relative flex items-center text-white">
+    <div className="w-full h-full relative flex items-center">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
@@ -158,7 +158,7 @@ export function ColumnFilter({
             style={{ width: 28, ...(hasActiveFilter ? { backgroundColor: '#f4b942' } : {}) }}
             data-testid={`filter-${columnKey}`}
           >
-            <ChevronDown className="w-3 h-3 flex-shrink-0 text-white" />
+            <ChevronDown className="w-3 h-3 flex-shrink-0" />
           </button>
         </PopoverTrigger>
 

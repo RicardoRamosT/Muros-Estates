@@ -212,6 +212,7 @@ export interface IStorage {
   // Additional document queries
   getDocumentsByTypology(typologyId: string): Promise<Document[]>;
   getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]>;
+  getDocumentCountsByEntityType(entityType: string): Promise<Record<string, number>>;
   
   // Role Permissions
   getRolePermissions(): Promise<RolePermission[]>;
@@ -958,6 +959,30 @@ export class DatabaseStorage implements IStorage {
     ).orderBy(desc(documents.createdAt));
   }
   
+  async getDocumentCountsByEntityType(entityType: string): Promise<Record<string, number>> {
+    let allDocs: any[];
+    if (entityType === 'developer') {
+      allDocs = await db.select({ developerId: documents.developerId }).from(documents).where(sql`${documents.developerId} IS NOT NULL`);
+      const counts: Record<string, number> = {};
+      for (const doc of allDocs) {
+        if (doc.developerId) {
+          counts[doc.developerId] = (counts[doc.developerId] || 0) + 1;
+        }
+      }
+      return counts;
+    } else if (entityType === 'development') {
+      allDocs = await db.select({ developmentId: documents.developmentId }).from(documents).where(sql`${documents.developmentId} IS NOT NULL`);
+      const counts: Record<string, number> = {};
+      for (const doc of allDocs) {
+        if (doc.developmentId) {
+          counts[doc.developmentId] = (counts[doc.developmentId] || 0) + 1;
+        }
+      }
+      return counts;
+    }
+    return {};
+  }
+
   // Role Permissions
   async getRolePermissions(): Promise<RolePermission[]> {
     return db.select().from(rolePermissions);

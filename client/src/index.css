@@ -458,3 +458,9 @@
   z-index: -1;
   pointer-events: none;
 }
+
+@keyframes section-flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+.section-flash { animation: section-flash 0.5s ease-in-out 3; }

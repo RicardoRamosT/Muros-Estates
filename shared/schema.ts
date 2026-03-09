@@ -321,6 +321,7 @@ export const PAGE_PERMISSIONS = {
       inicioPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 27. tiempoTransc - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
       tiempoTransc: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      finPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 28. depasUnidades - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       depasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 29. depasVendidas - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
@@ -766,6 +767,7 @@ export const developments = pgTable("developments", {
   oficinasM2: decimal("oficinas_m2", { precision: 10, scale: 2 }),
   saludM2: decimal("salud_m2", { precision: 10, scale: 2 }),
   inicioPreventa: text("inicio_preventa"),
+  finPreventa: text("fin_preventa"),
   tiempoTransc: text("tiempo_transc"),
   
   // Depas
