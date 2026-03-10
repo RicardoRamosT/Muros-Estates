@@ -786,9 +786,7 @@ export function DevelopersSpreadsheet() {
   }, [handleFieldChange]);
 
   const handleCreateNew = () => {
-    const uniqueSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
     createMutation.mutate({
-      name: `Nuevo Desarrollador ${uniqueSuffix}`,
       active: false,
     });
   };

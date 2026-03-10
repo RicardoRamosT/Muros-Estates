@@ -681,7 +681,7 @@ export const developers = pgTable("developers", {
   tipo: text("tipo"), // Tipo de desarrollador
   active: boolean("active").default(true),
   // Datos principales
-  name: text("name").notNull().unique(), // DESARROLLADOR
+  name: text("name"), // DESARROLLADOR
   razonSocial: text("razon_social"), // Razón Social
   rfc: text("rfc"), // RFC (12-13 dígitos, mayúsculas)
   domicilio: text("domicilio"), // Domicilio fiscal/legal
