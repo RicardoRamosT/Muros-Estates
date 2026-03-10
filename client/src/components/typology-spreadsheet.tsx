@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   ChevronDown, ChevronRight, Plus, Minus, Trash2, Save, X, Layers,
   Loader2, AlertCircle, Search, Info,
-  Filter, Check, CornerDownRight, ImagePlus, Images, Video, Eye, FolderOpen, GripVertical, Lock, Maximize2
+  Filter, Check, CornerDownRight, ImagePlus, Images, Video, FolderOpen, GripVertical, Lock, Maximize2
 } from "lucide-react";
 import {
   DndContext,
@@ -2359,6 +2359,15 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
         const elLeft = elRect.left - containerRect.left + container.scrollLeft;
         const centeredLeft = Math.max(0, elLeft + elRect.width / 2 - stickyWidth - visibleWidth / 2);
         container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+        // Flash/glow the header after scroll completes
+        el.style.transition = 'filter 0.3s ease-in-out';
+        setTimeout(() => {
+          el.style.filter = 'brightness(1.8)';
+          setTimeout(() => {
+            el.style.filter = '';
+            el.style.transition = '';
+          }, 400);
+        }, 700);
       } else {
         const centeredLeft = Math.max(0, group.offset - (visibleWidth - group.width) / 2);
         container.scrollTo({ left: centeredLeft, behavior: 'smooth' });
@@ -4509,13 +4518,18 @@ export function TypologySpreadsheet() {
                       const isColCollapsed = collapsedColumns.has(col.key);
                       const isFirstColInRow3 = colIndex === 0;
                       const colW = getColWidth(col);
+                      // Show tooltip in ROW 3 only when the column name is NOT individually visible in ROW 2
+                      const nameNotInRow2 =
+                        section.mergeHeaders ||
+                        ((section.id === 'distribucion' || section.id === 'lockoff') && col.hideLabel) ||
+                        (section.parentLabel && section.id !== 'generales' && !['credito', 'mantenimiento', 'tasa_renta', 'meses', 'gastos_extra'].includes(section.id));
                       return (
                         <div
                           key={`filter-${col.key}`}
                           className={cn(
                             "flex-shrink-0 h-full overflow-hidden",
                           )}
-                          style={{ 
+                          style={{
                             backgroundColor: getSectionGroupColor(SECTIONS, sectionIndex),
                             width: colW,
                             borderLeft: !isFirstColInRow3 && !isColCollapsed ? '1px solid rgba(255,255,255,0.15)' : undefined,
@@ -4540,7 +4554,7 @@ export function TypologySpreadsheet() {
                               }
                               columnWidth={col.width}
                               hideLabel={true}
-                              fullLabel={col.fullLabel || (col.hideLabel ? col.label : undefined)}
+                              fullLabel={nameNotInRow2 ? (col.fullLabel || col.label) : undefined}
                               disabledMessage={col.key === "view" ? vistaFilterState.disabledMessage : undefined}
                               overrideUniqueValues={col.key === "active" ? ["true", "false_ready", "false_red", "null"] : col.key === "view" ? vistaFilterState.overrideValues : undefined}
                               dotColorMap={col.key === "active" ? { "true": "#15803d", "false_ready": "#F16100", "false_red": "#dc2626", "null": "#1f2937" } : undefined}

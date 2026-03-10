@@ -98,7 +98,7 @@ const columnGroups: ColumnGroup[] = [
   { key: 'noheader_ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
   { key: 'noheader_presentacion', label: 'PRESENTACIÓN', color: SHEET_COLOR_LIGHT },
   { key: 'noheader_legales', label: 'LEGALES', color: SHEET_COLOR_DARK },
-  { key: 'noheader_venta', label: 'VENTA', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_venta', label: 'MEDIOS', color: SHEET_COLOR_LIGHT },
   { key: 'actions', label: '' },
 ];
 
@@ -698,9 +698,11 @@ export function DevelopmentsSpreadsheet() {
       return {
         ...dev,
         tipos: selectedTipos.filter(t => developerTipos.includes(t)),
+        legalesFolder: String(devDocCounts[dev.id] || 0),
+        ventaFolder: String(devDocCounts[dev.id] || 0),
       };
     });
-  }, [effectiveDevelopments, getTypeFromDeveloper]);
+  }, [effectiveDevelopments, getTypeFromDeveloper, devDocCounts]);
 
   const devSortKey = spreadsheetKey(uid, "developments", "sortConfig");
   const devFilterKey = spreadsheetKey(uid, "developments", "filterConfigs");
@@ -1010,22 +1012,22 @@ export function DevelopmentsSpreadsheet() {
             const isRowInactive = dev.active === null;
             const isDeveloperBlocked = !hasFullAccess && !!(parentDeveloper && (parentDeveloper.active !== true || !isDeveloperComplete(parentDeveloper)));
             const isActiveRow = activeEditingRowId === dev.id;
-            const inactiveCellStyle: React.CSSProperties = isRowInactive
+            const inactiveCellStyle: React.CSSProperties = isRowInactive && !hasFullAccess
               ? { backgroundColor: '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
               : {};
-            const cellTextClass = isRowInactive ? "text-gray-700" : "";
+            const cellTextClass = isRowInactive && !hasFullAccess ? "text-gray-700" : "";
             return (
             <div
               key={dev.id}
               className={cn(
-                "flex border-b group",
+                "flex w-max border-b group",
                 isRowInactive
                   ? ""
                   : isActiveRow
                     ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
                     : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
+              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-development-${dev.id}`}
               onClick={() => handleRowClick(dev.id)}
             >
@@ -1915,8 +1917,8 @@ export function DevelopmentsSpreadsheet() {
                         className="text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 flex items-center justify-center gap-1"
                         data-testid={`link-${col.folderSection}-${dev.id}`}
                       >
-                        {docCount > 0 && <span className="text-xs font-medium">{docCount}</span>}
                         <FolderOpen className="w-4 h-4" />
+                        <span className="text-xs font-medium">{docCount}</span>
                       </Link>
                     </div>
                   );

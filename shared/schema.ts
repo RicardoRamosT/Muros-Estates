@@ -1829,6 +1829,7 @@ export type CatalogEtapaEmbudo = typeof catalogEtapaEmbudo.$inferSelect;
 export const catalogComoPaga = pgTable("catalog_como_paga", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
+  color: text("color"),
   active: boolean("active").default(true),
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1846,6 +1847,7 @@ export type CatalogComoPaga = typeof catalogComoPaga.$inferSelect;
 export const catalogPositivos = pgTable("catalog_positivos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
+  color: text("color"),
   active: boolean("active").default(true),
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1863,6 +1865,7 @@ export type CatalogPositivo = typeof catalogPositivos.$inferSelect;
 export const catalogNegativos = pgTable("catalog_negativos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
+  color: text("color"),
   active: boolean("active").default(true),
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),

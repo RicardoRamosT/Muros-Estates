@@ -493,8 +493,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
         return (a.order || 0) - (b.order || 0);
       })
       .filter((i: any) => {
-        if (seen.has(i.name)) return false;
-        seen.add(i.name);
+        const key = (i.name || '').trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
         return true;
       })
       .map((i: any) => ({ value: i.name, label: i.name, color: i.color || null }));
@@ -989,14 +990,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             <div
               key={prospect.id}
               className={cn(
-                "flex border-b group",
+                "flex w-max border-b group",
                 isRowInactive
                   ? ""
                   : isActiveRow
                     ? "ring-1 ring-blue-400/50"
                     : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
+              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
               onClick={() => handleRowClick(prospect.id)}
             >
@@ -1005,7 +1006,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   const hasAsesor = !!(prospect as any).asesorId;
                   const editableWithoutAsesor = ['active', 'asesorId', 'nombre', 'apellido', 'telefono', 'correo', 'estatus', 'embudo', 'comoPaga', 'positivos', 'negativos', 'comentarios'];
                   const isBlockedByAsesor = !hasAsesor && !editableWithoutAsesor.includes(col.key);
-                  const fieldCanEdit = canEdit(col.key) && !isBlockedByAsesor;
+                  const fieldCanEdit = hasFullAccess || (canEdit(col.key) && !isBlockedByAsesor);
                   const isEditing = editingCell?.id === prospect.id && editingCell?.field === col.key;
 
                   if (col.type === 'index') {
@@ -1027,7 +1028,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const activeVal = (prospect as any).active;
                     const isActive = activeVal === true;
                     const isDisabled = activeVal === null;
-                    const bgColor = isRowInactive ? '#9ca3af' : isActive ? '#dcfce7' : '#9ca3af';
+                    const bgColor = isRowInactive && !hasFullAccess ? '#9ca3af' : isActive ? '#dcfce7' : '#9ca3af';
                     const textStyle: React.CSSProperties = isActive ? { color: '#15803d', fontWeight: 600 } : { color: '#4b5563', fontWeight: 500 };
                     const label = isActive ? 'Sí' : '—';
                     return (
@@ -1100,7 +1101,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div
                         key={col.key}
                         className="spreadsheet-cell flex-shrink-0"
-                        style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
+                        style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
                       />
                     );
                   }

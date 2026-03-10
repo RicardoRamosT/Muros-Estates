@@ -95,9 +95,9 @@ export default function AdminCatalogos() {
             <CompactList title="Asesor Externo" endpoint="/api/catalog/broker-externo" queryKey="/api/catalog/broker-externo" ordered />
             <ColoredList title="Estatus" endpoint="/api/catalog/status-prospecto" queryKey="/api/catalog/status-prospecto" ordered />
             <ColoredList title="Etapa" endpoint="/api/catalog/etapa-embudo" queryKey="/api/catalog/etapa-embudo" ordered />
-            <CompactList title="Como Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" ordered />
-            <CompactList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" ordered />
-            <CompactList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" ordered />
+            <ColoredList title="Como Paga" endpoint="/api/catalog/como-paga" queryKey="/api/catalog/como-paga" ordered />
+            <ColoredList title="Positivos" endpoint="/api/catalog/positivos" queryKey="/api/catalog/positivos" ordered />
+            <ColoredList title="Negativos" endpoint="/api/catalog/negativos" queryKey="/api/catalog/negativos" ordered />
             <ColoredList title="Etapa Clientes" endpoint="/api/catalog/etapa-clientes" queryKey="/api/catalog/etapa-clientes" ordered />
           </CollapsibleSection>
         </div>

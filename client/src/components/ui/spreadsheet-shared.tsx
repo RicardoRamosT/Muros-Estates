@@ -12,7 +12,7 @@ import {
 } from "@/lib/spreadsheet-utils";
 
 const NO_FILTER_TYPES = new Set([
-  'actions', 'folder-link', 'group-collapsed', 'calculated-percent',
+  'actions', 'group-collapsed', 'calculated-percent',
   'typology-type',
 ]);
 
@@ -21,7 +21,7 @@ const COLLAPSED_COL_WIDTH = 20;
 function getColumnFilterType(type?: string): 'boolean' | 'number' | 'select' | 'text' {
   if (!type) return 'text';
   if (type === 'boolean' || type === 'toggle') return 'boolean';
-  if (type === 'number' || type === 'currency' || type === 'index') return 'number';
+  if (type === 'number' || type === 'currency' || type === 'index' || type === 'folder-link') return 'number';
   if (type.includes('select')) return 'select';
   return 'text';
 }
@@ -157,7 +157,7 @@ export function SpreadsheetHeader({
   return (
     <div className="sticky top-0 z-20">
       {/* Row 1: Group labels */}
-      <div className="flex spreadsheet-header-row1">
+      <div className="flex w-max spreadsheet-header-row1">
         <div
           data-sticky-corner
           className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
@@ -235,7 +235,7 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 2: Column names */}
-      <div className="flex spreadsheet-header-row2">
+      <div className="flex w-max spreadsheet-header-row2">
         <div
           className="flex-shrink-0 sticky left-0 z-30 flex"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 32, backgroundColor: SHEET_COLOR_LIGHT, borderBottom: '1px solid rgba(255,255,255,0.15)' }}
@@ -332,7 +332,7 @@ export function SpreadsheetHeader({
       </div>
 
       {/* Row 3: Filter controls */}
-      <div className="flex border-b spreadsheet-header-row3">
+      <div className="flex w-max border-b spreadsheet-header-row3">
         <div
           className="flex-shrink-0 sticky left-0 z-30 flex"
           style={{ width: cornerWidth, minWidth: cornerWidth, height: 24, backgroundColor: SHEET_COLOR_LIGHT }}

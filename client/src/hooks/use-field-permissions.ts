@@ -40,9 +40,10 @@ export function useFieldPermissions(page: PageName) {
   }, [getPermission]);
 
   const canEdit = useCallback((field: string): boolean => {
+    if (role === 'admin') return true;
     const perm = getPermission(field);
     return perm === 'edit';
-  }, [getPermission]);
+  }, [role, getPermission]);
 
   const isAdmin = role === 'admin';
   const isActualizador = role === 'actualizador';

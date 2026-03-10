@@ -424,8 +424,12 @@ export function DevelopersSpreadsheet() {
   }, [canView, collapsedGroups, collapsedColumns]);
 
   const effectiveDevelopers = useMemo(() =>
-    developers.map(d => ({ ...d, ...(localEdits[d.id] || {}) })),
-    [developers, localEdits]
+    developers.map(d => ({
+      ...d,
+      ...(localEdits[d.id] || {}),
+      legales: String(docCounts[d.id] || 0),
+    })),
+    [developers, localEdits, docCounts]
   );
 
   const flushPendingChanges = useCallback(() => {
@@ -904,22 +908,22 @@ export function DevelopersSpreadsheet() {
           {visibleData.map((dev, index) => {
             const isRowInactive = dev.active === null && dev.name !== "";
             const isActiveRow = activeEditingRowId === dev.id;
-            const inactiveCellStyle: React.CSSProperties = isRowInactive
+            const inactiveCellStyle: React.CSSProperties = isRowInactive && !hasFullAccess
               ? { backgroundColor: '#9ca3af', cursor: 'default', color: 'black' }
               : {};
-            const cellTextClass = isRowInactive ? "text-gray-700" : "";
+            const cellTextClass = isRowInactive && !hasFullAccess ? "text-gray-700" : "";
             return (
             <div
               key={dev.id}
               className={cn(
-                "flex border-b group",
+                "flex w-max border-b group",
                 isRowInactive
                   ? ""
                   : isActiveRow
                     ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
                     : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
-              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive ? { backgroundColor: '#9ca3af' } : {}) }}
+              style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-developer-${dev.id}`}
               onClick={() => handleRowClick(dev.id)}
             >
@@ -1187,8 +1191,8 @@ export function DevelopersSpreadsheet() {
                         className="inline-flex items-center gap-1.5 text-amber-700 hover:underline text-xs"
                         data-testid={`link-legales-${dev.id}`}
                       >
-                        {docCount > 0 && <span className="font-medium">{docCount}</span>}
                         <FolderOpen className="w-4 h-4" />
+                        <span className="font-medium">{docCount}</span>
                       </a>
                     </div>
                   );

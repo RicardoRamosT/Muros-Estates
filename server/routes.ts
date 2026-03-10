@@ -2651,9 +2651,10 @@ export async function registerRoutes(
     res.status(201).json(item);
   });
   app.put("/api/catalog/como-paga/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
     if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
     if (typeof active === "boolean") updateData.active = active;
     if (typeof order === "number") updateData.order = order;
     const item = await storage.updateCatalogComoPaga(req.params.id as string, updateData);
@@ -2677,9 +2678,10 @@ export async function registerRoutes(
     res.status(201).json(item);
   });
   app.put("/api/catalog/positivos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
     if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
     if (typeof active === "boolean") updateData.active = active;
     if (typeof order === "number") updateData.order = order;
     const item = await storage.updateCatalogPositivo(req.params.id as string, updateData);
@@ -2703,9 +2705,10 @@ export async function registerRoutes(
     res.status(201).json(item);
   });
   app.put("/api/catalog/negativos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
+    const { name, color, active, order } = req.body;
+    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
     if (typeof name === "string") updateData.name = name;
+    if (typeof color === "string") updateData.color = color;
     if (typeof active === "boolean") updateData.active = active;
     if (typeof order === "number") updateData.order = order;
     const item = await storage.updateCatalogNegativo(req.params.id as string, updateData);
