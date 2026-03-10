@@ -786,10 +786,9 @@ export function DevelopersSpreadsheet() {
   }, [handleFieldChange]);
 
   const handleCreateNew = () => {
-    // Generate unique name with random suffix to avoid duplicate key errors
     const uniqueSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
     createMutation.mutate({
-      name: "",
+      name: `Nuevo Desarrollador ${uniqueSuffix}`,
       active: false,
     });
   };

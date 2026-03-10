@@ -581,8 +581,9 @@ export function DevelopmentsSpreadsheet() {
   }, [developers]);
 
   const handleCreateNew = () => {
+    const uniqueSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
     createMutation.mutate({
-      name: "Nuevo Desarrollo",
+      name: `Nuevo Desarrollo ${uniqueSuffix}`,
       active: false,
     });
   };
