@@ -570,34 +570,6 @@ export function DevelopmentsSpreadsheet() {
     setEditingCell(null);
   }, [editingCell, editValue, developments, handleFieldChange]);
 
-  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
-    // Save current value
-    const dev = developments.find(d => d.id === currentId);
-    if (dev) {
-      const currentValue = String((dev as any)[currentField] ?? "");
-      if (value !== currentValue) {
-        const col = columns.find(c => c.key === currentField);
-        let valueToSave: string | number | null = value || null;
-        if (col?.type === 'number' && value) {
-          valueToSave = parseFloat(value);
-          if (isNaN(valueToSave)) valueToSave = null;
-        }
-        handleFieldChange(currentId, { [currentField]: valueToSave });
-      }
-    }
-    // Find next input cell in the same row
-    const editableCols = columns.filter(c => c.cellType === 'input' && !collapsedColumns.has(c.key));
-    const currentIdx = editableCols.findIndex(c => c.key === currentField);
-    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
-      const nextCol = editableCols[currentIdx + 1];
-      const rowData = visibleData.find(d => d.id === currentId);
-      setEditingCell({ id: currentId, field: nextCol.key });
-      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
-    } else {
-      setEditingCell(null);
-    }
-  }, [columns, collapsedColumns, visibleData, developments, handleFieldChange, setEditingCell, setEditValue]);
-
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = value === '__unassigned__' ? null : (value || null);
     handleFieldChange(id, { [field]: actualValue });
@@ -845,6 +817,34 @@ export function DevelopmentsSpreadsheet() {
     () => filteredAndSortedData.slice(0, visibleCount),
     [filteredAndSortedData, visibleCount]
   );
+
+  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
+    // Save current value
+    const dev = developments.find(d => d.id === currentId);
+    if (dev) {
+      const currentValue = String((dev as any)[currentField] ?? "");
+      if (value !== currentValue) {
+        const col = columns.find(c => c.key === currentField);
+        let valueToSave: string | number | null = value || null;
+        if (col?.type === 'number' && value) {
+          valueToSave = parseFloat(value);
+          if (isNaN(valueToSave)) valueToSave = null;
+        }
+        handleFieldChange(currentId, { [currentField]: valueToSave });
+      }
+    }
+    // Find next input cell in the same row
+    const editableCols = columns.filter(c => c.cellType === 'input' && !collapsedColumns.has(c.key));
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = visibleData.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, visibleData, developments, handleFieldChange, setEditingCell, setEditValue]);
 
   // Stable row numbering (creation-order)
   const stableRowNumberMap = useMemo(() => {
