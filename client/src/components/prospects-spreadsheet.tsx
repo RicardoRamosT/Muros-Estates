@@ -313,23 +313,6 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     setEditingCell(null);
   }, [editingCell, editValue, handleFieldChange, toast]);
 
-  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
-    // Save current value
-    handleFieldChange(currentId, { [currentField]: value || null } as any);
-    // Find next input cell in the same row (no type, plain-number, or currency)
-    const inputTypes = new Set([undefined, 'plain-number', 'currency']);
-    const editableCols = columns.filter(c => inputTypes.has(c.type) && !collapsedColumns.has(c.key));
-    const currentIdx = editableCols.findIndex(c => c.key === currentField);
-    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
-      const nextCol = editableCols[currentIdx + 1];
-      const rowData = visibleData.find(d => d.id === currentId);
-      setEditingCell({ id: currentId, field: nextCol.key });
-      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
-    } else {
-      setEditingCell(null);
-    }
-  }, [columns, collapsedColumns, visibleData, handleFieldChange, setEditingCell, setEditValue]);
-
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = value === '__unassigned__' ? null : (value || null);
     
@@ -833,6 +816,23 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     () => filteredAndSortedData.slice(0, visibleCount),
     [filteredAndSortedData, visibleCount]
   );
+
+  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
+    // Save current value
+    handleFieldChange(currentId, { [currentField]: value || null } as any);
+    // Find next input cell in the same row (no type, plain-number, or currency)
+    const inputTypes = new Set([undefined, 'plain-number', 'currency']);
+    const editableCols = columns.filter(c => inputTypes.has(c.type) && !collapsedColumns.has(c.key));
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = visibleData.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, visibleData, handleFieldChange, setEditingCell, setEditValue]);
 
   // Stable row numbering (creation-order)
   const stableRowNumberMap = useMemo(() => {
