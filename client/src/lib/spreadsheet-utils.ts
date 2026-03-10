@@ -142,7 +142,7 @@ export function formatArea(value: number | string | null | undefined): string {
 export function formatDate(date: Date | string | null): string {
   if (!date) return "";
   const d = new Date(date);
-  return d.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return d.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
 export function formatTime(date: Date | string | null): string {
@@ -390,6 +390,35 @@ export function createPasteFilter(type: InputFilterType): (e: React.ClipboardEve
     const newCursorPos = start + cleaned.length;
     requestAnimationFrame(() => target.setSelectionRange(newCursorPos, newCursorPos));
   };
+}
+
+export const MONTH_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// Convert stored YYYY-MM-DD → display dd/mm/yy
+export function formatDateShort(str: any): string {
+  if (!str) return "";
+  const s = String(str).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [year, month, day] = s.split('-');
+    return `${day}/${month}/${year.slice(2)}`;
+  }
+  return s;
+}
+
+// Parse user input dd/mm/yy → storage YYYY-MM-DD
+export function parseDateInput(input: string): string | null {
+  const s = input.trim().replace(/\s/g, '');
+  // Accept dd/mm/yy or dd/mm/yyyy
+  const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (!match) return null;
+  const [, dd, mm, rawYy] = match;
+  const year = rawYy.length === 2 ? `20${rawYy}` : rawYy;
+  const day = dd.padStart(2, '0');
+  const month = mm.padStart(2, '0');
+  // Basic validation
+  const d = new Date(Number(year), Number(month) - 1, Number(day));
+  if (isNaN(d.getTime()) || d.getDate() !== Number(day)) return null;
+  return `${year}-${month}-${day}`;
 }
 
 export const HEADER_STYLE = "sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600 font-semibold text-xs uppercase tracking-wide";

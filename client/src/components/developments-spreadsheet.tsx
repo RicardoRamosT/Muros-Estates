@@ -27,7 +27,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { DEVELOPMENT_TYPES } from "@shared/constants";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { cn } from "@/lib/utils";
@@ -66,7 +66,7 @@ interface ColumnDef {
   folderSection?: string;
   cellType?: CellType;
   suffix?: string;
-  hasInmediato?: boolean;
+  isDateColumn?: boolean;
   calcFrom?: { unidades: string; vendidas: string };
 }
 
@@ -78,11 +78,11 @@ interface ColumnGroup {
 
 const columnGroups: ColumnGroup[] = [
   { key: 'corner', label: '' },
-  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
-  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
-  { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_LIGHT },
-  { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_DARK },
+  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_LIGHT },
+  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_DARK },
+  { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_DARK },
+  { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_LIGHT },
   { key: 'noheader_lockoff', label: 'LOCK OFF', color: SHEET_COLOR_DARK },
   { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_LIGHT },
   { key: 'depas', label: 'CANTIDAD', color: SHEET_COLOR_DARK },
@@ -92,15 +92,27 @@ const columnGroups: ColumnGroup[] = [
   { key: 'noheader_amenidades', label: 'AMENIDADES', color: SHEET_COLOR_DARK },
   { key: 'noheader_preventa', label: 'PREVENTA', color: SHEET_COLOR_LIGHT },
   { key: 'obra', label: 'OBRA', color: SHEET_COLOR_DARK },
-  { key: 'noheader_contrato', label: 'CONTRATO', color: SHEET_COLOR_DARK },
-  { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_LIGHT },
-  { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_DARK },
+  { key: 'noheader_contrato', label: 'CONTRATO', color: SHEET_COLOR_LIGHT },
+  { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_DARK },
+  { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_LIGHT },
   { key: 'noheader_ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
   { key: 'noheader_presentacion', label: 'PRESENTACIÓN', color: SHEET_COLOR_LIGHT },
   { key: 'noheader_legales', label: 'LEGALES', color: SHEET_COLOR_DARK },
   { key: 'noheader_venta', label: 'MEDIOS', color: SHEET_COLOR_LIGHT },
-  { key: 'actions', label: '' },
+  { key: 'actions', label: '', color: SHEET_COLOR_DARK },
 ];
+
+function calcTiempoTranscurrido(inicioPreventa: string | null | undefined): string {
+  if (!inicioPreventa) return "";
+  const start = new Date(inicioPreventa);
+  if (isNaN(start.getTime())) return "";
+  const now = new Date();
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  if (months < 0) { years--; months += 12; }
+  if (years === 0 && months === 0) return "< 1m";
+  return `${years}a ${months}m`;
+}
 
 interface NivelRango { desde: number; hasta: number; }
 
@@ -262,7 +274,7 @@ const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'active', label: 'Activo', group: 'registro', type: 'boolean', width: '80px', cellType: 'checkbox' },
-  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '80px', cellType: 'readonly' },
+  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '72px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
@@ -291,11 +303,11 @@ const columns: ColumnDef[] = [
   { key: 'amenities', label: 'Amenidades', group: 'noheader_amenidades', type: 'multiselect-amenities', width: '130px', cellType: 'dropdown' },
   { key: 'efficiency', label: 'Eficiencia', group: 'noheader_amenidades', type: 'multiselect-efficiency', width: '110px', cellType: 'dropdown' },
   { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
-  { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input' },
-  { key: 'tiempoTransc', label: 'Tiempo Transcurrido', group: 'noheader_preventa', width: '190px', cellType: 'input' },
-  { key: 'finPreventa', label: 'Fin de Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input' },
-  { key: 'inicioProyectado', label: 'Inicio', group: 'obra', width: '85px', cellType: 'input', hasInmediato: true },
-  { key: 'entregaProyectada', label: 'Entrega', group: 'obra', width: '100px', cellType: 'input', hasInmediato: true },
+  { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input', isDateColumn: true },
+  { key: 'tiempoTransc', label: 'Tiempo Transcurrido', group: 'noheader_preventa', width: '190px', cellType: 'calculated' },
+  { key: 'finPreventa', label: 'Fin de Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input', isDateColumn: true },
+  { key: 'inicioProyectado', label: 'Inicio', group: 'obra', width: '105px', cellType: 'input', isDateColumn: true },
+  { key: 'entregaProyectada', label: 'Entrega', group: 'obra', width: '105px', cellType: 'input', isDateColumn: true },
   { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
   { key: 'cesionDerechos', label: 'Cesión', group: 'noheader_contrato', type: 'cesion-derechos-select', width: '90px', cellType: 'dropdown' },
   { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '100px', cellType: 'input' },
@@ -325,7 +337,6 @@ export function DevelopmentsSpreadsheet() {
   const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  const [openDatePopover, setOpenDatePopover] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = usePersistedState<Set<string>>(
     spreadsheetKey(uid, "developments", "collapsedGroups"), () => new Set(), setSerializer
   );
@@ -534,7 +545,9 @@ export function DevelopmentsSpreadsheet() {
   );
 
   const handleCellBlur = useCallback((id: string, field: string, col: ColumnDef, inputValue?: string) => {
-    if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
+    // Use ref to check if cell was already navigated away by Tab/Enter
+    const ec = editingCellRef.current;
+    if (!ec || ec.id !== id || ec.field !== field) return;
 
     const dev = developments.find(d => d.id === id);
     if (!dev) return;
@@ -556,6 +569,34 @@ export function DevelopmentsSpreadsheet() {
     }
     setEditingCell(null);
   }, [editingCell, editValue, developments, handleFieldChange]);
+
+  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
+    // Save current value
+    const dev = developments.find(d => d.id === currentId);
+    if (dev) {
+      const currentValue = String((dev as any)[currentField] ?? "");
+      if (value !== currentValue) {
+        const col = columns.find(c => c.key === currentField);
+        let valueToSave: string | number | null = value || null;
+        if (col?.type === 'number' && value) {
+          valueToSave = parseFloat(value);
+          if (isNaN(valueToSave)) valueToSave = null;
+        }
+        handleFieldChange(currentId, { [currentField]: valueToSave });
+      }
+    }
+    // Find next input cell in the same row
+    const editableCols = columns.filter(c => c.cellType === 'input' && !collapsedColumns.has(c.key));
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = visibleData.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, visibleData, developments, handleFieldChange, setEditingCell, setEditValue]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = value === '__unassigned__' ? null : (value || null);
@@ -1207,11 +1248,11 @@ export function DevelopmentsSpreadsheet() {
                           <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
                             <SelectValue>
                               {value === true ? (
-                                <span>Sí</span>
+                                <span className="flex-1 text-center">Sí</span>
                               ) : value === false ? (
-                                <span>No</span>
+                                <span className="flex-1 text-center">No</span>
                               ) : (
-                                <span>-</span>
+                                <span className="flex-1 text-center">-</span>
                               )}
                             </SelectValue>
                           </SelectTrigger>
@@ -1742,8 +1783,8 @@ export function DevelopmentsSpreadsheet() {
                           <Input
                             autoFocus
                             defaultValue={value || ""}
-                            onBlur={(e) => { handleFieldChange(dev.id, { [col.key]: e.target.value || null }); setEditingCell(null); }}
-                            onKeyDown={(e) => { if (e.key === "Enter") { handleFieldChange(dev.id, { [col.key]: (e.target as HTMLInputElement).value || null }); setEditingCell(null); } if (e.key === "Escape") setEditingCell(null); }}
+                            onBlur={(e) => { const ec = editingCellRef.current; if (!ec || ec.id !== dev.id || ec.field !== col.key) return; handleFieldChange(dev.id, { [col.key]: e.target.value || null }); setEditingCell(null); }}
+                            onKeyDown={(e) => { if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); navigateToNextCell(dev.id, col.key, (e.target as HTMLInputElement).value); } if (e.key === "Escape") setEditingCell(null); }}
                             className="h-6 text-xs border-0 bg-transparent focus:ring-0 shadow-none p-1"
                             data-testid={`input-redaccion-${dev.id}`}
                           />
@@ -1941,97 +1982,56 @@ export function DevelopmentsSpreadsheet() {
                   );
                 }
 
-                if (col.hasInmediato) {
-                  const dateValue = (value && value !== null && value !== undefined) ? String(value) : '';
-                  let formattedDate = '';
-                  if (dateValue && dateValue !== 'null' && dateValue !== 'undefined') {
-                    const parts = dateValue.split('-');
-                    if (parts.length === 3) {
-                      const [year, month, day] = parts.map(Number);
-                      const parsed = new Date(year, month - 1, day);
-                      if (!isNaN(parsed.getTime())) {
-                        formattedDate = parsed.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
-                      }
-                    }
-                  }
-                  
+                if (col.key === 'tiempoTransc') {
+                  const elapsed = calcTiempoTranscurrido(dev.inicioPreventa as string);
                   return (
-                    <div 
-                      key={col.key} 
-                      className={cn(
-                        "spreadsheet-cell flex-shrink-0",
-                        getCellStyle({ 
-                          type: "input", 
-                          disabled: !fieldCanEdit
-                        })
-                      )}
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "calculated" }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${col.key}-${dev.id}`}
                     >
-                      {fieldCanEdit ? (
-                        <Popover modal
-                          open={openDatePopover === `${dev.id}-${col.key}`}
-                          onOpenChange={(open) => setOpenDatePopover(open ? `${dev.id}-${col.key}` : null)}
-                        >
-                          <PopoverTrigger asChild>
-                            <div 
-                              className="flex items-center gap-1 cursor-pointer min-h-[20px] w-full"
-                              data-testid={`trigger-${col.key}-${dev.id}`}
-                            >
-                              <span className="truncate text-xs">{formattedDate || '-'}</span>
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-48 p-2" align="start">
-                            <div className="flex flex-col gap-2">
-                              <Input
-                                type="date"
-                                defaultValue={dateValue}
-                                onBlur={(e) => {
-                                  const newValue = e.target.value;
-                                  if (newValue !== dateValue) {
-                                    handleFieldChange(dev.id, { [col.key]: newValue || null });
-                                  }
-                                  setOpenDatePopover(null);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Escape') setOpenDatePopover(null);
-                                  if (e.key === 'Enter') {
-                                    const newValue = (e.target as HTMLInputElement).value;
-                                    if (newValue !== dateValue) {
-                                      handleFieldChange(dev.id, { [col.key]: newValue || null });
-                                    }
-                                    setOpenDatePopover(null);
-                                  }
-                                }}
-                                className="text-xs"
-                                data-testid={`input-${col.key}-${dev.id}`}
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  const now = new Date();
-                                  const year = now.getFullYear();
-                                  const month = String(now.getMonth() + 1).padStart(2, '0');
-                                  const day = String(now.getDate()).padStart(2, '0');
-                                  const today = `${year}-${month}-${day}`;
-                                  handleFieldChange(dev.id, { [col.key]: today });
-                                  setOpenDatePopover(null);
-                                }}
-                                className="text-xs"
-                                data-testid={`button-inmediato-${col.key}-${dev.id}`}
-                              >
-                                Inmediato
-                              </Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                      <span className="truncate text-xs">{elapsed}</span>
+                    </div>
+                  );
+                }
+
+                if (col.isDateColumn) {
+                  const storedValue = (value && value !== 'null' && value !== 'undefined') ? String(value) : '';
+                  const displayValue = formatDateShort(storedValue);
+                  return (
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
+                      onClick={() => fieldCanEdit && !isEditing && handleCellClick(dev.id, col.key, displayValue || storedValue)}
+                      data-testid={`cell-${col.key}-${dev.id}`}
+                    >
+                      {isEditing && fieldCanEdit ? (
+                        <Input
+                          defaultValue={displayValue || editValue}
+                          placeholder="dd/mm/aa"
+                          onBlur={(e) => {
+                            const raw = e.target.value.trim();
+                            if (!raw) { handleCellBlur(dev.id, col.key, col, ""); return; }
+                            const iso = parseDateInput(raw);
+                            if (iso) { handleCellBlur(dev.id, col.key, col, iso); }
+                            else { toast({ title: "Formato inválido", description: "Usa dd/mm/aa", variant: "destructive" }); setEditingCell(null); }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Tab" || e.key === "Enter") {
+                              e.preventDefault();
+                              const raw = (e.target as HTMLInputElement).value.trim();
+                              if (!raw) { navigateToNextCell(dev.id, col.key, ""); return; }
+                              const iso = parseDateInput(raw);
+                              if (iso) { navigateToNextCell(dev.id, col.key, iso); }
+                              else { toast({ title: "Formato inválido", description: "Usa dd/mm/aa", variant: "destructive" }); setEditingCell(null); }
+                            }
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          autoFocus
+                          onFocus={(e) => e.target.select()}
+                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                          data-testid={`input-${col.key}-${dev.id}`}
+                        />
                       ) : (
-                        <div className="flex items-center gap-1 min-h-[20px]">
-                          <span className="truncate text-xs">{formattedDate || '-'}</span>
-                          
-                        </div>
+                        <span className="truncate text-xs">{displayValue || ''}</span>
                       )}
                     </div>
                   );
@@ -2096,7 +2096,7 @@ export function DevelopmentsSpreadsheet() {
                             onBlur={(e) => handleCellBlur(dev.id, col.key, col, e.target.value)}
                             onKeyDown={(e) => {
                               if (filterType) createInputFilter(filterType)(e);
-                              if (e.key === 'Enter') handleCellBlur(dev.id, col.key, col, (e.target as HTMLInputElement).value);
+                              if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); navigateToNextCell(dev.id, col.key, (e.target as HTMLInputElement).value); }
                               if (e.key === 'Escape') setEditingCell(null);
                             }}
                             onPaste={filterType ? createPasteFilter(filterType) : undefined}

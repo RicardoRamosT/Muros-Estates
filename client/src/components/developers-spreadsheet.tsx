@@ -101,109 +101,6 @@ function parsePhoneList(raw: string | null | undefined): string[] {
   return [trimmed];
 }
 
-function PhoneListDialog({
-  phones: initialPhones,
-  onSave,
-  editable,
-}: {
-  phones: string[];
-  onSave: (phones: string[]) => void;
-  editable: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [phones, setPhones] = useState<string[]>(initialPhones.length ? initialPhones : ['']);
-  const { toast: phoneToast } = useToast();
-
-  const handleOpen = (isOpen: boolean) => {
-    if (isOpen) setPhones(initialPhones.length ? [...initialPhones] : ['']);
-    setOpen(isOpen);
-  };
-
-  const isPhoneValid = (phone: string) => {
-    const digits = phone.replace(/\D/g, '');
-    return digits.length === 10;
-  };
-
-  const firstPhone = initialPhones[0] || '';
-  const extraCount = initialPhones.length > 1 ? initialPhones.length - 1 : 0;
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogTrigger asChild>
-        <div className="flex items-center gap-1 cursor-pointer w-full overflow-hidden">
-          <span className="truncate text-xs">{firstPhone}</span>
-          {extraCount > 0 && (
-            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 flex-shrink-0">+{extraCount}</Badge>
-          )}
-        </div>
-      </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Teléfonos</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {phones.map((phone, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <Input
-                value={phone}
-                onChange={(e) => {
-                  const updated = [...phones];
-                  updated[idx] = e.target.value;
-                  setPhones(updated);
-                }}
-                placeholder="Número de teléfono"
-                className={cn("text-sm", phone.trim() && !isPhoneValid(phone) ? "border-red-500 focus-visible:ring-red-500" : "")}
-                disabled={!editable}
-              />
-              {editable && phones.length > 1 && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 flex-shrink-0 text-destructive"
-                  onClick={() => setPhones(phones.filter((_, i) => i !== idx))}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-        {editable && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPhones([...phones, ''])}
-            className="w-full"
-          >
-            <Plus className="w-3 h-3 mr-1" /> Agregar teléfono
-          </Button>
-        )}
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline" size="sm">Cancelar</Button>
-          </DialogClose>
-          {editable && (
-            <Button
-              size="sm"
-              onClick={() => {
-                const filtered = phones.map(p => p.trim()).filter(Boolean);
-                const invalid = filtered.filter(p => !isPhoneValid(p));
-                if (invalid.length > 0) {
-                  phoneToast({ title: "Teléfono inválido", description: "Cada número debe tener exactamente 10 dígitos.", variant: "destructive" });
-                  return;
-                }
-                onSave(filtered);
-                setOpen(false);
-              }}
-            >
-              <Save className="w-3 h-3 mr-1" /> Guardar
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function calcAntiguedad(fecha: Date | string | null): string {
   if (!fecha) return "";
@@ -213,17 +110,21 @@ function calcAntiguedad(fecha: Date | string | null): string {
   let years = now.getFullYear() - start.getFullYear();
   let months = now.getMonth() - start.getMonth();
   if (months < 0) { years--; months += 12; }
-  if (years > 0 && months > 0) return `${years}a ${months}m`;
-  if (years > 0) return `${years} año${years > 1 ? 's' : ''}`;
-  if (months > 0) return `${months} mes${months > 1 ? 'es' : ''}`;
-  return "< 1 mes";
+  if (years === 0 && months === 0) return "< 1m";
+  return `${years}a ${months}m`;
 }
 
-// RFC validation: 12-13 digits, uppercase
+// RFC validation: exactly 12 characters — 3 letters + 6 digits + 3 alphanumeric
 function validateRFC(value: string): { isValid: boolean; message: string } {
   const rfcClean = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (rfcClean.length < 12 || rfcClean.length > 13) {
-    return { isValid: false, message: "RFC debe tener 12 o 13 caracteres" };
+  if (rfcClean.length !== 12) {
+    return { isValid: false, message: "RFC debe tener exactamente 12 caracteres" };
+  }
+  if (!/^[A-Z]{3}/.test(rfcClean)) {
+    return { isValid: false, message: "Los primeros 3 caracteres deben ser letras" };
+  }
+  if (!/^[A-Z]{3}[0-9]{6}/.test(rfcClean)) {
+    return { isValid: false, message: "Los caracteres 4-9 deben ser números" };
   }
   return { isValid: true, message: "" };
 }
@@ -366,7 +267,7 @@ export function DevelopersSpreadsheet() {
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", cellType: "checkbox", group: "registro" },
-    { key: "createdDate", label: "Fecha", width: "80px", type: "date-display", group: "registro", cellType: "readonly" },
+    { key: "createdDate", label: "Fecha", width: "72px", type: "date-display", group: "registro", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "registro", cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "generales" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "generales" },
@@ -376,7 +277,7 @@ export function DevelopersSpreadsheet() {
     { key: "rfc", label: "RFC", width: "100px", type: "rfc", cellType: "input", group: "generales" },
     { key: "domicilio", label: "Domicilio", width: "250px", cellType: "input", group: "generales" },
     { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "generales" },
-    { key: "fechaAntiguedad", label: "Fecha", width: "120px", type: "date", cellType: "date", group: "antiguedad" },
+    { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", cellType: "date", group: "antiguedad" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
     { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
     { key: "preventaCount", label: "Preventa", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "preventa" },
@@ -747,10 +648,12 @@ export function DevelopersSpreadsheet() {
   );
 
   const handleCellBlur = useCallback((id: string, field: string, inputValue?: string) => {
-    if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
-    
+    // Use ref to check if cell was already navigated away by Tab/Enter
+    const ec = editingCellRef.current;
+    if (!ec || ec.id !== id || ec.field !== field) return;
+
     let valueToSave = inputValue !== undefined ? inputValue : editValue;
-    
+
     if (field === 'rfc' && valueToSave) {
       valueToSave = valueToSave.toUpperCase();
       const validation = validateRFC(valueToSave);
@@ -766,10 +669,29 @@ export function DevelopersSpreadsheet() {
       setEditingCell(null);
       return;
     }
-    
+
     handleFieldChange(id, { [field]: valueToSave || null });
     setEditingCell(null);
   }, [editingCell, editValue, handleFieldChange, toast, developers]);
+
+  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
+    // Save current value
+    const existingValue = pendingChangesRef.current.get(currentId)?.[currentField as keyof Developer] ?? developers.find(d => d.id === currentId)?.[currentField as keyof Developer];
+    if (String(existingValue ?? '') !== String(value ?? '')) {
+      handleFieldChange(currentId, { [currentField]: value || null });
+    }
+    // Find next input cell in the same row
+    const editableCols = columns.filter(c => c.cellType === 'input' && !collapsedColumns.has(c.key));
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = effectiveDevelopers.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, effectiveDevelopers, developers, handleFieldChange, setEditingCell, setEditValue]);
 
   const handleMultiselectChange = useCallback((id: string, field: string, selectedValues: string[]) => {
     handleFieldChange(id, { [field]: selectedValues });
@@ -987,12 +909,14 @@ export function DevelopersSpreadsheet() {
                   const counts = devCounts[dev.id];
                   const list = col.key === 'preventaCount' ? counts?.preventa : col.key === 'obraCount' ? counts?.obra : counts?.entregados;
                   const count = list?.length || 0;
+                  const groupDef = COLUMN_GROUPS_DEV.find(g => g.key === col.group);
+                  const countColor = groupDef?.color || SHEET_COLOR_DARK;
                   return (
                     <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "readonly" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
                       {count > 0 ? (
                         <Popover>
                           <PopoverTrigger asChild>
-                            <button className="text-xs font-medium text-blue-600 hover:underline cursor-pointer">{count}</button>
+                            <button className="text-xs font-medium hover:underline cursor-pointer" style={{ color: countColor }}>{count}</button>
                           </PopoverTrigger>
                           <PopoverContent className="w-48 p-2" align="start">
                             <div className="text-xs font-semibold mb-1">{col.label}</div>
@@ -1004,7 +928,7 @@ export function DevelopersSpreadsheet() {
                           </PopoverContent>
                         </Popover>
                       ) : (
-                        <span className="text-xs text-muted-foreground">0</span>
+                        <span className="text-xs" style={{ color: countColor, opacity: 0.5 }}>0</span>
                       )}
                     </div>
                   );
@@ -1170,7 +1094,7 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0 px-2", getCellStyle({ type: "readonly" }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 px-2 justify-center", getCellStyle({ type: "readonly" }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
@@ -1242,7 +1166,7 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "date", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "date", disabled: !fieldCanEdit }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
@@ -1340,15 +1264,21 @@ export function DevelopersSpreadsheet() {
                           defaultValue={editValue.toUpperCase()}
                           onBlur={(e) => handleCellBlur(dev.id, field, e.target.value.toUpperCase())}
                           onKeyDown={(e) => {
-                            createInputFilter('rfc')(e);
-                            if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value.toUpperCase());
+                            // Position-aware RFC filter: 0-2 letters, 3-8 digits, 9-11 alphanumeric
+                            const input = e.target as HTMLInputElement;
+                            const pos = input.selectionStart || 0;
+                            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                              if (pos < 3 && !/^[A-Za-z]$/.test(e.key)) e.preventDefault();
+                              else if (pos >= 3 && pos < 9 && !/^[0-9]$/.test(e.key)) e.preventDefault();
+                              else if (pos >= 9 && !/^[A-Za-z0-9]$/.test(e.key)) e.preventDefault();
+                            }
+                            if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); const v = (e.target as HTMLInputElement).value.toUpperCase(); const validation = validateRFC(v); if (v && !validation.isValid) { toast({ title: validation.message, variant: "destructive" }); setEditingCell(null); return; } navigateToNextCell(dev.id, field, v); }
                             if (e.key === "Escape") setEditingCell(null);
                           }}
                           onPaste={createPasteFilter('rfc')}
                           onInput={(e) => { (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.toUpperCase(); }}
                           autoFocus
-                          maxLength={13}
-                          placeholder="12-13 dígitos"
+                          maxLength={12}
                           className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
                           data-testid={`input-${field}-${dev.id}`}
                         />
@@ -1365,6 +1295,10 @@ export function DevelopersSpreadsheet() {
                 if (col.type === 'phone-list') {
                   const rawPhone = dev[field as keyof Developer] as string;
                   const phoneList = parsePhoneList(rawPhone);
+                  const savePhones = (phones: string[]) => {
+                    const stored = phones.length <= 1 ? (phones[0] || '') : JSON.stringify(phones);
+                    handleFieldChange(dev.id, { [field]: stored || null } as any);
+                  };
                   return (
                     <div
                       key={field}
@@ -1372,14 +1306,52 @@ export function DevelopersSpreadsheet() {
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
-                      <PhoneListDialog
-                        phones={phoneList}
-                        editable={fieldCanEdit}
-                        onSave={(phones) => {
-                          const stored = phones.length <= 1 ? (phones[0] || '') : JSON.stringify(phones);
-                          handleFieldChange(dev.id, { [field]: stored || null } as any);
-                        }}
-                      />
+                      {fieldCanEdit ? (
+                        <Popover modal>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal h-full px-1">
+                              <span className="truncate">{phoneList.length > 0 ? phoneList.join(', ') : ""}</span>
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2">
+                            <div className="flex flex-col gap-2">
+                              <div className="flex gap-1">
+                                <Input
+                                  placeholder="10 dígitos..."
+                                  className="h-7 text-xs"
+                                  maxLength={10}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = (e.target as HTMLInputElement).value.replace(/\D/g, '');
+                                      if (val.length === 10 && !phoneList.includes(val)) {
+                                        savePhones([...phoneList, val]);
+                                      }
+                                      (e.target as HTMLInputElement).value = '';
+                                    }
+                                  }}
+                                />
+                              </div>
+                              {phoneList.length > 0 && (
+                                <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                                  {phoneList.map((phone, idx) => (
+                                    <div key={idx} className="flex items-center justify-between gap-1 px-1 py-0.5 rounded bg-muted/50">
+                                      <span className="text-xs truncate">{phone}</span>
+                                      <button onClick={() => savePhones(phoneList.filter((_, i) => i !== idx))} className="flex-shrink-0 cursor-pointer">
+                                        <X className="w-3 h-3 text-muted-foreground" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className={cn("text-xs truncate", cellTextClass)}>{phoneList.length > 0 ? phoneList.join(', ') : ""}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 }
@@ -1403,7 +1375,7 @@ export function DevelopersSpreadsheet() {
                             onBlur={(e) => handleCellBlur(dev.id, field, e.target.value)}
                             onKeyDown={(e) => {
                               if (filterType) createInputFilter(filterType)(e);
-                              if (e.key === "Enter") handleCellBlur(dev.id, field, (e.target as HTMLInputElement).value);
+                              if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); navigateToNextCell(dev.id, field, (e.target as HTMLInputElement).value); }
                               if (e.key === "Escape") setEditingCell(null);
                             }}
                             onPaste={filterType ? createPasteFilter(filterType) : undefined}

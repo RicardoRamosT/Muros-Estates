@@ -294,22 +294,41 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   );
 
   const handleCellBlur = useCallback((id: string, field: string, inputValue?: string) => {
-    if (!editingCell || editingCell.id !== id || editingCell.field !== field) return;
-    
+    // Use ref to check if cell was already navigated away by Tab/Enter
+    const ec = editingCellRef.current;
+    if (!ec || ec.id !== id || ec.field !== field) return;
+
     const editVal = inputValue !== undefined ? inputValue : editValue;
     if ((field === 'nombre' || field === 'apellido') && editVal && editVal.trim().length < 3) {
-      toast({ 
-        title: "Error de validación", 
-        description: `${field === 'nombre' ? 'Nombre' : 'Apellido'} debe tener al menos 3 caracteres`, 
-        variant: "destructive" 
+      toast({
+        title: "Error de validación",
+        description: `${field === 'nombre' ? 'Nombre' : 'Apellido'} debe tener al menos 3 caracteres`,
+        variant: "destructive"
       });
       setEditingCell(null);
       return;
     }
-    
+
     handleFieldChange(id, { [field]: editVal || null } as any);
     setEditingCell(null);
   }, [editingCell, editValue, handleFieldChange, toast]);
+
+  const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
+    // Save current value
+    handleFieldChange(currentId, { [currentField]: value || null } as any);
+    // Find next input cell in the same row (no type, plain-number, or currency)
+    const inputTypes = new Set([undefined, 'plain-number', 'currency']);
+    const editableCols = columns.filter(c => inputTypes.has(c.type) && !collapsedColumns.has(c.key));
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = visibleData.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, visibleData, handleFieldChange, setEditingCell, setEditValue]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = value === '__unassigned__' ? null : (value || null);
@@ -383,7 +402,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const prospectColumns = [
     { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", group: "registro" },
-    { key: "fecha", label: "Fecha", width: "80px", type: "date-display", field: "createdAt", group: "registro" },
+    { key: "fecha", label: "Fecha", width: "72px", type: "date-display", field: "createdAt", group: "registro" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "registro" },
     { key: "asesorId", label: "", width: "130px", type: "select", group: "asesor" },
     { key: "nombre", label: "Nombre", width: "120px", group: "prospecto" },
@@ -403,9 +422,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "tipoUnidad", label: "Tipo", width: "100px", type: "typology-type", group: "unidad" },
     { key: "tipologia", label: "Tipología", width: "130px", type: "typology-select", group: "unidad" },
     { key: "precioFinal", label: "Precio Unidad", width: "130px", type: "currency", group: "unidad" },
-    { key: "fechaSeparacion", label: "#", width: "100px", type: "date", group: "separacion" },
+    { key: "fechaSeparacion", label: "#", width: "90px", type: "date", group: "separacion" },
     { key: "separacion", label: "Monto", width: "120px", type: "currency", group: "separacion" },
-    { key: "fechaEnganche", label: "#", width: "100px", type: "date", group: "enganche" },
+    { key: "fechaEnganche", label: "#", width: "90px", type: "date", group: "enganche" },
     { key: "enganche", label: "Monto", width: "120px", type: "currency", group: "enganche" },
     { key: "plazoNumero", label: "#", width: "70px", type: "plain-number", group: "plazo" },
     { key: "plazoMetro", label: "Metro", width: "90px", type: "plain-number", group: "plazo" },
@@ -422,7 +441,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "index",   label: "ID",   width: "60px",  type: "index",        group: "corner" },
     // REGISTRO
     { key: "active",  label: "Activo", width: "80px", type: "toggle",      group: "cregistro" },
-    { key: "fecha",   label: "Fecha",  width: "80px", type: "date-display", field: "createdAt", group: "cregistro" },
+    { key: "fecha",   label: "Fecha",  width: "72px", type: "date-display", field: "createdAt", group: "cregistro" },
     { key: "hora",    label: "Hora",   width: "65px", type: "time-display", field: "createdAt", group: "cregistro" },
     // ASESOR
     { key: "asesorId", label: "", width: "130px", type: "select",    group: "casesor" },
@@ -457,22 +476,22 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     // SEPARACIÓN: %, Monto, Fecha, Papelería
     { key: "porcentajeSeparacion", label: "%",         width: "70px",  type: "plain-number", group: "cseparacion" },
     { key: "separacion",           label: "Monto",     width: "120px", type: "currency",     group: "cseparacion" },
-    { key: "fechaSeparacion",      label: "Fecha",     width: "100px", type: "date",         group: "cseparacion" },
+    { key: "fechaSeparacion",      label: "Fecha",     width: "90px", type: "date",         group: "cseparacion" },
     { key: "papeleriaSeparacion",  label: "Papelería", width: "120px", type: "currency",     group: "cseparacion" },
     // ENGANCHE: %, Monto, Fecha
     { key: "porcentajeEnganche", label: "%",     width: "70px",  type: "plain-number", group: "cenganche" },
     { key: "enganche",           label: "Monto", width: "120px", type: "currency",     group: "cenganche" },
-    { key: "fechaEnganche",      label: "Fecha", width: "100px", type: "date",         group: "cenganche" },
+    { key: "fechaEnganche",      label: "Fecha", width: "90px", type: "date",         group: "cenganche" },
     // A PLAZO: %, Monto, Mensualidades, Monto, Fecha de Inicio, Fecha Final
     { key: "porcentajePlazo",    label: "%",             width: "70px",  type: "plain-number", group: "cplazo" },
     { key: "plazoTotal",         label: "Monto",         width: "120px", type: "currency",     group: "cplazo" },
     { key: "plazoMensualidades", label: "Mensualidades", width: "115px", type: "plain-number", group: "cplazo" },
     { key: "plazoMonto",         label: "Monto",         width: "120px", type: "currency",     group: "cplazo" },
-    { key: "plazoFechaInicio",   label: "Fecha de Inicio",width: "115px",type: "date",         group: "cplazo" },
-    { key: "plazoFechaFinal",    label: "Fecha Final",   width: "115px", type: "date",         group: "cplazo" },
+    { key: "plazoFechaInicio",   label: "Fecha de Inicio",width: "90px",type: "date",         group: "cplazo" },
+    { key: "plazoFechaFinal",    label: "Fecha Final",   width: "90px", type: "date",         group: "cplazo" },
     // LIQUIDACIÓN: Escrituración, Fecha, Papelería
     { key: "escrituracion",    label: "Escrituración", width: "130px", type: "currency", group: "cliquidacion" },
-    { key: "fechaLiquidacion", label: "Fecha",         width: "110px", type: "date",     group: "cliquidacion" },
+    { key: "fechaLiquidacion", label: "Fecha",         width: "90px", type: "date",     group: "cliquidacion" },
     { key: "papeleria",        label: "Papelería",     width: "120px", type: "currency", group: "cliquidacion" },
     // COMENTARIOS (sección individual)
     { key: "comentarios",      label: "Comentarios",   width: "200px", noFilter: true,   group: "ccomentarios" },
@@ -1458,6 +1477,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             step={isInteger ? '1' : '0.01'}
                             defaultValue={editValue}
                             onBlur={(e) => {
+                              const ec = editingCellRef.current;
+                              if (!ec || ec.id !== prospect.id || ec.field !== col.key) return;
                               const v = e.target.value;
                               if (v !== String(value ?? '')) {
                                 handleFieldChange(prospect.id, { [col.key]: v !== '' ? Number(v) : null } as any);
@@ -1465,7 +1486,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               setEditingCell(null);
                             }}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                              if (e.key === 'Tab' || e.key === 'Enter') { e.preventDefault(); navigateToNextCell(prospect.id, col.key, (e.target as HTMLInputElement).value); }
                               if (e.key === 'Escape') { setEditingCell(null); }
                             }}
                             autoFocus
@@ -1555,6 +1576,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             step="0.01"
                             defaultValue={editValue}
                             onBlur={(e) => {
+                              const ec = editingCellRef.current;
+                              if (!ec || ec.id !== prospect.id || ec.field !== col.key) return;
                               const v = e.target.value;
                               if (v !== String(value ?? '')) {
                                 handleFieldChange(prospect.id, { [col.key]: v || null } as any);
@@ -1562,7 +1585,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               setEditingCell(null);
                             }}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value);
+                              if (e.key === 'Tab' || e.key === 'Enter') { e.preventDefault(); navigateToNextCell(prospect.id, col.key, (e.target as HTMLInputElement).value); }
                               if (e.key === 'Escape') { setEditingCell(null); }
                             }}
                             autoFocus
@@ -1586,7 +1609,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div 
                         key={col.key} 
-                        className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
+                        className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
                         style={{ width: col.width, minWidth: col.width }}
                         onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
                       >
@@ -1677,7 +1700,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               onBlur={(e) => handleCellBlur(prospect.id, col.key, e.target.value)}
                               onKeyDown={(e) => {
                                 if (filterType) createInputFilter(filterType)(e);
-                                if (e.key === "Enter") handleCellBlur(prospect.id, col.key, (e.target as HTMLInputElement).value);
+                                if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); navigateToNextCell(prospect.id, col.key, (e.target as HTMLInputElement).value); }
                                 if (e.key === "Escape") { setEditingCell(null); }
                               }}
                               onPaste={filterType ? createPasteFilter(filterType) : undefined}

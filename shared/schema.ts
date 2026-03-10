@@ -319,8 +319,8 @@ export const PAGE_PERMISSIONS = {
       saludM2: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'none', asesor: 'view', desarrollador: 'view' },
       // 26. inicioPreventa - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       inicioPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
-      // 27. tiempoTransc - Profiler:1, Finanzas:1, Asesor:1, Desarrollador:1
-      tiempoTransc: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // 27. tiempoTransc - calculated, view-only for all
+      tiempoTransc: { admin: 'view', actualizador: 'view', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       finPreventa: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
       // 28. depasUnidades - Profiler:1, Finanzas:0, Asesor:1, Desarrollador:1
       depasUnidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
@@ -683,7 +683,7 @@ export const developers = pgTable("developers", {
   // Datos principales
   name: text("name"), // DESARROLLADOR
   razonSocial: text("razon_social"), // Razón Social
-  rfc: text("rfc"), // RFC (12-13 dígitos, mayúsculas)
+  rfc: text("rfc"), // RFC (12 caracteres: 3 letras + 6 dígitos + 3 alfanuméricos)
   domicilio: text("domicilio"), // Domicilio fiscal/legal
   // Antigüedad - dividido en 2 columnas
   fechaAntiguedad: timestamp("fecha_antiguedad"), // Fecha de antigüedad

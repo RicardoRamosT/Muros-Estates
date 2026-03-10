@@ -86,7 +86,7 @@ export function RecycleBinDrawer({ config }: { config: RecycleBinConfig }) {
                   )}
                   {item.deletedAt && (
                     <p className="text-[10px] text-muted-foreground">
-                      Eliminado: {new Date(item.deletedAt).toLocaleDateString('es-MX')}
+                      Eliminado: {new Date(item.deletedAt).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit' })} {new Date(item.deletedAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   )}
                 </div>
