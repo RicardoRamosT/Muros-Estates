@@ -32,11 +32,14 @@ import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Devel
 
 const ActiveDropdownRef = { current: null as (() => void) | null };
 
-function ExclusiveSelect({ children, autoOpen, onClose, ...props }: React.ComponentProps<typeof Select> & { autoOpen?: boolean; onClose?: () => void }) {
+function ExclusiveSelect({ children, autoOpen, onClose, onAdvance, ...props }: React.ComponentProps<typeof Select> & { autoOpen?: boolean; onClose?: () => void; onAdvance?: () => void }) {
   const [open, setOpen] = useState(false);
+  const shouldAdvanceRef = useRef(false);
   const closeMe = useCallback(() => setOpen(false), []);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const onAdvanceRef = useRef(onAdvance);
+  onAdvanceRef.current = onAdvance;
   useEffect(() => {
     return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
   }, [closeMe]);
@@ -51,6 +54,23 @@ function ExclusiveSelect({ children, autoOpen, onClose, ...props }: React.Compon
       });
     }
   }, [autoOpen, closeMe]);
+  // Handle Tab/Enter when dropdown is open
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+        setOpen(false);
+        onAdvanceRef.current?.();
+      } else if (e.key === 'Enter') {
+        shouldAdvanceRef.current = true;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [open, closeMe]);
   const handleOpenChange = useCallback((isOpen: boolean) => {
     if (isOpen) {
       if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
@@ -59,7 +79,12 @@ function ExclusiveSelect({ children, autoOpen, onClose, ...props }: React.Compon
       ActiveDropdownRef.current = closeMe;
     } else {
       if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
-      onCloseRef.current?.();
+      if (shouldAdvanceRef.current) {
+        shouldAdvanceRef.current = false;
+        onAdvanceRef.current?.();
+      } else {
+        onCloseRef.current?.();
+      }
     }
     setOpen(isOpen);
   }, [closeMe]);
@@ -1192,6 +1217,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <ExclusiveSelect
                             autoOpen={isEditing}
                             onClose={() => clearEditingIfCurrent(prospect.id, 'asesorId')}
+                            onAdvance={() => advanceFromSelect(prospect.id, 'asesorId')}
                             value={value || "__unassigned__"}
                             onValueChange={(v) => { handleSelectChange(prospect.id, 'asesorId', v); advanceFromSelect(prospect.id, 'asesorId'); }}
                           >
@@ -1230,6 +1256,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <ExclusiveSelect
                             autoOpen={isEditing}
                             onClose={() => clearEditingIfCurrent(prospect.id, 'estatus')}
+                            onAdvance={() => advanceFromSelect(prospect.id, 'estatus')}
                             value={value || "Activo"}
                             onValueChange={(v) => { handleSelectChange(prospect.id, 'estatus', v); advanceFromSelect(prospect.id, 'estatus'); }}
                           >
@@ -1278,6 +1305,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <ExclusiveSelect
                               autoOpen={isEditing}
                               onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
+                              onAdvance={() => advanceFromSelect(prospect.id, col.key)}
                               value={value || "__unassigned__"}
                               onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                             >
@@ -1312,6 +1340,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <ExclusiveSelect
                             autoOpen={isEditing}
                             onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
+                            onAdvance={() => advanceFromSelect(prospect.id, col.key)}
                             value={value || "__unassigned__"}
                             onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
@@ -1370,6 +1399,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <ExclusiveSelect
                             autoOpen={isEditing}
                             onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
+                            onAdvance={() => advanceFromSelect(prospect.id, col.key)}
                             value={value || "__unassigned__"}
                             onValueChange={(v) => { handleTypologySelect(prospect.id, v); advanceFromSelect(prospect.id, col.key); }}
                           >
@@ -1437,6 +1467,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <ExclusiveSelect
                             autoOpen={isEditing}
                             onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
+                            onAdvance={() => advanceFromSelect(prospect.id, col.key)}
                             value={value || "__unassigned__"}
                             onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
@@ -1482,6 +1513,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           <ExclusiveSelect
                             autoOpen={isEditing}
                             onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
+                            onAdvance={() => advanceFromSelect(prospect.id, col.key)}
                             value={isEmbudo ? (value || "Nuevo") : (value || "__unassigned__")}
                             onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
@@ -1689,12 +1721,26 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             type="date"
                             defaultValue={dateValue}
                             onBlur={(e) => {
+                              const ec = editingCellRef.current;
+                              if (!ec || ec.id !== prospect.id || ec.field !== col.key) return;
                               const v = e.target.value;
                               if (v !== dateValue) {
                                 const newDate = v ? new Date(v).toISOString() : null;
                                 handleFieldChange(prospect.id, { [col.key]: newDate } as any);
                               }
                               setEditingCell(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Tab' || e.key === 'Enter') {
+                                e.preventDefault();
+                                const v = (e.target as HTMLInputElement).value;
+                                if (v !== dateValue) {
+                                  const newDate = v ? new Date(v).toISOString() : null;
+                                  handleFieldChange(prospect.id, { [col.key]: newDate } as any);
+                                }
+                                advanceFromSelect(prospect.id, col.key);
+                              }
+                              if (e.key === 'Escape') { setEditingCell(null); }
                             }}
                             autoFocus
                             className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
