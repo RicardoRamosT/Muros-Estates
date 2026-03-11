@@ -32,12 +32,25 @@ import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Devel
 
 const ActiveDropdownRef = { current: null as (() => void) | null };
 
-function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+function ExclusiveSelect({ children, autoOpen, onClose, ...props }: React.ComponentProps<typeof Select> & { autoOpen?: boolean; onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const closeMe = useCallback(() => setOpen(false), []);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
   }, [closeMe]);
+  useEffect(() => {
+    if (autoOpen) {
+      requestAnimationFrame(() => {
+        if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+          ActiveDropdownRef.current();
+        }
+        ActiveDropdownRef.current = closeMe;
+        setOpen(true);
+      });
+    }
+  }, [autoOpen, closeMe]);
   const handleOpenChange = useCallback((isOpen: boolean) => {
     if (isOpen) {
       if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
@@ -46,6 +59,7 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
       ActiveDropdownRef.current = closeMe;
     } else {
       if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+      onCloseRef.current?.();
     }
     setOpen(isOpen);
   }, [closeMe]);
@@ -852,6 +866,28 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
   }, [columns, collapsedColumns, visibleData, handleFieldChange, setEditingCell, setEditValue]);
 
+  // Advance to next editable cell without saving (for dropdowns that save via their own handlers)
+  const advanceFromSelect = useCallback((currentId: string, currentField: string) => {
+    const nonEditableTypes = new Set(['index', 'actions', 'toggle', 'date-display', 'time-display', 'multi-select', 'typology-type']);
+    const editableCols = columns.filter(c => !(c.type && nonEditableTypes.has(c.type)) && !collapsedColumns.has(c.key));
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = visibleData.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, visibleData, setEditingCell, setEditValue]);
+
+  // Clear editingCell when a dropdown closes, only if it still points at the given cell
+  const clearEditingIfCurrent = useCallback((id: string, field: string) => {
+    if (editingCellRef.current?.id === id && editingCellRef.current?.field === field) {
+      setEditingCell(null);
+    }
+  }, [setEditingCell]);
+
   // Stable row numbering (creation-order)
   const stableRowNumberMap = useMemo(() => {
     const sorted = [...prospects].sort((a, b) =>
@@ -1154,8 +1190,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
+                            autoOpen={isEditing}
+                            onClose={() => clearEditingIfCurrent(prospect.id, 'asesorId')}
                             value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(prospect.id, 'asesorId', v)}
+                            onValueChange={(v) => { handleSelectChange(prospect.id, 'asesorId', v); advanceFromSelect(prospect.id, 'asesorId'); }}
                           >
                             <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${!value ? 'text-red-500 font-medium' : ''}`}>
                               <SelectValue placeholder="Seleccionar" />
@@ -1190,8 +1228,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...(estatusColor ? { backgroundColor: estatusColor } : {}) }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
+                            autoOpen={isEditing}
+                            onClose={() => clearEditingIfCurrent(prospect.id, 'estatus')}
                             value={value || "Activo"}
-                            onValueChange={(v) => handleSelectChange(prospect.id, 'estatus', v)}
+                            onValueChange={(v) => { handleSelectChange(prospect.id, 'estatus', v); advanceFromSelect(prospect.id, 'estatus'); }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent font-medium" style={estatusColor ? { color: estatusTextColor } : {}}>
                               <SelectValue placeholder="-" />
@@ -1236,8 +1276,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                           {fieldCanEdit ? (
                             <ExclusiveSelect
+                              autoOpen={isEditing}
+                              onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
                               value={value || "__unassigned__"}
-                              onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                              onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                             >
                               <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                                 <SelectValue placeholder="Seleccionar" />
@@ -1268,8 +1310,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
+                            autoOpen={isEditing}
+                            onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
                             value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                            onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
@@ -1324,8 +1368,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
+                            autoOpen={isEditing}
+                            onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
                             value={value || "__unassigned__"}
-                            onValueChange={(v) => handleTypologySelect(prospect.id, v)}
+                            onValueChange={(v) => { handleTypologySelect(prospect.id, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                               <SelectValue placeholder="Seleccionar" />
@@ -1389,8 +1435,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
+                            autoOpen={isEditing}
+                            onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
                             value={value || "__unassigned__"}
-                            onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                            onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger
                               className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
@@ -1432,8 +1480,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", effectiveClasses)} style={{ width: col.width, minWidth: col.width, ...(optColor ? { backgroundColor: optColor } : {}) }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
+                            autoOpen={isEditing}
+                            onClose={() => clearEditingIfCurrent(prospect.id, col.key)}
                             value={isEmbudo ? (value || "Nuevo") : (value || "__unassigned__")}
-                            onValueChange={(v) => handleSelectChange(prospect.id, col.key, v)}
+                            onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger
                               className={`h-6 text-xs border-0 bg-transparent font-medium ${isComoPaga && !value ? 'text-red-500' : ''}`}
