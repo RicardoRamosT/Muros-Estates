@@ -142,6 +142,24 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [isSaving, setIsSaving] = useState(false);
   const [saveFlash, setSaveFlash] = useState(false);
   const contentScrollRef = useRef<HTMLDivElement>(null);
+  const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set());
+
+  // Read highlight param from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const highlight = params.get("highlight");
+    if (highlight) {
+      const ids = new Set(highlight.split(",").filter(Boolean));
+      setHighlightIds(ids);
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("highlight");
+      window.history.replaceState({}, "", url.pathname);
+      // Auto-clear after 8 seconds
+      const timer = setTimeout(() => setHighlightIds(new Set()), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const { data: allClients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -314,7 +332,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [editingCell, editValue, handleFieldChange, toast]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
-    const actualValue = value === '__unassigned__' ? null : (value || null);
+    const actualValue = field === 'estatus' && (!value || value === '__unassigned__') ? 'Activo' : (value === '__unassigned__' ? null : (value || null));
     
     const clientFunnelStages = ['separado', 'enganche_firma', 'Separado', 'Enganche y Firma'];
     
@@ -969,7 +987,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
             {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
             Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
           </Button>
-          {hasFullAccess && (
+          {hasFullAccess && !isClientView && (
             <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-prospect">
               <Plus className="w-4 h-4 mr-1" />
               Nuevo
@@ -1005,16 +1023,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
           {visibleData.map((prospect, index) => {
             const isRowInactive = (prospect as any).active === null;
             const isActiveRow = activeEditingRowId === prospect.id;
+            const isHighlighted = highlightIds.has(prospect.id);
             return (
             <div
               key={prospect.id}
+              ref={isHighlighted ? (el) => { if (el && highlightIds.size > 0) el.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
               className={cn(
                 "flex w-max border-b group",
                 isRowInactive
                   ? ""
-                  : isActiveRow
-                    ? "ring-1 ring-blue-400/50"
-                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  : isHighlighted
+                    ? "ring-2 ring-amber-400 bg-amber-50"
+                    : isActiveRow
+                      ? "ring-1 ring-blue-400/50"
+                      : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
@@ -1168,14 +1190,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...(estatusColor ? { backgroundColor: estatusColor } : {}) }}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
-                            value={value || "__unassigned__"}
+                            value={value || "Activo"}
                             onValueChange={(v) => handleSelectChange(prospect.id, 'estatus', v)}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent font-medium" style={estatusColor ? { color: estatusTextColor } : {}}>
                               <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__">—</SelectItem>
                               {estatusOptions.map(opt => (
                                 <SelectItem key={opt.value} value={opt.value} style={opt.color ? { backgroundColor: opt.color, color: needsWhiteText(opt.color) ? 'white' : 'black' } : {}}>{opt.label}</SelectItem>
                               ))}

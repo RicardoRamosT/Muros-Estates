@@ -18,6 +18,7 @@ import {
 import { Building2, Building, Users, TableProperties, LogOut, ChevronDown, FileText, Briefcase, UserPlus, UserCheck, Database, Menu } from "lucide-react";
 import logoPath from "@assets/logo_1768784773871.png";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function Header() {
   const [location] = useLocation();
@@ -89,9 +90,11 @@ export function Header() {
         )}
 
         {/* Right column — User profile */}
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1">
           {isAuthenticated && isAdmin && (
-            <DropdownMenu>
+            <>
+              <NotificationBell />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2" data-testid="button-user-menu">
                   <span className="hidden sm:inline">{user?.name}</span>
@@ -119,6 +122,7 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           )}
         </div>
 

@@ -13,7 +13,7 @@ import {
 
 const NO_FILTER_TYPES = new Set([
   'actions', 'group-collapsed', 'calculated-percent',
-  'typology-type',
+  'typology-type', 'redaccion-text',
 ]);
 
 const COLLAPSED_COL_WIDTH = 20;
@@ -372,7 +372,7 @@ export function SpreadsheetHeader({
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: groupLookupMap[col.group || '']?.color || '#d1d5db', borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: 'white', borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }
@@ -386,7 +386,7 @@ export function SpreadsheetHeader({
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0"
-                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, opacity: 0.35, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: 'white', borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }

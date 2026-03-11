@@ -49,6 +49,7 @@ import {
   catalogSiNo, type CatalogSiNo, type InsertCatalogSiNo,
   catalogAvisos, type CatalogAviso, type InsertCatalogAviso,
   globalSettings, type GlobalSetting,
+  notifications, type Notification, type InsertNotification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, ilike, lte, sql, isNull, isNotNull } from "drizzle-orm";
@@ -258,6 +259,13 @@ export interface IStorage {
   getGlobalSettings(): Promise<GlobalSetting[]>;
   getGlobalSetting(key: string): Promise<GlobalSetting | undefined>;
   upsertGlobalSetting(key: string, value: string, label?: string): Promise<GlobalSetting>;
+
+  // Notifications
+  getNotificationsByUser(userId: string): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationRead(id: string): Promise<Notification | undefined>;
+  deleteNotification(id: string): Promise<boolean>;
+  findDuplicateClients(field: 'telefono' | 'correo', value: string, excludeId?: string): Promise<{ id: string; nombre: string; apellido: string | null; isClient: boolean | null }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1448,6 +1456,43 @@ export class DatabaseStorage implements IStorage {
     }
     const [created] = await db.insert(globalSettings).values({ key, value, label }).returning();
     return created;
+  }
+
+  // Notifications
+  async getNotificationsByUser(userId: string): Promise<Notification[]> {
+    return db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt));
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [created] = await db.insert(notifications).values(notification).returning();
+    return created;
+  }
+
+  async markNotificationRead(id: string): Promise<Notification | undefined> {
+    const [updated] = await db.update(notifications).set({ read: true }).where(eq(notifications.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteNotification(id: string): Promise<boolean> {
+    await db.delete(notifications).where(eq(notifications.id, id));
+    return true;
+  }
+
+  async findDuplicateClients(field: 'telefono' | 'correo', value: string, excludeId?: string): Promise<{ id: string; nombre: string; apellido: string | null; isClient: boolean | null }[]> {
+    const conditions = [
+      eq(clients[field], value),
+      isNull(clients.deletedAt),
+    ];
+    if (excludeId) {
+      conditions.push(sql`${clients.id} != ${excludeId}`);
+    }
+    const results = await db.select({
+      id: clients.id,
+      nombre: clients.nombre,
+      apellido: clients.apellido,
+      isClient: clients.isClient,
+    }).from(clients).where(and(...conditions));
+    return results;
   }
 }
 

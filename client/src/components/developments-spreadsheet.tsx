@@ -88,7 +88,7 @@ const columnGroups: ColumnGroup[] = [
   { key: 'depas', label: 'CANTIDAD', color: SHEET_COLOR_DARK },
   { key: 'avance', label: 'VENDIDO', color: SHEET_COLOR_LIGHT },
   { key: 'noheader_acabados', label: 'ACABADOS', color: SHEET_COLOR_DARK },
-  { key: 'noheader_redaccion', label: 'REDACCIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_redaccion', label: 'DESCRIPCIÓN', color: SHEET_COLOR_LIGHT },
   { key: 'noheader_amenidades', label: 'AMENIDADES', color: SHEET_COLOR_DARK },
   { key: 'noheader_preventa', label: 'PREVENTA', color: SHEET_COLOR_LIGHT },
   { key: 'obra', label: 'OBRA', color: SHEET_COLOR_DARK },
@@ -295,7 +295,7 @@ const columns: ColumnDef[] = [
   { key: 'recamaras', label: 'Recámaras', group: 'distribucion', type: 'recamaras-select', width: '110px', cellType: 'dropdown' },
   { key: 'banos', label: 'Baños', group: 'distribucion', type: 'banos-select', width: '80px', cellType: 'dropdown' },
   { key: 'depasUnidades', label: 'Unidades', group: 'depas', type: 'number', width: '105px', cellType: 'input' },
-  { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '60px', cellType: 'input', suffix: 'm²' },
+  { key: 'depasM2', label: 'm²', group: 'depas', type: 'number', width: '95px', cellType: 'input', suffix: 'm²' },
   { key: 'depasVendidas', label: '', group: 'avance', type: 'number', width: '95px', cellType: 'input' },
   { key: 'depasPorcentajeCalc', label: 'Porcentaje', group: 'avance', type: 'calculated-percent', width: '100px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
   { key: 'acabados', label: '', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
@@ -346,7 +346,20 @@ export function DevelopmentsSpreadsheet() {
     }
     setCollapsedGroups(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+        // Also uncollapse all individual columns in this group
+        const groupColKeys = columns.filter(c => c.group === key).map(c => c.key);
+        if (groupColKeys.length > 0) {
+          setCollapsedColumns(prevCols => {
+            const nextCols = new Set(prevCols);
+            groupColKeys.forEach(k => nextCols.delete(k));
+            return nextCols;
+          });
+        }
+      } else {
+        next.add(key);
+      }
       return next;
     });
   };
@@ -1245,14 +1258,14 @@ export function DevelopmentsSpreadsheet() {
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                         >
-                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
+                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 !justify-center relative ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`} style={{ paddingRight: '1rem' }}>
                             <SelectValue>
                               {value === true ? (
-                                <span className="flex-1 text-center">Sí</span>
+                                <span className="text-center">Sí</span>
                               ) : value === false ? (
-                                <span className="flex-1 text-center">No</span>
+                                <span className="text-center">No</span>
                               ) : (
-                                <span className="flex-1 text-center">-</span>
+                                <span className="text-center">-</span>
                               )}
                             </SelectValue>
                           </SelectTrigger>
@@ -1262,7 +1275,7 @@ export function DevelopmentsSpreadsheet() {
                           </SelectContent>
                         </ExclusiveSelect>
                       ) : (
-                        <div className={`flex items-center justify-center ${textColorClass}`}>
+                        <div className={`flex items-center justify-center w-full ${textColorClass}`}>
                           {value === true ? (
                             <span>Sí</span>
                           ) : value === false ? (
@@ -1778,31 +1791,25 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'redaccion-text') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "input", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
-                      {fieldCanEdit ? (
-                        editingCell?.id === dev.id && editingCell?.field === col.key ? (
-                          <Input
-                            autoFocus
-                            defaultValue={value || ""}
-                            onBlur={(e) => { const ec = editingCellRef.current; if (!ec || ec.id !== dev.id || ec.field !== col.key) return; handleFieldChange(dev.id, { [col.key]: e.target.value || null }); setEditingCell(null); }}
-                            onKeyDown={(e) => { if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); navigateToNextCell(dev.id, col.key, (e.target as HTMLInputElement).value); } if (e.key === "Escape") setEditingCell(null); }}
-                            className="h-6 text-xs border-0 bg-transparent focus:ring-0 shadow-none p-1"
-                            data-testid={`input-redaccion-${dev.id}`}
-                          />
-                        ) : (
-                          <div
-                            className="w-full h-full flex items-center px-2 cursor-pointer"
-                            onClick={() => { setEditingCell({ id: dev.id, field: col.key }); setEditValue(value || ""); }}
-                            title={value || ""}
-                          >
-                            <span className="text-xs truncate">{value || ""}</span>
-                          </div>
-                        )
-                      ) : (
-                        <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
-                          
-                        </div>
-                      )}
+                      <div
+                        className="w-full h-full flex items-center px-2 cursor-pointer"
+                        onClick={() => {
+                          if (fieldCanEdit) {
+                            setTextDetail({
+                              title: 'Descripción',
+                              value: String(value || ''),
+                              editable: true,
+                              onSave: (newVal) => handleFieldChange(dev.id, { [col.key]: newVal || null }),
+                            });
+                          } else {
+                            setTextDetail({ title: 'Descripción', value: String(value || ''), editable: false });
+                          }
+                        }}
+                        title={value || ""}
+                        data-testid={`input-redaccion-${dev.id}`}
+                      >
+                        <span className={cn("text-xs truncate", cellTextClass)}>{value || ""}</span>
+                      </div>
                     </div>
                   );
                 }
@@ -1986,7 +1993,7 @@ export function DevelopmentsSpreadsheet() {
                   const elapsed = calcTiempoTranscurrido(dev.inicioPreventa as string);
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "calculated" }))}
-                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle, ...(!isRowInactive ? { backgroundColor: 'rgb(255,241,220)' } : {}) }}
                       data-testid={`cell-${col.key}-${dev.id}`}
                     >
                       <span className="truncate text-xs">{elapsed}</span>
@@ -2110,11 +2117,11 @@ export function DevelopmentsSpreadsheet() {
                       })()
                     ) : (
                       <div
-                        className="flex items-center gap-1 cursor-pointer"
+                        className={cn("flex items-center gap-1 cursor-pointer", col.type === 'number' && "justify-end w-full pr-2")}
                         onClick={() => !fieldCanEdit && displayValue && setTextDetail({ title: col.label, value: String(displayValue), editable: false })}
                       >
                         <span className="truncate">{displayValue || ''}</span>
-                        
+
                       </div>
                     )}
                   </div>

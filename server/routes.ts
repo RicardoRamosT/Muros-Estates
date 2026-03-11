@@ -53,6 +53,54 @@ function broadcastClientUpdate(action: "create" | "update" | "delete", clientDat
   });
 }
 
+// Check for duplicate phone/email and create notifications for admin users
+async function checkDuplicatesAndNotify(client: Record<string, any>) {
+  try {
+    const section = client.isClient ? "clientes" : "prospectos";
+    const adminUsers = await storage.getUsersByRole("admin");
+
+    if (client.telefono) {
+      const dupes = await storage.findDuplicateClients("telefono", client.telefono, client.id);
+      if (dupes.length > 0) {
+        const allIds = [client.id, ...dupes.map(d => d.id)];
+        const names = dupes.map(d => `${d.nombre}${d.apellido ? ' ' + d.apellido : ''}`).join(", ");
+        for (const admin of adminUsers) {
+          await storage.createNotification({
+            userId: admin.id,
+            type: "duplicate_phone",
+            title: "Teléfono duplicado",
+            message: `${client.nombre}${client.apellido ? ' ' + client.apellido : ''} comparte teléfono (${client.telefono}) con: ${names}`,
+            section,
+            targetIds: allIds,
+            read: false,
+          });
+        }
+      }
+    }
+
+    if (client.correo) {
+      const dupes = await storage.findDuplicateClients("correo", client.correo, client.id);
+      if (dupes.length > 0) {
+        const allIds = [client.id, ...dupes.map(d => d.id)];
+        const names = dupes.map(d => `${d.nombre}${d.apellido ? ' ' + d.apellido : ''}`).join(", ");
+        for (const admin of adminUsers) {
+          await storage.createNotification({
+            userId: admin.id,
+            type: "duplicate_email",
+            title: "Correo duplicado",
+            message: `${client.nombre}${client.apellido ? ' ' + client.apellido : ''} comparte correo (${client.correo}) con: ${names}`,
+            section,
+            targetIds: allIds,
+            read: false,
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error checking duplicates:", error);
+  }
+}
+
 // Server-side completeness checks to prevent activating incomplete entities
 function isDeveloperComplete(d: Record<string, any>): boolean {
   return !!(d.tipo && d.name && d.tipos?.length && d.contratos?.length);
@@ -513,6 +561,7 @@ export async function registerRoutes(
         source: "manual",
       });
       broadcastClientUpdate("create", client);
+      checkDuplicatesAndNotify(client);
       res.status(201).json(client);
     } catch (error) {
       console.error("Error creating client:", error);
@@ -550,6 +599,9 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Cliente no encontrado" });
       }
       broadcastClientUpdate("update", client);
+      if (data.telefono || data.correo) {
+        checkDuplicatesAndNotify(client);
+      }
       res.json(client);
     } catch (error) {
       console.error("Error updating client:", error);
@@ -2986,6 +3038,38 @@ export async function registerRoutes(
     }
     const permission = await storage.upsertRolePermission(section, field, role, permissionLevel);
     res.json(permission);
+  });
+
+  // ── Notifications ──
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    try {
+      const notifs = await storage.getNotificationsByUser(req.user!.id);
+      res.json(notifs);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ error: "Error al obtener notificaciones" });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+      const notif = await storage.markNotificationRead(req.params.id as string);
+      if (!notif) return res.status(404).json({ error: "Notificación no encontrada" });
+      res.json(notif);
+    } catch (error) {
+      console.error("Error marking notification read:", error);
+      res.status(500).json({ error: "Error al actualizar notificación" });
+    }
+  });
+
+  app.delete("/api/notifications/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteNotification(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ error: "Error al eliminar notificación" });
+    }
   });
 
   return httpServer;

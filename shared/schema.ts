@@ -2037,3 +2037,20 @@ export const catalogAvisos = pgTable("catalog_avisos", {
 export const insertCatalogAvisoSchema = createInsertSchema(catalogAvisos).omit({ id: true, createdAt: true });
 export type InsertCatalogAviso = z.infer<typeof insertCatalogAvisoSchema>;
 export type CatalogAviso = typeof catalogAvisos.$inferSelect;
+
+// Notifications
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // 'duplicate_phone' | 'duplicate_email'
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  section: text("section").notNull(), // 'prospectos' | 'clientes'
+  targetIds: text("target_ids").array(), // IDs of the duplicate records
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
