@@ -1193,7 +1193,7 @@ export function DevelopmentsSpreadsheet() {
                               }
                             }}
                           >
-                            <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0" style={textStyle} data-testid={`boolean-${col.key}-${dev.id}`}>
+                            <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0" style={textStyle} data-testid={`boolean-${col.key}-${dev.id}`}>
                               <span className="truncate">{activeLabel}</span>
                             </SelectTrigger>
                             <SelectContent>
@@ -1258,7 +1258,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                         >
-                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 relative ${textColorClass} [&>span]:flex-1 [&>span]:text-center`} data-testid={`boolean-${col.key}-${dev.id}`}>
+                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent relative ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
                             <SelectValue>
                               {value === true ? (
                                 <span className="text-center">Sí</span>

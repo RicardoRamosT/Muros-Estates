@@ -974,7 +974,7 @@ export function DevelopersSpreadsheet() {
                           }}
                         >
                           <SelectTrigger
-                            className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
+                            className="h-6 w-full text-xs border-0 bg-transparent [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
                             style={textStyle}
                             data-testid={`toggle-active-${dev.id}`}
                           >
@@ -1019,7 +1019,7 @@ export function DevelopersSpreadsheet() {
                             handleFieldChange(dev.id, { tipo: val as any });
                           }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1069,7 +1069,7 @@ export function DevelopersSpreadsheet() {
                             handleFieldChange(dev.id, { [field]: val } as any);
                           }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent px-2">
+                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                           <SelectContent>

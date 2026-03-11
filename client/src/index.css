@@ -360,6 +360,19 @@
     border-right: none;
   }
 
+  /* Center text in spreadsheet dropdown triggers (Select + Popover) */
+  .spreadsheet-cell [role="combobox"],
+  .spreadsheet-cell button[data-state] {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .spreadsheet-cell [role="combobox"] > span,
+  .spreadsheet-cell button[data-state] > span {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+  }
+
   /* Spreadsheet header heights - consistent across section rows */
   .spreadsheet-header-row1,
   .spreadsheet-header-row2,

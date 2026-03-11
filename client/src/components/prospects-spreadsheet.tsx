@@ -1145,7 +1145,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => handleActiveToggle(prospect.id, v === "active" ? true : null)}
                           >
                             <SelectTrigger
-                              className="h-6 w-full text-xs border-0 bg-transparent px-1 !justify-center gap-1 [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
+                              className="h-6 w-full text-xs border-0 bg-transparent [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0"
                               style={textStyle}
                               data-testid={`toggle-active-${prospect.id}`}
                             >
@@ -1472,7 +1472,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger
-                              className={`h-6 text-xs border-0 bg-transparent px-2 font-medium ${textColorClass}`}
+                              className={`h-6 text-xs border-0 bg-transparent font-medium ${textColorClass}`}
                             >
                               <SelectValue placeholder="-" />
                             </SelectTrigger>
