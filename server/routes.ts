@@ -599,7 +599,7 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Cliente no encontrado" });
       }
       broadcastClientUpdate("update", client);
-      if (data.telefono || data.correo) {
+      if ('telefono' in data || 'correo' in data) {
         checkDuplicatesAndNotify(client);
       }
       res.json(client);

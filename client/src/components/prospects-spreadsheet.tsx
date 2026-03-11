@@ -838,9 +838,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
     // Save current value
     handleFieldChange(currentId, { [currentField]: value || null } as any);
-    // Find next input cell in the same row (no type, plain-number, or currency)
-    const inputTypes = new Set([undefined, 'plain-number', 'currency']);
-    const editableCols = columns.filter(c => inputTypes.has(c.type) && !collapsedColumns.has(c.key));
+    // Find next editable cell in the same row (exclude non-editable types)
+    const nonEditableTypes = new Set(['index', 'actions', 'toggle', 'date-display', 'time-display', 'multi-select', 'typology-type']);
+    const editableCols = columns.filter(c => !(c.type && nonEditableTypes.has(c.type)) && !collapsedColumns.has(c.key));
     const currentIdx = editableCols.findIndex(c => c.key === currentField);
     if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
       const nextCol = editableCols[currentIdx + 1];
