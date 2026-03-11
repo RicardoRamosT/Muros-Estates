@@ -1258,7 +1258,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                         >
-                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 !justify-center relative ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`} style={{ paddingRight: '1rem' }}>
+                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent px-1 relative ${textColorClass} [&>span]:flex-1 [&>span]:text-center`} data-testid={`boolean-${col.key}-${dev.id}`}>
                             <SelectValue>
                               {value === true ? (
                                 <span className="text-center">Sí</span>
