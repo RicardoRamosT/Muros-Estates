@@ -13,19 +13,16 @@
       "Bash(__NEW_LINE_91cad47548f6924e__ echo:*)",
       "Bash(ls:*)",
       "Bash(wc:*)",
-      "WebSearch",
-      "WebFetch(domain:muros-estates.onrender.com)",
-      "Bash(rm:*)",
-      "Bash(echo:*)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_g91tkSFjIavp@ep-rough-night-ae5axsyp-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" node:*)",
-      "Bash(npx tsx:*)",
-      "Bash(netstat:*)",
-      "Bash(taskkill:*)",
       "Bash(grep:*)",
-      "Bash(mv:*)",
-      "Bash(npm ls:*)",
-      "Bash(test:*)",
-      "Bash(tasklist:*)"
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(node_modules/.bin/tsc:*)",
+      "Bash(node_modules/.bin/vite build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

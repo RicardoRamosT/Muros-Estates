@@ -155,7 +155,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
     setCollapsedGroups(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+        // Also uncollapse all individual columns in this group
+        const groupColKeys = allColumns.filter(c => c.group === key).map(c => c.key);
+        if (groupColKeys.length > 0) {
+          setCollapsedColumns(prevCols => {
+            const nextCols = new Set(prevCols);
+            groupColKeys.forEach(k => nextCols.delete(k));
+            return nextCols;
+          });
+        }
+      } else {
+        next.add(key);
+      }
       return next;
     });
   };
@@ -379,10 +392,20 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       const currentRecord = prospects.find(p => p.id === id);
       const isCurrentlyClient = currentRecord?.isClient === true;
       const shouldBeClient = clientFunnelStages.includes(value);
-      
+
+      // Cierre Ganado converts prospect to client with "Por Separar" stage
+      if (!isCurrentlyClient && value === 'Cierre Ganado') {
+        updateMutation.mutate({
+          id,
+          data: { embudo: 'Por Separar', isClient: true, convertedAt: new Date() } as any
+        });
+        toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes como 'Por Separar'." });
+        return;
+      }
+
       if (!isCurrentlyClient && shouldBeClient) {
-        updateMutation.mutate({ 
-          id, 
+        updateMutation.mutate({
+          id,
           data: { [field]: actualValue, isClient: true, convertedAt: new Date() } as any
         });
         toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes." });

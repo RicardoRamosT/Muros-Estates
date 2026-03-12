@@ -3040,6 +3040,55 @@ export async function registerRoutes(
     res.json(permission);
   });
 
+  // ── Custom Roles ──
+  app.get("/api/custom-roles", requireAuth, async (req, res) => {
+    const roles = await storage.getCustomRoles();
+    res.json(roles);
+  });
+
+  app.post("/api/custom-roles", requireAuth, requireRole("admin"), async (req, res) => {
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return res.status(400).json({ error: "El nombre del rol es requerido (mínimo 2 caracteres)" });
+    }
+    const key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const role = await storage.createCustomRole({ name: name.trim(), key, active: true });
+    res.status(201).json(role);
+  });
+
+  app.put("/api/custom-roles/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    const { name, active } = req.body;
+    const updateData: any = {};
+    if (typeof name === "string") {
+      updateData.name = name.trim();
+      updateData.key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    }
+    if (typeof active === "boolean") updateData.active = active;
+    const role = await storage.updateCustomRole(req.params.id as string, updateData);
+    if (!role) return res.status(404).json({ error: "Rol no encontrado" });
+    res.json(role);
+  });
+
+  app.delete("/api/custom-roles/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    await storage.deleteCustomRole(req.params.id as string);
+    res.status(204).send();
+  });
+
+  // ── Role Section Access ──
+  app.get("/api/role-section-access", requireAuth, async (req, res) => {
+    const access = await storage.getRoleSectionAccess();
+    res.json(access);
+  });
+
+  app.post("/api/role-section-access", requireAuth, requireRole("admin"), async (req, res) => {
+    const { section, role, active } = req.body;
+    if (!section || !role || typeof active !== "boolean") {
+      return res.status(400).json({ error: "Faltan campos requeridos" });
+    }
+    const result = await storage.upsertRoleSectionAccess(section, role, active);
+    res.json(result);
+  });
+
   // ── Notifications ──
   app.get("/api/notifications", requireAuth, async (req, res) => {
     try {

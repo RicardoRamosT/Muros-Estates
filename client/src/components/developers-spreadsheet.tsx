@@ -177,7 +177,20 @@ export function DevelopersSpreadsheet() {
     }
     setCollapsedGroups(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+        // Also uncollapse all individual columns in this group
+        const groupColKeys = allColumns.filter(c => c.group === key).map(c => c.key);
+        if (groupColKeys.length > 0) {
+          setCollapsedColumns(prevCols => {
+            const nextCols = new Set(prevCols);
+            groupColKeys.forEach(k => nextCols.delete(k));
+            return nextCols;
+          });
+        }
+      } else {
+        next.add(key);
+      }
       return next;
     });
   };

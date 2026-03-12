@@ -22,6 +22,8 @@ import {
   catalogTipologias, type CatalogTipologia, type InsertCatalogTipologia,
   sharedLinks, type SharedLink, type InsertSharedLink,
   rolePermissions, type RolePermission,
+  customRoles, type CustomRole, type InsertCustomRole,
+  roleSectionAccess, type RoleSectionAccess,
   // New property catalogs
   catalogNiveles, type CatalogNivel, type InsertCatalogNivel,
   catalogTorres, type CatalogTorre, type InsertCatalogTorre,
@@ -220,7 +222,17 @@ export interface IStorage {
   getRolePermissionsBySection(section: string): Promise<RolePermission[]>;
   upsertRolePermission(section: string, field: string, role: string, permissionLevel: string): Promise<RolePermission>;
   deleteRolePermission(id: string): Promise<boolean>;
-  
+
+  // Custom Roles
+  getCustomRoles(): Promise<CustomRole[]>;
+  createCustomRole(role: InsertCustomRole): Promise<CustomRole>;
+  updateCustomRole(id: string, data: Partial<InsertCustomRole>): Promise<CustomRole | undefined>;
+  deleteCustomRole(id: string): Promise<boolean>;
+
+  // Role Section Access
+  getRoleSectionAccess(): Promise<RoleSectionAccess[]>;
+  upsertRoleSectionAccess(section: string, role: string, active: boolean): Promise<RoleSectionAccess>;
+
   getCatalogTipoContrato(): Promise<CatalogTipoContrato[]>;
   createCatalogTipoContrato(item: InsertCatalogTipoContrato): Promise<CatalogTipoContrato>;
   updateCatalogTipoContrato(id: string, item: Partial<InsertCatalogTipoContrato>): Promise<CatalogTipoContrato | undefined>;
@@ -1030,7 +1042,48 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(rolePermissions).where(eq(rolePermissions.id, id));
     return true;
   }
-  
+
+  // Custom Roles
+  async getCustomRoles(): Promise<CustomRole[]> {
+    return db.select().from(customRoles).orderBy(customRoles.createdAt);
+  }
+
+  async createCustomRole(role: InsertCustomRole): Promise<CustomRole> {
+    const [created] = await db.insert(customRoles).values(role).returning();
+    return created;
+  }
+
+  async updateCustomRole(id: string, data: Partial<InsertCustomRole>): Promise<CustomRole | undefined> {
+    const [updated] = await db.update(customRoles).set(data as any).where(eq(customRoles.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteCustomRole(id: string): Promise<boolean> {
+    await db.delete(customRoles).where(eq(customRoles.id, id));
+    return true;
+  }
+
+  // Role Section Access
+  async getRoleSectionAccess(): Promise<RoleSectionAccess[]> {
+    return db.select().from(roleSectionAccess);
+  }
+
+  async upsertRoleSectionAccess(section: string, role: string, active: boolean): Promise<RoleSectionAccess> {
+    const existing = await db.select().from(roleSectionAccess).where(
+      and(
+        eq(roleSectionAccess.section, section),
+        eq(roleSectionAccess.role, role)
+      )
+    );
+    if (existing.length > 0) {
+      const [updated] = await db.update(roleSectionAccess).set({ active }).where(eq(roleSectionAccess.id, existing[0].id)).returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(roleSectionAccess).values({ section, role, active }).returning();
+      return created;
+    }
+  }
+
   // ============ NEW PROPERTY CATALOGS ============
   
   // Catalog Niveles (floor levels)

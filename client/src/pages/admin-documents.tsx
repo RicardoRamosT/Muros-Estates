@@ -638,7 +638,7 @@ export default function AdminDocuments() {
           <h1 className="text-sm font-bold" data-testid="text-page-title">Documentos</h1>
         </div>
       </div>
-      <div className="container mx-auto px-4 py-3 space-y-3">
+      <div className="container mx-auto px-4 py-1.5 space-y-3">
         <div className="flex items-center justify-end gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="relative">

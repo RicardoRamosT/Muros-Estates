@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { getFieldPermission, canAccessPage, PermissionLevel, PAGE_PERMISSIONS } from "@shared/schema";
-import type { RolePermission } from "@shared/schema";
+import type { RolePermission, RoleSectionAccess } from "@shared/schema";
 
 type PageName = keyof typeof PAGE_PERMISSIONS;
 
@@ -16,6 +16,12 @@ export function useFieldPermissions(page: PageName) {
     staleTime: Infinity,
   });
 
+  const { data: sectionAccess = [] } = useQuery<RoleSectionAccess[]>({
+    queryKey: ['/api/role-section-access'],
+    enabled: !!role,
+    staleTime: Infinity,
+  });
+
   const overrideMap = useMemo(() => {
     const map = new Map<string, PermissionLevel>();
     for (const p of myPermissions) {
@@ -24,15 +30,22 @@ export function useFieldPermissions(page: PageName) {
     return map;
   }, [myPermissions]);
 
+  // Check if this section is inactive for the current role
+  const isSectionInactive = useMemo(() => {
+    const entry = sectionAccess.find(sa => sa.section === page && sa.role === role);
+    return entry ? !entry.active : false;
+  }, [sectionAccess, page, role]);
+
   const isLoading = authLoading || permissionsLoading;
   const canAccess = useMemo(() => role ? canAccessPage(page, role) : false, [page, role]);
 
   const getPermission = useCallback((field: string): PermissionLevel => {
     if (!role) return 'none';
+    if (isSectionInactive) return 'none';
     const override = overrideMap.get(`${page}:${field}`);
     if (override) return override;
     return getFieldPermission(page, field, role);
-  }, [page, role, overrideMap]);
+  }, [page, role, overrideMap, isSectionInactive]);
 
   const canView = useCallback((field: string): boolean => {
     const perm = getPermission(field);

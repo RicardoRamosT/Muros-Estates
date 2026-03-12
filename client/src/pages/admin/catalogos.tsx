@@ -62,7 +62,7 @@ export default function AdminCatalogos() {
           <h1 className="text-sm font-bold" data-testid="text-page-title">Catálogos</h1>
         </div>
       </div>
-      <main className="px-4 py-3">
+      <main className="px-4 py-1.5">
         <div className="space-y-4">
           <CollapsibleSection title="GENERAL" testId="section-general">
             <CompactList title="Tipos de Desarrollos" endpoint="/api/catalog/development-types" queryKey="/api/catalog/development-types" ordered />

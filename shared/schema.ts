@@ -1626,6 +1626,38 @@ export const updateRolePermissionSchema = z.object({
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type RolePermission = typeof rolePermissions.$inferSelect;
 
+// Custom roles table
+export const customRoles = pgTable("custom_roles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  key: text("key").notNull().unique(),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCustomRoleSchema = createInsertSchema(customRoles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCustomRole = z.infer<typeof insertCustomRoleSchema>;
+export type CustomRole = typeof customRoles.$inferSelect;
+
+// Role section access table - controls per-section Activo/Inhabilitado flag
+export const roleSectionAccess = pgTable("role_section_access", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  section: text("section").notNull(),
+  role: text("role").notNull(),
+  active: boolean("active").notNull().default(true),
+});
+
+export const insertRoleSectionAccessSchema = createInsertSchema(roleSectionAccess).omit({
+  id: true,
+});
+
+export type InsertRoleSectionAccess = z.infer<typeof insertRoleSectionAccessSchema>;
+export type RoleSectionAccess = typeof roleSectionAccess.$inferSelect;
+
 // ============ NEW CATALOGS FOR PROPERTIES ============
 
 // Niveles catalog (floor levels: 1-7, 110)

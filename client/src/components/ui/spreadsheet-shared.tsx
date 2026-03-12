@@ -372,7 +372,7 @@ export function SpreadsheetHeader({
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: 'white', borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: groupLookupMap[col.group || '']?.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }
@@ -386,7 +386,7 @@ export function SpreadsheetHeader({
               <div
                 key={`r3-${col.key}`}
                 className="flex-shrink-0"
-                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: 'white', borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)' }}
               />
             );
           }

@@ -8,8 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft, UserCog, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { UserPermissions } from "@shared/schema";
-
 interface User {
   id: string;
   username: string;
@@ -17,7 +15,6 @@ interface User {
   email: string | null;
   role: string;
   active: boolean | null;
-  permissions?: UserPermissions;
   createdAt: string | null;
 }
 
