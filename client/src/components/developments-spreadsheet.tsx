@@ -145,7 +145,12 @@ function NivelRangeCell({ dev, onSave, fieldCanEdit }: { dev: Development; onSav
   };
 
   const addRango = () => {
-    setLocalRangos(prev => [...prev, { desde: 1, hasta: 1 }]);
+    setLocalRangos(prev => {
+      if (prev.length === 0) return [{ desde: 1, hasta: 1 }];
+      const lastHasta = prev[prev.length - 1].hasta;
+      const newDesde = lastHasta + 2;
+      return [...prev, { desde: newDesde, hasta: newDesde }];
+    });
   };
 
   const removeRango = (idx: number) => {
@@ -153,11 +158,35 @@ function NivelRangeCell({ dev, onSave, fieldCanEdit }: { dev: Development; onSav
   };
 
   const updateRango = (idx: number, field: 'desde' | 'hasta', val: string) => {
-    const num = parseInt(val) || 0;
-    setLocalRangos(prev => prev.map((r, i) => i === idx ? { ...r, [field]: num } : r));
+    const num = Math.max(1, parseInt(val) || 1);
+    setLocalRangos(prev => prev.map((r, i) => {
+      if (i !== idx) return r;
+      if (field === 'desde') {
+        return { desde: num, hasta: Math.max(num, r.hasta) };
+      } else {
+        return { desde: Math.min(num, r.desde), hasta: num };
+      }
+    }));
   };
 
+  const { toast } = useToast();
+
   const handleSave = () => {
+    for (let i = 0; i < localRangos.length; i++) {
+      const r = localRangos[i];
+      if (r.desde < 1 || r.hasta < 1) {
+        toast({ title: 'Error', description: 'Los pisos deben ser mayores o iguales a 1.', variant: 'destructive' });
+        return;
+      }
+      if (r.desde > r.hasta) {
+        toast({ title: 'Error', description: `Rango ${i + 1}: "Desde" no puede ser mayor que "Hasta".`, variant: 'destructive' });
+        return;
+      }
+      if (i > 0 && r.desde < localRangos[i - 1].hasta + 2) {
+        toast({ title: 'Error', description: `Rango ${i + 1} debe iniciar al menos 2 pisos después del rango anterior.`, variant: 'destructive' });
+        return;
+      }
+    }
     const nivelMaximo = localMax !== '' ? parseInt(localMax) || null : null;
     const nivelJson = localRangos.length > 0 ? JSON.stringify(localRangos) : null;
     onSave({ nivel: nivelJson, nivelMaximo });
