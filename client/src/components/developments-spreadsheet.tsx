@@ -32,6 +32,15 @@ import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { cn } from "@/lib/utils";
 
+function parsePhoneList(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('[')) {
+    try { return JSON.parse(trimmed); } catch { return [trimmed]; }
+  }
+  return [trimmed];
+}
+
 const ActiveDropdownRef = { current: null as (() => void) | null };
 
 function ExclusiveSelect({ children, autoOpen, onClose, onAdvance, ...props }: React.ComponentProps<typeof Select> & { autoOpen?: boolean; onClose?: () => void; onAdvance?: () => void }) {
@@ -99,7 +108,7 @@ interface ColumnDef {
   key: string;
   label: string;
   group: string;
-  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'multiselect-tipologias' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'tipologias-count' | 'redaccion-text';
+  type?: 'text' | 'number' | 'boolean' | 'select' | 'city-select' | 'zone-select' | 'type-select' | 'developer-select' | 'empresa-tipo-select' | 'nivel-select' | 'torres-select' | 'niveles-select' | 'multiselect-amenities' | 'multiselect-efficiency' | 'multiselect-other' | 'multiselect-acabados' | 'multiselect-tipos' | 'multiselect-vistas' | 'multiselect-creatable' | 'multiselect-tipologias' | 'recamaras-select' | 'banos-select' | 'tipo-contrato-select' | 'cesion-derechos-select' | 'presentacion-select' | 'calculated-percent' | 'folder-link' | 'actions' | 'index' | 'date-display' | 'time-display' | 'tipologias-count' | 'redaccion-text' | 'phone-list';
   width: string;
   folderSection?: string;
   cellType?: CellType;
@@ -401,10 +410,10 @@ const columns: ColumnDef[] = [
   { key: 'tipoContrato', label: 'Contratos', group: 'noheader_contrato', type: 'tipo-contrato-select', width: '110px', cellType: 'dropdown' },
   { key: 'cesionDerechos', label: 'Cesión', group: 'noheader_contrato', type: 'cesion-derechos-select', width: '90px', cellType: 'dropdown' },
   { key: 'ventasNombre', label: 'Nombre', group: 'ventas', width: '100px', cellType: 'input' },
-  { key: 'ventasTelefono', label: 'Teléfono', group: 'ventas', width: '90px', cellType: 'input' },
+  { key: 'ventasTelefono', label: 'Teléfono', group: 'ventas', width: '110px', type: 'phone-list', cellType: 'input' },
   { key: 'ventasCorreo', label: 'Correo', group: 'ventas', width: '120px', cellType: 'input' },
   { key: 'pagosNombre', label: 'Nombre', group: 'pagos', width: '100px', cellType: 'input' },
-  { key: 'pagosTelefono', label: 'Teléfono', group: 'pagos', width: '90px', cellType: 'input' },
+  { key: 'pagosTelefono', label: 'Teléfono', group: 'pagos', width: '110px', type: 'phone-list', cellType: 'input' },
   { key: 'pagosCorreo', label: 'Correo', group: 'pagos', width: '120px', cellType: 'input' },
   { key: 'location', label: '', group: 'noheader_ubicacion', width: '100px', cellType: 'input' },
   { key: 'presentacion', label: '', group: 'noheader_presentacion', type: 'presentacion-select', width: '120px', cellType: 'dropdown' },
@@ -939,7 +948,7 @@ export function DevelopmentsSpreadsheet() {
     // Find next editable cell in the same row (inputs + dropdowns)
     const nonEditableTypes = new Set([
       'index', 'boolean', 'actions', 'folder-link', 'date-display', 'time-display',
-      'calculated-percent', 'tipologias-count', 'redaccion-text',
+      'calculated-percent', 'tipologias-count', 'redaccion-text', 'phone-list',
       'multiselect-amenities', 'multiselect-efficiency', 'multiselect-other',
       'multiselect-acabados', 'multiselect-creatable', 'nivel-select',
       'multiselect-tipos', 'multiselect-vistas', 'multiselect-tipologias'
@@ -961,7 +970,7 @@ export function DevelopmentsSpreadsheet() {
   const advanceFromSelect = useCallback((currentId: string, currentField: string) => {
     const nonEditableTypes = new Set([
       'index', 'boolean', 'actions', 'folder-link', 'date-display', 'time-display',
-      'calculated-percent', 'tipologias-count', 'redaccion-text',
+      'calculated-percent', 'tipologias-count', 'redaccion-text', 'phone-list',
       'multiselect-amenities', 'multiselect-efficiency', 'multiselect-other',
       'multiselect-acabados', 'multiselect-creatable', 'nivel-select',
       'multiselect-tipos', 'multiselect-vistas', 'multiselect-tipologias'
@@ -1939,6 +1948,71 @@ export function DevelopmentsSpreadsheet() {
                   );
                 }
 
+
+                if (col.type === 'phone-list') {
+                  const phoneList = parsePhoneList(value as string);
+                  const savePhones = (phones: string[]) => {
+                    const stored = phones.length <= 1 ? (phones[0] || '') : JSON.stringify(phones);
+                    handleFieldChange(dev.id, { [col.key]: stored || null });
+                  };
+                  return (
+                    <div
+                      key={col.key}
+                      className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: "input", disabled: !fieldCanEdit }))}
+                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
+                      data-testid={`cell-${col.key}-${dev.id}`}
+                    >
+                      {fieldCanEdit ? (
+                        <Popover modal>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal h-full px-1">
+                              <span className="truncate">{phoneList.length > 0 ? phoneList[0] : ""}</span>
+                              {phoneList.length > 1 && <span className="text-[10px] ml-0.5 opacity-60 shrink-0">+{phoneList.length - 1}</span>}
+                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2">
+                            <div className="flex flex-col gap-2">
+                              <div className="flex gap-1">
+                                <Input
+                                  placeholder="10 dígitos..."
+                                  className="h-7 text-xs"
+                                  maxLength={10}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = (e.target as HTMLInputElement).value.replace(/\D/g, '');
+                                      if (val.length === 10 && !phoneList.includes(val)) {
+                                        savePhones([...phoneList, val]);
+                                      }
+                                      (e.target as HTMLInputElement).value = '';
+                                    }
+                                  }}
+                                />
+                              </div>
+                              {phoneList.length > 0 && (
+                                <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                                  {phoneList.map((phone, idx) => (
+                                    <div key={idx} className="flex items-center justify-between gap-1 px-1 py-0.5 rounded bg-muted/50">
+                                      <span className="text-xs truncate">{phone}</span>
+                                      <button onClick={() => savePhones(phoneList.filter((_, i) => i !== idx))} className="flex-shrink-0 cursor-pointer">
+                                        <X className="w-3 h-3 text-muted-foreground" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2">
+                          <span className={cn("text-xs truncate", cellTextClass)}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
+                          {phoneList.length > 1 && <span className="text-[10px] opacity-60 shrink-0">+{phoneList.length - 1}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
                 if (col.type === 'redaccion-text') {
                   return (

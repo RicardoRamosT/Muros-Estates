@@ -1397,7 +1397,8 @@ export function DevelopersSpreadsheet() {
                         <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal h-full px-1">
-                              <span className="truncate">{phoneList.length > 0 ? phoneList.join(', ') : ""}</span>
+                              <span className="truncate">{phoneList.length > 0 ? phoneList[0] : ""}</span>
+                              {phoneList.length > 1 && <span className="text-[10px] ml-0.5 opacity-60 shrink-0">+{phoneList.length - 1}</span>}
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -1436,7 +1437,8 @@ export function DevelopersSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{phoneList.length > 0 ? phoneList.join(', ') : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
+                          {phoneList.length > 1 && <span className="text-[10px] opacity-60 shrink-0">+{phoneList.length - 1}</span>}
                         </div>
                       )}
                     </div>
