@@ -540,6 +540,68 @@ export const PAGE_PERMISSIONS = {
       finalValue: { admin: 'edit', actualizador: 'view', perfilador: 'none', finanzas: 'view', asesor: 'view', desarrollador: 'none' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
+  // Permisos para Documentos - combina documentosLegalesDesarrollador y documentosLegalesDesarrollo en una sola sección visual
+  documentos: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      devIdentidad: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      devCorporativo: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'edit' },
+      devConvenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'none', asesor: 'none', desarrollador: 'edit' },
+      desIdentidad: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      desCorporativo: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      desConvenios: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'view', asesor: 'none', desarrollador: 'view' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
+  // Permisos para Catálogos - un campo por tabla de catálogo
+  catalogos: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      // General
+      tiposDesarrollos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tipoContrato: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      presentacion: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tipoProveedor: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      tasasGlobales: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      ciudades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      zonas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      avisos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Desarrollos
+      recamaras: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      banos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      areas: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      cajones: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      incluye: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      amenidades: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      acabados: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      eficiencia: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      seguridad: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      nivel: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      // Prospectos y Clientes
+      tipoCliente: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      perfil: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      fuente: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      brokerExterno: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      statusProspecto: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      etapaEmbudo: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      comoPaga: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      positivos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      negativos: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+      etapaClientes: { admin: 'edit', actualizador: 'edit', perfilador: 'view', finanzas: 'view', asesor: 'view', desarrollador: 'view' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
+  // Permisos para Usuarios
+  usuarios: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      name: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      username: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      email: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      password: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      role: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      active: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+      permissions: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
 } as const;
 
 // Helper function to get field permission for a role

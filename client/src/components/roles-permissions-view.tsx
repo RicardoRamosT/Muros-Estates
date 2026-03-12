@@ -8,6 +8,7 @@ import { SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -24,7 +25,15 @@ const SECTION_LABELS: Record<string, string> = {
   tipologias: "Tipologías",
   prospectos: "Prospectos",
   clientes: "Clientes",
+  documentos: "Documentos",
+  catalogos: "Catálogos",
+  usuarios: "Usuarios",
 };
+
+const SECTION_ORDER = [
+  'desarrolladores', 'desarrollos', 'tipologias', 'prospectos', 'clientes',
+  'documentos', 'catalogos', 'usuarios',
+];
 
 const FIELD_LABELS: Record<string, Record<string, string>> = {
   desarrolladores: {
@@ -285,6 +294,66 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     papeleria: "Papelería",
     comentarios: "Comentarios",
   },
+  documentos: {
+    devIdentidad: "Dev. Identidad",
+    devCorporativo: "Dev. Corporativo",
+    devConvenios: "Dev. Convenios",
+    desIdentidad: "Des. Identidad",
+    desCorporativo: "Des. Corporativo",
+    desConvenios: "Des. Convenios",
+  },
+  catalogos: {
+    // General
+    tiposDesarrollos: "Tipos Desarrollos",
+    tipoContrato: "Tipo Contrato",
+    presentacion: "Presentación",
+    tipoProveedor: "Tipo Proveedor",
+    tasasGlobales: "Tasas Globales",
+    ciudades: "Ciudades",
+    zonas: "Zonas",
+    avisos: "Avisos",
+    // Desarrollos
+    recamaras: "Recámaras",
+    banos: "Baños",
+    areas: "Áreas",
+    cajones: "Cajones",
+    incluye: "Incluye",
+    amenidades: "Amenidades",
+    acabados: "Acabados",
+    eficiencia: "Eficiencia",
+    seguridad: "Seguridad",
+    nivel: "Nivel",
+    // Prospectos y Clientes
+    tipoCliente: "Tipo Cliente",
+    perfil: "Perfil",
+    fuente: "Fuente",
+    brokerExterno: "Broker Externo",
+    statusProspecto: "Estatus Prospecto",
+    etapaEmbudo: "Etapa Embudo",
+    comoPaga: "Cómo Paga",
+    positivos: "Positivos",
+    negativos: "Negativos",
+    etapaClientes: "Etapa Clientes",
+  },
+  usuarios: {
+    name: "Nombre",
+    username: "Usuario",
+    email: "Email",
+    password: "Contraseña",
+    role: "Rol",
+    active: "Activo",
+    permissions: "Permisos",
+  },
+};
+
+// Mapping from documentos virtual fields to their real schema entries
+const DOCUMENTOS_FIELD_MAP: Record<string, { section: string; field: string }> = {
+  devIdentidad: { section: 'documentosLegalesDesarrollador', field: 'identidad' },
+  devCorporativo: { section: 'documentosLegalesDesarrollador', field: 'corporativo' },
+  devConvenios: { section: 'documentosLegalesDesarrollador', field: 'convenios' },
+  desIdentidad: { section: 'documentosLegalesDesarrollo', field: 'identidad' },
+  desCorporativo: { section: 'documentosLegalesDesarrollo', field: 'corporativo' },
+  desConvenios: { section: 'documentosLegalesDesarrollo', field: 'convenios' },
 };
 
 const BUILT_IN_ROLES = ["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"];
@@ -316,6 +385,207 @@ function getPermissionTextColor(level: PermissionLevel): string {
 const CELL_W = 90;
 const ROLE_COL_W = 130;
 const ROW_H = 32;
+
+/** Get the field names for a section key */
+function getSectionFieldNames(sectionKey: string): string[] {
+  const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[sectionKey];
+  if (!sectionData) return [];
+  if (sectionData.fields) return Object.keys(sectionData.fields);
+  if (sectionData.sections) return Object.keys(sectionData.sections);
+  return [];
+}
+
+/** Section search component for vertical scrolling between permission sections */
+function PermissionsSectionSearch({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement> }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const sections = SECTION_ORDER.map(key => ({ key, label: SECTION_LABELS[key] || key }));
+  const filtered = query.trim()
+    ? sections.filter(s => s.label.toLowerCase().includes(query.toLowerCase()))
+    : sections;
+
+  const scrollTo = (sectionKey: string) => {
+    setOpen(false);
+    setQuery("");
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`perm-section-${sectionKey}`);
+      if (!el) return;
+      const container = scrollRef.current;
+      if (container) {
+        const containerRect = container.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const scrollTop = elRect.top - containerRect.top + container.scrollTop;
+        container.scrollTo({ top: Math.max(0, scrollTop - 4), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+      el.classList.add('section-flash');
+      setTimeout(() => el.classList.remove('section-flash'), 1500);
+    });
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="p-1 rounded hover:bg-white/20 text-white" style={{ backgroundColor: SHEET_COLOR_DARK }}>
+          <Search className="w-3.5 h-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-2" align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
+        <input
+          className="w-full text-xs border rounded px-2 py-1 mb-2 outline-none focus:ring-1"
+          placeholder="Buscar sección..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          autoFocus
+        />
+        <div className="max-h-48 overflow-y-auto space-y-0.5">
+          {filtered.map(s => (
+            <button
+              key={s.key}
+              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent uppercase"
+              onClick={() => scrollTo(s.key)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** A single mini-spreadsheet for one permission section */
+function PermissionMiniSpreadsheet({
+  sectionKey,
+  fieldNames,
+  fieldLabels,
+  roles,
+  roleLabels,
+  isSectionActive,
+  getEffectivePermission,
+  handlePermClick,
+  handleActivoToggle,
+  pendingUpdate,
+}: {
+  sectionKey: string;
+  fieldNames: string[];
+  fieldLabels: Record<string, string>;
+  roles: string[];
+  roleLabels: Record<string, string>;
+  isSectionActive: (section: string, role: string) => boolean;
+  getEffectivePermission: (section: string, field: string, role: string) => PermissionLevel;
+  handlePermClick: (section: string, field: string, role: string) => void;
+  handleActivoToggle: (section: string, role: string) => void;
+  pendingUpdate: string | null;
+}) {
+  const totalWidth = ROLE_COL_W + (1 + fieldNames.length) * CELL_W; // Activo + fields
+  const sectionLabel = SECTION_LABELS[sectionKey] || sectionKey;
+
+  return (
+    <div className="mb-4">
+      {/* Section title bar */}
+      <div
+        id={`perm-section-${sectionKey}`}
+        className="flex items-center font-semibold text-xs text-white uppercase tracking-wide px-3"
+        style={{ height: ROW_H, backgroundColor: SHEET_COLOR_DARK }}
+      >
+        {sectionLabel}
+      </div>
+
+      {/* Scrollable area for this section */}
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: totalWidth }}>
+          {/* Column header row */}
+          <div className="flex" style={{ height: ROW_H }}>
+            <div
+              className="flex-shrink-0 sticky left-0 z-20 flex items-center font-semibold text-xs text-white px-3"
+              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              Rol
+            </div>
+            {/* Activo column header */}
+            <div
+              className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              Activo
+            </div>
+            {/* Field column headers */}
+            {fieldNames.map(field => (
+              <div
+                key={`hdr-${field}`}
+                className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
+                style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+              >
+                <span className="truncate px-1">{fieldLabels[field] || field}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Data rows */}
+          {roles.map((role, rowIdx) => {
+            const active = isSectionActive(sectionKey, role);
+            return (
+              <div
+                key={role}
+                className="flex"
+                style={{ minWidth: 'max-content', backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f9fafb' }}
+              >
+                {/* Role name (sticky) */}
+                <div
+                  className="flex-shrink-0 sticky left-0 z-10 flex items-center font-medium text-xs px-3 border-b border-r border-gray-200"
+                  style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f9fafb' }}
+                >
+                  {roleLabels[role] || role}
+                </div>
+
+                {/* Activo cell */}
+                <div
+                  className="flex-shrink-0 flex items-center justify-center text-[10px] font-medium cursor-pointer select-none border-b border-r border-gray-200 transition-colors hover:brightness-95"
+                  style={{
+                    width: CELL_W, minWidth: CELL_W, height: ROW_H,
+                    backgroundColor: active ? '#dcfce7' : '#e5e7eb',
+                    color: active ? '#15803d' : '#6b7280',
+                    borderLeft: '2px solid rgba(0,0,0,0.08)',
+                  }}
+                  onClick={() => handleActivoToggle(sectionKey, role)}
+                >
+                  {active ? "Sí" : "Inhabilitado"}
+                </div>
+
+                {/* Field cells */}
+                {fieldNames.map(field => {
+                  const level = active ? getEffectivePermission(sectionKey, field, role) : 'none' as PermissionLevel;
+                  const isPending = pendingUpdate === `${sectionKey}:${field}:${role}`;
+                  const isDisabled = !active;
+                  return (
+                    <div
+                      key={`cell-${role}-${field}`}
+                      className={`flex-shrink-0 flex items-center justify-center text-[10px] font-medium select-none border-b border-r border-gray-200 transition-colors ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-95'}`}
+                      style={{
+                        width: CELL_W, minWidth: CELL_W, height: ROW_H,
+                        backgroundColor: isDisabled ? '#e5e7eb' : getPermissionCellBg(level),
+                        color: isDisabled ? '#9ca3af' : getPermissionTextColor(level),
+                      }}
+                      onClick={() => !isDisabled && handlePermClick(sectionKey, field, role)}
+                    >
+                      {isPending ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                      ) : (
+                        isDisabled ? "Sin Acceso" : getPermissionLabel(level)
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function RolesPermissionsView() {
   const { toast } = useToast();
@@ -382,15 +652,6 @@ export function RolesPermissionsView() {
     },
   });
 
-  // Build sections and columns
-  const availableSections = useMemo(() =>
-    Object.keys(PAGE_PERMISSIONS).filter(key => {
-      const section = (PAGE_PERMISSIONS as Record<string, any>)[key];
-      return section && section.fields;
-    }),
-    []
-  );
-
   // All roles = built-in + custom
   const allRoles = useMemo(() => {
     const customKeys = customRolesData.filter(r => r.active).map(r => r.key);
@@ -403,38 +664,6 @@ export function RolesPermissionsView() {
     return labels;
   }, [customRolesData]);
 
-  // Build flat column list: for each section -> Activo col + field cols
-  const columns = useMemo(() => {
-    const cols: { section: string; field: string | null; label: string; isActivo: boolean }[] = [];
-    for (const section of availableSections) {
-      const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[section];
-      const fieldNames = Object.keys(sectionData.fields);
-      const fieldLabels = FIELD_LABELS[section] || {};
-      // Activo column
-      cols.push({ section, field: null, label: "Activo", isActivo: true });
-      // Field columns
-      for (const field of fieldNames) {
-        cols.push({ section, field, label: fieldLabels[field] || field, isActivo: false });
-      }
-    }
-    return cols;
-  }, [availableSections]);
-
-  // Section spans for ROW1
-  const sectionSpans = useMemo(() => {
-    const spans: { section: string; label: string; colCount: number }[] = [];
-    for (const section of availableSections) {
-      const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[section];
-      const fieldCount = Object.keys(sectionData.fields).length;
-      spans.push({
-        section,
-        label: SECTION_LABELS[section] || section,
-        colCount: 1 + fieldCount, // Activo + fields
-      });
-    }
-    return spans;
-  }, [availableSections]);
-
   // Build section access map
   const sectionAccessMap = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -446,7 +675,7 @@ export function RolesPermissionsView() {
 
   const isSectionActive = useCallback((section: string, role: string): boolean => {
     const key = `${section}:${role}`;
-    return sectionAccessMap.get(key) ?? true; // default active
+    return sectionAccessMap.get(key) ?? true;
   }, [sectionAccessMap]);
 
   // Permission overrides map
@@ -459,16 +688,39 @@ export function RolesPermissionsView() {
   }, [customPermissions]);
 
   const getEffectivePermission = useCallback((section: string, field: string, role: string): PermissionLevel => {
+    // For documentos, map back to the real schema entries
+    if (section === 'documentos' && DOCUMENTOS_FIELD_MAP[field]) {
+      const { section: realSection, field: realField } = DOCUMENTOS_FIELD_MAP[field];
+      // Check override with real key
+      const customReal = overrideMap.get(`${realSection}:${realField}:${role}`);
+      if (customReal) return customReal;
+      // Also check override with virtual key
+      const customVirtual = overrideMap.get(`documentos:${field}:${role}`);
+      if (customVirtual) return customVirtual;
+      // Fall back to schema default
+      const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[realSection];
+      return sectionData?.sections?.[realField]?.[role] || "none";
+    }
+
     const custom = overrideMap.get(`${section}:${field}:${role}`);
     if (custom) return custom;
     const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[section];
-    return sectionData?.fields?.[field]?.[role] || "none";
+    return sectionData?.fields?.[field]?.[role] || sectionData?.sections?.[field]?.[role] || "none";
   }, [overrideMap]);
 
   const handlePermClick = useCallback((section: string, field: string, role: string) => {
     if (!isSectionActive(section, role)) return;
     const current = getEffectivePermission(section, field, role);
     const next = getNextPermissionLevel(current);
+
+    // For documentos, save using the real schema section/field
+    if (section === 'documentos' && DOCUMENTOS_FIELD_MAP[field]) {
+      const { section: realSection, field: realField } = DOCUMENTOS_FIELD_MAP[field];
+      setPendingUpdate(`${section}:${field}:${role}`);
+      updatePermMutation.mutate({ section: realSection, field: realField, role, permissionLevel: next });
+      return;
+    }
+
     setPendingUpdate(`${section}:${field}:${role}`);
     updatePermMutation.mutate({ section, field, role, permissionLevel: next });
   }, [isSectionActive, getEffectivePermission, updatePermMutation]);
@@ -485,13 +737,22 @@ export function RolesPermissionsView() {
     return allRoles.filter(r => (allRoleLabels[r] || r).toLowerCase().includes(q));
   }, [allRoles, allRoleLabels, searchQuery]);
 
-  const totalWidth = ROLE_COL_W + columns.length * CELL_W;
+  // Build available sections in order, filtering out hidden schema entries
+  const availableSections = useMemo(() => {
+    const hiddenSections = new Set(['documentosLegalesDesarrollador', 'documentosLegalesDesarrollo']);
+    return SECTION_ORDER.filter(key => {
+      if (hiddenSections.has(key)) return false;
+      const sectionData = (PAGE_PERMISSIONS as Record<string, any>)[key];
+      return sectionData && (sectionData.fields || sectionData.sections);
+    });
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b gap-2">
         <div className="flex items-center gap-2">
+          <PermissionsSectionSearch scrollRef={scrollRef} />
           <div className="relative">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
@@ -522,123 +783,23 @@ export function RolesPermissionsView() {
         </Button>
       </div>
 
-      {/* Spreadsheet */}
-      <div className="flex-1 overflow-auto" ref={scrollRef}>
-        <div style={{ minWidth: totalWidth }}>
-          {/* ROW1: Section group headers */}
-          <div className="flex" style={{ height: ROW_H }}>
-            <div
-              className="flex-shrink-0 sticky left-0 z-30"
-              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK }}
-            />
-            {sectionSpans.map(span => (
-              <div
-                key={`r1-${span.section}`}
-                className="flex-shrink-0 flex items-center justify-center font-semibold text-xs text-white uppercase tracking-wide"
-                style={{
-                  width: span.colCount * CELL_W,
-                  minWidth: span.colCount * CELL_W,
-                  height: ROW_H,
-                  backgroundColor: SHEET_COLOR_DARK,
-                  borderRight: '2px solid rgba(255,255,255,0.3)',
-                }}
-              >
-                {span.label}
-              </div>
-            ))}
-          </div>
-
-          {/* ROW2: Column headers */}
-          <div className="flex" style={{ height: ROW_H }}>
-            <div
-              className="flex-shrink-0 sticky left-0 z-30 flex items-center font-semibold text-xs text-white px-3"
-              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)' }}
-            >
-              Rol
-            </div>
-            {columns.map((col, idx) => (
-              <div
-                key={`r2-${col.section}-${col.field || 'activo'}-${idx}`}
-                className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
-                style={{
-                  width: CELL_W,
-                  minWidth: CELL_W,
-                  height: ROW_H,
-                  backgroundColor: col.isActivo ? SHEET_COLOR_DARK : SHEET_COLOR_LIGHT,
-                  borderRight: '1px solid rgba(255,255,255,0.15)',
-                }}
-              >
-                <span className="truncate px-1">{col.label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Data rows */}
-          {filteredRoles.map((role, rowIdx) => (
-            <div
-              key={role}
-              className="flex"
-              style={{ minWidth: 'max-content', backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f9fafb' }}
-            >
-              <div
-                className="flex-shrink-0 sticky left-0 z-20 flex items-center font-medium text-xs px-3 border-b border-r border-gray-200"
-                style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f9fafb' }}
-              >
-                {allRoleLabels[role] || role}
-              </div>
-              {columns.map((col, colIdx) => {
-                if (col.isActivo) {
-                  // Activo column - Sí/Inhabilitado toggle
-                  const active = isSectionActive(col.section, role);
-                  return (
-                    <div
-                      key={`cell-${role}-${col.section}-activo-${colIdx}`}
-                      className="flex-shrink-0 flex items-center justify-center text-[10px] font-medium cursor-pointer select-none border-b border-r border-gray-200 transition-colors hover:brightness-95"
-                      style={{
-                        width: CELL_W,
-                        minWidth: CELL_W,
-                        height: ROW_H,
-                        backgroundColor: active ? '#dcfce7' : '#e5e7eb',
-                        color: active ? '#15803d' : '#6b7280',
-                        borderLeft: '2px solid rgba(0,0,0,0.08)',
-                      }}
-                      onClick={() => handleActivoToggle(col.section, role)}
-                    >
-                      {active ? "Sí" : "Inhabilitado"}
-                    </div>
-                  );
-                }
-
-                // Permission cell
-                const sectionActive = isSectionActive(col.section, role);
-                const level = sectionActive ? getEffectivePermission(col.section, col.field!, role) : 'none' as PermissionLevel;
-                const isPending = pendingUpdate === `${col.section}:${col.field}:${role}`;
-                const isDisabled = !sectionActive;
-
-                return (
-                  <div
-                    key={`cell-${role}-${col.section}-${col.field}-${colIdx}`}
-                    className={`flex-shrink-0 flex items-center justify-center text-[10px] font-medium select-none border-b border-r border-gray-200 transition-colors ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-95'}`}
-                    style={{
-                      width: CELL_W,
-                      minWidth: CELL_W,
-                      height: ROW_H,
-                      backgroundColor: isDisabled ? '#e5e7eb' : getPermissionCellBg(level),
-                      color: isDisabled ? '#9ca3af' : getPermissionTextColor(level),
-                    }}
-                    onClick={() => !isDisabled && handlePermClick(col.section, col.field!, role)}
-                  >
-                    {isPending ? (
-                      <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
-                    ) : (
-                      isDisabled ? "Sin Acceso" : getPermissionLabel(level)
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+      {/* Body: vertical scroll of mini-spreadsheets */}
+      <div className="flex-1 overflow-auto py-2 px-2" ref={scrollRef}>
+        {availableSections.map(sectionKey => (
+          <PermissionMiniSpreadsheet
+            key={sectionKey}
+            sectionKey={sectionKey}
+            fieldNames={getSectionFieldNames(sectionKey)}
+            fieldLabels={FIELD_LABELS[sectionKey] || {}}
+            roles={filteredRoles}
+            roleLabels={allRoleLabels}
+            isSectionActive={isSectionActive}
+            getEffectivePermission={getEffectivePermission}
+            handlePermClick={handlePermClick}
+            handleActivoToggle={handleActivoToggle}
+            pendingUpdate={pendingUpdate}
+          />
+        ))}
       </div>
 
       {/* New Role Dialog */}
