@@ -214,8 +214,6 @@ function NivelRangeCell({ dev, onSave, fieldCanEdit }: { dev: Development; onSav
     }));
   };
 
-  const { toast } = useToast();
-
   const handleSave = () => {
     for (let i = 0; i < localRangos.length; i++) {
       const r = localRangos[i];
