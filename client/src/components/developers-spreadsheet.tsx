@@ -330,11 +330,11 @@ export function DevelopersSpreadsheet() {
     { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "generales" },
     { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", cellType: "date", group: "antiguedad" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
-    { key: "tipos", label: "Tipos", width: "140px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "tipos", label: "Tipos", width: "55px", type: "multiselect", cellType: "dropdown", group: "tipos" },
     { key: "preventaCount", label: "Preventa", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "preventa" },
     { key: "obraCount", label: "Obra", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "obra" },
     { key: "entregadosCount", label: "Entregados", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
-    { key: "contratos", label: "Contratos", width: "140px", type: "multiselect", cellType: "dropdown", group: "contratos" },
+    { key: "contratos", label: "Contratos", width: "55px", type: "multiselect", cellType: "dropdown", group: "contratos" },
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
     { key: "contactPhone", label: "Teléfono", width: "110px", type: "phone-list", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
@@ -1280,30 +1280,30 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'multiselect') {
                   const currentValues = (dev[field as keyof Developer] as string[] | null) || [];
-                  const displayValue = currentValues.length > 0 
-                    ? `${currentValues.length} seleccionados`
-                    : '';
+                  const countDisplay = currentValues.length > 0 ? String(currentValues.length) : '';
+                  const tooltipText = currentValues.length > 0 ? currentValues.join(', ') : '';
                   const options = col.key === 'contratos'
                     ? catalogContratos.map(c => ({ value: c.name, label: c.name }))
                     : DESARROLLO_TIPOS;
-                  
+
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
+                      title={tooltipText}
                     >
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="h-6 w-full justify-between px-1 text-left font-normal text-xs"
+                              className="h-6 w-full justify-center px-1 font-normal text-xs"
                               data-testid={`select-${col.key}-${dev.id}`}
+                              title={tooltipText}
                             >
-                              <span className="truncate">{displayValue || ''}</span>
-                              <ChevronDown className="h-3 w-3 opacity-50" />
+                              <span>{countDisplay}</span>
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-56 p-2" align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -1330,10 +1330,7 @@ export function DevelopersSpreadsheet() {
                           </PopoverContent>
                         </Popover>
                       ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="truncate">{displayValue}</span>
-                          
-                        </div>
+                        <span className="text-xs" title={tooltipText}>{countDisplay}</span>
                       )}
                     </div>
                   );
