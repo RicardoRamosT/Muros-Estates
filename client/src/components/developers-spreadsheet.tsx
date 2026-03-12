@@ -1261,18 +1261,18 @@ export function DevelopersSpreadsheet() {
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
-                        <Input
-                          type="date"
-                          value={formattedDate}
-                          onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
-                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
-                          data-testid={`input-${field}-${dev.id}`}
-                        />
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="truncate">{formatDate(dateValue)}</span>
-                          
+                        <div className="relative w-full h-6 flex items-center justify-center">
+                          <span className={cn("text-xs", cellTextClass)}>{formatDate(dateValue)}</span>
+                          <input
+                            type="date"
+                            value={formattedDate}
+                            onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            data-testid={`input-${field}-${dev.id}`}
+                          />
                         </div>
+                      ) : (
+                        <span className={cn("text-xs", cellTextClass)}>{formatDate(dateValue)}</span>
                       )}
                     </div>
                   );
