@@ -53,6 +53,16 @@ function broadcastClientUpdate(action: "create" | "update" | "delete", clientDat
   });
 }
 
+// Broadcast notification to all connected clients
+function broadcastNotification(action: "create", notification: Record<string, any>) {
+  const message = JSON.stringify({ type: "notification", action, data: notification });
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
 // Check for duplicate phone/email and create notifications for admin users
 async function checkDuplicatesAndNotify(client: Record<string, any>) {
   try {
@@ -65,7 +75,7 @@ async function checkDuplicatesAndNotify(client: Record<string, any>) {
         const allIds = [client.id, ...dupes.map(d => d.id)];
         const names = dupes.map(d => `${d.nombre}${d.apellido ? ' ' + d.apellido : ''}`).join(", ");
         for (const admin of adminUsers) {
-          await storage.createNotification({
+          const notif = await storage.createNotification({
             userId: admin.id,
             type: "duplicate_phone",
             title: "Teléfono duplicado",
@@ -74,6 +84,7 @@ async function checkDuplicatesAndNotify(client: Record<string, any>) {
             targetIds: allIds,
             read: false,
           });
+          broadcastNotification("create", notif);
         }
       }
     }
@@ -84,7 +95,7 @@ async function checkDuplicatesAndNotify(client: Record<string, any>) {
         const allIds = [client.id, ...dupes.map(d => d.id)];
         const names = dupes.map(d => `${d.nombre}${d.apellido ? ' ' + d.apellido : ''}`).join(", ");
         for (const admin of adminUsers) {
-          await storage.createNotification({
+          const notif = await storage.createNotification({
             userId: admin.id,
             type: "duplicate_email",
             title: "Correo duplicado",
@@ -93,6 +104,7 @@ async function checkDuplicatesAndNotify(client: Record<string, any>) {
             targetIds: allIds,
             read: false,
           });
+          broadcastNotification("create", notif);
         }
       }
     }

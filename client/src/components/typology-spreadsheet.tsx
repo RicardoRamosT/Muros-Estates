@@ -95,12 +95,44 @@ const SORT_ICON_WIDTH = 18;
 
 const ActiveDropdownRef = { current: null as (() => void) | null };
 
-function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+function ExclusiveSelect({ children, autoOpen, onClose, onAdvance, ...props }: React.ComponentProps<typeof Select> & { autoOpen?: boolean; onClose?: () => void; onAdvance?: () => void }) {
   const [open, setOpen] = useState(false);
+  const shouldAdvanceRef = useRef(false);
   const closeMe = useCallback(() => setOpen(false), []);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const onAdvanceRef = useRef(onAdvance);
+  onAdvanceRef.current = onAdvance;
   useEffect(() => {
     return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
   }, [closeMe]);
+  useEffect(() => {
+    if (autoOpen) {
+      requestAnimationFrame(() => {
+        if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+          ActiveDropdownRef.current();
+        }
+        ActiveDropdownRef.current = closeMe;
+        setOpen(true);
+      });
+    }
+  }, [autoOpen, closeMe]);
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+        setOpen(false);
+        onAdvanceRef.current?.();
+      } else if (e.key === 'Enter') {
+        shouldAdvanceRef.current = true;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [open, closeMe]);
   const handleOpenChange = useCallback((isOpen: boolean) => {
     if (isOpen) {
       if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
@@ -109,6 +141,12 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
       ActiveDropdownRef.current = closeMe;
     } else {
       if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+      if (shouldAdvanceRef.current) {
+        shouldAdvanceRef.current = false;
+        onAdvanceRef.current?.();
+      } else {
+        onCloseRef.current?.();
+      }
     }
     setOpen(isOpen);
   }, [closeMe]);
@@ -1349,20 +1387,11 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                     <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
                       <Checkbox
                         checked={allSelected}
-                        onCheckedChange={handleSelectAll}
+                        onCheckedChange={() => allSelected ? handleDeselectAll() : handleSelectAll()}
                         data-testid={`select-all-${column.key}`}
                       />
                       <span className="text-xs font-medium">(Seleccionar todo)</span>
                     </label>
-                    <div
-                      className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded mb-2 border-b pb-2"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
-                    >
-                      <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
-                        <X className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                      <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
-                    </div>
                     {groupedOptions.map(group => {
                       if (!group.group) return null;
                       const groupFilteredValues = group.values.filter(v => 
@@ -1413,21 +1442,12 @@ function ColumnFilter({ column, data, selectedValues, sortDirection, onFilterCha
                     <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
                       <Checkbox
                         checked={allSelected}
-                        onCheckedChange={handleSelectAll}
+                        onCheckedChange={() => allSelected ? handleDeselectAll() : handleSelectAll()}
                         data-testid={`select-all-${column.key}`}
                       />
                       <span className="text-xs font-medium">(Seleccionar todo)</span>
                     </label>
-                    <div
-                      className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
-                    >
-                      <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
-                        <X className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                      <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
-                    </div>
-                    
+
                     {filteredValues.map((value) => {
                       const isChecked = selectedValues.size === 0 || selectedValues.has(value);
                       const displayValue = labelMap?.[value] ?? (column.format ? formatValue(value, column.format) : value);
@@ -1554,12 +1574,16 @@ interface EditableCellProps {
   validEntities?: ValidEntities;
   isRowDisabled?: boolean;
   devWarning?: string;
+  externalEditing?: boolean;
+  onNavigateNext?: () => void;
 }
 
-const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, tipologiasConfigByDevelopment, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled, devWarning }: EditableCellProps) {
+const EditableCell = React.memo(function EditableCell({ value, column, rowId, city, developer, onChange, disabled, dynamicOptions, allDevelopments, allDevelopers, vistaOptions, vistasByDevelopment, areaOptions, incluyeOptions, tipologiaOptions, typesByDevelopment, recamaraOptions, banoOptions, cajonOptions, developerSelectOptions, zoneOptionsByCity, tipologiasConfigByDevelopment, isLastInSection, row, sectionCellColor, isDynamicCalculated, filteredDevelopmentName, linkedSizeValue, onLinkedSizeChange, isComplete, validEntities, isRowDisabled, devWarning, externalEditing, onNavigateNext }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+  const onNavigateNextRef = useRef(onNavigateNext);
+  onNavigateNextRef.current = onNavigateNext;
   const cellBorderClass = "";
   const rowDisabledStyle: React.CSSProperties | undefined = (isRowDisabled && column.key !== "active" && column.key !== "id")
     ? { backgroundColor: column.calculated ? '#C8BEAA' : '#9ca3af', pointerEvents: 'none' as const, cursor: 'default', color: 'black' }
@@ -1575,7 +1599,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       inputRef.current.select();
     }
   }, [isEditing]);
-  
+
+  useEffect(() => {
+    if (externalEditing && !isEditing) setIsEditing(true);
+  }, [externalEditing]);
+
   const handleBlur = () => {
     setIsEditing(false);
     if (localValue !== value) {
@@ -1584,8 +1612,11 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleBlur();
+    if (e.key === "Tab" || e.key === "Enter") {
+      e.preventDefault();
+      setIsEditing(false);
+      if (localValue !== value) onChange(localValue);
+      onNavigateNextRef.current?.();
     } else if (e.key === "Escape") {
       setLocalValue(value);
       setIsEditing(false);
@@ -1804,13 +1835,13 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           }}
         >
           <SelectTrigger className={`h-6 w-full text-xs border-0 bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 focus:ring-0 focus:ring-offset-0 ${textColorClass}`} data-testid={`boolean-${column.key}-${rowId}`}>
-            <span className="truncate">{value === true ? "Sí" : value === false ? "No" : (canBeUnassigned ? "" : "-")}</span>
+            <span className="truncate">{value === true ? "Sí" : value === false ? "No" : ""}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
             <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
             {canBeUnassigned && (
-              <SelectItem value="sa" style={{ color: '#000' }}>—</SelectItem>
+              <SelectItem value="sa" style={{ color: '#000' }}>{"\u00A0"}</SelectItem>
             )}
           </SelectContent>
         </ExclusiveSelect>
@@ -2095,14 +2126,18 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
         {devWarning !== undefined && (
           <AlertCircle className={cn("w-3 h-3 shrink-0 mr-0.5", devWarning ? (isRowDisabled ? "text-black" : "text-amber-500") : "invisible")} />
         )}
-        <ExclusiveSelect 
-          value={displayValue || (column.allowUnassigned ? "__clear__" : "")} 
+        <ExclusiveSelect
+          autoOpen={externalEditing}
+          onClose={() => { /* parent will clear via externalEditing becoming false */ }}
+          onAdvance={() => onNavigateNextRef.current?.()}
+          value={displayValue || (column.allowUnassigned ? "__clear__" : "")}
           onValueChange={(val) => {
             if (val === "__clear__") {
               onChange(column.allowUnassigned ? null : "");
             } else {
               onChange(val);
             }
+            onNavigateNextRef.current?.();
           }}
         >
           <SelectTrigger
@@ -2118,7 +2153,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__clear__" className={column.allowUnassigned ? "" : "text-muted-foreground italic"} style={column.allowUnassigned ? { color: '#000' } : undefined}>
-              {column.allowUnassigned ? "—" : "—"}
+              {"\u00A0"}
             </SelectItem>
             {finalOptions.map((opt) => (
               <SelectItem key={opt} value={opt}>{opt}</SelectItem>
@@ -2298,6 +2333,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   if (prevProps.dynamicOptions !== nextProps.dynamicOptions) return false;
   if (prevProps.row !== nextProps.row) return false;
   if (prevProps.isRowDisabled !== nextProps.isRowDisabled) return false;
+  if (prevProps.externalEditing !== nextProps.externalEditing) return false;
   return true;
 });
 
@@ -2423,6 +2459,38 @@ export function TypologySpreadsheet() {
   const [collapsedColumns, setCollapsedColumns] = usePersistedState<Set<string>>(
     spreadsheetKey(uid, "typologies", "collapsedColumns"), () => new Set(), setSerializer
   );
+
+  // Flat list of navigable column keys (for Tab/Enter navigation)
+  const allEditableColumns = useMemo(() => {
+    const skip = new Set(['multiselect', 'development-type-select', 'boolean']);
+    const result: string[] = [];
+    for (const section of SECTIONS) {
+      for (const col of section.columns) {
+        if (col.calculated) continue;
+        if (skip.has(col.type || '')) continue;
+        if (col.key === 'active' || col.key === 'createdDate' || col.key === 'createdTime') continue;
+        result.push(col.key);
+      }
+    }
+    return result;
+  }, []);
+
+  const navigateToNextCell = useCallback((currentId: string, currentField: string) => {
+    const cols = allEditableColumns.filter(k => !collapsedColumns.has(k));
+    const idx = cols.indexOf(currentField);
+    if (idx >= 0 && idx < cols.length - 1) {
+      setEditingCell({ id: currentId, field: cols[idx + 1] });
+    } else {
+      setEditingCell(null);
+    }
+  }, [allEditableColumns, collapsedColumns, setEditingCell]);
+
+  const clearEditingIfCurrent = useCallback((id: string, field: string) => {
+    if (editingCellRef.current?.id === id && editingCellRef.current?.field === field) {
+      setEditingCell(null);
+    }
+  }, [setEditingCell]);
+
   const [columnFilters, setColumnFilters] = usePersistedState<ColumnFilters>(
     spreadsheetKey(uid, "typologies", "columnFilters"), () => ({}), columnFiltersSerializer
   );
@@ -2446,7 +2514,14 @@ export function TypologySpreadsheet() {
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  
+
+  // Parent-level editing cell state for cross-cell navigation
+  const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
+  const editingCellRef = useRef<{id: string, field: string} | null>(null);
+  const setEditingCell = useCallback((v: {id: string, field: string} | null) => {
+    editingCellRef.current = v; setEditingCell_(v);
+  }, []);
+
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
   });
@@ -4615,7 +4690,7 @@ export function TypologySpreadsheet() {
                   const dotColor = mergedRow.active === null
                     ? "#1f2937"
                     : isComplete
-                      ? (mergedRow.active === true ? "#449964" : "#F16100")
+                      ? (mergedRow.active === true ? "#32CD32" : "#F16100")
                       : "#ef4444";
                   const missingForDot = !isComplete ? getMissingFields(mergedRow as Partial<Typology>, validEntities) : [];
                   const dotTooltip = missingForDot.length > 0
@@ -4899,6 +4974,8 @@ export function TypologySpreadsheet() {
                             validEntities={col.key === "active" ? validEntities : undefined}
                             isRowDisabled={isRowGray}
                             devWarning={undefined}
+                            externalEditing={editingCell?.id === row.id && editingCell?.field === col.key}
+                            onNavigateNext={() => navigateToNextCell(row.id, col.key)}
                           />
                         );
 

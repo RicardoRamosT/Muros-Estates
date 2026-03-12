@@ -1119,7 +1119,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   : isHighlighted
                     ? "ring-2 ring-amber-400 bg-amber-50"
                     : isActiveRow
-                      ? "ring-1 ring-blue-400/50"
+                      ? "ring-2 ring-blue-500 z-10 relative"
                       : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
@@ -1155,7 +1155,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const isDisabled = activeVal === null;
                     const bgColor = isRowInactive && !hasFullAccess ? '#9ca3af' : isActive ? '#dcfce7' : '#9ca3af';
                     const textStyle: React.CSSProperties = isActive ? { color: '#15803d', fontWeight: 600 } : { color: '#4b5563', fontWeight: 500 };
-                    const label = isActive ? 'Sí' : '—';
+                    const label = isActive ? 'Sí' : '';
                     return (
                       <div
                         key={col.key}
@@ -1179,7 +1179,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                                 <span style={{ color: '#15803d', fontWeight: 500 }}>Sí</span>
                               </SelectItem>
                               <SelectItem value="disabled" className="text-xs">
-                                <span style={{ color: '#4b5563', fontWeight: 500 }}>—</span>
+                                <span style={{ color: '#4b5563', fontWeight: 500 }}>{"\u00A0"}</span>
                               </SelectItem>
                             </SelectContent>
                           </ExclusiveSelect>
@@ -1245,10 +1245,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => { handleSelectChange(prospect.id, 'asesorId', v); advanceFromSelect(prospect.id, 'asesorId'); }}
                           >
                             <SelectTrigger className={`h-6 text-xs border-0 bg-transparent ${!value ? 'text-red-500 font-medium' : ''}`}>
-                              <SelectValue placeholder="Seleccionar" />
+                              <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__" className="text-red-500 font-medium">SIN ASIGNAR</SelectItem>
+                              <SelectItem value="__unassigned__">{"\u00A0"}</SelectItem>
                               {users.filter(u => u.role === 'asesor' || u.role === 'admin').map(u => (
                                 <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                               ))}
@@ -1259,7 +1259,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             {value ? (
                               <span>{asesorName}</span>
                             ) : (
-                              <span className="text-red-500 font-medium">SIN ASIGNAR</span>
+                              <span>{"\u00A0"}</span>
                             )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
@@ -1284,7 +1284,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => { handleSelectChange(prospect.id, 'estatus', v); advanceFromSelect(prospect.id, 'estatus'); }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent font-medium" style={estatusColor ? { color: estatusTextColor } : {}}>
-                              <SelectValue placeholder="-" />
+                              <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent>
                               {estatusOptions.map(opt => (
@@ -1333,10 +1333,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                             >
                               <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                                <SelectValue placeholder="Seleccionar" />
+                                <SelectValue placeholder="" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
-                                <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
+                                <SelectItem value="__unassigned__">{"\u00A0"}</SelectItem>
                                 {Object.entries(developerGroups).map(([devName, devDevelopments]) => (
                                   <SelectGroup key={devName}>
                                     <SelectLabel className="text-xs font-semibold text-muted-foreground">{devName}</SelectLabel>
@@ -1349,14 +1349,14 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             </ExclusiveSelect>
                           ) : (
                             <div className="flex items-center gap-1 px-3">
-                              <span>{value || '-'}</span>
+                              <span>{value || ''}</span>
                               <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                             </div>
                           )}
                         </div>
                       );
                     }
-                    
+
                     return (
                       <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
                         {fieldCanEdit ? (
@@ -1368,10 +1368,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => { handleSelectChange(prospect.id, col.key, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Seleccionar" />
+                              <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
+                              <SelectItem value="__unassigned__">{"\u00A0"}</SelectItem>
                               {options.map(opt => (
                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                               ))}
@@ -1379,7 +1379,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                           </ExclusiveSelect>
                         ) : (
                           <div className="flex items-center gap-1 px-3">
-                            <span>{value || '-'}</span>
+                            <span>{value || ''}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -1427,10 +1427,10 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             onValueChange={(v) => { handleTypologySelect(prospect.id, v); advanceFromSelect(prospect.id, col.key); }}
                           >
                             <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                              <SelectValue placeholder="Seleccionar" />
+                              <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
-                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
+                              <SelectItem value="__unassigned__">{"\u00A0"}</SelectItem>
                               {filteredTypologies.length > 0 ? (
                                 (() => {
                                   const groupedByDev: Record<string, typeof filteredTypologies> = {};
@@ -1497,17 +1497,17 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             <SelectTrigger
                               className={`h-6 text-xs border-0 bg-transparent font-medium ${textColorClass}`}
                             >
-                              <SelectValue placeholder="-" />
+                              <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__unassigned__" style={{ color: '#000' }}>—</SelectItem>
+                              <SelectItem value="__unassigned__">{"\u00A0"}</SelectItem>
                               <SelectItem value="si" className="text-green-700 font-medium">Sí</SelectItem>
                               <SelectItem value="no" className="text-red-600 font-medium">No</SelectItem>
                             </SelectContent>
                           </ExclusiveSelect>
                         ) : (
                           <div className={`flex items-center gap-1 px-2 py-1 font-medium ${textColorClass}`}>
-                            <span>{displayValue || '-'}</span>
+                            <span>{displayValue || ''}</span>
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
                         )}
@@ -1544,13 +1544,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               className={`h-6 text-xs border-0 bg-transparent font-medium ${isComoPaga && !value ? 'text-red-500' : ''}`}
                               style={optColor ? { color: optTextColor } : {}}
                             >
-                              <SelectValue placeholder="Seleccionar" />
+                              <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
                               {!isEmbudo && (
-                                <SelectItem value="__unassigned__" className={isComoPaga ? 'text-red-500 font-medium' : ''}>
-                                  {isComoPaga ? '-' : '—'}
-                                </SelectItem>
+                                <SelectItem value="__unassigned__">{"\u00A0"}</SelectItem>
                               )}
                               {options.map(opt => (
                                 <SelectItem
@@ -1568,9 +1566,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             {displayLabel ? (
                               <span>{displayLabel}</span>
                             ) : (
-                              <span className={isComoPaga ? 'text-red-500' : ''}>
-                                {isComoPaga ? 'SIN ASIGNAR' : '-'}
-                              </span>
+                              <span>{"\u00A0"}</span>
                             )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
@@ -1649,8 +1645,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         {fieldCanEdit ? (
                           <Popover modal>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" className={`h-6 w-full justify-start text-xs font-normal px-2 ${!displayText ? 'text-red-500 font-medium' : ''}`}>
-                                <span className="truncate">{displayText || 'SIN ASIGNAR'}</span>
+                              <Button variant="ghost" className={`h-6 w-full justify-start text-xs font-normal px-2`}>
+                                <span className="truncate">{displayText || ''}</span>
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-56 p-2" align="start">
@@ -1672,7 +1668,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                             {displayText ? (
                               <span className="truncate">{displayText}</span>
                             ) : (
-                              <span className="text-red-500 font-medium">SIN ASIGNAR</span>
+                              <span>{''}</span>
                             )}
                             <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />
                           </div>
@@ -1686,8 +1682,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const value = (prospect as any)[col.key];
                     const numValue = value ? parseFloat(value) : null;
                     const displayValue = numValue !== null ? 
-                      new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(numValue) : 
-                      '-';
+                      new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(numValue) :
+                      '';
                     return (
                       <div 
                         key={col.key} 

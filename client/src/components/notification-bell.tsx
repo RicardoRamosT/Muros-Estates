@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Bell, Trash2, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -23,12 +22,42 @@ interface Notification {
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"all" | "unread" | "read">("all");
   const [, navigate] = useLocation();
+  const wsRef = useRef<WebSocket | null>(null);
 
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ["/api/notifications"],
-    refetchInterval: 30000, // Poll every 30s for new notifications
+    refetchInterval: 30000, // Poll every 30s as fallback
   });
+
+  // WebSocket for live notifications
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "notification") {
+          queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+        }
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    ws.onclose = () => {
+      wsRef.current = null;
+    };
+
+    return () => {
+      ws.close();
+      wsRef.current = null;
+    };
+  }, []);
 
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -50,6 +79,9 @@ export function NotificationBell() {
 
   const unread = notifications.filter((n) => !n.read);
   const read = notifications.filter((n) => n.read);
+
+  const filteredNotifications =
+    activeTab === "unread" ? unread : activeTab === "read" ? read : notifications;
 
   const handleClick = (notif: Notification) => {
     if (!notif.read) {
@@ -136,37 +168,40 @@ export function NotificationBell() {
       <PopoverContent align="end" className="w-80 p-0">
         <div className="p-3 border-b">
           <h4 className="text-sm font-semibold">Notificaciones</h4>
+          <div className="flex gap-1 mt-2">
+            {([
+              { key: "all" as const, label: "Todas" },
+              { key: "unread" as const, label: "No Leídas" },
+              { key: "read" as const, label: "Leídas" },
+            ]).map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "px-2 py-0.5 text-[11px] font-medium rounded-md border transition-colors",
+                  activeTab === tab.key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <ScrollArea className="max-h-[400px]">
-          {notifications.length === 0 ? (
+        <div className="max-h-[400px] overflow-y-auto">
+          {filteredNotifications.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
               Sin notificaciones
             </div>
           ) : (
             <div className="p-1">
-              {unread.length > 0 && (
-                <div>
-                  <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                    No leídas ({unread.length})
-                  </div>
-                  {unread.map((n) => (
-                    <NotifItem key={n.id} notif={n} />
-                  ))}
-                </div>
-              )}
-              {read.length > 0 && (
-                <div>
-                  <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mt-1">
-                    Leídas
-                  </div>
-                  {read.map((n) => (
-                    <NotifItem key={n.id} notif={n} showDelete />
-                  ))}
-                </div>
-              )}
+              {filteredNotifications.map((n) => (
+                <NotifItem key={n.id} notif={n} showDelete={!!n.read} />
+              ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );

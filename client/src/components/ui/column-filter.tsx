@@ -198,20 +198,11 @@ export function ColumnFilter({
                   <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
                     <Checkbox
                       checked={allSelected}
-                      onCheckedChange={handleSelectAll}
+                      onCheckedChange={() => allSelected ? handleDeselectAll() : handleSelectAll()}
                       data-testid={`select-all-${columnKey}`}
                     />
                     <span className="text-xs font-medium">(Seleccionar todo)</span>
                   </label>
-                  <div
-                    className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded mb-2 border-b pb-2"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
-                  >
-                    <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
-                      <X className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
-                  </div>
                   {Object.entries(groupMap).map(([group, values]) => {
                     const groupFiltered = values.filter(v =>
                       v && (!search || (labelMap?.[v] ?? v).toLowerCase().includes(search.toLowerCase()))
@@ -256,20 +247,11 @@ export function ColumnFilter({
                   <label className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded">
                     <Checkbox
                       checked={allSelected}
-                      onCheckedChange={handleSelectAll}
+                      onCheckedChange={() => allSelected ? handleDeselectAll() : handleSelectAll()}
                       data-testid={`select-all-${columnKey}`}
                     />
                     <span className="text-xs font-medium">(Seleccionar todo)</span>
                   </label>
-                  <div
-                    className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-muted px-1 rounded"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeselectAll(); }}
-                  >
-                    <div className="h-4 w-4 border rounded-sm flex items-center justify-center bg-background pointer-events-none">
-                      <X className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">(Deseleccionar todo)</span>
-                  </div>
 
                   {filteredValues.map((value) => {
                     const isAvailable = !availableValues || availableValues.has(value);

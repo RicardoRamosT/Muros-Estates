@@ -42,12 +42,44 @@ import { cn } from "@/lib/utils";
 
 const ActiveDropdownRef = { current: null as (() => void) | null };
 
-function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Select>) {
+function ExclusiveSelect({ children, autoOpen, onClose, onAdvance, ...props }: React.ComponentProps<typeof Select> & { autoOpen?: boolean; onClose?: () => void; onAdvance?: () => void }) {
   const [open, setOpen] = useState(false);
+  const shouldAdvanceRef = useRef(false);
   const closeMe = useCallback(() => setOpen(false), []);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const onAdvanceRef = useRef(onAdvance);
+  onAdvanceRef.current = onAdvance;
   useEffect(() => {
     return () => { if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null; };
   }, [closeMe]);
+  useEffect(() => {
+    if (autoOpen) {
+      requestAnimationFrame(() => {
+        if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
+          ActiveDropdownRef.current();
+        }
+        ActiveDropdownRef.current = closeMe;
+        setOpen(true);
+      });
+    }
+  }, [autoOpen, closeMe]);
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+        setOpen(false);
+        onAdvanceRef.current?.();
+      } else if (e.key === 'Enter') {
+        shouldAdvanceRef.current = true;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [open, closeMe]);
   const handleOpenChange = useCallback((isOpen: boolean) => {
     if (isOpen) {
       if (ActiveDropdownRef.current && ActiveDropdownRef.current !== closeMe) {
@@ -56,6 +88,12 @@ function ExclusiveSelect({ children, ...props }: React.ComponentProps<typeof Sel
       ActiveDropdownRef.current = closeMe;
     } else {
       if (ActiveDropdownRef.current === closeMe) ActiveDropdownRef.current = null;
+      if (shouldAdvanceRef.current) {
+        shouldAdvanceRef.current = false;
+        onAdvanceRef.current?.();
+      } else {
+        onCloseRef.current?.();
+      }
     }
     setOpen(isOpen);
   }, [closeMe]);
@@ -693,8 +731,14 @@ export function DevelopersSpreadsheet() {
     if (String(existingValue ?? '') !== String(value ?? '')) {
       handleFieldChange(currentId, { [currentField]: value || null });
     }
-    // Find next input cell in the same row
-    const editableCols = columns.filter(c => c.cellType === 'input' && !collapsedColumns.has(c.key));
+    // Find next editable cell in the same row (inputs + dropdowns)
+    const nonEditableTypes = new Set([
+      'index', 'toggle', 'actions', 'folder-link', 'date-display', 'time-display',
+      'multiselect', 'phone-list', 'dev-count', 'group-collapsed'
+    ]);
+    const editableCols = columns.filter(c =>
+      !(c.type && nonEditableTypes.has(c.type)) && !collapsedColumns.has(c.key)
+    );
     const currentIdx = editableCols.findIndex(c => c.key === currentField);
     if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
       const nextCol = editableCols[currentIdx + 1];
@@ -705,6 +749,31 @@ export function DevelopersSpreadsheet() {
       setEditingCell(null);
     }
   }, [columns, collapsedColumns, effectiveDevelopers, developers, handleFieldChange, setEditingCell, setEditValue]);
+
+  const advanceFromSelect = useCallback((currentId: string, currentField: string) => {
+    const nonEditableTypes = new Set([
+      'index', 'toggle', 'actions', 'folder-link', 'date-display', 'time-display',
+      'multiselect', 'phone-list', 'dev-count', 'group-collapsed'
+    ]);
+    const editableCols = columns.filter(c =>
+      !(c.type && nonEditableTypes.has(c.type)) && !collapsedColumns.has(c.key)
+    );
+    const currentIdx = editableCols.findIndex(c => c.key === currentField);
+    if (currentIdx >= 0 && currentIdx < editableCols.length - 1) {
+      const nextCol = editableCols[currentIdx + 1];
+      const rowData = effectiveDevelopers.find(d => d.id === currentId);
+      setEditingCell({ id: currentId, field: nextCol.key });
+      setEditValue(String((rowData as any)?.[nextCol.key] ?? ""));
+    } else {
+      setEditingCell(null);
+    }
+  }, [columns, collapsedColumns, effectiveDevelopers, setEditingCell, setEditValue]);
+
+  const clearEditingIfCurrent = useCallback((id: string, field: string) => {
+    if (editingCellRef.current?.id === id && editingCellRef.current?.field === field) {
+      setEditingCell(null);
+    }
+  }, [setEditingCell]);
 
   const handleMultiselectChange = useCallback((id: string, field: string, selectedValues: string[]) => {
     handleFieldChange(id, { [field]: selectedValues });
@@ -870,7 +939,7 @@ export function DevelopersSpreadsheet() {
                   const dotColor = dev.active === null
                     ? '#1f2937'
                     : isCompleteForDot
-                      ? (dev.active === true ? '#449964' : '#F16100')
+                      ? (dev.active === true ? '#32CD32' : '#F16100')
                       : '#ef4444';
                   const missingForDot = !isCompleteForDot ? getMissingFieldsDeveloper(dev) : [];
                   const dotTooltip = missingForDot.length > 0
@@ -1026,17 +1095,21 @@ export function DevelopersSpreadsheet() {
                     >
                       {fieldCanEdit ? (
                         <ExclusiveSelect
+                          autoOpen={editingCell?.id === dev.id && editingCell?.field === field}
+                          onClose={() => clearEditingIfCurrent(dev.id, field)}
+                          onAdvance={() => advanceFromSelect(dev.id, field)}
                           value={tipoValue || "__empty__"}
                           onValueChange={(v) => {
                             const val = v === "__empty__" ? "" : v;
                             handleFieldChange(dev.id, { tipo: val as any });
+                            advanceFromSelect(dev.id, field);
                           }}
                         >
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                            <SelectValue placeholder="Seleccionar" />
+                            <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__empty__">Seleccionar</SelectItem>
+                            <SelectItem value="__empty__">{"\u00A0"}</SelectItem>
                             {EMPRESA_TIPOS.map(t => (
                               <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                             ))}
@@ -1076,17 +1149,21 @@ export function DevelopersSpreadsheet() {
                     >
                       {fieldCanEdit ? (
                         <ExclusiveSelect
+                          autoOpen={editingCell?.id === dev.id && editingCell?.field === field}
+                          onClose={() => clearEditingIfCurrent(dev.id, field)}
+                          onAdvance={() => advanceFromSelect(dev.id, field)}
                           value={selectValue || "__empty__"}
                           onValueChange={(v) => {
                             const val = v === "__empty__" ? "" : v;
                             handleFieldChange(dev.id, { [field]: val } as any);
+                            advanceFromSelect(dev.id, field);
                           }}
                         >
                           <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
-                            <SelectValue placeholder="Seleccionar" />
+                            <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__empty__">Seleccionar</SelectItem>
+                            <SelectItem value="__empty__">{"\u00A0"}</SelectItem>
                             {selectOptions.map(o => (
                               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                             ))}
@@ -1225,7 +1302,7 @@ export function DevelopersSpreadsheet() {
                               className="h-6 w-full justify-between px-1 text-left font-normal text-xs"
                               data-testid={`select-${col.key}-${dev.id}`}
                             >
-                              <span className="truncate">{displayValue || 'Seleccionar...'}</span>
+                              <span className="truncate">{displayValue || ''}</span>
                               <ChevronDown className="h-3 w-3 opacity-50" />
                             </Button>
                           </PopoverTrigger>
