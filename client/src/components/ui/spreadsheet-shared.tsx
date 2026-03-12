@@ -335,7 +335,7 @@ export function SpreadsheetHeader({
       <div className="flex w-max border-b spreadsheet-header-row3">
         <div
           className="flex-shrink-0 sticky left-0 z-30 flex"
-          style={{ width: cornerWidth, minWidth: cornerWidth, height: 24, backgroundColor: SHEET_COLOR_LIGHT }}
+          style={{ width: cornerWidth, minWidth: cornerWidth, height: 24, backgroundColor: SHEET_COLOR_LIGHT, color: 'white' }}
         >
           {cornerCols.map((col) => (
             <div
