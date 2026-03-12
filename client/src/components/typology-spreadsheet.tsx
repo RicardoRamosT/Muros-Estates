@@ -2475,6 +2475,13 @@ export function TypologySpreadsheet() {
     return result;
   }, []);
 
+  // Parent-level editing cell state for cross-cell navigation
+  const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
+  const editingCellRef = useRef<{id: string, field: string} | null>(null);
+  const setEditingCell = useCallback((v: {id: string, field: string} | null) => {
+    editingCellRef.current = v; setEditingCell_(v);
+  }, []);
+
   const navigateToNextCell = useCallback((currentId: string, currentField: string) => {
     const cols = allEditableColumns.filter(k => !collapsedColumns.has(k));
     const idx = cols.indexOf(currentField);
@@ -2514,13 +2521,6 @@ export function TypologySpreadsheet() {
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
-
-  // Parent-level editing cell state for cross-cell navigation
-  const [editingCell, setEditingCell_] = useState<{id: string, field: string} | null>(null);
-  const editingCellRef = useRef<{id: string, field: string} | null>(null);
-  const setEditingCell = useCallback((v: {id: string, field: string} | null) => {
-    editingCellRef.current = v; setEditingCell_(v);
-  }, []);
 
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
