@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { storage } from "./storage";
 import type { User, InsertUser } from "@shared/schema";
 
@@ -69,7 +70,15 @@ export async function validateSession(sessionId: string): Promise<User | null> {
 export async function seedAdminUser(): Promise<void> {
   const existingAdmin = await storage.getUserByUsername("admin");
   if (!existingAdmin) {
-    const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "admin123";
+    let adminPassword = process.env.ADMIN_INITIAL_PASSWORD;
+    if (!adminPassword) {
+      adminPassword = crypto.randomBytes(16).toString("hex");
+      console.log("=".repeat(60));
+      console.log("ADMIN PASSWORD GENERATED:", adminPassword);
+      console.log("Set ADMIN_INITIAL_PASSWORD env var to use a specific password.");
+      console.log("Change this password after first login.");
+      console.log("=".repeat(60));
+    }
     await createUserWithHashedPassword({
       username: "admin",
       password: adminPassword,
@@ -78,6 +87,6 @@ export async function seedAdminUser(): Promise<void> {
       role: "admin",
       active: true,
     });
-    console.log("Admin user created (change password on first login)");
+    console.log("Admin user created");
   }
 }

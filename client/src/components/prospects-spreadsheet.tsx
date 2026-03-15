@@ -765,15 +765,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     }
     const pending = pendingChangesRef.current;
     if (pending.size === 0) return;
-    const sessionId = localStorage.getItem("muros_session");
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
     const promises: Promise<any>[] = [];
     pending.forEach((changes, id) => {
       if (!changes || Object.keys(changes).length === 0) return;
       promises.push(fetch(`/api/clients/${id}`, {
         method: "PUT",
-        headers,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(changes),
         keepalive: true,
       }));

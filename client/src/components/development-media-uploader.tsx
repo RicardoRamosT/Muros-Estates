@@ -129,9 +129,7 @@ export function DevelopmentMediaUploader() {
     try {
       const res = await fetch("/api/development-media", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("muros_session")}`,
-        },
+        credentials: "include",
         body: formData,
       });
 

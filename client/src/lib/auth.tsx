@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { apiRequest, SESSION_KEY } from "./queryClient";
+import { apiRequest } from "./queryClient";
 
 interface AuthUser {
   id: string;
@@ -29,17 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuth = async () => {
-    const sessionId = localStorage.getItem(SESSION_KEY);
-    if (!sessionId) {
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const response = await fetch("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${sessionId}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -48,12 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...userData,
           permissions: userData.permissions || {},
         });
-      } else {
-        localStorage.removeItem(SESSION_KEY);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      localStorage.removeItem(SESSION_KEY);
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string) => {
     const response = await apiRequest("POST", "/api/auth/login", { username, password });
     const data = await response.json();
-    
-    localStorage.setItem(SESSION_KEY, data.sessionId);
+
     setUser({
       ...data.user,
       permissions: data.user.permissions || {},
@@ -71,20 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const sessionId = localStorage.getItem(SESSION_KEY);
-    if (sessionId) {
-      try {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${sessionId}`,
-          },
-        });
-      } catch (error) {
-        console.error("Logout error:", error);
-      }
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
     }
-    localStorage.removeItem(SESSION_KEY);
     setUser(null);
   };
 
@@ -109,8 +91,4 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}
-
-export function getSessionId(): string | null {
-  return localStorage.getItem(SESSION_KEY);
 }

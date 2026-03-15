@@ -266,9 +266,7 @@ export default function AdminDocuments() {
     mutationFn: async (formData: FormData) => {
       const response = await fetch("/api/documents", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
-        },
+        credentials: "include",
         body: formData,
       });
       if (!response.ok) throw new Error("Error al subir documento");
@@ -421,9 +419,7 @@ export default function AdminDocuments() {
   const handleDownload = async (doc: Document) => {
     try {
       const response = await fetch(`/api/documents/${doc.id}/download`, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
-        },
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Error al descargar");
       

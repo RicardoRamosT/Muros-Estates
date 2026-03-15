@@ -31,8 +31,8 @@ No test framework is configured.
 - **Data fetching**: TanStack React Query v5 (`staleTime: Infinity`, no background refetch)
 - **UI**: Shadcn/UI "new-york" style on Radix primitives, Tailwind CSS v3
 - **Theming**: CSS custom properties in `client/src/index.css`. Primary: blue `hsl(202 89% 41%)`, secondary: golden `hsl(43 76% 53%)`. Fonts: Montserrat (headings), Open Sans (body). Dark mode via `class` strategy (next-themes).
-- **Auth context**: `client/src/lib/auth.tsx` — `AuthProvider` + `useAuth` hook. Session token stored in `localStorage` as `muros_session`, sent as `Authorization: Bearer <token>`.
-- **API helper**: `client/src/lib/queryClient.ts` — `apiRequest()` wraps fetch with auth headers.
+- **Auth context**: `client/src/lib/auth.tsx` — `AuthProvider` + `useAuth` hook. Session stored as `httpOnly` cookie (`muros_session`), sent automatically with `credentials: "include"` on all fetch calls.
+- **API helper**: `client/src/lib/queryClient.ts` — `apiRequest()` wraps fetch with `credentials: "include"`.
 
 ### Backend
 

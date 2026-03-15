@@ -199,9 +199,17 @@ declare global {
   }
 }
 
+// Validation error helper — only leak details in development
+function validationError(res: Response, error: any) {
+  return res.status(400).json({
+    error: "Datos inválidos",
+    ...(process.env.NODE_ENV !== "production" && { details: error.errors }),
+  });
+}
+
 // Auth middleware
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const sessionId = req.headers.authorization?.replace("Bearer ", "") || req.cookies?.sessionId;
+  const sessionId = req.cookies?.muros_session || req.headers.authorization?.replace("Bearer ", "");
   
   if (!sessionId) {
     return res.status(401).json({ error: "No autenticado" });
@@ -260,18 +268,44 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Set up WebSocket server for real-time typology updates
-  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
-  
+  // Set up WebSocket server for real-time updates (authenticated only)
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: "/ws",
+    verifyClient: async (info, callback) => {
+      try {
+        const cookies = info.req.headers.cookie?.split(";").reduce((acc, c) => {
+          const [key, ...rest] = c.trim().split("=");
+          acc[key] = rest.join("=");
+          return acc;
+        }, {} as Record<string, string>) || {};
+        const sessionId = cookies.muros_session;
+
+        if (!sessionId) {
+          callback(false, 401, "No autenticado");
+          return;
+        }
+
+        const user = await validateSession(sessionId);
+        if (!user) {
+          callback(false, 401, "Sesión inválida");
+          return;
+        }
+
+        callback(true);
+      } catch (error) {
+        callback(false, 500, "Error de autenticación");
+      }
+    },
+  });
+
   wss.on("connection", (ws) => {
-    console.log("WebSocket client connected");
     wsClients.add(ws);
-    
+
     ws.on("close", () => {
-      console.log("WebSocket client disconnected");
       wsClients.delete(ws);
     });
-    
+
     ws.on("error", (error) => {
       console.error("WebSocket error:", error);
       wsClients.delete(ws);
@@ -280,7 +314,21 @@ export async function registerRoutes(
   
   // Seed admin user on startup
   await seedAdminUser();
-  
+
+  // Health check endpoints
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  app.get("/readiness", async (_req, res) => {
+    try {
+      await storage.getUserByUsername("admin");
+      res.json({ status: "ok", timestamp: new Date().toISOString() });
+    } catch {
+      res.status(503).json({ status: "error", message: "Database unavailable" });
+    }
+  });
+
   // Serve uploaded files statically with security headers
   app.use("/uploads", (req, res, next) => {
     // Prevent path traversal
@@ -335,9 +383,16 @@ export async function registerRoutes(
       }
       
       const sessionId = await createSession(user.id);
-      
+
+      res.cookie("muros_session", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+
       res.json({
-        sessionId,
         user: {
           id: user.id,
           username: user.username,
@@ -358,6 +413,12 @@ export async function registerRoutes(
       if (req.sessionId) {
         await storage.deleteSession(req.sessionId);
       }
+      res.clearCookie("muros_session", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
       res.json({ success: true });
     } catch (error) {
       console.error("Logout error:", error);
@@ -401,9 +462,9 @@ export async function registerRoutes(
     try {
       const validationResult = insertUserSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ error: "Datos inválidos", details: validationResult.error.errors });
+        return validationError(res, validationResult.error);
       }
-      
+
       const existingUser = await storage.getUserByUsername(validationResult.data.username);
       if (existingUser) {
         return res.status(400).json({ error: "El usuario ya existe" });
@@ -490,9 +551,9 @@ export async function registerRoutes(
     try {
       const validationResult = contactFormSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ error: "Datos inválidos", details: validationResult.error.errors });
+        return validationError(res, validationResult.error);
       }
-      
+
       const client = await storage.createClient({
         nombre: validationResult.data.nombre || validationResult.data.name?.split(' ')[0] || "",
         apellido: validationResult.data.apellido || validationResult.data.name?.split(' ').slice(1).join(' ') || "",
@@ -565,9 +626,9 @@ export async function registerRoutes(
     try {
       const validationResult = insertClientSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ error: "Datos inválidos", details: validationResult.error.errors });
+        return validationError(res, validationResult.error);
       }
-      
+
       const client = await storage.createClient({
         ...validationResult.data,
         source: "manual",
@@ -791,12 +852,9 @@ export async function registerRoutes(
       const validationResult = insertPropertySchema.safeParse(req.body);
       
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Datos inválidos", 
-          details: validationResult.error.errors 
-        });
+        return validationError(res, validationResult.error);
       }
-      
+
       const property = await storage.createProperty(validationResult.data);
       
       // Also create a corresponding typology
@@ -833,12 +891,9 @@ export async function registerRoutes(
       const validationResult = insertPropertySchema.safeParse(req.body);
       
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Datos inválidos", 
-          details: validationResult.error.errors 
-        });
+        return validationError(res, validationResult.error);
       }
-      
+
       const property = await storage.updateProperty(id, validationResult.data);
       
       if (!property) {
@@ -1642,12 +1697,9 @@ export async function registerRoutes(
       
       const validationResult = insertDocumentSchema.safeParse(documentData);
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Datos inválidos", 
-          details: validationResult.error.errors 
-        });
+        return validationError(res, validationResult.error);
       }
-      
+
       const doc = await storage.createDocument(validationResult.data);
       res.status(201).json(doc);
     } catch (error) {
@@ -1814,12 +1866,9 @@ export async function registerRoutes(
       
       const validationResult = insertSharedLinkSchema.safeParse(linkData);
       if (!validationResult.success) {
-        return res.status(400).json({
-          error: "Datos inválidos",
-          details: validationResult.error.errors,
-        });
+        return validationError(res, validationResult.error);
       }
-      
+
       const link = await storage.createSharedLink(validationResult.data);
       res.status(201).json(link);
     } catch (error) {
@@ -2033,12 +2082,9 @@ export async function registerRoutes(
       
       const validationResult = insertDocumentSchema.safeParse(documentData);
       if (!validationResult.success) {
-        return res.status(400).json({
-          error: "Datos inválidos",
-          details: validationResult.error.errors,
-        });
+        return validationError(res, validationResult.error);
       }
-      
+
       const doc = await storage.createDocument(validationResult.data);
       res.status(201).json({
         id: doc.id,

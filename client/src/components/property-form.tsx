@@ -135,34 +135,22 @@ export function PropertyForm({ property, onSubmit, isLoading, onCancel }: Proper
 
   const handleFileUpload = async (files: FileList | null, type: "images" | "videos") => {
     if (!files || files.length === 0) return;
-    
-    const sessionToken = localStorage.getItem("muros_session");
-    if (!sessionToken) {
-      toast({
-        title: "Sesión expirada",
-        description: "Por favor, inicia sesión nuevamente para subir archivos.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+
     const setUploading = type === "images" ? setUploadingImages : setUploadingVideos;
     const setMedia = type === "images" ? setImages : setVideos;
     const currentMedia = type === "images" ? images : videos;
-    
+
     setUploading(true);
-    
+
     try {
       const formData = new FormData();
       Array.from(files).forEach(file => {
         formData.append("files", file);
       });
-      
+
       const response = await fetch("/api/upload", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-        },
+        credentials: "include",
         body: formData,
       });
       

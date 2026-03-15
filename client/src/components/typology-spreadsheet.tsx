@@ -2850,9 +2850,7 @@ export function TypologySpreadsheet() {
       
       const res = await fetch("/api/documents", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
-        },
+        credentials: "include",
         body: formData,
       });
       if (!res.ok) throw new Error("Upload failed");
@@ -2866,14 +2864,12 @@ export function TypologySpreadsheet() {
       toast({ title: "Error al subir archivo", variant: "destructive" });
     },
   });
-  
+
   const deleteMediaMutation = useMutation({
     mutationFn: async (docId: string) => {
       const res = await fetch(`/api/documents/${docId}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
-        },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Delete failed");
       return true;
@@ -2899,8 +2895,8 @@ export function TypologySpreadsheet() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("muros_session")}`,
         },
+        credentials: "include",
         body: JSON.stringify({ documentIds }),
       });
       if (!res.ok) throw new Error("Reorder failed");
@@ -3471,15 +3467,13 @@ export function TypologySpreadsheet() {
   const flushPendingChanges = useCallback(() => {
     const pending = pendingChangesRef.current;
     if (pending.size === 0) return;
-    const sessionId = localStorage.getItem("muros_session");
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
     const promises: Promise<any>[] = [];
     pending.forEach((changes, rowId) => {
       if (!changes || Object.keys(changes).length === 0) return;
       promises.push(fetch(`/api/typologies/${rowId}`, {
         method: "PUT",
-        headers,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(changes),
         keepalive: true,
       }));
