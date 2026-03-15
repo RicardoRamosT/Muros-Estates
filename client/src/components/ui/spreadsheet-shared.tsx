@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ColumnFilter } from "@/components/ui/column-filter";
 import type { FilterState, SortDirection } from "@/components/ui/column-filter";
 import {
+  SHEET_COLOR_DARK,
   SHEET_COLOR_LIGHT,
   type SpreadsheetColumnDef,
   type SpreadsheetColumnGroup,
@@ -256,12 +257,12 @@ export function SpreadsheetHeader({
         </div>
         {(() => {
           const items: JSX.Element[] = [];
+          let runningColIdx = 0;
           for (const col of visibleColumns) {
             if (col.group === 'corner') continue;
             if (col.type === 'group-collapsed') {
               const groupDef = groupLookupMap[col.group || ''];
               const bg = groupDef?.color || '#9ca3af';
-              const groupLabel = groupDef?.label || col.group || '';
               items.push(
                 <div
                   key={`r2-${col.key}`}
@@ -269,12 +270,14 @@ export function SpreadsheetHeader({
                   style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                 />
               );
+              runningColIdx++;
               continue;
             }
             const groupDef = groupLookupMap[col.group || ''];
             const groupColor = groupDef?.color || '';
             const isColored = !!groupColor;
             const isColCollapsed = collapsedColumns?.has(col.key) ?? false;
+            const altColor = runningColIdx % 2 === 0 ? SHEET_COLOR_DARK : SHEET_COLOR_LIGHT;
 
             if (isColored && isColCollapsed) {
               items.push(
@@ -282,7 +285,7 @@ export function SpreadsheetHeader({
                   <TooltipTrigger asChild>
                     <div
                       className="flex-shrink-0 flex items-center justify-center cursor-pointer text-white hover:brightness-110"
-                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 32, backgroundColor: altColor, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                       onClick={() => onToggleColumnCollapse?.(col.key)}
                       data-testid={`toggle-col-expand-${col.key}`}
                     >
@@ -294,6 +297,7 @@ export function SpreadsheetHeader({
                   </TooltipContent>
                 </Tooltip>
               );
+              runningColIdx++;
               continue;
             }
 
@@ -304,7 +308,7 @@ export function SpreadsheetHeader({
                 title={col.label}
                 style={{
                   width: col.width, minWidth: col.width, height: 32,
-                  backgroundColor: isColored ? groupColor : '#d1d5db',
+                  backgroundColor: isColored ? altColor : '#d1d5db',
                   color: isColored ? 'white' : '#374151',
                   borderRight: '1px solid rgba(255,255,255,0.15)',
                   borderBottom: '1px solid rgba(255,255,255,0.15)',
@@ -326,6 +330,7 @@ export function SpreadsheetHeader({
                 )}
               </div>
             );
+            runningColIdx++;
           }
           return items;
         })()}
@@ -365,66 +370,78 @@ export function SpreadsheetHeader({
             </div>
           ))}
         </div>
-        {visibleColumns.map(col => {
-          if (col.group === 'corner') return null;
-          if (col.type === 'group-collapsed') {
-            return (
-              <div
-                key={`r3-${col.key}`}
-                className="flex-shrink-0"
-                style={{ width: 30, minWidth: 30, height: 24, backgroundColor: groupLookupMap[col.group || '']?.color || '#9ca3af', borderRight: '1px solid rgba(255,255,255,0.15)' }}
-              />
-            );
-          }
-          const groupDef = groupLookupMap[col.group || ''];
-          const groupColor = groupDef?.color || '';
-          const isColored = !!groupColor;
-          const isColCollapsed = collapsedColumns?.has(col.key) ?? false;
-
-          if (isColored && isColCollapsed) {
-            return (
-              <div
-                key={`r3-${col.key}`}
-                className="flex-shrink-0"
-                style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)' }}
-              />
-            );
-          }
-
-          return (
-            <div
-              key={`r3-${col.key}`}
-              className="flex items-center flex-shrink-0"
-              title={col.label}
-              style={{
-                width: col.width, minWidth: col.width, height: 24,
-                backgroundColor: isColored ? groupColor : '#d1d5db',
-                color: isColored ? 'white' : '#374151',
-                borderRight: '1px solid rgba(255,255,255,0.15)',
-              }}
-            >
-              {NO_FILTER_TYPES.has(col.type || '') || (col as any).noFilter ? (
-                <div />
-              ) : (
-                <ColumnFilter
-                  columnKey={col.key}
-                  columnLabel={col.label}
-                  columnType={getColumnFilterType(col.type)}
-                  uniqueValues={uniqueValuesMap[col.key] || []}
-                  availableValues={availableValuesMap?.[col.key]}
-                  sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
-                  filterState={filterConfigs[col.key] || { selectedValues: new Set() }}
-                  onSort={(dir) => onSort(col.key, dir)}
-                  onFilter={(state) => onFilter(col.key, state)}
-                  onClear={() => onClear(col.key)}
-                  labelMap={labelMaps?.[col.key]}
-                  groupMap={groupMaps?.[col.key]}
-                  hideLabel
+        {(() => {
+          const items: (JSX.Element | null)[] = [];
+          let runningColIdx = 0;
+          for (const col of visibleColumns) {
+            if (col.group === 'corner') { items.push(null); continue; }
+            if (col.type === 'group-collapsed') {
+              const altColor = runningColIdx % 2 === 0 ? SHEET_COLOR_DARK : SHEET_COLOR_LIGHT;
+              items.push(
+                <div
+                  key={`r3-${col.key}`}
+                  className="flex-shrink-0"
+                  style={{ width: 30, minWidth: 30, height: 24, backgroundColor: altColor, borderRight: '1px solid rgba(255,255,255,0.15)' }}
                 />
-              )}
-            </div>
-          );
-        })}
+              );
+              runningColIdx++;
+              continue;
+            }
+            const groupDef = groupLookupMap[col.group || ''];
+            const groupColor = groupDef?.color || '';
+            const isColored = !!groupColor;
+            const isColCollapsed = collapsedColumns?.has(col.key) ?? false;
+            const altColor = runningColIdx % 2 === 0 ? SHEET_COLOR_DARK : SHEET_COLOR_LIGHT;
+
+            if (isColored && isColCollapsed) {
+              items.push(
+                <div
+                  key={`r3-${col.key}`}
+                  className="flex-shrink-0"
+                  style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: altColor, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                />
+              );
+              runningColIdx++;
+              continue;
+            }
+
+            items.push(
+              <div
+                key={`r3-${col.key}`}
+                className="flex items-center flex-shrink-0"
+                title={col.label}
+                style={{
+                  width: col.width, minWidth: col.width, height: 24,
+                  backgroundColor: isColored ? altColor : '#d1d5db',
+                  color: isColored ? 'white' : '#374151',
+                  borderRight: '1px solid rgba(255,255,255,0.15)',
+                }}
+              >
+                {NO_FILTER_TYPES.has(col.type || '') || (col as any).noFilter ? (
+                  <div />
+                ) : (
+                  <ColumnFilter
+                    columnKey={col.key}
+                    columnLabel={col.label}
+                    columnType={getColumnFilterType(col.type)}
+                    uniqueValues={uniqueValuesMap[col.key] || []}
+                    availableValues={availableValuesMap?.[col.key]}
+                    sortDirection={sortConfig.key === col.key ? sortConfig.direction : null}
+                    filterState={filterConfigs[col.key] || { selectedValues: new Set() }}
+                    onSort={(dir) => onSort(col.key, dir)}
+                    onFilter={(state) => onFilter(col.key, state)}
+                    onClear={() => onClear(col.key)}
+                    labelMap={labelMaps?.[col.key]}
+                    groupMap={groupMaps?.[col.key]}
+                    hideLabel
+                  />
+                )}
+              </div>
+            );
+            runningColIdx++;
+          }
+          return items;
+        })()}
       </div>
     </div>
   );
