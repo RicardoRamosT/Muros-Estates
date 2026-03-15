@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
+import { LoadingState } from "@/components/ui/loading-state";
 import { FloatingContactForm } from "@/components/floating-contact-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,9 +77,7 @@ export default function TypologyDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        </div>
+        <LoadingState />
       </div>
     );
   }
@@ -104,9 +104,7 @@ export default function TypologyDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        </div>
+        <LoadingState />
       </div>
     );
   }
@@ -425,11 +423,7 @@ export default function TypologyDetail() {
         </div>
       </main>
 
-      <footer className="border-t bg-card mt-12">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Muros. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      <Footer />
 
       <FloatingContactForm 
         showInterestButton={true}

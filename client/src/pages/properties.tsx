@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { TypologyGrid } from "@/components/typology-grid";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -328,11 +329,7 @@ export default function Properties() {
         <TypologyGrid typologies={filteredTypologies} isLoading={isLoading} />
       </main>
 
-      <footer className="border-t bg-card">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Muros. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      <Footer />
 
       <FloatingContactForm />
     </div>

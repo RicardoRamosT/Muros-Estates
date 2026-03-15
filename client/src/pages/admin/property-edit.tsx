@@ -5,7 +5,8 @@ import { PropertyForm } from "@/components/property-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Property, InsertProperty } from "@shared/schema";
-import { ArrowLeft, Loader2, Building2 } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -81,10 +82,7 @@ export default function PropertyEdit() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex flex-col items-center justify-center py-32">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-          <p className="text-muted-foreground">Cargando propiedad...</p>
-        </div>
+        <LoadingState message="Cargando propiedad..." />
       </div>
     );
   }
@@ -116,7 +114,7 @@ export default function PropertyEdit() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
         <Link href="/admin">
           <Button variant="ghost" className="mb-6" data-testid="button-back">
             <ArrowLeft className="w-4 h-4 mr-2" />

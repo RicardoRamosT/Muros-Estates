@@ -30,6 +30,7 @@ import { DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
+import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
 import { cn } from "@/lib/utils";
 
 function parsePhoneList(raw: string | null | undefined): string[] {
@@ -1116,62 +1117,27 @@ export function DevelopmentsSpreadsheet() {
 
   return (
     <div className="h-full flex flex-col" data-testid="developments-spreadsheet">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b">
-        <div className="flex items-center gap-2">
-          <Building className="w-4 h-4 text-primary" />
-          <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrollos</h1>
-
-          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCollapsedGroups(new Set());
-                setCollapsedColumns(new Set());
-              }}
-              title="Descolapsar todo"
-              data-testid="button-expand-all"
-            >
-              <Maximize2 className="w-3 h-3 mr-1" />
-              Descolapsar
-            </Button>
-          )}
-          {hasActiveFilters && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={clearAllFilters}
-            >
-              <X className="w-3 h-3 mr-1" />
-              Limpiar filtros
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrollos</span>
-          <Button
-            onClick={saveAllPending}
-            size="sm"
-            disabled={pendingRowCount === 0 || isSaving}
-            className={cn(
-              "transition-all duration-300",
-              pendingRowCount > 0 && !isSaving && "save-electric-btn",
-              saveFlash ? "text-white shadow-lg scale-105" : "text-white"
-            )}
-            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
-            data-testid="button-save-pending-developments"
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
-          </Button>
-          {hasFullAccess && (
-            <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">
-              <Plus className="w-4 h-4 mr-1" />
-              Nuevo
-            </Button>
-          )}
-        </div>
-      </div>
+      <SpreadsheetToolbar
+        icon={<Building className="w-4 h-4 text-primary" />}
+        title="Desarrollos"
+        entityCount={filteredAndSortedData.length}
+        entityLabel="desarrollos"
+        hasCollapsedItems={collapsedGroups.size > 0 || collapsedColumns.size > 0}
+        onExpandAll={() => {
+          setCollapsedGroups(new Set());
+          setCollapsedColumns(new Set());
+        }}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearAllFilters}
+        pendingRowCount={pendingRowCount}
+        isSaving={isSaving}
+        saveFlash={saveFlash}
+        onSave={saveAllPending}
+        saveTestId="button-save-pending-developments"
+        onCreateNew={hasFullAccess ? handleCreateNew : undefined}
+        createDisabled={createMutation.isPending}
+        createTestId="button-add-development"
+      />
 
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>

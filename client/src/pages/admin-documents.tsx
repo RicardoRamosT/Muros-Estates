@@ -628,8 +628,8 @@ export default function AdminDocuments() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
+        <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Documentos</h1>
         </div>
@@ -1891,11 +1891,11 @@ function SectionDocumentGrid({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
-  
+
   if (documents.length === 0) {
     return (
       <Card className="p-8">
@@ -2147,8 +2147,8 @@ interface DocumentsListProps {
 function DocumentsList({ documents, onDownload, onDelete, canEdit, isLoading }: DocumentsListProps) {
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }

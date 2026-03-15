@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -32,11 +31,12 @@ import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } 
 import { useAuth } from "@/lib/auth";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
-import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
+import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
+import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
 import type { Developer, Development } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -818,67 +818,27 @@ export function DevelopersSpreadsheet() {
 
   return (
     <div className="flex flex-col h-full" data-testid="developers-spreadsheet">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b">
-        <div className="flex items-center gap-2">
-          <Briefcase className="w-4 h-4 text-primary" />
-          <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrolladores</h1>
-          {!hasFullAccess && (
-            <Badge variant="outline" className="text-xs">
-              <Eye className="w-3 h-3 mr-1" />
-              Solo lectura
-            </Badge>
-          )}
-          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCollapsedGroups(new Set());
-                setCollapsedColumns(new Set());
-              }}
-              title="Descolapsar todo"
-              data-testid="button-expand-all"
-            >
-              <Maximize2 className="w-3 h-3 mr-1" />
-              Descolapsar
-            </Button>
-          )}
-          {hasActiveFilters && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={clearAllFilters}
-            >
-              <X className="w-3 h-3 mr-1" />
-              Limpiar filtros
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrolladores</span>
-          <Button
-            onClick={saveAllPending}
-            size="sm"
-            disabled={pendingRowCount === 0 || isSaving}
-            className={cn(
-              "transition-all duration-300",
-              pendingRowCount > 0 && !isSaving && "save-electric-btn",
-              saveFlash ? "text-white shadow-lg scale-105" : "text-white"
-            )}
-            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
-            data-testid="button-save-pending-developers"
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
-          </Button>
-          {hasFullAccess && (
-            <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
-              <Plus className="w-4 h-4 mr-1" />
-              Nuevo
-            </Button>
-          )}
-        </div>
-      </div>
+      <SpreadsheetToolbar
+        icon={<Briefcase className="w-4 h-4 text-primary" />}
+        title="Desarrolladores"
+        entityCount={filteredAndSortedData.length}
+        entityLabel="desarrolladores"
+        hasCollapsedItems={collapsedGroups.size > 0 || collapsedColumns.size > 0}
+        onExpandAll={() => {
+          setCollapsedGroups(new Set());
+          setCollapsedColumns(new Set());
+        }}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearAllFilters}
+        pendingRowCount={pendingRowCount}
+        isSaving={isSaving}
+        saveFlash={saveFlash}
+        onSave={saveAllPending}
+        saveTestId="button-save-pending-developers"
+        onCreateNew={hasFullAccess ? handleCreateNew : undefined}
+        createDisabled={createMutation.isPending}
+        createTestId="button-add-developer"
+      />
       
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { LoadingState } from "@/components/ui/loading-state";
+import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,10 +62,10 @@ function formatFileSize(bytes: number): string {
 }
 
 function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return <Image className="w-8 h-8 text-blue-500" />;
-  if (mimeType.startsWith("video/")) return <Video className="w-8 h-8 text-purple-500" />;
-  if (mimeType === "application/pdf") return <FileText className="w-8 h-8 text-red-500" />;
-  return <File className="w-8 h-8 text-gray-500" />;
+  if (mimeType.startsWith("image/")) return <Image className="w-8 h-8 text-primary" />;
+  if (mimeType.startsWith("video/")) return <Video className="w-8 h-8 text-primary/70" />;
+  if (mimeType === "application/pdf") return <FileText className="w-8 h-8 text-destructive" />;
+  return <File className="w-8 h-8 text-muted-foreground" />;
 }
 
 export default function PublicShare() {
@@ -203,10 +205,7 @@ export default function PublicShare() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Cargando contenido compartido...</p>
-        </div>
+        <LoadingState message="Cargando contenido compartido..." />
       </div>
     );
   }
@@ -483,11 +482,7 @@ export default function PublicShare() {
         )}
       </div>
 
-      <footer className="bg-muted py-6 mt-12">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Muros - Plataforma Inmobiliaria</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

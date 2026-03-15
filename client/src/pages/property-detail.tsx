@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import { Header } from "@/components/header";
+import { LoadingState } from "@/components/ui/loading-state";
 import { FloatingContactForm } from "@/components/floating-contact-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,10 +60,7 @@ export default function PropertyDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex flex-col items-center justify-center py-32">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-          <p className="text-muted-foreground">Cargando propiedad...</p>
-        </div>
+        <LoadingState message="Cargando propiedad..." />
       </div>
     );
   }

@@ -5,7 +5,8 @@ import { Header } from "@/components/header";
 import { UserForm } from "@/components/user-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, UserCog, Loader2 } from "lucide-react";
+import { ArrowLeft, UserCog } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 interface User {
@@ -68,10 +69,8 @@ export default function AdminUserEdit() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
+        <main className="container mx-auto px-4 py-6">
+          <LoadingState />
         </main>
       </div>
     );
@@ -81,7 +80,7 @@ export default function AdminUserEdit() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-6">
           <div className="max-w-2xl mx-auto text-center py-20">
             <h1 className="text-2xl font-bold mb-4">Usuario no encontrado</h1>
             <p className="text-muted-foreground mb-6">
@@ -103,7 +102,7 @@ export default function AdminUserEdit() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <Link href="/admin/users">

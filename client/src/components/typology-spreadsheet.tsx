@@ -56,6 +56,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
+import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
 
 type TypologyField = keyof Typology;
 
@@ -2511,7 +2512,6 @@ export function TypologySpreadsheet() {
   const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
   const pendingChanges = pendingChangesRef.current;
   const [dynamicGray, setDynamicGray] = useState<DynamicGrayState>({});
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveFlash, setSaveFlash] = useState(false);
@@ -3509,15 +3509,6 @@ export function TypologySpreadsheet() {
     createMutation.mutate(initialData);
   };
   
-  const handleDeleteRow = (id: string) => {
-    if (pendingDeleteId === id) {
-      deleteMutation.mutate(id);
-      setPendingDeleteId(null);
-    } else {
-      setPendingDeleteId(id);
-    }
-  };
-  
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => {
       const next = new Set(prev);
@@ -3932,78 +3923,32 @@ export function TypologySpreadsheet() {
   
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b bg-background sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-primary" />
-          <h1 className="text-sm font-bold" data-testid="text-page-title">Tipologías</h1>
-          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCollapsedGroups(new Set());
-                setCollapsedColumns(new Set());
-                setExpandedSections(new Set(SECTIONS.map(s => s.id)));
-              }}
-              title="Descolapsar todo"
-              data-testid="button-expand-all"
-            >
-              <Maximize2 className="w-3 h-3 mr-1" />
-              Descolapsar
-            </Button>
-          )}
-          {(activeFilterCount > 0 || activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setColumnFilters({});
-                setColumnSorts({});
-                setRangeFilters({});
-              }}
-              data-testid="button-clear-all-filters"
-            >
-              <X className="w-3 h-3 mr-1" />
-              Limpiar filtros
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{filteredAndSortedTypologies.length} tipologías</span>
-          <Button 
-            onClick={async () => {
-              await saveAllPendingRows();
-            }}
-            size="sm"
-            disabled={pendingRowCount === 0 || isSaving}
-            className={cn(
-              "transition-all duration-300",
-              pendingRowCount > 0 && !isSaving && "save-electric-btn",
-              saveFlash 
-                ? "text-white shadow-lg scale-105" 
-                : "text-white"
-            )}
-            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
-            data-testid="button-save-row"
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-1" />
-            )}
-            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
-          </Button>
-          <Button 
-            onClick={handleAddRow} 
-            size="sm"
-            disabled={createMutation.isPending}
-            data-testid="button-add-typology"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Nuevo
-          </Button>
-        </div>
-      </div>
+      <SpreadsheetToolbar
+        icon={<Layers className="w-4 h-4 text-primary" />}
+        title="Tipologías"
+        entityCount={filteredAndSortedTypologies.length}
+        entityLabel="tipologías"
+        hasCollapsedItems={collapsedGroups.size > 0 || collapsedColumns.size > 0}
+        onExpandAll={() => {
+          setCollapsedGroups(new Set());
+          setCollapsedColumns(new Set());
+          setExpandedSections(new Set(SECTIONS.map(s => s.id)));
+        }}
+        hasActiveFilters={activeFilterCount > 0 || !!activeSortKey || Object.values(rangeFilters).some(r => r.min || r.max)}
+        onClearFilters={() => {
+          setColumnFilters({});
+          setColumnSorts({});
+          setRangeFilters({});
+        }}
+        pendingRowCount={pendingRowCount}
+        isSaving={isSaving}
+        saveFlash={saveFlash}
+        onSave={saveAllPendingRows}
+        saveTestId="button-save-row"
+        onCreateNew={hasFullAccess ? handleAddRow : undefined}
+        createDisabled={createMutation.isPending}
+        createTestId="button-add-typology"
+      />
       
       <div 
         ref={contentScrollRef}
