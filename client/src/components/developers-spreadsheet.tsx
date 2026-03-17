@@ -33,7 +33,7 @@ import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
 import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
@@ -126,7 +126,7 @@ const COLUMN_GROUPS_DEV = [
   { key: 'contratos', label: 'CONTRATOS', color: SHEET_COLOR_LIGHT },
   { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_DARK },
   { key: 'legales', label: 'LEGALES', color: SHEET_COLOR_LIGHT },
-  { key: 'docs', label: '', color: '' },
+  { key: 'docs', label: '', color: SHEET_COLOR_DARK },
 ];
 
 
@@ -255,6 +255,22 @@ export function DevelopersSpreadsheet() {
   const [saveFlash, setSaveFlash] = useState(false);
   const contentScrollRef = useRef<HTMLDivElement>(null);
 
+  // Clear active row when clicking outside data rows
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!activeEditingRowId) return;
+      const target = e.target as HTMLElement;
+      // If click is inside a data row, handleRowClick will handle it
+      if (target.closest('[data-row-id]')) return;
+      // If click is inside a popover/dialog/dropdown, ignore
+      if (target.closest('[data-radix-popper-content-wrapper]') || target.closest('[role="dialog"]')) return;
+      saveRowByIdRef.current(activeEditingRowId);
+      setActiveEditingRowId(null);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeEditingRowId]);
+
   const { data: developers = [], isLoading } = useQuery<Developer[]>({
     queryKey: ["/api/developers"],
   });
@@ -336,7 +352,7 @@ export function DevelopersSpreadsheet() {
     { key: "entregadosCount", label: "Entregados", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
     { key: "contratos", label: "Contratos", width: "55px", type: "multiselect", cellType: "dropdown", group: "contratos" },
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
-    { key: "contactPhone", label: "Teléfono", width: "110px", type: "phone-list", cellType: "input", group: "contacto" },
+    { key: "contactPhone", label: "Teléfono", width: "120px", type: "phone-list", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
     { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions", group: "legales" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions", group: "docs" },
@@ -879,12 +895,13 @@ export function DevelopersSpreadsheet() {
                 isRowInactive
                   ? ""
                   : isActiveRow
-                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    ? "ring-2 ring-blue-500 z-10 relative"
                     : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-developer-${dev.id}`}
-              onClick={() => handleRowClick(dev.id)}
+              data-row-id={dev.id}
+              onPointerDown={() => handleRowClick(dev.id)}
             >
               {columns.map((col) => {
                 const field = col.key;
@@ -908,13 +925,12 @@ export function DevelopersSpreadsheet() {
                       key={field}
                       className="spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 relative border-r border-b"
                       style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
-                      title={dev.id}
                     >
                       <span className="text-xs font-medium">{stableRowNumberMap.get(dev.id) ?? index + 1}</span>
                       {dotTooltip ? (
                         <Tooltip delayDuration={200}>
                           <TooltipTrigger asChild>
-                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-default"
                                   style={{ backgroundColor: dotColor }} />
                           </TooltipTrigger>
                           <TooltipContent side="right" className="text-[10px] leading-tight whitespace-pre-line max-w-[300px] max-h-[280px] overflow-y-auto z-[400]">
@@ -1257,11 +1273,12 @@ export function DevelopersSpreadsheet() {
                           <PopoverTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="h-6 w-full justify-center px-1 font-normal text-xs"
+                              className="h-6 w-full justify-between px-1 font-normal text-xs"
                               data-testid={`select-${col.key}-${dev.id}`}
                               title={tooltipText}
                             >
                               <span>{countDisplay}</span>
+                              <ChevronDown className="w-3 h-3 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-56 p-2" align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -1324,7 +1341,7 @@ export function DevelopersSpreadsheet() {
                           onInput={(e) => { (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.toUpperCase(); }}
                           autoFocus
                           maxLength={12}
-                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent uppercase"
+                          className={cn(CELL_INPUT_CLASS, "uppercase")}
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (
@@ -1347,18 +1364,20 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: cellType, disabled: !fieldCanEdit }))}
-                      style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
+                      className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      style={{ width: col.width, minWidth: col.width, display: 'flex', alignItems: 'center', height: 32, maxHeight: 32, padding: 0, overflow: 'hidden', ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                     >
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal h-full px-1">
-                              <span className="truncate">{phoneList.length > 0 ? phoneList[0] : ""}</span>
-                              {phoneList.length > 1 && <span className="text-[10px] ml-0.5 opacity-60 shrink-0">+{phoneList.length - 1}</span>}
-                              <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
-                            </Button>
+                            <button data-phone-list className="flex items-center h-full text-xs pl-1.5 pr-1 hover:bg-accent/50" style={{ width: '100%' }}>
+                              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                                {phoneList.length > 1 && <span className="text-[9px] opacity-60">+{phoneList.length - 1}</span>}
+                                <ChevronDown className="w-3 h-3 opacity-50" />
+                              </span>
+                            </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-56 p-2">
                             <div className="flex flex-col gap-2">
@@ -1394,9 +1413,9 @@ export function DevelopersSpreadsheet() {
                           </PopoverContent>
                         </Popover>
                       ) : (
-                        <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
-                          {phoneList.length > 1 && <span className="text-[10px] opacity-60 shrink-0">+{phoneList.length - 1}</span>}
+                        <div className="flex items-center px-2 w-full">
+                          <span className={cn("text-xs truncate min-w-0 flex-1", cellTextClass)}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
+                          {phoneList.length > 1 && <span className="text-[10px] opacity-60 shrink-0 ml-1">+{phoneList.length - 1}</span>}
                         </div>
                       )}
                     </div>
@@ -1427,7 +1446,7 @@ export function DevelopersSpreadsheet() {
                             }}
                             onPaste={filterType ? createPasteFilter(filterType) : undefined}
                             autoFocus
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className={CELL_INPUT_CLASS}
                             data-testid={`input-${field}-${dev.id}`}
                           />
                         );

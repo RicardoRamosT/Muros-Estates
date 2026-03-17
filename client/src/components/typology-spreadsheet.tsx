@@ -54,9 +54,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { cn } from "@/lib/utils";
-import { formatDate, formatTime } from "@/lib/spreadsheet-utils";
+import { formatDate, formatTime, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
+import { SpreadsheetSectionSearch } from "@/components/ui/spreadsheet-shared";
 
 type TypologyField = keyof Typology;
 
@@ -2292,7 +2293,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className={cn("h-6 w-full text-xs border-0 focus:ring-0 shadow-none p-1 bg-transparent", column.centerCells && "text-center")}
+          className={cn(CELL_INPUT_CLASS, column.centerCells && "text-center")}
           data-testid={`input-${column.key}-${rowId}`}
         />
       </div>
@@ -2521,6 +2522,39 @@ export function TypologySpreadsheet() {
   const [selectedTypologyForMedia, setSelectedTypologyForMedia] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
+
+  const sectionGroupsForSearch = useMemo(() => {
+    const result: { label: string; offset: number; width: number }[] = [];
+    let offset = 0;
+    SECTIONS.forEach(section => {
+      const label = section.parentLabel || section.label;
+      const secWidth = section.columns.reduce((acc, col) => acc + (col.width || 100) + SORT_ICON_WIDTH, 0);
+      const existing = result.find(g => g.label === label);
+      if (!existing) {
+        result.push({ label, offset, width: secWidth });
+      } else {
+        existing.width += secWidth;
+      }
+      offset += secWidth;
+    });
+    return result;
+  }, []);
+
+  // Clear active row when clicking outside data rows
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!activeEditingRowId) return;
+      const target = e.target as HTMLElement;
+      // If click is inside a data row, handleRowClick will handle it
+      if (target.closest('[data-row-id]')) return;
+      // If click is inside a popover/dialog/dropdown, ignore
+      if (target.closest('[data-radix-popper-content-wrapper]') || target.closest('[role="dialog"]')) return;
+      saveRowByIdRef.current(activeEditingRowId);
+      setActiveEditingRowId(null);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeEditingRowId]);
 
   const { data: typologies = [], isLoading, refetch } = useQuery<Typology[]>({
     queryKey: ["/api/typologies"],
@@ -3960,7 +3994,7 @@ export function TypologySpreadsheet() {
             {/* Row 1: Section toggle triggers (groups consecutive sections with same parentLabel) */}
             <div className="flex w-max spreadsheet-header-row1">
               <div data-sticky-corner className="w-[60px] flex-shrink-0 sticky left-0 z-30 flex items-center justify-center" style={{ backgroundColor: SECTION_COLOR_LIGHT, borderRight: `1px solid ${SECTION_BORDER_COLOR}`, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-                <SectionSearchButton scrollRef={contentScrollRef} iconColor="white" />
+                <SpreadsheetSectionSearch groups={sectionGroupsForSearch} scrollRef={contentScrollRef} />
               </div>
               {(() => {
                 const groups: { label: string; sections: { section: SectionDef; index: number }[] }[] = [];
@@ -4616,13 +4650,14 @@ export function TypologySpreadsheet() {
                   "flex w-max border-b",
                   isRowGray
                     ? "cursor-default"
-                    : isActiveRow 
-                      ? "cursor-pointer ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" 
+                    : isActiveRow
+                      ? "cursor-pointer ring-2 ring-blue-500 z-10 relative"
                       : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
                 )}
                 style={{ height: '32px', maxHeight: '32px', ...(isRowGray ? { backgroundColor: '#9ca3af', cursor: 'default' } : {}) }}
-                onClick={() => handleRowClick(row.id)}
+                onPointerDown={() => handleRowClick(row.id)}
                 data-testid={`row-typology-${row.id}`}
+                data-row-id={row.id}
               >
                 {(() => {
                   const isComplete = isTypologyComplete(mergedRow as Partial<Typology>, validEntities);
@@ -4646,7 +4681,7 @@ export function TypologySpreadsheet() {
                         <Tooltip delayDuration={200}>
                           <TooltipTrigger asChild>
                             <span
-                              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-default"
                               style={{ backgroundColor: dotColor }}
                               data-testid={`status-dot-${row.id}`}
                             />

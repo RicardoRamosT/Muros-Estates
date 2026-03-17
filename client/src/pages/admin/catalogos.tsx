@@ -56,7 +56,7 @@ export default function AdminCatalogos() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="flex items-center justify-between px-3 py-1.5 border-b bg-background">
+      <div className="flex items-center justify-between px-3 py-3 border-b bg-background">
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Catálogos</h1>

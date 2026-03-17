@@ -27,7 +27,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { DEVELOPMENT_TYPES } from "@shared/constants";
-import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
@@ -126,28 +126,28 @@ interface ColumnGroup {
 
 const columnGroups: ColumnGroup[] = [
   { key: 'corner', label: '' },
-  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_LIGHT },
-  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_DARK },
-  { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_DARK },
-  { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_lockoff', label: 'LOCK OFF', color: SHEET_COLOR_DARK },
-  { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'depas', label: 'CANTIDAD', color: SHEET_COLOR_DARK },
-  { key: 'avance', label: 'VENDIDO', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_acabados', label: 'ACABADOS', color: SHEET_COLOR_DARK },
-  { key: 'noheader_redaccion', label: 'DESCRIPCIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_amenidades', label: 'AMENIDADES', color: SHEET_COLOR_DARK },
-  { key: 'noheader_preventa', label: 'PREVENTA', color: SHEET_COLOR_LIGHT },
-  { key: 'obra', label: 'OBRA', color: SHEET_COLOR_DARK },
-  { key: 'noheader_contrato', label: 'CONTRATO', color: SHEET_COLOR_LIGHT },
-  { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_DARK },
-  { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'noheader_presentacion', label: 'PRESENTACIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'noheader_legales', label: 'LEGALES', color: SHEET_COLOR_DARK },
-  { key: 'noheader_venta', label: 'MEDIOS', color: SHEET_COLOR_LIGHT },
-  { key: 'actions', label: '', color: SHEET_COLOR_DARK },
+  { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
+  { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
+  { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_LIGHT },
+  { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_DARK },
+  { key: 'noheader_lockoff', label: 'LOCK OFF', color: SHEET_COLOR_LIGHT },
+  { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_DARK },
+  { key: 'depas', label: 'CANTIDAD', color: SHEET_COLOR_LIGHT },
+  { key: 'avance', label: 'VENDIDO', color: SHEET_COLOR_DARK },
+  { key: 'noheader_acabados', label: 'ACABADOS', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_redaccion', label: 'DESCRIPCIÓN', color: SHEET_COLOR_DARK },
+  { key: 'noheader_amenidades', label: 'AMENIDADES', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_preventa', label: 'PREVENTA', color: SHEET_COLOR_DARK },
+  { key: 'obra', label: 'OBRA', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_contrato', label: 'CONTRATO', color: SHEET_COLOR_DARK },
+  { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_LIGHT },
+  { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_DARK },
+  { key: 'noheader_ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_presentacion', label: 'PRESENTACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'noheader_legales', label: 'LEGALES', color: SHEET_COLOR_LIGHT },
+  { key: 'noheader_venta', label: 'MEDIOS', color: SHEET_COLOR_DARK },
+  { key: 'actions', label: '', color: SHEET_COLOR_LIGHT },
 ];
 
 function calcTiempoTranscurrido(inicioPreventa: string | null | undefined): string {
@@ -374,7 +374,7 @@ const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'active', label: 'Activo', group: 'registro', type: 'boolean', width: '80px', cellType: 'checkbox' },
-  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '72px', cellType: 'readonly' },
+  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '85px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
@@ -400,9 +400,9 @@ const columns: ColumnDef[] = [
   { key: 'depasPorcentajeCalc', label: 'Porcentaje', group: 'avance', type: 'calculated-percent', width: '100px', cellType: 'readonly', calcFrom: { unidades: 'depasUnidades', vendidas: 'depasVendidas' } },
   { key: 'acabados', label: '', group: 'noheader_acabados', type: 'multiselect-acabados', width: '95px', cellType: 'dropdown' },
   { key: 'redaccionValor', label: '', group: 'noheader_redaccion', type: 'redaccion-text', width: '120px', cellType: 'input' },
-  { key: 'amenities', label: 'Amenidades', group: 'noheader_amenidades', type: 'multiselect-amenities', width: '130px', cellType: 'dropdown' },
+  { key: 'amenities', label: 'Amenidades', group: 'noheader_amenidades', type: 'multiselect-amenities', width: '120px', cellType: 'dropdown' },
   { key: 'efficiency', label: 'Eficiencia', group: 'noheader_amenidades', type: 'multiselect-efficiency', width: '110px', cellType: 'dropdown' },
-  { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '85px', cellType: 'dropdown' },
+  { key: 'otherFeatures', label: 'Otros', group: 'noheader_amenidades', type: 'multiselect-other', width: '80px', cellType: 'dropdown' },
   { key: 'inicioPreventa', label: 'Inicio Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input', isDateColumn: true },
   { key: 'tiempoTransc', label: 'Tiempo Transcurrido', group: 'noheader_preventa', width: '190px', cellType: 'calculated' },
   { key: 'finPreventa', label: 'Fin de Preventa', group: 'noheader_preventa', width: '135px', cellType: 'input', isDateColumn: true },
@@ -437,6 +437,7 @@ export function DevelopmentsSpreadsheet() {
   const setEditValue = useCallback((v: string) => { editValueRef.current = v; setEditValue_(v); }, []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
+
   const [collapsedGroups, setCollapsedGroups] = usePersistedState<Set<string>>(
     spreadsheetKey(uid, "developments", "collapsedGroups"), () => new Set(), setSerializer
   );
@@ -482,6 +483,21 @@ export function DevelopmentsSpreadsheet() {
   const [localEdits, setLocalEdits] = useState<Record<string, Partial<Development>>>({});
   const [activeEditingRowId, setActiveEditingRowId] = useState<string | null>(null);
   const saveRowByIdRef = useRef<(id: string) => Promise<void>>(async () => {});
+
+  // Clear active row when clicking outside data rows
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!activeEditingRowId) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-row-id]')) return;
+      if (target.closest('[data-radix-popper-content-wrapper]') || target.closest('[role="dialog"]')) return;
+      saveRowByIdRef.current(activeEditingRowId);
+      setActiveEditingRowId(null);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeEditingRowId]);
+
   const [pendingChangesVersion, setPendingChangesVersion] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveFlash, setSaveFlash] = useState(false);
@@ -1179,12 +1195,13 @@ export function DevelopmentsSpreadsheet() {
                 isRowInactive
                   ? ""
                   : isActiveRow
-                    ? "ring-1 ring-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    ? "ring-2 ring-blue-500 z-10 relative"
                     : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-development-${dev.id}`}
-              onClick={() => handleRowClick(dev.id)}
+              data-row-id={dev.id}
+              onPointerDown={() => handleRowClick(dev.id)}
             >
               {visibleColumns.map((col) => {
                 const fieldCanEdit = canEdit(col.key) && (!isDeveloperBlocked || DEV_ALWAYS_UNLOCKED.has(col.key));
@@ -1207,13 +1224,12 @@ export function DevelopmentsSpreadsheet() {
                       key={col.key}
                       className="spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 relative border-r border-b"
                       style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
-                      title={dev.id}
                     >
                       <span className="text-xs font-medium">{stableRowNumberMap.get(dev.id) ?? rowIndex + 1}</span>
                       {dotTooltip ? (
                         <Tooltip delayDuration={200}>
                           <TooltipTrigger asChild>
-                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-default"
                                   style={{ backgroundColor: dotColor }} />
                           </TooltipTrigger>
                           <TooltipContent side="right" className="text-[10px] leading-tight whitespace-pre-line max-w-[300px] max-h-[280px] overflow-y-auto z-[400]">
@@ -1689,7 +1705,7 @@ export function DevelopmentsSpreadsheet() {
                         <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -1707,7 +1723,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                           
                         </div>
                       )}
@@ -1786,7 +1802,7 @@ export function DevelopmentsSpreadsheet() {
                         <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -1804,7 +1820,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                           
                         </div>
                       )}
@@ -1820,7 +1836,7 @@ export function DevelopmentsSpreadsheet() {
                         <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -1838,7 +1854,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                           
                         </div>
                       )}
@@ -2029,7 +2045,7 @@ export function DevelopmentsSpreadsheet() {
                         <Popover modal>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs font-normal">
-                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                              <span className="truncate">{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                               <ChevronDown className="w-3 h-3 ml-1 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -2047,7 +2063,7 @@ export function DevelopmentsSpreadsheet() {
                         </Popover>
                       ) : (
                         <div className="flex items-center gap-1 px-2">
-                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length} seleccionados` : ""}</span>
+                          <span className={cn("text-xs truncate", cellTextClass)}>{arrValue.length > 0 ? `${arrValue.length}` : ""}</span>
                           
                         </div>
                       )}
@@ -2233,7 +2249,7 @@ export function DevelopmentsSpreadsheet() {
                           }}
                           autoFocus
                           onFocus={(e) => e.target.select()}
-                          className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                          className={CELL_INPUT_CLASS}
                           data-testid={`input-${col.key}-${dev.id}`}
                         />
                       ) : (
@@ -2307,7 +2323,7 @@ export function DevelopmentsSpreadsheet() {
                             }}
                             onPaste={filterType ? createPasteFilter(filterType) : undefined}
                             onFocus={(e) => e.target.select()}
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className={CELL_INPUT_CLASS}
                             autoFocus
                             type={col.type === 'number' ? 'number' : 'text'}
                             data-testid={`input-${col.key}-${dev.id}`}

@@ -23,7 +23,7 @@ import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/sp
 import { Plus, Minus, Trash2, UserPlus, UserCheck, Loader2, Lock, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter } from "@/lib/spreadsheet-utils";
+import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
@@ -122,7 +122,7 @@ const COLUMN_GROUPS_PROSPECT = [
   { key: 'plazo', label: 'A PLAZO', color: SHEET_COLOR_DARK },
   { key: 'comoPagaGroup', label: 'CÓMO PAGA', color: SHEET_COLOR_LIGHT },
   { key: 'notas', label: 'COMENTARIOS', color: SHEET_COLOR_DARK },
-  { key: 'actions', label: '', color: '' },
+  { key: 'actions', label: '', color: SHEET_COLOR_LIGHT },
 ];
 
 const COLUMN_GROUPS_CLIENT = [
@@ -131,16 +131,17 @@ const COLUMN_GROUPS_CLIENT = [
   { key: 'casesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
   { key: 'ccliente', label: 'CLIENTE', color: SHEET_COLOR_DARK },
   { key: 'cgeneral', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
-  { key: 'cubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'cunidad', label: 'UNIDAD', color: SHEET_COLOR_LIGHT },
-  { key: 'cextras', label: 'EXTRAS', color: SHEET_COLOR_DARK },
-  { key: 'cpreciototal', label: '', color: SHEET_COLOR_LIGHT },
-  { key: 'cseparacion', label: 'SEPARACIÓN', color: SHEET_COLOR_DARK },
-  { key: 'cenganche', label: 'ENGANCHE', color: SHEET_COLOR_LIGHT },
-  { key: 'cplazo', label: 'A PLAZO', color: SHEET_COLOR_DARK },
-  { key: 'cliquidacion', label: 'LIQUIDACIÓN', color: SHEET_COLOR_LIGHT },
-  { key: 'ccomentarios', label: '', color: SHEET_COLOR_DARK },
-  { key: 'actions', label: '', color: '' },
+  { key: 'cetapa', label: 'ETAPA', color: SHEET_COLOR_DARK },
+  { key: 'cubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'cunidad', label: 'UNIDAD', color: SHEET_COLOR_DARK },
+  { key: 'cextras', label: 'EXTRAS', color: SHEET_COLOR_LIGHT },
+  { key: 'cpreciototal', label: '', color: SHEET_COLOR_DARK },
+  { key: 'cseparacion', label: 'SEPARACIÓN', color: SHEET_COLOR_LIGHT },
+  { key: 'cenganche', label: 'ENGANCHE', color: SHEET_COLOR_DARK },
+  { key: 'cplazo', label: 'A PLAZO', color: SHEET_COLOR_LIGHT },
+  { key: 'cliquidacion', label: 'LIQUIDACIÓN', color: SHEET_COLOR_DARK },
+  { key: 'ccomentarios', label: '', color: SHEET_COLOR_LIGHT },
+  { key: 'actions', label: '', color: SHEET_COLOR_DARK },
 ];
 
 
@@ -211,6 +212,22 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const [saveFlash, setSaveFlash] = useState(false);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set());
+
+  // Clear active row when clicking outside data rows
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!activeEditingRowId) return;
+      const target = e.target as HTMLElement;
+      // If click is inside a data row, handleRowClick will handle it
+      if (target.closest('[data-row-id]')) return;
+      // If click is inside a popover/dialog/dropdown, ignore
+      if (target.closest('[data-radix-popper-content-wrapper]') || target.closest('[role="dialog"]')) return;
+      saveRowByIdRef.current(activeEditingRowId);
+      setActiveEditingRowId(null);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeEditingRowId]);
 
   // Read highlight param from URL
   useEffect(() => {
@@ -409,13 +426,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       const isCurrentlyClient = currentRecord?.isClient === true;
       const shouldBeClient = clientFunnelStages.includes(value);
 
-      // Cierre Ganado converts prospect to client with "Por Separar" stage
+      // Cierre Ganado converts prospect to client with "Separado" stage
       if (!isCurrentlyClient && value === 'Cierre Ganado') {
         updateMutation.mutate({
           id,
-          data: { embudo: 'Por Separar', isClient: true, convertedAt: new Date() } as any
+          data: { embudo: 'Separado', isClient: true, convertedAt: new Date() } as any
         });
-        toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes como 'Por Separar'." });
+        toast({ title: "Prospecto convertido a Cliente", description: "El prospecto ahora aparece en la sección de Clientes como 'Separado'." });
         return;
       }
 
@@ -481,7 +498,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const prospectColumns = [
     { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", group: "registro" },
-    { key: "fecha", label: "Fecha", width: "72px", type: "date-display", field: "createdAt", group: "registro" },
+    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "registro" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "registro" },
     { key: "asesorId", label: "", width: "130px", type: "select", group: "asesor" },
     { key: "nombre", label: "Nombre", width: "120px", group: "prospecto" },
@@ -520,7 +537,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "index",   label: "ID",   width: "60px",  type: "index",        group: "corner" },
     // REGISTRO
     { key: "active",  label: "Activo", width: "80px", type: "toggle",      group: "cregistro" },
-    { key: "fecha",   label: "Fecha",  width: "72px", type: "date-display", field: "createdAt", group: "cregistro" },
+    { key: "fecha",   label: "Fecha",  width: "85px", type: "date-display", field: "createdAt", group: "cregistro" },
     { key: "hora",    label: "Hora",   width: "65px", type: "time-display", field: "createdAt", group: "cregistro" },
     // ASESOR
     { key: "asesorId", label: "", width: "130px", type: "select",    group: "casesor" },
@@ -534,6 +551,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "perfil",       label: "Perfil",     width: "110px", type: "options-select",  group: "cgeneral" },
     { key: "comoLlega",    label: "Fuente",     width: "130px", type: "options-select",  group: "cgeneral" },
     { key: "brokerExterno",label: "Asesor Ext.",width: "80px",  type: "boolean-select",  group: "cgeneral" },
+    // ETAPA
+    { key: "embudo", label: "", width: "140px", type: "options-select", group: "cetapa" },
     // UBICACIÓN
     { key: "ciudad", label: "Ciudad", width: "100px", type: "catalog-select", group: "cubicacion" },
     { key: "zona",   label: "Zona",   width: "100px", type: "catalog-select", group: "cubicacion" },
@@ -625,11 +644,11 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     perfil: perfilOptions,
     comoLlega: fuenteOptions,
     estatus: estatusOptions,
-    embudo: embudoOptions,
+    embudo: isClientView ? etapaClientesOptions : embudoOptions,
     comoPaga: comoPagaOptions,
     positivos: positivosOptions,
     negativos: negativosOptions,
-  }), [tipoOptions, perfilOptions, fuenteOptions, estatusOptions, embudoOptions, comoPagaOptions, positivosOptions, negativosOptions]);
+  }), [tipoOptions, perfilOptions, fuenteOptions, estatusOptions, embudoOptions, etapaClientesOptions, isClientView, comoPagaOptions, positivosOptions, negativosOptions]);
 
   const columns = useMemo(() => {
     let cols = allColumns.filter(col => {
@@ -1098,7 +1117,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
-              onClick={() => handleRowClick(prospect.id)}
+              data-row-id={prospect.id}
+              onPointerDown={() => handleRowClick(prospect.id)}
             >
                 {columns.map((col) => {
                   const field = col.field || col.key;
@@ -1124,13 +1144,12 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         key={col.key}
                         className="spreadsheet-cell flex-shrink-0 justify-center sticky left-0 z-10 relative border-r border-b"
                         style={{ width: col.width, minWidth: col.width, backgroundColor: SHEET_COLOR_LIGHT, color: 'white', height: 32 }}
-                        title={prospect.id}
                       >
                         <span className="text-xs font-medium">{stableRowNumberMap.get(prospect.id) ?? index + 1}</span>
                         {dotTooltip ? (
                           <Tooltip delayDuration={200}>
                             <TooltipTrigger asChild>
-                              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-help"
+                              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-default"
                                     style={{ backgroundColor: dotColor }} />
                             </TooltipTrigger>
                             <TooltipContent side="right" className="text-[10px] leading-tight whitespace-pre-line max-w-[300px] max-h-[280px] overflow-y-auto z-[400]">
@@ -1608,7 +1627,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               if (e.key === 'Escape') { setEditingCell(null); }
                             }}
                             autoFocus
-                            className="h-6 text-xs border-0 p-0 px-1 focus-visible:ring-0 bg-transparent"
+                            className={CELL_INPUT_CLASS}
                             data-testid={`input-${col.key}-${prospect.id}`}
                           />
                         ) : (
@@ -1707,7 +1726,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               if (e.key === 'Escape') { setEditingCell(null); }
                             }}
                             autoFocus
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className={CELL_INPUT_CLASS}
                             data-testid={`input-${col.key}-${prospect.id}`}
                           />
                         ) : (
@@ -1758,7 +1777,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               if (e.key === 'Escape') { setEditingCell(null); }
                             }}
                             autoFocus
-                            className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                            className={CELL_INPUT_CLASS}
                             data-testid={`input-${col.key}-${prospect.id}`}
                           />
                         ) : (
@@ -1837,7 +1856,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                               }}
                               onPaste={filterType ? createPasteFilter(filterType) : undefined}
                               autoFocus
-                              className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                              className={CELL_INPUT_CLASS}
                               data-testid={`input-${col.key}-${prospect.id}`}
                             />
                           );

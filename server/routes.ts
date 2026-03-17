@@ -595,14 +595,24 @@ export async function registerRoutes(
   });
   
   app.get("/api/clients/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
-    const items = await storage.getDeletedClients();
-    res.json(items);
+    try {
+      const items = await storage.getDeletedClients();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching deleted clients:", error);
+      res.status(500).json({ error: "Error al obtener clientes eliminados" });
+    }
   });
 
   app.post("/api/clients/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.restoreClient(req.params.id as string);
-    broadcastClientUpdate("create", { id: req.params.id });
-    res.json({ ok: true });
+    try {
+      await storage.restoreClient(req.params.id as string);
+      broadcastClientUpdate("create", { id: req.params.id });
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error restoring client:", error);
+      res.status(500).json({ error: "Error al restaurar cliente" });
+    }
   });
 
   app.get("/api/clients/:id", requireAuth, requireRole("admin", "perfilador", "asesor"), async (req, res) => {
@@ -1030,14 +1040,24 @@ export async function registerRoutes(
   });
   
   app.get("/api/typologies/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
-    const items = await storage.getDeletedTypologies();
-    res.json(items);
+    try {
+      const items = await storage.getDeletedTypologies();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching deleted typologies:", error);
+      res.status(500).json({ error: "Error al obtener tipologías eliminadas" });
+    }
   });
 
   app.post("/api/typologies/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.restoreTypology(req.params.id as string);
-    broadcastTypologyUpdate("create", { id: req.params.id } as any);
-    res.json({ ok: true });
+    try {
+      await storage.restoreTypology(req.params.id as string);
+      broadcastTypologyUpdate("create", { id: req.params.id } as any);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error restoring typology:", error);
+      res.status(500).json({ error: "Error al restaurar tipología" });
+    }
   });
 
   app.get("/api/typologies/:id", requireAuth, requireRole("admin", "actualizador", "asesor"), async (req, res) => {
@@ -1286,14 +1306,24 @@ export async function registerRoutes(
   });
 
   app.get("/api/developers/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
-    const items = await storage.getDeletedDevelopers();
-    res.json(items);
+    try {
+      const items = await storage.getDeletedDevelopers();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching deleted developers:", error);
+      res.status(500).json({ error: "Error al obtener desarrolladores eliminados" });
+    }
   });
 
   app.post("/api/developers/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.restoreDeveloper(req.params.id as string);
-    broadcastDeveloperUpdate("create", { id: req.params.id });
-    res.json({ ok: true });
+    try {
+      await storage.restoreDeveloper(req.params.id as string);
+      broadcastDeveloperUpdate("create", { id: req.params.id });
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error restoring developer:", error);
+      res.status(500).json({ error: "Error al restaurar desarrollador" });
+    }
   });
 
   app.get("/api/developers/:id", async (req, res) => {
@@ -1409,14 +1439,24 @@ export async function registerRoutes(
   });
 
   app.get("/api/developments-entity/deleted", requireAuth, requireRole("admin"), async (_req, res) => {
-    const items = await storage.getDeletedDevelopments();
-    res.json(items);
+    try {
+      const items = await storage.getDeletedDevelopments();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching deleted developments:", error);
+      res.status(500).json({ error: "Error al obtener desarrollos eliminados" });
+    }
   });
 
   app.post("/api/developments-entity/:id/restore", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.restoreDevelopment(req.params.id as string);
-    broadcastDevelopmentUpdate("create", { id: req.params.id });
-    res.json({ ok: true });
+    try {
+      await storage.restoreDevelopment(req.params.id as string);
+      broadcastDevelopmentUpdate("create", { id: req.params.id });
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error restoring development:", error);
+      res.status(500).json({ error: "Error al restaurar desarrollo" });
+    }
   });
 
   app.get("/api/developments-entity/:id", async (req, res) => {
@@ -3087,64 +3127,99 @@ export async function registerRoutes(
   });
 
   app.post("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {
-    const { section, field, role, permissionLevel } = req.body;
-    if (!section || !field || !role || !permissionLevel) {
-      return res.status(400).json({ error: "Faltan campos requeridos" });
+    try {
+      const { section, field, role, permissionLevel } = req.body;
+      if (!section || !field || !role || !permissionLevel) {
+        return res.status(400).json({ error: "Faltan campos requeridos" });
+      }
+      if (!['none', 'view', 'edit'].includes(permissionLevel)) {
+        return res.status(400).json({ error: "Nivel de permiso inválido" });
+      }
+      const permission = await storage.upsertRolePermission(section, field, role, permissionLevel);
+      res.json(permission);
+    } catch (error) {
+      console.error("Error updating role permission:", error);
+      res.status(500).json({ error: "Error al actualizar permiso" });
     }
-    if (!['none', 'view', 'edit'].includes(permissionLevel)) {
-      return res.status(400).json({ error: "Nivel de permiso inválido" });
-    }
-    const permission = await storage.upsertRolePermission(section, field, role, permissionLevel);
-    res.json(permission);
   });
 
   // ── Custom Roles ──
   app.get("/api/custom-roles", requireAuth, async (req, res) => {
-    const roles = await storage.getCustomRoles();
-    res.json(roles);
+    try {
+      const roles = await storage.getCustomRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error("Error fetching custom roles:", error);
+      res.status(500).json({ error: "Error al obtener roles" });
+    }
   });
 
   app.post("/api/custom-roles", requireAuth, requireRole("admin"), async (req, res) => {
-    const { name } = req.body;
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      return res.status(400).json({ error: "El nombre del rol es requerido (mínimo 2 caracteres)" });
+    try {
+      const { name } = req.body;
+      if (!name || typeof name !== "string" || name.trim().length < 2) {
+        return res.status(400).json({ error: "El nombre del rol es requerido (mínimo 2 caracteres)" });
+      }
+      const key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      const role = await storage.createCustomRole({ name: name.trim(), key, active: true });
+      res.status(201).json(role);
+    } catch (error) {
+      console.error("Error creating custom role:", error);
+      res.status(500).json({ error: "Error al crear rol" });
     }
-    const key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    const role = await storage.createCustomRole({ name: name.trim(), key, active: true });
-    res.status(201).json(role);
   });
 
   app.put("/api/custom-roles/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    const { name, active } = req.body;
-    const updateData: any = {};
-    if (typeof name === "string") {
-      updateData.name = name.trim();
-      updateData.key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    try {
+      const { name, active } = req.body;
+      const updateData: any = {};
+      if (typeof name === "string") {
+        updateData.name = name.trim();
+        updateData.key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      }
+      if (typeof active === "boolean") updateData.active = active;
+      const role = await storage.updateCustomRole(req.params.id as string, updateData);
+      if (!role) return res.status(404).json({ error: "Rol no encontrado" });
+      res.json(role);
+    } catch (error) {
+      console.error("Error updating custom role:", error);
+      res.status(500).json({ error: "Error al actualizar rol" });
     }
-    if (typeof active === "boolean") updateData.active = active;
-    const role = await storage.updateCustomRole(req.params.id as string, updateData);
-    if (!role) return res.status(404).json({ error: "Rol no encontrado" });
-    res.json(role);
   });
 
   app.delete("/api/custom-roles/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCustomRole(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCustomRole(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting custom role:", error);
+      res.status(500).json({ error: "Error al eliminar rol" });
+    }
   });
 
   // ── Role Section Access ──
   app.get("/api/role-section-access", requireAuth, async (req, res) => {
-    const access = await storage.getRoleSectionAccess();
-    res.json(access);
+    try {
+      const access = await storage.getRoleSectionAccess();
+      res.json(access);
+    } catch (error) {
+      console.error("Error fetching role section access:", error);
+      res.status(500).json({ error: "Error al obtener acceso de secciones" });
+    }
   });
 
   app.post("/api/role-section-access", requireAuth, requireRole("admin"), async (req, res) => {
-    const { section, role, active } = req.body;
-    if (!section || !role || typeof active !== "boolean") {
-      return res.status(400).json({ error: "Faltan campos requeridos" });
+    try {
+      const { section, role, active } = req.body;
+      if (!section || !role || typeof active !== "boolean") {
+        return res.status(400).json({ error: "Faltan campos requeridos" });
+      }
+      const result = await storage.upsertRoleSectionAccess(section, role, active);
+      res.json(result);
+    } catch (error) {
+      console.error("Error updating role section access:", error);
+      res.status(500).json({ error: "Error al actualizar acceso" });
     }
-    const result = await storage.upsertRoleSectionAccess(section, role, active);
-    res.json(result);
   });
 
   // ── Notifications ──

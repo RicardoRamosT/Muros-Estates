@@ -150,8 +150,7 @@ async function main() {
 
   // ETAPA CLIENTES (catalog_etapa_clientes)
   await upsertCatalog(catalogEtapaClientes, [
-    { name: "Por Separar", order: 1 },
-    { name: "Separado", color: "#00FF00", order: 2 },
+    { name: "Separado", color: "#00FF00", order: 1 },
     { name: "Papelería", color: "#FF69B4", order: 3 },
     { name: "Enganche", color: "#FFFF00", order: 4 },
     { name: "Firma", color: "#FFA500", order: 5 },

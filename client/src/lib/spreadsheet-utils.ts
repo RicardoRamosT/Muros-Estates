@@ -5,6 +5,9 @@ export const SHEET_COLOR_LIGHT = "rgb(13,149,225)";
 export const SHEET_BORDER_COLOR = "rgb(121,135,203)";
 export const SHEET_FECHAHORA_COLOR = "#0d9488";
 
+/** Inline cell editing input — overrides Input defaults to match cell size */
+export const CELL_INPUT_CLASS = "h-full w-full rounded-none border-0 px-0 py-0 text-xs md:text-xs shadow-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0";
+
 export type CellType = 
   | "input"      // White - editable text/number input
   | "dropdown"   // Gray - select/menu
@@ -33,7 +36,7 @@ export function getCellStyle(config: CellStyleConfig): string {
   }
   
   if (isEditing) {
-    return cn(baseStyles, "bg-white dark:bg-gray-900 ring-2 ring-primary ring-inset");
+    return cn(baseStyles, "bg-white dark:bg-gray-900");
   }
   
   switch (type) {
@@ -57,7 +60,7 @@ export function getCellStyle(config: CellStyleConfig): string {
       return cn(baseStyles, "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-default text-center");
     
     case "actions":
-      return cn(baseStyles, "bg-transparent");
+      return cn(baseStyles, "bg-blue-50 dark:bg-blue-900/20");
     
     default:
       return cn(baseStyles, "bg-white dark:bg-gray-900");

@@ -1,15 +1,15 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { PAGE_PERMISSIONS, type PermissionLevel, type RolePermission, type RoleSectionAccess, type CustomRole } from "@shared/schema";
-import { Search, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { SHEET_COLOR_DARK, SHEET_COLOR_LIGHT } from "@/lib/spreadsheet-utils";
+import { SpreadsheetSectionSearch } from "@/components/ui/spreadsheet-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -344,6 +344,201 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
   },
 };
 
+/** Column group definitions per section (for ROW1 header) */
+const SECTION_COLUMN_GROUPS: Record<string, { key: string; label: string; color: string }[]> = {
+  desarrolladores: [
+    { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
+    { key: 'generales', label: 'GENERALES', color: SHEET_COLOR_LIGHT },
+    { key: 'antiguedad', label: 'ANTIGÜEDAD', color: SHEET_COLOR_DARK },
+    { key: 'tipos', label: 'TIPOS', color: SHEET_COLOR_LIGHT },
+    { key: 'contratos', label: 'CONTRATOS', color: SHEET_COLOR_DARK },
+    { key: 'contacto', label: 'CONTACTO', color: SHEET_COLOR_LIGHT },
+    { key: 'legales', label: 'LEGALES', color: SHEET_COLOR_DARK },
+  ],
+  desarrollos: [
+    { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
+    { key: 'empresa', label: 'EMPRESA', color: SHEET_COLOR_LIGHT },
+    { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+    { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_LIGHT },
+    { key: 'amenidades', label: 'AMENIDADES', color: SHEET_COLOR_DARK },
+    { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_LIGHT },
+    { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_DARK },
+    { key: 'descripcion', label: 'DESCRIPCIÓN', color: SHEET_COLOR_LIGHT },
+    { key: 'metros', label: 'M²', color: SHEET_COLOR_DARK },
+    { key: 'preventa', label: 'PREVENTA', color: SHEET_COLOR_LIGHT },
+    { key: 'vendido', label: 'VENDIDO', color: SHEET_COLOR_DARK },
+    { key: 'obra', label: 'OBRA', color: SHEET_COLOR_LIGHT },
+    { key: 'contrato', label: 'CONTRATO', color: SHEET_COLOR_DARK },
+    { key: 'ventas', label: 'VENTAS', color: SHEET_COLOR_LIGHT },
+    { key: 'pagos', label: 'PAGOS', color: SHEET_COLOR_DARK },
+    { key: 'archivos', label: 'ARCHIVOS', color: SHEET_COLOR_LIGHT },
+  ],
+  tipologias: [
+    { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
+    { key: 'general', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
+    { key: 'departamento', label: 'DEPARTAMENTO', color: SHEET_COLOR_DARK },
+    { key: 'tamano', label: 'TAMAÑO', color: SHEET_COLOR_LIGHT },
+    { key: 'precio', label: 'PRECIO', color: SHEET_COLOR_DARK },
+    { key: 'distribucion', label: 'DISTRIBUCIÓN', color: SHEET_COLOR_LIGHT },
+    { key: 'lockoff', label: 'LOCK-OFF', color: SHEET_COLOR_DARK },
+    { key: 'estacionamiento', label: 'ESTACIONAMIENTO', color: SHEET_COLOR_LIGHT },
+    { key: 'bodega', label: 'BODEGA', color: SHEET_COLOR_DARK },
+    { key: 'incluye', label: 'INCLUYE', color: SHEET_COLOR_LIGHT },
+    { key: 'enganche', label: 'ENGANCHE', color: SHEET_COLOR_DARK },
+    { key: 'entrega', label: 'ENTREGA', color: SHEET_COLOR_LIGHT },
+    { key: 'hipoteca', label: 'HIPOTECA', color: SHEET_COLOR_DARK },
+    { key: 'mantenimiento', label: 'MANTENIMIENTO', color: SHEET_COLOR_LIGHT },
+    { key: 'renta', label: 'RENTA', color: SHEET_COLOR_DARK },
+    { key: 'inversion', label: 'INVERSIÓN', color: SHEET_COLOR_LIGHT },
+    { key: 'plusvalia', label: 'PLUSVALÍA', color: SHEET_COLOR_DARK },
+  ],
+  prospectos: [
+    { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
+    { key: 'asesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
+    { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+    { key: 'unidad', label: 'UNIDAD', color: SHEET_COLOR_LIGHT },
+    { key: 'prospecto', label: 'PROSPECTO', color: SHEET_COLOR_DARK },
+    { key: 'general', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
+    { key: 'estatus', label: 'ESTATUS', color: SHEET_COLOR_DARK },
+    { key: 'pago', label: 'CÓMO PAGA', color: SHEET_COLOR_LIGHT },
+    { key: 'comentarios', label: 'COMENTARIOS', color: SHEET_COLOR_DARK },
+    { key: 'precio', label: 'PRECIO', color: SHEET_COLOR_LIGHT },
+    { key: 'separacion', label: 'SEPARACIÓN', color: SHEET_COLOR_DARK },
+    { key: 'enganche', label: 'ENGANCHE', color: SHEET_COLOR_LIGHT },
+    { key: 'plazo', label: 'A PLAZO', color: SHEET_COLOR_DARK },
+  ],
+  clientes: [
+    { key: 'registro', label: 'REGISTRO', color: SHEET_COLOR_DARK },
+    { key: 'asesor', label: 'ASESOR', color: SHEET_COLOR_LIGHT },
+    { key: 'cliente', label: 'CLIENTE', color: SHEET_COLOR_DARK },
+    { key: 'general', label: 'GENERAL', color: SHEET_COLOR_LIGHT },
+    { key: 'unidad', label: 'UNIDAD', color: SHEET_COLOR_DARK },
+    { key: 'separacion', label: 'SEPARACIÓN', color: SHEET_COLOR_LIGHT },
+    { key: 'enganche', label: 'ENGANCHE', color: SHEET_COLOR_DARK },
+    { key: 'perfil', label: 'PERFIL', color: SHEET_COLOR_LIGHT },
+    { key: 'ubicacion2', label: 'UBICACIÓN', color: SHEET_COLOR_DARK },
+    { key: 'plazo', label: 'A PLAZO', color: SHEET_COLOR_LIGHT },
+    { key: 'extras', label: 'EXTRAS', color: SHEET_COLOR_DARK },
+    { key: 'total', label: 'TOTAL', color: SHEET_COLOR_LIGHT },
+    { key: 'liquidacion', label: 'LIQUIDACIÓN', color: SHEET_COLOR_DARK },
+    { key: 'comentarios', label: 'COMENTARIOS', color: SHEET_COLOR_LIGHT },
+  ],
+  documentos: [
+    { key: 'desarrollador', label: 'DESARROLLADOR', color: SHEET_COLOR_DARK },
+    { key: 'desarrollo', label: 'DESARROLLO', color: SHEET_COLOR_LIGHT },
+  ],
+  catalogos: [
+    { key: 'desarrollos', label: 'DESARROLLOS', color: SHEET_COLOR_DARK },
+    { key: 'ubicacion', label: 'UBICACIÓN', color: SHEET_COLOR_LIGHT },
+    { key: 'estructura', label: 'ESTRUCTURA', color: SHEET_COLOR_DARK },
+    { key: 'prospectos', label: 'PROSPECTOS', color: SHEET_COLOR_LIGHT },
+    { key: 'clientes', label: 'CLIENTES', color: SHEET_COLOR_DARK },
+  ],
+  usuarios: [
+    { key: 'informacion', label: 'INFORMACIÓN', color: SHEET_COLOR_DARK },
+    { key: 'acceso', label: 'ACCESO', color: SHEET_COLOR_LIGHT },
+  ],
+};
+
+/** Maps each field to its group key per section */
+const FIELD_TO_GROUP: Record<string, Record<string, string>> = {
+  desarrolladores: {
+    id: 'registro', tipo: 'registro', active: 'registro',
+    name: 'generales', razonSocial: 'generales', rfc: 'generales', domicilio: 'generales',
+    fechaAntiguedad: 'antiguedad', antiguedadDeclarada: 'antiguedad', antiguedad: 'antiguedad',
+    tipos: 'tipos',
+    contratos: 'contratos',
+    representante: 'contacto', contactName: 'contacto', contactPhone: 'contacto', contactEmail: 'contacto',
+    legales: 'legales',
+  },
+  desarrollos: {
+    id: 'registro', active: 'registro',
+    empresaTipo: 'empresa', developerId: 'empresa', name: 'empresa',
+    city: 'ubicacion', zone: 'ubicacion', zone2: 'ubicacion', zone3: 'ubicacion',
+    tipos: 'estructura', type: 'estructura', nivel: 'estructura', torres: 'estructura', niveles: 'estructura', vistas: 'estructura',
+    amenities: 'amenidades', efficiency: 'amenidades', otherFeatures: 'amenidades',
+    tamanoDesde: 'tamano', tamanoHasta: 'tamano', lockOff: 'tamano',
+    recDesde: 'distribucion', recHasta: 'distribucion', recamaras: 'distribucion', banos: 'distribucion', tipologiasList: 'distribucion',
+    redaccionValor: 'descripcion', acabados: 'descripcion',
+    depasM2: 'metros', localesM2: 'metros', oficinasM2: 'metros', saludM2: 'metros',
+    inicioPreventa: 'preventa', tiempoTransc: 'preventa', finPreventa: 'preventa',
+    depasUnidades: 'vendido', depasVendidas: 'vendido', depasPorcentaje: 'vendido',
+    localesUnidades: 'vendido', localesVendidas: 'vendido', localesPorcentaje: 'vendido',
+    oficinasUnidades: 'vendido', oficinasVendidas: 'vendido', oficinasPorcentaje: 'vendido',
+    saludUnidades: 'vendido', saludVendidas: 'vendido', saludPorcentaje: 'vendido',
+    inicioProyectado: 'obra', inicioReal: 'obra', entregaProyectada: 'obra', entregaActualizada: 'obra',
+    tipoContrato: 'contrato', cesionDerechos: 'contrato',
+    ventasNombre: 'ventas', ventasTelefono: 'ventas', ventasCorreo: 'ventas',
+    pagosNombre: 'pagos', pagosTelefono: 'pagos', pagosCorreo: 'pagos',
+    comercializacion: 'archivos', arquitectura: 'archivos', location: 'archivos', presentacion: 'archivos', legalesFolder: 'archivos', ventaFolder: 'archivos',
+  },
+  tipologias: {
+    id: 'registro', active: 'registro',
+    city: 'general', zone: 'general', developer: 'general', development: 'general',
+    type: 'departamento', level: 'departamento', view: 'departamento',
+    size: 'tamano', sizeFinal: 'tamano',
+    price: 'precio', hasDiscount: 'precio', discountPercent: 'precio', discountPercentValue: 'precio', discountAmount: 'precio', finalPrice: 'precio', pricePerM2: 'precio', hasSeedCapital: 'precio', hasPromo: 'precio', promoDescription: 'precio',
+    lockOff: 'distribucion', bedrooms: 'distribucion', bathrooms: 'distribucion', areas: 'distribucion', hasBalcony: 'distribucion', balconySize: 'distribucion', hasTerrace: 'distribucion', terraceSize: 'distribucion',
+    bedrooms2: 'lockoff', bathrooms2: 'lockoff', areas2: 'lockoff', hasBalcony2: 'lockoff', balconySize2: 'lockoff', hasTerrace2: 'lockoff', terraceSize2: 'lockoff',
+    parkingIncluded: 'estacionamiento', hasParkingOptional: 'estacionamiento', parkingOptionalPrice: 'estacionamiento',
+    hasStorage: 'bodega', storageSize: 'bodega', hasStorageOptional: 'bodega', storageSize2: 'bodega', storagePrice: 'bodega',
+    queIncluye: 'incluye',
+    initialPercent: 'enganche', initialAmount: 'enganche', duringConstructionPercent: 'enganche', duringConstructionAmount: 'enganche', paymentMonths: 'enganche', monthlyPayment: 'enganche', totalEnganche: 'enganche',
+    remainingPercent: 'entrega', deliveryDate: 'entrega', isaPercent: 'entrega', notaryPercent: 'entrega', equipmentCost: 'entrega', furnitureCost: 'entrega', totalPostDeliveryCosts: 'entrega',
+    mortgageAmount: 'hipoteca', mortgageStartDate: 'hipoteca', mortgageInterestPercent: 'hipoteca', mortgageYears: 'hipoteca', mortgageMonthlyPayment: 'hipoteca', mortgageEndDate: 'hipoteca', mortgageTotal: 'hipoteca',
+    maintenanceM2: 'mantenimiento', maintenanceInitial: 'mantenimiento', maintenanceStartDate: 'mantenimiento', maintenanceFinal: 'mantenimiento', maintenanceEndDate: 'mantenimiento', maintenanceTotal: 'mantenimiento',
+    rentInitial: 'renta', rentStartDate: 'renta', rentRatePercent: 'renta', rentFinal: 'renta', rentEndDate: 'renta', rentMonths: 'renta', rentTotal: 'renta',
+    investmentTotal: 'inversion', investmentNet: 'inversion', investmentMonthly: 'inversion', investmentRate: 'inversion',
+    appreciationRate: 'plusvalia', appreciationDays: 'plusvalia', appreciationMonths: 'plusvalia', appreciationYears: 'plusvalia', appreciationTotal: 'plusvalia', finalValue: 'plusvalia',
+  },
+  prospectos: {
+    active: 'registro', fecha: 'registro', hora: 'registro',
+    asesorId: 'asesor',
+    ciudad: 'ubicacion', zona: 'ubicacion',
+    desarrollador: 'unidad', desarrollo: 'unidad', tipologia: 'unidad',
+    nombre: 'prospecto', apellido: 'prospecto', telefono: 'prospecto', correo: 'prospecto',
+    tipofil: 'general', perfil: 'general', comoLlega: 'general', brokerExterno: 'general',
+    estatus: 'estatus', embudo: 'estatus',
+    comoPaga: 'pago',
+    positivos: 'comentarios', negativos: 'comentarios', comentarios: 'comentarios',
+    precioFinal: 'precio',
+    fechaSeparacion: 'separacion', separacion: 'separacion',
+    fechaEnganche: 'enganche', enganche: 'enganche',
+    plazoNumero: 'plazo', plazoMetro: 'plazo', plazoMensualidades: 'plazo', plazoMonto: 'plazo',
+  },
+  clientes: {
+    active: 'registro', fecha: 'registro', hora: 'registro',
+    asesorId: 'asesor',
+    nombre: 'cliente', apellido: 'cliente', telefono: 'cliente', correo: 'cliente',
+    embudo: 'general',
+    desarrollador: 'unidad', desarrollo: 'unidad', tipologia: 'unidad', precioFinal: 'unidad',
+    separacion: 'separacion', fechaSeparacion: 'separacion',
+    enganche: 'enganche', fechaEnganche: 'enganche',
+    tipofil: 'perfil', perfil: 'perfil', comoLlega: 'perfil', brokerExterno: 'perfil',
+    ciudad: 'ubicacion2', zona: 'ubicacion2',
+    plazoNumero: 'plazo', plazoMetro: 'plazo', plazoMensualidades: 'plazo', plazoMonto: 'plazo', plazoFechaFinal: 'plazo',
+    cajon: 'extras', precioCajon: 'extras', bodega: 'extras', precioBodega: 'extras',
+    precioTotal: 'total', porcentajeSeparacion: 'total', porcentajeEnganche: 'total', cajones: 'total', bodegas: 'total', papeleriaSeparacion: 'total', porcentajePlazo: 'total', plazoTotal: 'total', plazoFechaInicio: 'total',
+    escrituracion: 'liquidacion', fechaLiquidacion: 'liquidacion', papeleria: 'liquidacion',
+    comentarios: 'comentarios',
+  },
+  documentos: {
+    devIdentidad: 'desarrollador', devCorporativo: 'desarrollador', devConvenios: 'desarrollador',
+    desIdentidad: 'desarrollo', desCorporativo: 'desarrollo', desConvenios: 'desarrollo',
+  },
+  catalogos: {
+    tiposDesarrollos: 'desarrollos', tipoContrato: 'desarrollos', presentacion: 'desarrollos', tipoProveedor: 'desarrollos', tasasGlobales: 'desarrollos',
+    ciudades: 'ubicacion', zonas: 'ubicacion', avisos: 'ubicacion',
+    recamaras: 'estructura', banos: 'estructura', areas: 'estructura', cajones: 'estructura', incluye: 'estructura', amenidades: 'estructura', acabados: 'estructura', eficiencia: 'estructura', seguridad: 'estructura', nivel: 'estructura',
+    tipoCliente: 'prospectos', perfil: 'prospectos', fuente: 'prospectos', brokerExterno: 'prospectos', statusProspecto: 'prospectos', etapaEmbudo: 'prospectos', comoPaga: 'prospectos', positivos: 'prospectos', negativos: 'prospectos',
+    etapaClientes: 'clientes',
+  },
+  usuarios: {
+    name: 'informacion', username: 'informacion', email: 'informacion', password: 'informacion',
+    role: 'acceso', active: 'acceso', permissions: 'acceso',
+  },
+};
+
 // Mapping from documentos virtual fields to their real schema entries
 const DOCUMENTOS_FIELD_MAP: Record<string, { section: string; field: string }> = {
   devIdentidad: { section: 'documentosLegalesDesarrollador', field: 'identidad' },
@@ -393,53 +588,6 @@ function getSectionFieldNames(sectionKey: string): string[] {
   return [];
 }
 
-/** Role search popover — magnifying glass to jump to a role row */
-function RoleSearchPopover({
-  roles,
-  roleLabels,
-  onSelect,
-}: {
-  roles: string[];
-  roleLabels: Record<string, string>;
-  onSelect: (role: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const filtered = query.trim()
-    ? roles.filter(r => (roleLabels[r] || r).toLowerCase().includes(query.toLowerCase()))
-    : roles;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="p-1 rounded hover:bg-white/20 text-white" style={{ backgroundColor: SHEET_COLOR_DARK }}>
-          <Search className="w-3.5 h-3.5" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-48 p-2" align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
-        <input
-          className="w-full text-xs border rounded px-2 py-1 mb-2 outline-none focus:ring-1"
-          placeholder="Buscar rol..."
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          autoFocus
-        />
-        <div className="max-h-48 overflow-y-auto space-y-0.5">
-          {filtered.map(r => (
-            <button
-              key={r}
-              className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent"
-              onClick={() => { onSelect(r); setOpen(false); setQuery(""); }}
-            >
-              {roleLabels[r] || r}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 /** A single section's permission spreadsheet */
 function PermissionSectionGrid({
   sectionKey,
@@ -452,7 +600,8 @@ function PermissionSectionGrid({
   handlePermClick,
   handleActivoToggle,
   pendingUpdate,
-  highlightedRole,
+  customRoleKeys,
+  onDeleteRole,
 }: {
   sectionKey: string;
   fieldNames: string[];
@@ -464,16 +613,105 @@ function PermissionSectionGrid({
   handlePermClick: (section: string, field: string, role: string) => void;
   handleActivoToggle: (section: string, role: string) => void;
   pendingUpdate: string | null;
-  highlightedRole: string | null;
+  customRoleKeys: Set<string>;
+  onDeleteRole: (roleKey: string) => void;
 }) {
   const hasFields = fieldNames.length > 0;
   const totalWidth = ROLE_COL_W + (1 + fieldNames.length) * CELL_W;
 
+  // Compute group runs for ROW1 and per-field colors for ROW2
+  const columnGroups = SECTION_COLUMN_GROUPS[sectionKey] || [];
+  const fieldToGroup = FIELD_TO_GROUP[sectionKey] || {};
+
+  const { groupRuns, fieldGroupColors, soloFields } = useMemo(() => {
+    const groupLookup = Object.fromEntries(columnGroups.map(g => [g.key, g]));
+    const runs: { key: string; label: string; color: string; colspan: number }[] = [];
+    const colors: string[] = [];
+    // Track which field index each run starts at
+    const runStarts: number[] = [];
+    let currentGroup: string | null = null;
+
+    for (let i = 0; i < fieldNames.length; i++) {
+      const gKey = fieldToGroup[fieldNames[i]] || '';
+      const groupDef = groupLookup[gKey];
+      const color = groupDef?.color || SHEET_COLOR_DARK;
+
+      if (gKey === currentGroup && runs.length > 0) {
+        runs[runs.length - 1].colspan++;
+      } else {
+        runs.push({ key: gKey, label: groupDef?.label || '', color, colspan: 1 });
+        runStarts.push(i);
+        currentGroup = gKey;
+      }
+      colors.push(color);
+    }
+    // Build set of field indices that are alone in their group (colspan===1)
+    const solo = new Set<number>();
+    for (let r = 0; r < runs.length; r++) {
+      if (runs[r].colspan === 1) solo.add(runStarts[r]);
+    }
+    return { groupRuns: runs, fieldGroupColors: colors, soloFields: solo };
+  }, [fieldNames, columnGroups, fieldToGroup]);
+
+  const hasGroups = groupRuns.length > 0;
+  const headerTop = hasGroups ? ROW_H : 0;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Section groups for the search popover (label + pixel offset)
+  const sectionGroups = useMemo(() => {
+    const result: { label: string; offset: number; width: number }[] = [];
+    let offset = ROLE_COL_W + CELL_W; // after Rol + Activo
+    for (const run of groupRuns) {
+      const width = run.colspan * CELL_W;
+      if (run.label) {
+        result.push({ label: run.label, offset, width });
+      }
+      offset += width;
+    }
+    return result;
+  }, [groupRuns]);
+
   return (
-    <div className="overflow-x-auto flex-1">
+    <div className="overflow-x-auto flex-1" ref={scrollRef}>
       <div style={{ minWidth: hasFields ? totalWidth : ROLE_COL_W + CELL_W }}>
-        {/* Column header row */}
-        <div className="flex sticky top-0 z-20" style={{ height: ROW_H }}>
+        {/* ROW1: Group headers */}
+        {hasGroups && (
+          <div className="flex sticky top-0 z-20" style={{ height: ROW_H }}>
+            {/* Rol corner with section search */}
+            <div
+              data-sticky-corner
+              className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
+              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
+            </div>
+            {/* Activo spacer */}
+            <div
+              className="flex-shrink-0"
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+            />
+            {/* Group spans */}
+            {groupRuns.map((group, i) => (
+              <div
+                key={`group-${i}-${group.key}`}
+                data-section-group={group.label || undefined}
+                className="flex-shrink-0 flex items-center justify-center font-semibold text-[10px] text-white uppercase tracking-wide"
+                style={{
+                  width: group.colspan * CELL_W,
+                  minWidth: group.colspan * CELL_W,
+                  height: ROW_H,
+                  backgroundColor: group.color,
+                  borderRight: '1px solid rgba(255,255,255,0.15)',
+                }}
+              >
+                {group.label}
+              </div>
+            ))}
+          </div>
+        )}
+        {/* ROW2: Column header row */}
+        <div className="flex sticky z-20" style={{ height: ROW_H, top: headerTop }}>
           <div
             className="flex-shrink-0 sticky left-0 z-30 flex items-center font-semibold text-xs text-white px-3"
             style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)' }}
@@ -487,14 +725,16 @@ function PermissionSectionGrid({
           >
             Activo
           </div>
-          {/* Field column headers */}
+          {/* Field column headers — hide label when group has only 1 column (shown in ROW1) */}
           {fieldNames.map((field, i) => (
             <div
               key={`hdr-${field}`}
               className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
-              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: i % 2 === 0 ? SHEET_COLOR_LIGHT : SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: fieldGroupColors[i] || SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
             >
-              <span className="truncate px-1">{fieldLabels[field] || field}</span>
+              {!soloFields.has(i) && (
+                <span className="truncate px-1">{fieldLabels[field] || field}</span>
+              )}
             </div>
           ))}
         </div>
@@ -502,7 +742,7 @@ function PermissionSectionGrid({
         {/* Data rows */}
         {roles.map((role, rowIdx) => {
           const active = isSectionActive(sectionKey, role);
-          const isHighlighted = highlightedRole === role;
+          const isHighlighted = false;
           return (
             <div
               key={role}
@@ -516,10 +756,18 @@ function PermissionSectionGrid({
             >
               {/* Role name (sticky) */}
               <div
-                className="flex-shrink-0 sticky left-0 z-10 flex items-center font-medium text-xs px-3 border-b border-r border-gray-200"
+                className="flex-shrink-0 sticky left-0 z-10 flex items-center font-medium text-xs px-3 border-b border-r border-gray-200 group/role"
                 style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: isHighlighted ? '#dbeafe' : (rowIdx % 2 === 0 ? '#ffffff' : '#f9fafb') }}
               >
-                {roleLabels[role] || role}
+                <span className="truncate flex-1">{roleLabels[role] || role}</span>
+                {customRoleKeys.has(role) && (
+                  <button
+                    className="hidden group-hover/role:flex items-center justify-center w-4 h-4 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 flex-shrink-0"
+                    onClick={() => onDeleteRole(role)}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </div>
 
               {/* Activo cell */}
@@ -574,7 +822,6 @@ export function RolesPermissionsView() {
   const [pendingUpdate, setPendingUpdate] = useState<string | null>(null);
   const [newRoleDialogOpen, setNewRoleDialogOpen] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
-  const [highlightedRole, setHighlightedRole] = useState<string | null>(null);
 
   // Fetch data
   const { data: customPermissions = [] } = useQuery<RolePermission[]>({
@@ -633,11 +880,26 @@ export function RolesPermissionsView() {
     },
   });
 
+  const deleteRoleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest('DELETE', `/api/custom-roles/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/custom-roles'] });
+      toast({ title: "Rol eliminado" });
+    },
+    onError: () => {
+      toast({ title: "Error al eliminar rol", variant: "destructive" });
+    },
+  });
+
   // All roles = built-in + custom
   const allRoles = useMemo(() => {
     const customKeys = customRolesData.filter(r => r.active).map(r => r.key);
     return [...BUILT_IN_ROLES, ...customKeys];
   }, [customRolesData]);
+
+  const customRoleKeys = useMemo(() => new Set(customRolesData.filter(r => r.active).map(r => r.key)), [customRolesData]);
 
   const allRoleLabels = useMemo(() => {
     const labels = { ...ROLE_LABELS };
@@ -706,14 +968,10 @@ export function RolesPermissionsView() {
     updateAccessMutation.mutate({ section, role, active: !currentlyActive });
   }, [isSectionActive, updateAccessMutation]);
 
-  const handleRoleSearch = useCallback((role: string) => {
-    setHighlightedRole(role);
-    setTimeout(() => {
-      const el = document.getElementById(`perm-role-${activeTab}-${role}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 50);
-    setTimeout(() => setHighlightedRole(null), 2000);
-  }, [activeTab]);
+  const handleDeleteRole = useCallback((roleKey: string) => {
+    const role = customRolesData.find(r => r.key === roleKey);
+    if (role) deleteRoleMutation.mutate(role.id);
+  }, [customRolesData, deleteRoleMutation]);
 
   // Available sections
   const availableSections = useMemo(() => {
@@ -726,18 +984,17 @@ export function RolesPermissionsView() {
       {/* Toolbar */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b gap-2">
         <div className="flex items-center gap-2">
-          <RoleSearchPopover roles={allRoles} roleLabels={allRoleLabels} onSelect={handleRoleSearch} />
-          <div className="flex items-center gap-3 text-xs ml-2">
+          <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: '#dcfce7' }} />
+              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: '#4ade80' }} />
               <span className="text-muted-foreground">Editar</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: '#fef3c7' }} />
+              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: '#fbbf24' }} />
               <span className="text-muted-foreground">Ver</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: '#fee2e2' }} />
+              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: '#f87171' }} />
               <span className="text-muted-foreground">Sin Acceso</span>
             </div>
           </div>
@@ -782,7 +1039,8 @@ export function RolesPermissionsView() {
                 handlePermClick={handlePermClick}
                 handleActivoToggle={handleActivoToggle}
                 pendingUpdate={pendingUpdate}
-                highlightedRole={highlightedRole}
+                customRoleKeys={customRoleKeys}
+                onDeleteRole={handleDeleteRole}
               />
             </TabsContent>
           );
