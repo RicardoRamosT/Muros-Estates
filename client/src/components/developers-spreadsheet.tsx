@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -31,12 +32,11 @@ import { ColumnFilter, useColumnFilters, type SortDirection, type FilterState } 
 import { useAuth } from "@/lib/auth";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
-import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
+import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
-import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
 import type { Developer, Development } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -408,13 +408,15 @@ export function DevelopersSpreadsheet() {
     }
     const pending = pendingChangesRef.current;
     if (pending.size === 0) return;
+    const sessionId = localStorage.getItem("muros_session");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
     const promises: Promise<any>[] = [];
     pending.forEach((changes, id) => {
       if (!changes || Object.keys(changes).length === 0) return;
       promises.push(fetch(`/api/developers/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers,
         body: JSON.stringify(changes),
         keepalive: true,
       }));
@@ -834,27 +836,66 @@ export function DevelopersSpreadsheet() {
 
   return (
     <div className="flex flex-col h-full" data-testid="developers-spreadsheet">
-      <SpreadsheetToolbar
-        icon={<Briefcase className="w-4 h-4 text-primary" />}
-        title="Desarrolladores"
-        entityCount={filteredAndSortedData.length}
-        entityLabel="desarrolladores"
-        hasCollapsedItems={collapsedGroups.size > 0 || collapsedColumns.size > 0}
-        onExpandAll={() => {
-          setCollapsedGroups(new Set());
-          setCollapsedColumns(new Set());
-        }}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearAllFilters}
-        pendingRowCount={pendingRowCount}
-        isSaving={isSaving}
-        saveFlash={saveFlash}
-        onSave={saveAllPending}
-        saveTestId="button-save-pending-developers"
-        onCreateNew={hasFullAccess ? handleCreateNew : undefined}
-        createDisabled={createMutation.isPending}
-        createTestId="button-add-developer"
-      />
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
+        <div className="flex items-center gap-2">
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrolladores</h1>
+          {!hasFullAccess && (
+            <Badge variant="outline" className="text-xs">
+              <Eye className="w-3 h-3 mr-1" />
+              Solo lectura
+            </Badge>
+          )}
+          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCollapsedGroups(new Set());
+                setCollapsedColumns(new Set());
+              }}
+              title="Expandir todo"
+              data-testid="button-expand-all"
+            >
+              <Maximize2 className="w-3 h-3 mr-1" />
+              Expandir
+            </Button>
+          )}
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearAllFilters}
+            >
+              <X className="w-3 h-3 mr-1" />
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrolladores</span>
+          <Button
+            onClick={saveAllPending}
+            size="sm"
+            disabled={pendingRowCount === 0 || isSaving}
+            className={cn(
+              "transition-all duration-300",
+              pendingRowCount > 0 && !isSaving && "save-electric-btn",
+              saveFlash ? "text-white shadow-lg scale-105" : "text-white"
+            )}
+            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
+            data-testid="button-save-pending-developers"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
+          </Button>
+          {hasFullAccess && (
+            <Button size="sm" onClick={handleCreateNew} disabled={createMutation.isPending} data-testid="button-add-developer">
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
+            </Button>
+          )}
+        </div>
+      </div>
       
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
@@ -944,7 +985,17 @@ export function DevelopersSpreadsheet() {
                     </div>
                   );
                 }
-                
+
+                if (collapsedColumns.has(col.key)) {
+                  return (
+                    <div
+                      key={field}
+                      className="spreadsheet-cell flex-shrink-0"
+                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...inactiveCellStyle }}
+                    />
+                  );
+                }
+
                 if (col.type === 'date-display') {
                   return (
                     <div key={field} className={cn("spreadsheet-cell flex-shrink-0 px-1 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${field}-${dev.id}`}>
@@ -994,16 +1045,6 @@ export function DevelopersSpreadsheet() {
                   const groupDef = groupLookupMap[col.group || ''];
                   return (
                     <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: isRowInactive ? '#9ca3af' : (groupDef?.color ? `${groupDef.color}22` : '#f3f4f6') }} />
-                  );
-                }
-
-                if (collapsedColumns.has(col.key)) {
-                  return (
-                    <div
-                      key={field}
-                      className="spreadsheet-cell flex-shrink-0"
-                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, ...inactiveCellStyle }}
-                    />
                   );
                 }
 
@@ -1185,7 +1226,7 @@ export function DevelopersSpreadsheet() {
                 
                 if (col.type === 'actions') {
                   return (
-                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={field} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       {hasFullAccess && (
                         <Dialog open={deleteId === dev.id} onOpenChange={(open) => !open && setDeleteId(null)}>
                           <DialogTrigger asChild>

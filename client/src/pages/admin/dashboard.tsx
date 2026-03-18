@@ -176,7 +176,6 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-3">
         <div className="flex items-center gap-2 mb-3">
-          <LayoutDashboard className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Dashboard</h1>
         </div>
 

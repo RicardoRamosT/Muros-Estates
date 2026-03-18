@@ -5,7 +5,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ColumnFilter } from "@/components/ui/column-filter";
 import type { FilterState, SortDirection } from "@/components/ui/column-filter";
 import {
-  SHEET_COLOR_DARK,
   SHEET_COLOR_LIGHT,
   type SpreadsheetColumnDef,
   type SpreadsheetColumnGroup,
@@ -289,12 +288,12 @@ export function SpreadsheetHeader({
         </div>
         {(() => {
           const items: JSX.Element[] = [];
-          let runningColIdx = 0;
           for (const col of visibleColumns) {
             if (col.group === 'corner') continue;
             if (col.type === 'group-collapsed') {
               const groupDef = groupLookupMap[col.group || ''];
               const bg = groupDef?.color || '#9ca3af';
+              const groupLabel = groupDef?.label || col.group || '';
               items.push(
                 <div
                   key={`r2-${col.key}`}
@@ -302,7 +301,6 @@ export function SpreadsheetHeader({
                   style={{ width: 30, minWidth: 30, height: 32, backgroundColor: bg, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                 />
               );
-              runningColIdx++;
               continue;
             }
             const groupDef = groupLookupMap[col.group || ''];
@@ -327,7 +325,6 @@ export function SpreadsheetHeader({
                   </TooltipContent>
                 </Tooltip>
               );
-              runningColIdx++;
               continue;
             }
 
@@ -335,7 +332,6 @@ export function SpreadsheetHeader({
               <div
                 key={`r2-${col.key}`}
                 className="font-medium text-xs flex items-center justify-between flex-shrink-0 overflow-hidden"
-                title={col.label}
                 style={{
                   width: col.width, minWidth: col.width, height: 32,
                   backgroundColor: isColored ? groupColor : '#d1d5db',
@@ -360,7 +356,6 @@ export function SpreadsheetHeader({
                 )}
               </div>
             );
-            runningColIdx++;
           }
           return items;
         })()}
@@ -402,7 +397,6 @@ export function SpreadsheetHeader({
         </div>
         {(() => {
           const items: (JSX.Element | null)[] = [];
-          let runningColIdx = 0;
           for (const col of visibleColumns) {
             if (col.group === 'corner') { items.push(null); continue; }
             if (col.type === 'group-collapsed') {
@@ -415,7 +409,6 @@ export function SpreadsheetHeader({
                   style={{ width: 30, minWidth: 30, height: 24, backgroundColor: gcColor, borderRight: '1px solid rgba(255,255,255,0.15)' }}
                 />
               );
-              runningColIdx++;
               continue;
             }
             const groupDef = groupLookupMap[col.group || ''];
@@ -430,7 +423,6 @@ export function SpreadsheetHeader({
                   style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, height: 24, backgroundColor: groupColor, borderRight: '1px solid rgba(255,255,255,0.15)' }}
                 />
               );
-              runningColIdx++;
               continue;
             }
 
@@ -466,7 +458,6 @@ export function SpreadsheetHeader({
                 )}
               </div>
             );
-            runningColIdx++;
           }
           return items;
         })()}

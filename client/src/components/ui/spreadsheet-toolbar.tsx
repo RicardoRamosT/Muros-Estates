@@ -3,7 +3,6 @@ import { Plus, Loader2, X, Save, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SpreadsheetToolbarProps {
-  icon: React.ReactNode;
   title: string;
   entityCount: number;
   entityLabel: string;
@@ -29,7 +28,6 @@ interface SpreadsheetToolbarProps {
 }
 
 export function SpreadsheetToolbar({
-  icon,
   title,
   entityCount,
   entityLabel,
@@ -51,7 +49,6 @@ export function SpreadsheetToolbar({
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b bg-background sticky top-0 z-10">
       <div className="flex items-center gap-2">
-        {icon}
         <h1 className="text-sm font-bold" data-testid="text-page-title">{title}</h1>
         {hasCollapsedItems && (
           <Button

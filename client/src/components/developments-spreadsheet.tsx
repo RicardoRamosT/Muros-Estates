@@ -30,7 +30,6 @@ import { DEVELOPMENT_TYPES } from "@shared/constants";
 import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
-import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
 import { cn } from "@/lib/utils";
 
 function parsePhoneList(raw: string | null | undefined): string[] {
@@ -807,13 +806,15 @@ export function DevelopmentsSpreadsheet() {
     }
     const pending = pendingChangesRef.current;
     if (pending.size === 0) return;
+    const sessionId = localStorage.getItem("muros_session");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
     const promises: Promise<any>[] = [];
     pending.forEach((changes, id) => {
       if (!changes || Object.keys(changes).length === 0) return;
       promises.push(fetch(`/api/developments-entity/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers,
         body: JSON.stringify(changes),
         keepalive: true,
       }));
@@ -1133,27 +1134,61 @@ export function DevelopmentsSpreadsheet() {
 
   return (
     <div className="h-full flex flex-col" data-testid="developments-spreadsheet">
-      <SpreadsheetToolbar
-        icon={<Building className="w-4 h-4 text-primary" />}
-        title="Desarrollos"
-        entityCount={filteredAndSortedData.length}
-        entityLabel="desarrollos"
-        hasCollapsedItems={collapsedGroups.size > 0 || collapsedColumns.size > 0}
-        onExpandAll={() => {
-          setCollapsedGroups(new Set());
-          setCollapsedColumns(new Set());
-        }}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearAllFilters}
-        pendingRowCount={pendingRowCount}
-        isSaving={isSaving}
-        saveFlash={saveFlash}
-        onSave={saveAllPending}
-        saveTestId="button-save-pending-developments"
-        onCreateNew={hasFullAccess ? handleCreateNew : undefined}
-        createDisabled={createMutation.isPending}
-        createTestId="button-add-development"
-      />
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
+        <div className="flex items-center gap-2">
+          <h1 className="text-sm font-bold" data-testid="text-page-title">Desarrollos</h1>
+
+          {(collapsedGroups.size > 0 || collapsedColumns.size > 0) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCollapsedGroups(new Set());
+                setCollapsedColumns(new Set());
+              }}
+              title="Expandir todo"
+              data-testid="button-expand-all"
+            >
+              <Maximize2 className="w-3 h-3 mr-1" />
+              Expandir
+            </Button>
+          )}
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearAllFilters}
+            >
+              <X className="w-3 h-3 mr-1" />
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} desarrollos</span>
+          <Button
+            onClick={saveAllPending}
+            size="sm"
+            disabled={pendingRowCount === 0 || isSaving}
+            className={cn(
+              "transition-all duration-300",
+              pendingRowCount > 0 && !isSaving && "save-electric-btn",
+              saveFlash ? "text-white shadow-lg scale-105" : "text-white"
+            )}
+            style={saveFlash ? { backgroundColor: "rgb(255, 181, 73)", borderColor: "rgb(255, 181, 73)" } : undefined}
+            data-testid="button-save-pending-developments"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+            Guardar{pendingRowCount > 1 ? ` (${pendingRowCount})` : ""}
+          </Button>
+          {hasFullAccess && (
+            <Button onClick={handleCreateNew} size="sm" disabled={createMutation.isPending} data-testid="button-add-development">
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
+            </Button>
+          )}
+        </div>
+      </div>
 
       <div ref={contentScrollRef} className="flex-1 overflow-auto spreadsheet-scroll">
         <div className="min-w-max text-xs" style={zoomLevel !== 100 ? { zoom: zoomLevel / 100 } : undefined}>
@@ -1244,6 +1279,16 @@ export function DevelopmentsSpreadsheet() {
                   );
                 }
 
+                if (collapsedColumns.has(col.key)) {
+                  return (
+                    <div
+                      key={col.key}
+                      className="spreadsheet-cell flex-shrink-0"
+                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, backgroundColor: isRowInactive ? '#9ca3af' : '#ffffff' }}
+                    />
+                  );
+                }
+
                 if (col.type === 'date-display') {
                   return (
                     <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input" }))} style={{ width: col.width, minWidth: col.width, cursor: 'default', ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
@@ -1263,16 +1308,6 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'group-collapsed') {
                   return (
                     <div key={col.key} className="spreadsheet-cell flex-shrink-0 border-r border-b" style={{ width: '30px', minWidth: '30px', backgroundColor: isRowInactive ? '#9ca3af' : '#ffffff' }} />
-                  );
-                }
-
-                if (collapsedColumns.has(col.key)) {
-                  return (
-                    <div
-                      key={col.key}
-                      className="spreadsheet-cell flex-shrink-0"
-                      style={{ width: COLLAPSED_COL_WIDTH, minWidth: COLLAPSED_COL_WIDTH, backgroundColor: isRowInactive ? '#9ca3af' : '#ffffff' }}
-                    />
                   );
                 }
 
@@ -2190,7 +2225,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'actions') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "actions" }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
                       <Button
                         variant="ghost"
                         size="icon"

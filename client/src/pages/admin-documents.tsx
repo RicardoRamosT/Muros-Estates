@@ -24,10 +24,8 @@ import {
   Trash2, 
   ChevronRight, 
   Home, 
-  Search,
   Plus,
   Users,
-  Building2,
   FolderOpen,
   File,
   Image,
@@ -35,7 +33,6 @@ import {
   FileVideo,
   Loader2,
   Share2,
-  Briefcase,
   ArrowLeft,
   Link,
   Copy,
@@ -628,82 +625,16 @@ export default function AdminDocuments() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="flex items-center justify-between px-3 py-3 border-b bg-background">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b bg-background">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary" />
           <h1 className="text-sm font-bold" data-testid="text-page-title">Documentos</h1>
         </div>
       </div>
-      <div className="container mx-auto px-4 py-1.5 space-y-3">
-        <div className="flex items-center justify-end gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar documentos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-64"
-                data-testid="input-search"
-              />
-            </div>
-            
-            {canEdit && (
-              <>
-                {(sectionType || selectedTypologyId || (activeTab === "clientes" && selectedClientId) || activeTab === "trabajo") && (
-                  <Button 
-                    variant="outline" 
-                    className="gap-2" 
-                    onClick={() => {
-                      setGeneratedLink(null);
-                      setShareForm({
-                        canView: true,
-                        canUpload: false,
-                        isPermanent: false,
-                        expiresInDays: 7,
-                        description: "",
-                        requestedDocuments: [],
-                      });
-                      setShareDialogOpen(true);
-                    }}
-                    data-testid="button-share"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Compartir
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setSharedLinksViewOpen(true)}
-                  data-testid="button-view-links"
-                >
-                  <Link className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="desarrolladores" className="gap-2" data-testid="tab-desarrolladores">
-              <Building2 className="w-4 h-4" />
-              Desarrolladores
-            </TabsTrigger>
-            <TabsTrigger value="clientes" className="gap-2" data-testid="tab-clientes">
-              <Users className="w-4 h-4" />
-              Clientes
-            </TabsTrigger>
-            <TabsTrigger value="trabajo" className="gap-2" data-testid="tab-trabajo">
-              <Briefcase className="w-4 h-4" />
-              De Trabajo
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Breadcrumb and back button */}
-          {showBackButton && (
-            <div className="flex items-center gap-2 mb-4">
+      {showBackButton ? (
+        <div className="px-3 py-1.5">
+          {/* Toolbar with back button and action buttons */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={goBack} data-testid="button-back">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Atrás
@@ -720,10 +651,46 @@ export default function AdminDocuments() {
                 ))}
               </div>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              {canEdit && (
+                <>
+                  {(sectionType || selectedTypologyId || (activeTab === "clientes" && selectedClientId) || activeTab === "trabajo") && (
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => {
+                        setGeneratedLink(null);
+                        setShareForm({
+                          canView: true,
+                          canUpload: false,
+                          isPermanent: false,
+                          expiresInDays: 7,
+                          description: "",
+                          requestedDocuments: [],
+                        });
+                        setShareDialogOpen(true);
+                      }}
+                      data-testid="button-share"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Compartir
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSharedLinksViewOpen(true)}
+                    data-testid="button-view-links"
+                  >
+                    <Link className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
 
-          {/* Desarrolladores Tab */}
-          <TabsContent value="desarrolladores">
+          {/* Drilled-in view */}
+          {activeTab === "desarrolladores" && (
             <DesarrolladoresView
               developers={developers}
               developments={filteredDevelopments}
@@ -747,10 +714,8 @@ export default function AdminDocuments() {
               onUpdateTypologyName={(id, name) => updateTypologyNameMutation.mutate({ id, type: name })}
               userRole={user?.role || ''}
             />
-          </TabsContent>
-
-          {/* Clientes Tab */}
-          <TabsContent value="clientes">
+          )}
+          {activeTab === "clientes" && (
             <ClientesView
               clients={clients}
               documents={filteredDocs}
@@ -765,10 +730,8 @@ export default function AdminDocuments() {
               user={user}
               onUpload={openUploadDialog}
             />
-          </TabsContent>
-
-          {/* De Trabajo Tab */}
-          <TabsContent value="trabajo">
+          )}
+          {activeTab === "trabajo" && (
             <TrabajoView
               documents={filteredDocs}
               selectedSection={selectedSection}
@@ -779,10 +742,78 @@ export default function AdminDocuments() {
               isLoading={loadingDocs}
               onUpload={openUploadDialog}
             />
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-6 px-3 py-3">
+          {/* Desarrolladores column */}
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">Desarrolladores</h3>
+            <div className="border rounded-md divide-y">
+              {developers.map(dev => (
+                <div
+                  key={dev.id}
+                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => { setActiveTab("desarrolladores"); setSelectedDeveloperId(dev.id); }}
+                  data-testid={`folder-developer-${dev.id}`}
+                >
+                  <span className="font-medium text-sm flex-1 truncate">{dev.name}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                </div>
+              ))}
+              {developers.length === 0 && (
+                <p className="text-muted-foreground text-center py-8 text-sm">No hay desarrolladores</p>
+              )}
+            </div>
+          </div>
 
-        {/* Upload Dialog */}
+          {/* Clientes column */}
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">Clientes</h3>
+            <div className="border rounded-md divide-y">
+              {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).map(client => (
+                <div
+                  key={client.id}
+                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => { setActiveTab("clientes"); setSelectedClientId(client.id); }}
+                  data-testid={`folder-client-${client.id}`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm truncate block">{client.nombre} {client.apellido || ''}</span>
+                    {client.correo && (
+                      <span className="text-xs text-muted-foreground truncate block">{client.correo}</span>
+                    )}
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                </div>
+              ))}
+              {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).length === 0 && (
+                <p className="text-muted-foreground text-center py-8 text-sm">No hay clientes</p>
+              )}
+            </div>
+          </div>
+
+          {/* De Trabajo column */}
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">De Trabajo</h3>
+            <div className="border rounded-md divide-y">
+              {DOCUMENT_SECTIONS.workFolders.map(section => (
+                <div
+                  key={section}
+                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => { setActiveTab("trabajo"); setSelectedSection(section); }}
+                  data-testid={`folder-work-${section}`}
+                >
+                  <span className="font-medium text-sm flex-1">{SECTION_LABELS[section]}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -955,7 +986,7 @@ export default function AdminDocuments() {
                       </SelectTrigger>
                       <SelectContent>
                         {clients.map(client => (
-                          <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                          <SelectItem key={client.id} value={client.id}>{client.nombre} {client.apellido || ''}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1067,7 +1098,7 @@ export default function AdminDocuments() {
                       )}
                       {activeTab === "clientes" && (
                         <>
-                          {selectedClientId ? clients.find(c => c.id === selectedClientId)?.name : "Todos los clientes"}
+                          {selectedClientId ? (() => { const c = clients.find(c => c.id === selectedClientId); return c ? `${c.nombre} ${c.apellido || ''}`.trim() : ''; })() : "Todos los clientes"}
                           {selectedSection && ` > ${SECTION_LABELS[selectedSection]}`}
                         </>
                       )}
@@ -1403,7 +1434,6 @@ export default function AdminDocuments() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }
@@ -1483,22 +1513,20 @@ function DesarrolladoresView({
   // Level 1: Show developers
   if (!selectedDeveloperId) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="border rounded-md divide-y max-w-md">
         {developers.map(dev => (
-          <Card 
-            key={dev.id} 
-            className="cursor-pointer hover-elevate"
+          <div
+            key={dev.id}
+            className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => onSelectDeveloper(dev.id)}
             data-testid={`folder-developer-${dev.id}`}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2">
-              <Building2 className="w-12 h-12 text-amber-500" />
-              <span className="font-medium text-center">{dev.name}</span>
-            </CardContent>
-          </Card>
+            <span className="font-medium text-sm flex-1 truncate">{dev.name}</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
         ))}
         {developers.length === 0 && (
-          <p className="text-muted-foreground col-span-full text-center py-8">
+          <p className="text-muted-foreground text-center py-8">
             No hay desarrolladores registrados
           </p>
         )}
@@ -1509,51 +1537,42 @@ function DesarrolladoresView({
   // Level 2: Show developer legales folder + developments
   if (!selectedDevelopmentId && !sectionType) {
     return (
-      <div className="space-y-6">
+      <div className="border rounded-md divide-y max-w-md">
         {/* Legales section at developer level */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Documentos del Desarrollador</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card 
-              className="cursor-pointer hover-elevate"
-              onClick={() => {
-                onSelectSectionType("legales");
-                onSelectSection("identidad");
-              }}
-              data-testid="folder-developer-legales"
-            >
-              <CardContent className="p-4 flex flex-col items-center gap-2">
-                <FileText className="w-12 h-12 text-primary" />
-                <span className="font-medium">Legales</span>
-              </CardContent>
-            </Card>
-          </div>
+        <div
+          className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => {
+            onSelectSectionType("legales");
+            onSelectSection("identidad");
+          }}
+          data-testid="folder-developer-legales"
+        >
+          <span className="font-medium text-sm flex-1">Legales</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </div>
-        
-        {/* Developments list */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Desarrollos</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {developments.map(dev => (
-              <Card 
-                key={dev.id} 
-                className="cursor-pointer hover-elevate"
-                onClick={() => onSelectDevelopment(dev.id)}
-                data-testid={`folder-development-${dev.id}`}
-              >
-                <CardContent className="p-4 flex flex-col items-center gap-2">
-                  <FolderOpen className="w-12 h-12 text-blue-500" />
-                  <span className="font-medium text-center">{dev.name}</span>
-                </CardContent>
-              </Card>
-            ))}
-            {developments.length === 0 && (
-              <p className="text-muted-foreground col-span-full text-center py-8">
-                No hay desarrollos para este desarrollador
-              </p>
-            )}
+
+        {/* Developments */}
+        {developments.length > 0 && (
+          <div className="px-3 py-1.5 bg-muted/30">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Desarrollos</span>
           </div>
-        </div>
+        )}
+        {developments.map(dev => (
+          <div
+            key={dev.id}
+            className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => onSelectDevelopment(dev.id)}
+            data-testid={`folder-development-${dev.id}`}
+          >
+            <span className="font-medium text-sm flex-1 truncate">{dev.name}</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
+        ))}
+        {developments.length === 0 && (
+          <p className="text-muted-foreground text-center py-8">
+            No hay desarrollos para este desarrollador
+          </p>
+        )}
       </div>
     );
   }
@@ -1627,101 +1646,88 @@ function DesarrolladoresView({
   // Level 3: Show typologies + Legales/Venta sections for development
   if (!selectedTypologyId && !sectionType) {
     return (
-      <div className="space-y-6">
+      <div className="border rounded-md divide-y max-w-md">
         {/* Legales and Venta sections for development level */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Documentos del Desarrollo</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card 
-              className="cursor-pointer hover-elevate"
-              onClick={() => {
-                onSelectSectionType("legales");
-                onSelectSection("identidad");
-              }}
-              data-testid="folder-legales"
-            >
-              <CardContent className="p-4 flex flex-col items-center gap-2">
-                <FileText className="w-12 h-12 text-primary" />
-                <span className="font-medium">Legales</span>
-              </CardContent>
-            </Card>
-            <Card 
-              className="cursor-pointer hover-elevate"
-              onClick={() => {
-                onSelectSectionType("venta");
-                onSelectSection("imagenes");
-              }}
-              data-testid="folder-venta"
-            >
-              <CardContent className="p-4 flex flex-col items-center gap-2">
-                <FileText className="w-12 h-12 text-purple-600" />
-                <span className="font-medium">Venta</span>
-              </CardContent>
-            </Card>
-          </div>
+        <div
+          className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => {
+            onSelectSectionType("legales");
+            onSelectSection("identidad");
+          }}
+          data-testid="folder-legales"
+        >
+          <span className="font-medium text-sm flex-1">Legales</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </div>
-        
+        <div
+          className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => {
+            onSelectSectionType("venta");
+            onSelectSection("imagenes");
+          }}
+          data-testid="folder-venta"
+        >
+          <span className="font-medium text-sm flex-1">Venta</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+        </div>
+
         {/* Typologies */}
         {typologies.length > 0 && (
-          <div>
-            <h3 className="text-lg font-medium mb-3">Tipologías</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {typologies.map(typ => (
-                <Card 
-                  key={typ.id} 
-                  className="cursor-pointer hover-elevate"
-                  onClick={() => {
-                    if (editingTypologyId !== typ.id) {
-                      onSelectTypology(typ.id);
-                      onSelectSection("imagenes");
-                    }
-                  }}
-                  data-testid={`folder-typology-${typ.id}`}
-                >
-                  <CardContent className="p-4 flex flex-col items-center gap-2">
-                    <Folder className="w-12 h-12 text-amber-400" />
-                    {editingTypologyId === typ.id ? (
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        <Input
-                          value={editingTypologyName}
-                          onChange={(e) => setEditingTypologyName(e.target.value)}
-                          className="h-7 w-24 text-sm text-center"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") saveTypologyName(e as any);
-                            if (e.key === "Escape") cancelEditingTypology(e as any);
-                          }}
-                          data-testid={`input-typology-name-${typ.id}`}
-                        />
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={saveTypologyName} data-testid={`button-save-typology-${typ.id}`}>
-                          <Check className="w-4 h-4 text-green-600" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEditingTypology} data-testid={`button-cancel-typology-${typ.id}`}>
-                          <X className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium text-center">{`Tipo ${typ.type || typ.id.substring(0, 8)}...`}</span>
-                        {canEdit && (
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-6 w-6"
-                            onClick={(e) => startEditingTypology(typ, e)}
-                            data-testid={`button-edit-typology-${typ.id}`}
-                          >
-                            <Pencil className="w-3 h-3 text-muted-foreground" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <div className="px-3 py-1.5 bg-muted/30">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipologías</span>
           </div>
         )}
+        {typologies.map(typ => (
+          <div
+            key={typ.id}
+            className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => {
+              if (editingTypologyId !== typ.id) {
+                onSelectTypology(typ.id);
+                onSelectSection("imagenes");
+              }
+            }}
+            data-testid={`folder-typology-${typ.id}`}
+          >
+            {editingTypologyId === typ.id ? (
+              <div className="flex items-center gap-1 flex-1" onClick={(e) => e.stopPropagation()}>
+                <Input
+                  value={editingTypologyName}
+                  onChange={(e) => setEditingTypologyName(e.target.value)}
+                  className="h-7 w-32 text-sm"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveTypologyName(e as any);
+                    if (e.key === "Escape") cancelEditingTypology(e as any);
+                  }}
+                  data-testid={`input-typology-name-${typ.id}`}
+                />
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={saveTypologyName} data-testid={`button-save-typology-${typ.id}`}>
+                  <Check className="w-4 h-4 text-green-600" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEditingTypology} data-testid={`button-cancel-typology-${typ.id}`}>
+                  <X className="w-4 h-4 text-red-600" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <span className="font-medium text-sm flex-1 truncate">{`Tipo ${typ.type || typ.id.substring(0, 8)}...`}</span>
+                {canEdit && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 shrink-0"
+                    onClick={(e) => startEditingTypology(typ, e)}
+                    data-testid={`button-edit-typology-${typ.id}`}
+                  >
+                    <Pencil className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                )}
+              </>
+            )}
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -2013,25 +2019,25 @@ function ClientesView({
   // Level 1: Show clients
   if (!selectedClientId) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="border rounded-md divide-y max-w-md">
         {visibleClients.map(client => (
-          <Card 
-            key={client.id} 
-            className="cursor-pointer hover-elevate"
+          <div
+            key={client.id}
+            className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => onSelectClient(client.id)}
             data-testid={`folder-client-${client.id}`}
           >
-            <CardContent className="p-4 flex flex-col items-center gap-2">
-              <Users className="w-12 h-12 text-blue-500" />
-              <span className="font-medium text-center">{client.name}</span>
-              {client.email && (
-                <span className="text-xs text-muted-foreground">{client.email}</span>
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-sm truncate block">{client.nombre} {client.apellido || ''}</span>
+              {client.correo && (
+                <span className="text-xs text-muted-foreground truncate block">{client.correo}</span>
               )}
-            </CardContent>
-          </Card>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
         ))}
         {visibleClients.length === 0 && (
-          <p className="text-muted-foreground col-span-full text-center py-8">
+          <p className="text-muted-foreground text-center py-8">
             No hay clientes {user?.role !== "admin" && "asignados"}
           </p>
         )}
