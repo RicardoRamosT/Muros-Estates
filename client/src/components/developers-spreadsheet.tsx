@@ -34,8 +34,8 @@ import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/spreadsheet-persistence";
 import { Plus, Minus, Trash2, Briefcase, Loader2, Lock, Eye, FolderOpen, X, ChevronDown, Save, Clock, Search, Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
-import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
+import { getCellStyle, getCellTypeFromColumnType, formatDate, formatTime, formatDateShort, parseDateInput, maskDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
+import { SpreadsheetHeader, MaskedDateInput } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import type { Developer, Development } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -1268,7 +1268,8 @@ export function DevelopersSpreadsheet() {
 
                 if (col.type === 'date') {
                   const dateValue = dev[field as keyof Developer] as Date | string | null;
-                  const formattedDate = dateValue ? new Date(dateValue).toISOString().split('T')[0] : '';
+                  const storedIso = dateValue ? new Date(dateValue).toISOString().split('T')[0] : '';
+                  const displayValue = formatDateShort(storedIso);
                   return (
                     <div
                       key={field}
@@ -1278,35 +1279,34 @@ export function DevelopersSpreadsheet() {
                       onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
                       {isEditing && fieldCanEdit ? (
-                        <Input
-                          type="date"
-                          defaultValue={formattedDate}
+                        <MaskedDateInput
+                          defaultValue={displayValue}
                           onBlur={(e) => {
                             const ec = editingCellRef.current;
                             if (ec && (ec.id !== dev.id || ec.field !== field)) return;
-                            const v = e.target.value;
-                            if (v !== formattedDate) {
-                              handleDateChange(dev.id, field, v);
-                            }
+                            const raw = (e.target as HTMLInputElement).value.trim();
+                            if (!raw) { handleDateChange(dev.id, field, ""); setEditingCell(null); return; }
+                            const iso = parseDateInput(raw);
+                            if (iso) { handleDateChange(dev.id, field, iso); }
+                            else { toast({ title: "Formato inválido", description: "Usa dd/mm/aa", variant: "destructive" }); }
                             setEditingCell(null);
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Tab' || e.key === 'Enter') {
                               e.preventDefault();
-                              const v = (e.target as HTMLInputElement).value;
-                              if (v !== formattedDate) {
-                                handleDateChange(dev.id, field, v);
-                              }
-                              advanceFromSelect(dev.id, field);
+                              const raw = (e.target as HTMLInputElement).value.trim();
+                              if (!raw) { handleDateChange(dev.id, field, ""); advanceFromSelect(dev.id, field); return; }
+                              const iso = parseDateInput(raw);
+                              if (iso) { handleDateChange(dev.id, field, iso); advanceFromSelect(dev.id, field); }
+                              else { toast({ title: "Formato inválido", description: "Usa dd/mm/aa", variant: "destructive" }); setEditingCell(null); }
                             }
                             if (e.key === 'Escape') { setEditingCell(null); }
                           }}
-                          autoFocus
                           className={CELL_INPUT_CLASS}
                           data-testid={`input-${field}-${dev.id}`}
                         />
                       ) : (
-                        <span className={cn("text-xs", cellTextClass)}>{formatDate(dateValue)}</span>
+                        <span className={cn("text-xs", cellTextClass)}>{displayValue}</span>
                       )}
                     </div>
                   );

@@ -24,8 +24,8 @@ import { spreadsheetKey, setSerializer, filterConfigsSerializer } from "@/lib/sp
 import { Plus, Minus, Trash2, UserPlus, UserCheck, Loader2, Lock, Eye, Calendar, Clock, X, FileText, Download, Search, Save, Maximize2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCellStyle, formatDate, formatTime, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
-import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
+import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, maskDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
+import { SpreadsheetHeader, MaskedDateInput } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { cn } from "@/lib/utils";
 import type { Client, User, Typology, CatalogCity, CatalogZone, Developer, Development } from "@shared/schema";
@@ -1758,50 +1758,44 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   // Handle all date fields (fechaSeparacion, fechaEnganche, plazoFechaFinal, fechaLiquidacion, etc.)
                   if (col.type === 'date') {
                     const rawValue = (prospect as any)[col.key];
-                    const dateValue = rawValue ? new Date(rawValue).toISOString().split('T')[0] : '';
+                    const storedIso = rawValue ? new Date(rawValue).toISOString().split('T')[0] : '';
+                    const displayValue = formatDateShort(storedIso);
                     return (
-                      <div 
-                        key={col.key} 
+                      <div
+                        key={col.key}
                         className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
                         style={{ width: col.width, minWidth: col.width }}
                         onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
                       >
                         {isEditing && fieldCanEdit ? (
-                          <Input
-                            type="date"
-                            defaultValue={dateValue}
+                          <MaskedDateInput
+                            defaultValue={displayValue}
                             onBlur={(e) => {
                               const ec = editingCellRef.current;
                               if (!ec || ec.id !== prospect.id || ec.field !== col.key) return;
-                              const v = e.target.value;
-                              if (v !== dateValue) {
-                                const newDate = v ? new Date(v).toISOString() : null;
-                                handleFieldChange(prospect.id, { [col.key]: newDate } as any);
-                              }
+                              const raw = (e.target as HTMLInputElement).value.trim();
+                              if (!raw) { handleFieldChange(prospect.id, { [col.key]: null } as any); setEditingCell(null); return; }
+                              const iso = parseDateInput(raw);
+                              if (iso) { handleFieldChange(prospect.id, { [col.key]: new Date(iso).toISOString() } as any); }
+                              else { toast({ title: "Formato inválido", description: "Usa dd/mm/aa", variant: "destructive" }); }
                               setEditingCell(null);
                             }}
                             onKeyDown={(e) => {
                               if (e.key === 'Tab' || e.key === 'Enter') {
                                 e.preventDefault();
-                                const v = (e.target as HTMLInputElement).value;
-                                if (v !== dateValue) {
-                                  const newDate = v ? new Date(v).toISOString() : null;
-                                  handleFieldChange(prospect.id, { [col.key]: newDate } as any);
-                                }
-                                advanceFromSelect(prospect.id, col.key);
+                                const raw = (e.target as HTMLInputElement).value.trim();
+                                if (!raw) { handleFieldChange(prospect.id, { [col.key]: null } as any); advanceFromSelect(prospect.id, col.key); return; }
+                                const iso = parseDateInput(raw);
+                                if (iso) { handleFieldChange(prospect.id, { [col.key]: new Date(iso).toISOString() } as any); advanceFromSelect(prospect.id, col.key); }
+                                else { toast({ title: "Formato inválido", description: "Usa dd/mm/aa", variant: "destructive" }); setEditingCell(null); }
                               }
                               if (e.key === 'Escape') { setEditingCell(null); }
                             }}
-                            autoFocus
                             className={CELL_INPUT_CLASS}
                             data-testid={`input-${col.key}-${prospect.id}`}
                           />
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                            <span>{rawValue ? formatDate(rawValue) : '-'}</span>
-                            {!fieldCanEdit && <Lock className="w-3 h-3 opacity-50 flex-shrink-0" />}
-                          </div>
+                          <span className="text-xs">{displayValue || ''}</span>
                         )}
                       </div>
                     );

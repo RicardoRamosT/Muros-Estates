@@ -54,10 +54,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { cn } from "@/lib/utils";
-import { formatDate, formatTime, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
+import { formatDate, formatTime, formatDateShort, parseDateInput, maskDateInput, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { SpreadsheetToolbar } from "@/components/ui/spreadsheet-toolbar";
-import { SpreadsheetSectionSearch } from "@/components/ui/spreadsheet-shared";
+import { SpreadsheetSectionSearch, MaskedDateInput } from "@/components/ui/spreadsheet-shared";
 
 type TypologyField = keyof Typology;
 
@@ -2257,24 +2257,37 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
   
   if (isEditing) {
     if (column.type === "date") {
+      const dateDisplay = formatDateShort(localValue);
+      const commitDate = (raw: string) => {
+        if (!raw) { setIsEditing(false); if (value) onChange(""); return true; }
+        const iso = parseDateInput(raw);
+        if (iso) { setIsEditing(false); if (iso !== value) onChange(iso); return true; }
+        return false;
+      };
       return (
         <div
           className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 rounded-sm z-10 relative", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         >
-          <input
+          <MaskedDateInput
             ref={inputRef}
-            type="date"
-            value={toDateInputValue(localValue)}
-            onChange={(e) => {
-              setLocalValue(e.target.value);
+            defaultValue={dateDisplay}
+            onBlur={(e) => {
+              const raw = (e.target as HTMLInputElement).value.trim();
+              if (!commitDate(raw)) setIsEditing(false);
             }}
-            onBlur={() => {
-              setIsEditing(false);
-              if (localValue !== value) onChange(localValue);
+            onKeyDown={(e) => {
+              if (e.key === "Tab" || e.key === "Enter") {
+                e.preventDefault();
+                const raw = (e.target as HTMLInputElement).value.trim();
+                if (commitDate(raw)) onNavigateNextRef.current?.();
+                else setIsEditing(false);
+              } else if (e.key === "Escape") {
+                setLocalValue(value);
+                setIsEditing(false);
+              }
             }}
-            onKeyDown={handleKeyDown}
-            className="h-6 w-full text-xs border-0 focus:ring-0 shadow-none p-0 bg-transparent cursor-pointer"
+            className={CELL_INPUT_CLASS}
             data-testid={`input-${column.key}-${rowId}`}
           />
         </div>

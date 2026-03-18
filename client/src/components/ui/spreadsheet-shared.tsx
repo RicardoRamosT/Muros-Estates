@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, forwardRef } from "react";
 import { Plus, Minus, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { maskDateInput } from "@/lib/spreadsheet-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ColumnFilter } from "@/components/ui/column-filter";
@@ -465,3 +467,32 @@ export function SpreadsheetHeader({
     </div>
   );
 }
+
+/** Controlled date input that enforces dd/mm/yy mask (max 6 digits). */
+export const MaskedDateInput = forwardRef<
+  HTMLInputElement,
+  Omit<React.ComponentProps<"input">, "onChange" | "value" | "type"> & {
+    defaultValue?: string;
+  }
+>(function MaskedDateInput({ defaultValue = "", onBlur, onKeyDown, ...rest }, fwdRef) {
+  const [val, setVal] = useState(() => maskDateInput(defaultValue));
+  const innerRef = useRef<HTMLInputElement>(null);
+  const ref = (fwdRef ?? innerRef) as React.RefObject<HTMLInputElement>;
+
+  useEffect(() => {
+    ref.current?.focus();
+    ref.current?.select();
+  }, []);
+
+  return (
+    <Input
+      ref={ref}
+      value={val}
+      placeholder="dd/mm/aa"
+      onChange={(e) => setVal(maskDateInput(e.target.value))}
+      onBlur={(e) => { onBlur?.(e); }}
+      onKeyDown={(e) => { onKeyDown?.(e); }}
+      {...rest}
+    />
+  );
+});

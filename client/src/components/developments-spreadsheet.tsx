@@ -27,8 +27,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Link } from "wouter";
 import type { Development, Developer, CatalogCity, CatalogZone, CatalogAmenity, CatalogEfficiencyFeature, CatalogOtherFeature, CatalogAcabado, CatalogTipoContrato, CatalogCesionDerechos, CatalogPresentacion } from "@shared/schema";
 import { DEVELOPMENT_TYPES } from "@shared/constants";
-import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
-import { SpreadsheetHeader } from "@/components/ui/spreadsheet-shared";
+import { getCellStyle, formatDate, formatTime, formatDateShort, parseDateInput, maskDateInput, type CellType, SHEET_COLOR_DARK, SHEET_COLOR_LIGHT, getColumnFilterType, createInputFilter, createPasteFilter, type InputFilterType, CELL_INPUT_CLASS } from "@/lib/spreadsheet-utils";
+import { SpreadsheetHeader, MaskedDateInput } from "@/components/ui/spreadsheet-shared";
 import { RecycleBinDrawer } from "@/components/ui/recycle-bin";
 import { cn } from "@/lib/utils";
 
@@ -2261,11 +2261,10 @@ export function DevelopmentsSpreadsheet() {
                       data-testid={`cell-${col.key}-${dev.id}`}
                     >
                       {isEditing && fieldCanEdit ? (
-                        <Input
+                        <MaskedDateInput
                           defaultValue={displayValue || editValue}
-                          placeholder="dd/mm/aa"
                           onBlur={(e) => {
-                            const raw = e.target.value.trim();
+                            const raw = (e.target as HTMLInputElement).value.trim();
                             if (!raw) { handleCellBlur(dev.id, col.key, col, ""); return; }
                             const iso = parseDateInput(raw);
                             if (iso) { handleCellBlur(dev.id, col.key, col, iso); }
@@ -2282,8 +2281,6 @@ export function DevelopmentsSpreadsheet() {
                             }
                             if (e.key === "Escape") setEditingCell(null);
                           }}
-                          autoFocus
-                          onFocus={(e) => e.target.select()}
                           className={CELL_INPUT_CLASS}
                           data-testid={`input-${col.key}-${dev.id}`}
                         />
