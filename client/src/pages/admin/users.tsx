@@ -3,9 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Header } from "@/components/header";
 import { AdminUserTable } from "@/components/admin-user-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Plus, Users, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RolesPermissionsView } from "@/components/roles-permissions-view";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -36,7 +34,6 @@ interface User {
 export default function AdminUsers() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: users = [], isLoading } = useQuery<User[]>({
@@ -86,26 +83,7 @@ export default function AdminUsers() {
   });
 
   const filteredUsers = useMemo(() => {
-    const nonAdminUsers = users.filter(u => u.role !== "admin");
-    if (!searchQuery.trim()) return nonAdminUsers;
-    const query = searchQuery.toLowerCase();
-    return nonAdminUsers.filter(
-      (u) =>
-        u.name.toLowerCase().includes(query) ||
-        u.username.toLowerCase().includes(query) ||
-        u.email?.toLowerCase().includes(query)
-    );
-  }, [users, searchQuery]);
-
-  const stats = useMemo(() => {
-    const nonAdminUsers = users.filter(u => u.role !== "admin");
-    return {
-      total: nonAdminUsers.length,
-      perfiladores: nonAdminUsers.filter(u => u.role === "perfilador").length,
-      asesores: nonAdminUsers.filter(u => u.role === "asesor").length,
-      actualizadores: nonAdminUsers.filter(u => u.role === "actualizador").length,
-      active: nonAdminUsers.filter(u => u.active).length,
-    };
+    return users.filter(u => u.role !== "admin");
   }, [users]);
 
   const handleEdit = (user: User) => {
@@ -133,108 +111,27 @@ export default function AdminUsers() {
         <div className="flex items-center gap-2">
           <h1 className="text-sm font-bold" data-testid="text-page-title">Usuarios</h1>
         </div>
-        <Link href="/admin/users/new">
-          <Button size="sm" data-testid="button-add-user">
-            <Plus className="w-4 h-4 mr-1" />
-            Nuevo
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{filteredUsers.length} usuarios</span>
+          <Link href="/admin/users/new">
+            <Button size="sm" data-testid="button-add-user">
+              <Plus className="w-4 h-4 mr-1" />
+              Nuevo
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <main className="container mx-auto px-4 py-3">
+      <AdminUserTable
+        users={filteredUsers}
+        isLoading={isLoading}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onToggleActive={handleToggleActive}
+        isDeleting={deleteMutation.isPending}
+      />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Usuarios
-              </CardTitle>
-              <Users className="w-5 h-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold" data-testid="stat-total">
-                {stats.total}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {stats.active} activos
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Perfiladores
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold" data-testid="stat-perfiladores">
-                {stats.perfiladores}
-              </p>
-              <p className="text-xs text-muted-foreground">asignan desarrollos</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Asesores
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold" data-testid="stat-asesores">
-                {stats.asesores}
-              </p>
-              <p className="text-xs text-muted-foreground">atienden clientes</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Actualizadores
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold" data-testid="stat-actualizadores">
-                {stats.actualizadores}
-              </p>
-              <p className="text-xs text-muted-foreground">gestionan propiedades</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle>Listado de Usuarios</CardTitle>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar usuarios..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-                data-testid="input-search"
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <AdminUserTable
-              users={filteredUsers}
-              isLoading={isLoading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onToggleActive={handleToggleActive}
-              isDeleting={deleteMutation.isPending}
-            />
-          </CardContent>
-        </Card>
-
-        <div className="mt-8">
-          <RolesPermissionsView />
-        </div>
-      </main>
+      <RolesPermissionsView />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

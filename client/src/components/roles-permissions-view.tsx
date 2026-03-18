@@ -674,7 +674,7 @@ function PermissionSectionGrid({
 
   return (
     <div className="overflow-x-auto flex-1" ref={scrollRef}>
-      <div style={{ minWidth: hasFields ? totalWidth : ROLE_COL_W + CELL_W }}>
+      <div style={{ minWidth: hasFields ? totalWidth : ROLE_COL_W + CELL_W, width: 'fit-content' }}>
         {/* ROW1: Group headers */}
         {hasGroups && (
           <div className="flex sticky top-0 z-20" style={{ height: ROW_H }}>

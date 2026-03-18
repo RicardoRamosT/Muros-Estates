@@ -2121,7 +2121,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
 
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && (isDynamicCalculated ? "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)]" : "bg-white dark:bg-gray-900"), externalEditing && "ring-2 ring-blue-500 rounded-sm z-10 relative", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         title={devWarning ? devWarning.split('\n').map(l => '• ' + l).join('\n') : undefined}
       >
@@ -2259,7 +2259,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     if (column.type === "date") {
       return (
         <div
-          className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 rounded-sm z-10 relative", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         >
           <input
@@ -2282,7 +2282,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
     }
     return (
       <div 
-        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", cellBorderClass)}
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 rounded-sm z-10 relative", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
         <Input
@@ -4711,9 +4711,7 @@ export function TypologySpreadsheet() {
                   "flex w-max border-b",
                   isRowGray
                     ? "cursor-default"
-                    : isActiveRow
-                      ? "cursor-pointer ring-2 ring-blue-500 z-10 relative"
-                      : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
+                    : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
                 )}
                 style={{ height: '32px', maxHeight: '32px', ...(isRowGray ? { backgroundColor: '#9ca3af', cursor: 'default' } : {}) }}
                 onPointerDown={() => handleRowClick(row.id)}

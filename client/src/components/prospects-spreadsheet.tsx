@@ -482,7 +482,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   const prospectColumns = [
     { key: "index", label: "ID", width: "60px", type: "index", group: "corner" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", group: "registro" },
-    { key: "fecha", label: "Fecha", width: "85px", type: "date-display", field: "createdAt", group: "registro" },
+    { key: "fecha", label: "Fecha", width: "80px", type: "date-display", field: "createdAt", group: "registro" },
     { key: "hora", label: "Hora", width: "65px", type: "time-display", field: "createdAt", group: "registro" },
     { key: "asesorId", label: "", width: "130px", type: "select", group: "asesor" },
     { key: "nombre", label: "Nombre", width: "120px", group: "prospecto" },
@@ -521,7 +521,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "index",   label: "ID",   width: "60px",  type: "index",        group: "corner" },
     // REGISTRO
     { key: "active",  label: "Activo", width: "80px", type: "toggle",      group: "cregistro" },
-    { key: "fecha",   label: "Fecha",  width: "85px", type: "date-display", field: "createdAt", group: "cregistro" },
+    { key: "fecha",   label: "Fecha",  width: "80px", type: "date-display", field: "createdAt", group: "cregistro" },
     { key: "hora",    label: "Hora",   width: "65px", type: "time-display", field: "createdAt", group: "cregistro" },
     // ASESOR
     { key: "asesorId", label: "", width: "130px", type: "select",    group: "casesor" },
@@ -1136,9 +1136,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   ? ""
                   : isHighlighted
                     ? "ring-2 ring-amber-400 bg-amber-50"
-                    : isActiveRow
-                      ? "ring-2 ring-blue-500 z-10 relative"
-                      : index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
@@ -1191,8 +1189,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     return (
                       <div
                         key={col.key}
-                        className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                        className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                         style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}
+                        onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
                       >
                         {fieldCanEdit ? (
                           <ExclusiveSelect
@@ -1267,7 +1266,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const value = (prospect as any).asesorId;
                     const asesorName = getAsesorName(value);
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             autoOpen={isEditing}
@@ -1306,7 +1305,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const estatusColor = estatusOpt?.color || null;
                     const estatusTextColor = needsWhiteText(estatusColor) ? 'white' : 'black';
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...(estatusColor ? { backgroundColor: estatusColor } : {}) }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...(estatusColor ? { backgroundColor: estatusColor } : {}) }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             autoOpen={isEditing}
@@ -1355,7 +1354,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       });
                       
                       return (
-                        <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                        <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                           {fieldCanEdit ? (
                             <ExclusiveSelect
                               autoOpen={isEditing}
@@ -1390,7 +1389,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     }
 
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             autoOpen={isEditing}
@@ -1449,7 +1448,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                       ? `${selectedTypology.development} - ${selectedTypology.type || 'Sin tipo'}`
                       : value || '';
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             autoOpen={isEditing}
@@ -1517,7 +1516,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const cellBgColor = getCellBgColor(value);
                     const textColorClass = getTextColor(value);
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             autoOpen={isEditing}
@@ -1557,13 +1556,13 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     const isEmbudo = col.key === 'embudo';
                     const optColor = selectedOption?.color || null;
                     const optTextColor = needsWhiteText(optColor) ? 'white' : 'black';
-                    const cellClasses = getCellStyle({ type: "dropdown", disabled: !fieldCanEdit });
+                    const cellClasses = getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing });
                     const effectiveClasses = optColor
                       ? cellClasses.replace(/\bbg-\S+/g, '')
                       : cellClasses;
 
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", effectiveClasses)} style={{ width: col.width, minWidth: col.width, ...(optColor ? { backgroundColor: optColor } : {}) }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", effectiveClasses)} style={{ width: col.width, minWidth: col.width, ...(optColor ? { backgroundColor: optColor } : {}) }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             autoOpen={isEditing}
@@ -1673,7 +1672,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                     };
 
                     return (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <Popover modal>
                             <PopoverTrigger asChild>
@@ -1765,7 +1764,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         key={col.key} 
                         className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
                         style={{ width: col.width, minWidth: col.width }}
-                        onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
+                        onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
                       >
                         {isEditing && fieldCanEdit ? (
                           <Input

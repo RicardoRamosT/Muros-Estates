@@ -334,7 +334,7 @@ export function DevelopersSpreadsheet() {
   const allColumns: ColumnDef[] = [
     { key: "id", label: "ID", width: "60px", type: "index", autoField: true, cellType: "index", group: "corner" },
     { key: "active", label: "Activo", width: "80px", type: "toggle", cellType: "checkbox", group: "registro" },
-    { key: "createdDate", label: "Fecha", width: "72px", type: "date-display", group: "registro", cellType: "readonly" },
+    { key: "createdDate", label: "Fecha", width: "80px", type: "date-display", group: "registro", cellType: "readonly" },
     { key: "createdTime", label: "Hora", width: "65px", type: "time-display", group: "registro", cellType: "readonly" },
     { key: "tipo", label: "Tipo", width: "120px", type: "tipo-select", cellType: "dropdown", group: "generales" },
     { key: "ciudad", label: "Ciudad", width: "100px", type: "select", cellType: "dropdown", group: "generales" },
@@ -935,9 +935,7 @@ export function DevelopersSpreadsheet() {
                 "flex w-max border-b group",
                 isRowInactive
                   ? ""
-                  : isActiveRow
-                    ? "ring-2 ring-blue-500 z-10 relative"
-                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-developer-${dev.id}`}
@@ -1058,8 +1056,9 @@ export function DevelopersSpreadsheet() {
                   const cellContent = (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
                       {fieldCanEdit ? (
                         <ExclusiveSelect
@@ -1104,9 +1103,10 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
                       {fieldCanEdit ? (
                         <ExclusiveSelect
@@ -1158,9 +1158,10 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
                       {fieldCanEdit ? (
                         <ExclusiveSelect
@@ -1271,21 +1272,39 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "date", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "date", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
+                      onClick={() => fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
-                      {fieldCanEdit ? (
-                        <div className="relative w-full h-6 flex items-center justify-center">
-                          <span className={cn("text-xs", cellTextClass)}>{formatDate(dateValue)}</span>
-                          <input
-                            type="date"
-                            value={formattedDate}
-                            onChange={(e) => handleDateChange(dev.id, field, e.target.value)}
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                            data-testid={`input-${field}-${dev.id}`}
-                          />
-                        </div>
+                      {isEditing && fieldCanEdit ? (
+                        <Input
+                          type="date"
+                          defaultValue={formattedDate}
+                          onBlur={(e) => {
+                            const ec = editingCellRef.current;
+                            if (ec && (ec.id !== dev.id || ec.field !== field)) return;
+                            const v = e.target.value;
+                            if (v !== formattedDate) {
+                              handleDateChange(dev.id, field, v);
+                            }
+                            setEditingCell(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Tab' || e.key === 'Enter') {
+                              e.preventDefault();
+                              const v = (e.target as HTMLInputElement).value;
+                              if (v !== formattedDate) {
+                                handleDateChange(dev.id, field, v);
+                              }
+                              advanceFromSelect(dev.id, field);
+                            }
+                            if (e.key === 'Escape') { setEditingCell(null); }
+                          }}
+                          autoFocus
+                          className={CELL_INPUT_CLASS}
+                          data-testid={`input-${field}-${dev.id}`}
+                        />
                       ) : (
                         <span className={cn("text-xs", cellTextClass)}>{formatDate(dateValue)}</span>
                       )}
@@ -1304,10 +1323,11 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
                       title={tooltipText}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
                       {fieldCanEdit ? (
                         <Popover modal>
@@ -1405,9 +1425,10 @@ export function DevelopersSpreadsheet() {
                   return (
                     <div
                       key={field}
-                      className="spreadsheet-cell flex-shrink-0 border-r border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, display: 'flex', alignItems: 'center', height: 32, maxHeight: 32, padding: 0, overflow: 'hidden', ...inactiveCellStyle }}
                       data-testid={`cell-${field}-${dev.id}`}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field })}
                     >
                       {fieldCanEdit ? (
                         <Popover modal>
@@ -1415,7 +1436,7 @@ export function DevelopersSpreadsheet() {
                             <button data-phone-list className="flex items-center h-full text-xs pl-1.5 pr-1 hover:bg-accent/50" style={{ width: '100%' }}>
                               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
                               <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                                {phoneList.length > 1 && <span className="text-[9px] opacity-60">+{phoneList.length - 1}</span>}
+                                {phoneList.length > 1 && <span className="text-xs opacity-60">+{phoneList.length - 1}</span>}
                                 <ChevronDown className="w-3 h-3 opacity-50" />
                               </span>
                             </button>
@@ -1456,7 +1477,7 @@ export function DevelopersSpreadsheet() {
                       ) : (
                         <div className="flex items-center px-2 w-full">
                           <span className={cn("text-xs truncate min-w-0 flex-1", cellTextClass)}>{phoneList.length > 0 ? phoneList[0] : ""}</span>
-                          {phoneList.length > 1 && <span className="text-[10px] opacity-60 shrink-0 ml-1">+{phoneList.length - 1}</span>}
+                          {phoneList.length > 1 && <span className="text-xs opacity-60 shrink-0 ml-1">+{phoneList.length - 1}</span>}
                         </div>
                       )}
                     </div>

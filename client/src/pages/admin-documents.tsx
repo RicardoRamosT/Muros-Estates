@@ -631,7 +631,7 @@ export default function AdminDocuments() {
         </div>
       </div>
       {showBackButton ? (
-        <div className="px-3 py-1.5">
+        <div className="px-3 py-0">
           {/* Toolbar with back button and action buttons */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -745,10 +745,10 @@ export default function AdminDocuments() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-6 px-3 py-3">
+        <div className="grid grid-cols-3 gap-6 px-3 py-0">
           {/* Desarrolladores column */}
           <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">Desarrolladores</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Desarrolladores</h3>
             <div className="border rounded-md divide-y">
               {developers.map(dev => (
                 <div
@@ -769,7 +769,7 @@ export default function AdminDocuments() {
 
           {/* Clientes column */}
           <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">Clientes</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Clientes</h3>
             <div className="border rounded-md divide-y">
               {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).map(client => (
                 <div
@@ -795,7 +795,7 @@ export default function AdminDocuments() {
 
           {/* De Trabajo column */}
           <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">De Trabajo</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">De Trabajo</h3>
             <div className="border rounded-md divide-y">
               {DOCUMENT_SECTIONS.workFolders.map(section => (
                 <div

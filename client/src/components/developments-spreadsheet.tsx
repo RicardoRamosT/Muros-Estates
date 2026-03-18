@@ -373,7 +373,7 @@ const DEV_ALWAYS_UNLOCKED = new Set(["active", "id", "createdDate", "createdTime
 const columns: ColumnDef[] = [
   { key: 'id', label: 'ID', group: 'corner', type: 'index', width: '60px', cellType: 'index' },
   { key: 'active', label: 'Activo', group: 'registro', type: 'boolean', width: '80px', cellType: 'checkbox' },
-  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '85px', cellType: 'readonly' },
+  { key: 'createdDate', label: 'Fecha', group: 'registro', type: 'date-display', width: '80px', cellType: 'readonly' },
   { key: 'createdTime', label: 'Hora', group: 'registro', type: 'time-display', width: '65px', cellType: 'readonly' },
   { key: 'empresaTipo', label: 'Tipo', group: 'empresa', type: 'empresa-tipo-select', width: '110px', cellType: 'dropdown' },
   { key: 'developerId', label: 'Desarrollador', group: 'empresa', type: 'developer-select', width: '120px', cellType: 'dropdown' },
@@ -1229,9 +1229,7 @@ export function DevelopmentsSpreadsheet() {
                 "flex w-max border-b group",
                 isRowInactive
                   ? ""
-                  : isActiveRow
-                    ? "ring-2 ring-blue-500 z-10 relative"
-                    : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-development-${dev.id}`}
@@ -1325,7 +1323,7 @@ export function DevelopmentsSpreadsheet() {
                       ? `Campos vacíos (${missingFields.length}):\n${missingFields.map(f => `• ${f}`).join('\n')}`
                       : undefined;
                     const activeCellContent = (
-                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }}>
+                      <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0 px-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, backgroundColor: bgColor }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                         {fieldCanEdit ? (
                           <ExclusiveSelect
                             value={activeState === "active" ? "active" : activeState === "disabled" ? "disabled" : "no"}
@@ -1403,7 +1401,7 @@ export function DevelopmentsSpreadsheet() {
                       : cellTextClass;
                   const effectiveCanEdit = fieldCanEdit && !isLockOffDisabledByTipo;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !effectiveCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, backgroundColor: cellBgColor }} onPointerDown={(e) => e.button === 0 && effectiveCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {effectiveCanEdit ? (
                         <ExclusiveSelect
                           value={value === true ? "si" : value === false ? "no" : ""}
@@ -1446,7 +1444,7 @@ export function DevelopmentsSpreadsheet() {
                   const tipoIsAutoFilled = hasDeveloper && !!developerTipo;
                   const tipoDisabled = !hasDeveloper || tipoIsAutoFilled || !fieldCanEdit;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: tipoDisabled }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#b8b3a8' : 'rgb(255,241,220)', color: 'black', ...(isRowInactive ? { pointerEvents: 'none' as const, cursor: 'default' } : {}) }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: tipoDisabled, isEditing }))} style={{ width: col.width, minWidth: col.width, backgroundColor: isRowInactive ? '#b8b3a8' : 'rgb(255,241,220)', color: 'black', ...(isRowInactive ? { pointerEvents: 'none' as const, cursor: 'default' } : {}) }} onPointerDown={(e) => e.button === 0 && !tipoDisabled && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {hasDeveloper && fieldCanEdit && !tipoIsAutoFilled ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1500,9 +1498,10 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div
                       key={col.key}
-                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       title={developerWarningText || undefined}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}
                     >
                       {canEdit(col.key) ? (
                         <div className="flex items-center w-full overflow-hidden">
@@ -1550,7 +1549,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'city-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1584,7 +1583,7 @@ export function DevelopmentsSpreadsheet() {
                   if (col.key === 'zone2') zones = zones.filter(z => z !== dev.zone);
                   if (col.key === 'zone3') zones = zones.filter(z => z !== dev.zone && z !== dev.zone2);
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1625,7 +1624,7 @@ export function DevelopmentsSpreadsheet() {
                   }
 
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0 }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || developerTipos.length === 0, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && developerTipos.length > 0 && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit && developerTipos.length > 0 ? (
                         <ExclusiveSelect
                           value={selectedTipo || '__unassigned__'}
@@ -1660,7 +1659,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'nivel-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       <NivelRangeCell
                         dev={dev}
                         onSave={(data) => handleFieldChange(dev.id, data)}
@@ -1672,7 +1671,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'torres-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1703,7 +1702,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'niveles-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1735,7 +1734,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-amenities') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
@@ -1769,7 +1768,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-creatable') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
@@ -1832,7 +1831,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-efficiency') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
@@ -1866,7 +1865,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-other') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
@@ -1902,7 +1901,7 @@ export function DevelopmentsSpreadsheet() {
                   const isDepaR = devTiposR.some(t => t.toLowerCase().includes('departamento') || t.toLowerCase().includes('depa'));
                   const recamarasDisabled = !isDepaR && !hasFullAccess;
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled }))} style={{ width: col.width, minWidth: col.width, ...(isRowInactive ? inactiveCellStyle : recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit || recamarasDisabled, isEditing }))} style={{ width: col.width, minWidth: col.width, ...(isRowInactive ? inactiveCellStyle : recamarasDisabled ? { backgroundColor: '#f3f4f6' } : {}) }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !recamarasDisabled && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit && !recamarasDisabled ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1934,7 +1933,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'banos-select') {
                   const banosOptions = catalogBanos.map((b: any) => b.name).filter(Boolean);
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -1973,9 +1972,10 @@ export function DevelopmentsSpreadsheet() {
                   return (
                     <div
                       key={col.key}
-                      className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: "input", disabled: !fieldCanEdit }))}
+                      className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))}
                       style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}
                       data-testid={`cell-${col.key}-${dev.id}`}
+                      onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}
                     >
                       {fieldCanEdit ? (
                         <Popover modal>
@@ -2075,7 +2075,7 @@ export function DevelopmentsSpreadsheet() {
                 if (col.type === 'multiselect-acabados') {
                   const arrValue: string[] = Array.isArray(value) ? value : [];
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <Popover modal>
                           <PopoverTrigger asChild>
@@ -2108,7 +2108,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'tipo-contrato-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -2139,7 +2139,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'cesion-derechos-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
@@ -2170,7 +2170,7 @@ export function DevelopmentsSpreadsheet() {
 
                 if (col.type === 'presentacion-select') {
                   return (
-                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`}>
+                    <div key={col.key} className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", disabled: !fieldCanEdit, isEditing }))} style={{ width: col.width, minWidth: col.width, ...inactiveCellStyle }} data-testid={`cell-${col.key}-${dev.id}`} onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: dev.id, field: col.key })}>
                       {fieldCanEdit ? (
                         <ExclusiveSelect
                           autoOpen={editingCell?.id === dev.id && editingCell?.field === col.key}
