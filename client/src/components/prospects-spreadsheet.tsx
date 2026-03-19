@@ -1778,7 +1778,8 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                         key={col.key}
                         className={cn("spreadsheet-cell flex-shrink-0 justify-center", getCellStyle({ type: "input", disabled: !fieldCanEdit, isEditing }))}
                         style={{ width: col.width, minWidth: col.width }}
-                        onPointerDown={(e) => e.button === 0 && fieldCanEdit && !isEditing && setEditingCell({ id: prospect.id, field: col.key })}
+                        onClick={() => fieldCanEdit && !isEditing && handleCellClick(prospect.id, col.key, displayValue)}
+                        data-testid={`cell-${col.key}-${prospect.id}`}
                       >
                         {isEditing && fieldCanEdit ? (
                           <MaskedDateInput
