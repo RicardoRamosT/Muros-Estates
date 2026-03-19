@@ -408,23 +408,26 @@ export function DevelopersSpreadsheet() {
     }
     const pending = pendingChangesRef.current;
     if (pending.size === 0) return;
-    const sessionId = localStorage.getItem("muros_session");
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
     const promises: Promise<any>[] = [];
     pending.forEach((changes, id) => {
       if (!changes || Object.keys(changes).length === 0) return;
       promises.push(fetch(`/api/developers/${id}`, {
         method: "PUT",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(changes),
+        credentials: "include",
         keepalive: true,
       }));
     });
-    pending.clear();
-    Promise.all(promises).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["/api/developers"] });
-    });
+    Promise.all(promises)
+      .then(() => {
+        pending.clear();
+        setPendingChangesVersion(0);
+        queryClient.invalidateQueries({ queryKey: ["/api/developers"] });
+      })
+      .catch((err) => {
+        console.error("Error saving pending changes:", err);
+      });
   }, []);
 
   useEffect(() => {

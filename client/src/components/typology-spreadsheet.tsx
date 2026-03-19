@@ -3519,23 +3519,26 @@ export function TypologySpreadsheet() {
   const flushPendingChanges = useCallback(() => {
     const pending = pendingChangesRef.current;
     if (pending.size === 0) return;
-    const sessionId = localStorage.getItem("muros_session");
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (sessionId) headers["Authorization"] = `Bearer ${sessionId}`;
     const promises: Promise<any>[] = [];
     pending.forEach((changes, rowId) => {
       if (!changes || Object.keys(changes).length === 0) return;
       promises.push(fetch(`/api/typologies/${rowId}`, {
         method: "PUT",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(changes),
+        credentials: "include",
         keepalive: true,
       }));
     });
-    pending.clear();
-    Promise.all(promises).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
-    });
+    Promise.all(promises)
+      .then(() => {
+        pending.clear();
+        setPendingChangesVersion(0);
+        queryClient.invalidateQueries({ queryKey: ["/api/typologies"] });
+      })
+      .catch((err) => {
+        console.error("Error saving pending changes:", err);
+      });
   }, []);
 
   useEffect(() => {
