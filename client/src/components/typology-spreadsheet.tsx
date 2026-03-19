@@ -2777,17 +2777,20 @@ export function TypologySpreadsheet() {
     return catalogCajones.map(c => c.name).filter(Boolean);
   }, [catalogCajones]);
   
+  const isDevComplete = (d: any) => !!(d.tipo?.trim() && d.name?.trim() && d.tipos?.length && d.contratos?.length);
+  const isDevtComplete = (d: any) => !!(d.empresaTipo && d.developerId && d.name && d.city && d.tipos?.length && d.tipologiasList?.length && d.recamaras && d.banos && d.inicioProyectado && d.entregaProyectada && d.ventasNombre && d.ventasTelefono);
+
   const developerOptions = useMemo(() => {
-    return dbDevelopers.filter(d => d.active === true).map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
+    return dbDevelopers.filter(d => d.active === true && isDevComplete(d)).map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopers]);
-  
+
   const developmentOptions = useMemo(() => {
-    return dbDevelopments.filter(d => d.active === true).map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
+    return dbDevelopments.filter(d => d.active === true && isDevtComplete(d)).map(d => d.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   }, [dbDevelopments]);
 
   const validEntities = useMemo<ValidEntities>(() => ({
-    developers: dbDevelopers.filter(d => d.active === true).map(d => d.name).filter(Boolean),
-    developments: dbDevelopments.filter(d => d.active === true).map(d => d.name).filter(Boolean),
+    developers: dbDevelopers.filter(d => d.active === true && isDevComplete(d)).map(d => d.name).filter(Boolean),
+    developments: dbDevelopments.filter(d => d.active === true && isDevtComplete(d)).map(d => d.name).filter(Boolean),
   }), [dbDevelopers, dbDevelopments]);
   
   const zoneOptionsByCity = useMemo(() => {

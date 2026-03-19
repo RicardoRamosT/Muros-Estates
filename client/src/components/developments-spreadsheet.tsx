@@ -1481,7 +1481,7 @@ export function DevelopmentsSpreadsheet() {
                 }
 
                 if (col.type === 'developer-select') {
-                  const filteredDevs = developers.filter(d => d.active);
+                  const filteredDevs = developers.filter(d => d.active && isDeveloperComplete(d));
                   const developerWarningText = (() => {
                     if (!parentDeveloper) return "";
                     if (parentDeveloper.active === null) return "Desarrollador deshabilitado";
