@@ -1,6 +1,14 @@
-import { useMemo, useRef } from "react";
-import { Loader2, MoreHorizontal, Edit, Trash2, UserCheck, UserX } from "lucide-react";
+import { useMemo, useRef, useState, useCallback } from "react";
+import { Loader2, MoreHorizontal, Trash2, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ColumnFilter, useColumnFilters, type FilterState, type SortDirection } from "@/components/ui/column-filter";
 import { SpreadsheetSectionSearch } from "@/components/ui/spreadsheet-shared";
@@ -10,11 +18,12 @@ import {
   formatTime,
   SHEET_COLOR_DARK,
   SHEET_COLOR_LIGHT,
+  CELL_INPUT_CLASS,
   type SpreadsheetColumnDef,
   type SpreadsheetColumnGroup,
   type SpreadsheetColumnGroupRun,
 } from "@/lib/spreadsheet-utils";
-import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import type { UserPermissions } from "@shared/schema";
 
 interface User {
@@ -351,30 +360,32 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
                   );
                 }
                 if (col.key === "active") {
+                  const isActive = !!user.active;
                   return (
                     <div
                       key={col.key}
-                      className={getCellStyle({ type: "checkbox" })}
-                      style={{ width: col.width, minWidth: col.width, display: "flex", alignItems: "center", justifyContent: "center" }}
+                      className="border-r border-b border-gray-200 dark:border-gray-700 text-[10px] font-medium h-8 max-h-8 flex items-center justify-center cursor-pointer select-none transition-colors hover:brightness-95"
+                      style={{
+                        width: col.width, minWidth: col.width,
+                        backgroundColor: isActive ? "#dcfce7" : "#e5e7eb",
+                        color: isActive ? "#15803d" : "#6b7280",
+                      }}
+                      onClick={() => onToggleActive(user.id, !isActive)}
                     >
-                      <Checkbox
-                        checked={!!user.active}
-                        onCheckedChange={(checked) => onToggleActive(user.id, !!checked)}
-                        className="h-4 w-4"
-                      />
+                      {isActive ? "Sí" : "Inhabilitado"}
                     </div>
                   );
                 }
                 if (col.key === "createdDate") {
                   return (
-                    <div key={col.key} className={getCellStyle({ type: "readonly" })} style={{ width: col.width, minWidth: col.width, color: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div key={col.key} className="border-r border-b border-gray-200 dark:border-gray-700 px-1.5 py-0.5 text-xs h-8 max-h-8 overflow-hidden bg-white dark:bg-gray-900/50 text-black dark:text-gray-200 cursor-default" style={{ width: col.width, minWidth: col.width, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {user.createdDate}
                     </div>
                   );
                 }
                 if (col.key === "createdTime") {
                   return (
-                    <div key={col.key} className={getCellStyle({ type: "readonly" })} style={{ width: col.width, minWidth: col.width, color: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div key={col.key} className="border-r border-b border-gray-200 dark:border-gray-700 px-1.5 py-0.5 text-xs h-8 max-h-8 overflow-hidden bg-white dark:bg-gray-900/50 text-black dark:text-gray-200 cursor-default" style={{ width: col.width, minWidth: col.width, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {user.createdTime}
                     </div>
                   );
