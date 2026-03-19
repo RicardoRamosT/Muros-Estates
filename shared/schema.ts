@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -732,7 +732,10 @@ export const sessions = pgTable("sessions", {
   userId: varchar("user_id").notNull().references(() => users.id),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_sessions_user_id").on(table.userId),
+  index("idx_sessions_expires_at").on(table.expiresAt),
+]);
 
 export const insertSessionSchema = createInsertSchema(sessions).omit({
   id: true,
@@ -780,7 +783,9 @@ export const developers = pgTable("developers", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
-});
+}, (table) => [
+  index("idx_developers_deleted_at").on(table.deletedAt),
+]);
 
 export const insertDeveloperSchema = createInsertSchema(developers).omit({
   id: true,
@@ -905,7 +910,10 @@ export const developments = pgTable("developments", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
-});
+}, (table) => [
+  index("idx_developments_developer_id").on(table.developerId),
+  index("idx_developments_deleted_at").on(table.deletedAt),
+]);
 
 export const insertDevelopmentSchema = createInsertSchema(developments).omit({
   id: true,
@@ -1019,7 +1027,11 @@ export const clients = pgTable("clients", {
   assignedTo: varchar("assigned_to").references(() => users.id),
   developmentInterest: text("development_interest"),
   deletedAt: timestamp("deleted_at"),
-});
+}, (table) => [
+  index("idx_clients_asesor_id").on(table.asesorId),
+  index("idx_clients_deleted_at").on(table.deletedAt),
+  index("idx_clients_is_client").on(table.isClient),
+]);
 
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
@@ -1073,11 +1085,13 @@ export type Property = typeof properties.$inferSelect;
 // Development assignments (perfilador assigns developments to asesores)
 export const developmentAssignments = pgTable("development_assignments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  developmentId: varchar("development_id").notNull().references(() => properties.id),
+  developmentId: varchar("development_id").notNull().references(() => developments.id),
   asesorId: varchar("asesor_id").notNull().references(() => users.id),
   assignedBy: varchar("assigned_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_development_assignments_asesor_id").on(table.asesorId),
+]);
 
 export const insertDevelopmentAssignmentSchema = createInsertSchema(developmentAssignments).omit({
   id: true,
@@ -1270,7 +1284,10 @@ export const typologies = pgTable("typologies", {
   createdBy: varchar("created_by").references(() => users.id),
   updatedBy: varchar("updated_by").references(() => users.id),
   deletedAt: timestamp("deleted_at"),
-});
+}, (table) => [
+  index("idx_typologies_property_id").on(table.propertyId),
+  index("idx_typologies_deleted_at").on(table.deletedAt),
+]);
 
 export const insertTypologySchema = createInsertSchema(typologies).omit({
   id: true,
@@ -1395,7 +1412,12 @@ export const documents = pgTable("documents", {
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_documents_developer_id").on(table.developerId),
+  index("idx_documents_development_id").on(table.developmentId),
+  index("idx_documents_typology_id").on(table.typologyId),
+  index("idx_documents_client_id").on(table.clientId),
+]);
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({
   id: true,
@@ -1480,11 +1502,13 @@ export const developmentMedia = pgTable("development_media", {
   url: text("url").notNull(), // File path/URL
   order: integer("order").default(0), // Display order
   isPrimary: boolean("is_primary").default(false), // Primary image for cards
-  
+
   // Meta
   uploadedBy: varchar("uploaded_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_development_media_typology_id").on(table.typologyId),
+]);
 
 export const insertDevelopmentMediaSchema = createInsertSchema(developmentMedia).omit({
   id: true,
@@ -1523,7 +1547,9 @@ export const catalogZones = pgTable("catalog_zones", {
   active: boolean("active").default(true),
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_catalog_zones_city_id").on(table.cityId),
+]);
 
 export const insertCatalogZoneSchema = createInsertSchema(catalogZones).omit({
   id: true,
@@ -1677,7 +1703,9 @@ export const rolePermissions = pgTable("role_permissions", {
   role: text("role").notNull(), // admin, actualizador, perfilador, finanzas, asesor, desarrollador
   permissionLevel: text("permission_level").notNull(), // none, view, edit
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_role_permissions_section_field_role").on(table.section, table.field, table.role),
+]);
 
 export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
   id: true,
@@ -1717,7 +1745,9 @@ export const roleSectionAccess = pgTable("role_section_access", {
   section: text("section").notNull(),
   role: text("role").notNull(),
   active: boolean("active").notNull().default(true),
-});
+}, (table) => [
+  index("idx_role_section_access_section_role").on(table.section, table.role),
+]);
 
 export const insertRoleSectionAccessSchema = createInsertSchema(roleSectionAccess).omit({
   id: true,
@@ -2149,7 +2179,10 @@ export const notifications = pgTable("notifications", {
   targetIds: text("target_ids").array(), // IDs of the duplicate records
   read: boolean("read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_notifications_user_id").on(table.userId),
+  index("idx_notifications_read").on(table.read),
+]);
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
