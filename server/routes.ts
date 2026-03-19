@@ -713,6 +713,15 @@ export async function registerRoutes(
       if (data.fechaEnganche && typeof data.fechaEnganche === 'string') {
         data.fechaEnganche = new Date(data.fechaEnganche);
       }
+      if (data.plazoFechaInicio && typeof data.plazoFechaInicio === 'string') {
+        data.plazoFechaInicio = new Date(data.plazoFechaInicio);
+      }
+      if (data.plazoFechaFinal && typeof data.plazoFechaFinal === 'string') {
+        data.plazoFechaFinal = new Date(data.plazoFechaFinal);
+      }
+      if (data.fechaLiquidacion && typeof data.fechaLiquidacion === 'string') {
+        data.fechaLiquidacion = new Date(data.fechaLiquidacion);
+      }
 
       const client = await storage.updateClient(req.params.id as string, data);
       if (!client) {
