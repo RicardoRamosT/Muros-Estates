@@ -423,7 +423,14 @@ export function parseDateInput(input: string): string | null {
   const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
   if (!match) return null;
   const [, dd, mm, rawYy] = match;
-  const year = rawYy.length === 2 ? `20${rawYy}` : rawYy;
+  let year: string;
+  if (rawYy.length === 2) {
+    const currentTwoDigitYear = new Date().getFullYear() % 100;
+    const yy = parseInt(rawYy, 10);
+    year = yy > currentTwoDigitYear + 10 ? `19${rawYy}` : `20${rawYy}`;
+  } else {
+    year = rawYy;
+  }
   const day = dd.padStart(2, '0');
   const month = mm.padStart(2, '0');
   // Basic validation

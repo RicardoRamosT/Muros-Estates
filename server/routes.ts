@@ -209,20 +209,25 @@ function validationError(res: Response, error: any) {
 
 // Auth middleware
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const sessionId = req.cookies?.muros_session || req.headers.authorization?.replace("Bearer ", "");
-  
-  if (!sessionId) {
-    return res.status(401).json({ error: "No autenticado" });
+  try {
+    const sessionId = req.cookies?.muros_session || req.headers.authorization?.replace("Bearer ", "");
+
+    if (!sessionId) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+
+    const user = await validateSession(sessionId);
+    if (!user) {
+      return res.status(401).json({ error: "Sesión inválida o expirada" });
+    }
+
+    req.user = user;
+    req.sessionId = sessionId;
+    next();
+  } catch (error) {
+    console.error("Auth error:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
   }
-  
-  const user = await validateSession(sessionId);
-  if (!user) {
-    return res.status(401).json({ error: "Sesión inválida o expirada" });
-  }
-  
-  req.user = user;
-  req.sessionId = sessionId;
-  next();
 }
 
 function requireRole(...roles: string[]) {
@@ -521,8 +526,8 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
 
-      // Invalidate sessions when user is deactivated
-      if (updateData.active === false) {
+      // Invalidate sessions when password is changed or user is deactivated
+      if (password || updateData.active === false) {
         await storage.deleteSessionsByUserId(id);
       }
 
@@ -664,10 +669,17 @@ export async function registerRoutes(
         return validationError(res, validationResult.error);
       }
 
-      const client = await storage.createClient({
+      const clientData: any = {
         ...validationResult.data,
         source: "manual",
-      });
+      };
+
+      // Asesor must be forced to own their created clients
+      if (req.user!.role === 'asesor') {
+        clientData.asesorId = req.user!.id;
+      }
+
+      const client = await storage.createClient(clientData);
       broadcastClientUpdate("create", client);
       checkDuplicatesAndNotify(client);
       res.status(201).json(client);
@@ -3921,6 +3933,13 @@ export async function registerRoutes(
         return res.status(400).json({ error: "El nombre del rol es requerido (mínimo 2 caracteres)" });
       }
       const key = name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+      // Prevent collision with built-in roles
+      const builtInRoles = ['admin', 'actualizador', 'perfilador', 'asesor', 'finanzas', 'desarrollador'];
+      if (builtInRoles.includes(key)) {
+        return res.status(400).json({ message: "El nombre del rol coincide con un rol del sistema" });
+      }
+
       const role = await storage.createCustomRole({ name: name.trim(), key, active: true });
       res.status(201).json(role);
     } catch (error) {
@@ -3995,7 +4014,11 @@ export async function registerRoutes(
 
   app.put("/api/notifications/:id/read", requireAuth, async (req, res) => {
     try {
-      const notif = await storage.markNotificationRead(req.params.id as string);
+      const id = req.params.id as string;
+      const notification = await storage.getNotification(id);
+      if (!notification) return res.status(404).json({ message: "No encontrada" });
+      if (notification.userId !== req.user!.id) return res.status(403).json({ message: "Sin permisos" });
+      const notif = await storage.markNotificationRead(id);
       if (!notif) return res.status(404).json({ error: "Notificación no encontrada" });
       res.json(notif);
     } catch (error) {
@@ -4006,7 +4029,11 @@ export async function registerRoutes(
 
   app.delete("/api/notifications/:id", requireAuth, async (req, res) => {
     try {
-      await storage.deleteNotification(req.params.id as string);
+      const id = req.params.id as string;
+      const notification = await storage.getNotification(id);
+      if (!notification) return res.status(404).json({ message: "No encontrada" });
+      if (notification.userId !== req.user!.id) return res.status(403).json({ message: "Sin permisos" });
+      await storage.deleteNotification(id);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting notification:", error);
