@@ -16,14 +16,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { 
-  Folder, 
-  FileText, 
-  Upload, 
-  Download, 
-  Trash2, 
-  ChevronRight, 
-  Home, 
+import {
+  Folder,
+  FileText,
+  Upload,
+  Download,
+  Trash2,
+  ChevronRight,
+  Home,
   Plus,
   Users,
   FolderOpen,
@@ -43,7 +43,8 @@ import {
   Info,
   Pencil,
   Check,
-  X
+  X,
+  AlertTriangle
 } from "lucide-react";
 import { DOCUMENT_SECTIONS, getFieldPermission } from "@shared/schema";
 import type { Document, Developer, Development, Typology, Client, SharedLink } from "@shared/schema";
@@ -1591,17 +1592,19 @@ function DesarrolladoresView({
       <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
         <TabsList className="mb-4">
           {developerLegalesSections.map(section => (
-            <TabsTrigger 
-              key={section} 
+            <TabsTrigger
+              key={section}
               value={section}
-              className="capitalize relative pr-6"
+              className="capitalize relative pr-6 data-[state=inactive]:text-foreground"
               data-testid={`tab-${section}`}
             >
               {SECTION_LABELS[section] || section}
               {SECTION_DESCRIPTIONS[section] && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="absolute top-0 right-0 w-0 h-0 border-t-[12px] border-t-red-500 border-l-[12px] border-l-transparent cursor-help" />
+                    <span className="absolute top-0.5 right-0.5 cursor-help">
+                      <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
                     <p className="font-medium mb-1">Documentos que se suben aquí:</p>
@@ -1779,12 +1782,14 @@ function DesarrolladoresView({
       <Tabs value={activeSection} onValueChange={onSelectSection} className="w-full">
         <TabsList className="mb-4 flex-wrap">
           {developmentLegalesSections.map(section => (
-            <TabsTrigger key={section} value={section} className="relative pr-6" data-testid={`tab-${section}`}>
+            <TabsTrigger key={section} value={section} className="relative pr-6 data-[state=inactive]:text-foreground" data-testid={`tab-${section}`}>
               {SECTION_LABELS[section]}
               {SECTION_DESCRIPTIONS[section] && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="absolute top-0 right-0 w-0 h-0 border-t-[12px] border-t-red-500 border-l-[12px] border-l-transparent cursor-help" />
+                    <span className="absolute top-0.5 right-0.5 cursor-help">
+                      <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
                     <p className="font-medium mb-1">Documentos que se suben aquí:</p>

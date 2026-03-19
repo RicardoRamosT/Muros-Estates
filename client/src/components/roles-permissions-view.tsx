@@ -692,14 +692,14 @@ function PermissionSectionGrid({
             <div
               data-sticky-corner
               className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
+              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '2px solid rgba(0,0,0,0.3)' }}
             >
               <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
             </div>
             {/* Activo spacer */}
             <div
               className="flex-shrink-0"
-              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '2px solid rgba(0,0,0,0.3)' }}
             />
             {/* Group spans */}
             {groupRuns.map((group, i) => (
@@ -713,7 +713,7 @@ function PermissionSectionGrid({
                   height: ROW_H,
                   backgroundColor: group.color,
                   borderRight: '1px solid rgba(255,255,255,0.15)',
-                  borderBottom: '1px solid rgba(255,255,255,0.25)',
+                  borderBottom: '2px solid rgba(0,0,0,0.3)',
                 }}
               >
                 {group.label}
@@ -1010,7 +1010,7 @@ export function RolesPermissionsView() {
             </div>
           </div>
         </div>
-        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setNewRoleDialogOpen(true)}>
+        <Button size="sm" className="h-7 text-xs" onClick={() => setNewRoleDialogOpen(true)}>
           <Plus className="w-3.5 h-3.5 mr-1" />
           Nuevo Rol
         </Button>
