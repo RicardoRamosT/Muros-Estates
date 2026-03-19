@@ -73,11 +73,7 @@ export async function seedAdminUser(): Promise<void> {
     let adminPassword = process.env.ADMIN_INITIAL_PASSWORD;
     if (!adminPassword) {
       adminPassword = crypto.randomBytes(16).toString("hex");
-      console.log("=".repeat(60));
-      console.log("ADMIN PASSWORD GENERATED:", adminPassword);
-      console.log("Set ADMIN_INITIAL_PASSWORD env var to use a specific password.");
-      console.log("Change this password after first login.");
-      console.log("=".repeat(60));
+      console.log("Admin user created with auto-generated password. Set ADMIN_INITIAL_PASSWORD env var and restart to use a known password.");
     }
     await createUserWithHashedPassword({
       username: "admin",
