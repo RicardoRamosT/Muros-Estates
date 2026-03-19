@@ -134,6 +134,7 @@ Paste events are filtered through the same rules — invalid characters stripped
 - Auto-mask adds `/` separators as user types
 - `maskDateInput(raw)` → formatted display
 - `parseDateInput(input)` → DB storage format
+- **Year heuristic**: Two-digit years greater than `currentYear + 10` are treated as 1900s (e.g., `99` → `1999`, not `2099`)
 
 ---
 
@@ -184,6 +185,15 @@ Paste events are filtered through the same rules — invalid characters stripped
 |-------|---------|
 | `appreciationTotal` | `finalPrice × ((1 + appreciationRate/100) ^ years - 1)` |
 | `finalValue` | `finalPrice + appreciationTotal` |
+
+### NaN/Infinity Guards
+
+All 19 formula fields are protected against NaN and Infinity propagation using two helper functions in `spreadsheet-utils.ts`:
+
+- **`safeNum(value)`** — Returns 0 if the value is NaN, null, undefined, or non-numeric
+- **`safeFin(value)`** — Returns 0 if the value is NaN, Infinity, or -Infinity
+
+These guards prevent cascading NaN through dependent calculations (e.g., division by zero in `pricePerM2` when `sizeFinal` is 0, or `mortgageMonthlyPayment` when `mortgageYears` is 0).
 
 ### Formula Tooltips
 Hovering a calculated column header shows a tooltip with the formula definition from `TYPOLOGY_FORMULAS`.
@@ -248,7 +258,7 @@ Auto-reconnects on disconnect. `notification-bell.tsx` has a fallback polling in
 
 ## Field Permissions
 
-Each spreadsheet enforces role-based field permissions:
+Each spreadsheet enforces role-based field permissions via the `useFieldPermissions` hook. The typology spreadsheet was updated to use `useFieldPermissions('tipologias')` instead of a hardcoded role check, bringing it in line with the other 3 spreadsheets:
 
 ```typescript
 const { canView, canEdit } = useFieldPermissions('tipologias');
@@ -298,6 +308,19 @@ Edits are saved immediately on blur/tab/enter:
 2. React Query cache invalidated on success
 3. WebSocket broadcasts change to other users
 4. No explicit "Save" button — all changes are atomic per cell
+
+### Active Toggle Save Pattern
+Active toggles (boolean checkboxes for `active` field) are standardized across all 4 spreadsheets to use `handleFieldChange` + immediate `saveRowById`. This ensures the toggle is persisted immediately without relying on pending changes batch.
+
+### `flushPendingChanges` (page close safety net)
+Called on `beforeunload` to save any pending changes:
+- Uses `credentials: "include"` on all fetch calls (httpOnly cookie auth)
+- `pending.clear()` is called inside `.then()` (only after server confirms)
+- `.catch()` handler prevents silent data loss on network errors
+- Uses `navigator.sendBeacon` fallback where available
+
+### Prospects Blur Equality Check
+The prospects spreadsheet checks value equality on blur — if the value hasn't changed, the save is skipped to avoid unnecessary API calls.
 
 ---
 

@@ -58,6 +58,17 @@ export type NewTable = typeof newTable.$inferSelect;
 developerId: varchar("developer_id").references(() => developers.id, { onDelete: "cascade" }),
 ```
 
+### onDelete Rules (established conventions)
+- **`cascade`**: Use for sessions.userId, clientFollowUps.clientId, notifications.userId
+- **`set null`**: Use for user references that should survive user deletion: clients.asesorId, clients.assignedTo, clientFollowUps.userId, typologies.createdBy/updatedBy, documents.uploadedBy, developmentMedia.uploadedBy, sharedLinks.createdBy
+
+### Indexes
+Always add indexes on FK columns and commonly filtered columns. Current indexes exist on 12 tables (sessions, clients, typologies, developers, developments, documents, notifications, developmentMedia, catalogZones, developmentAssignments, rolePermissions, roleSectionAccess).
+
+### Unique Constraints
+- `rolePermissions`: Unique on `(section, field, role)`
+- `roleSectionAccess`: Unique on `(section, role)`
+
 ### Decimal Fields
 ```typescript
 price: decimal("price", { precision: 14, scale: 2 }),
@@ -102,6 +113,9 @@ deletedAt: timestamp("deleted_at"),  // null = active, timestamp = deleted
 
 // Queries filter active records:
 db.select().from(table).where(isNull(table.deletedAt))
+
+// IMPORTANT: Single-record getters ALSO filter by deletedAt:
+// getClient(id), getDeveloper(id), getTypology(id) all include isNull(deletedAt)
 
 // Soft delete:
 db.update(table).set({ deletedAt: new Date() }).where(eq(table.id, id))

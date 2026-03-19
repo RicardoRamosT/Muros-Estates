@@ -94,12 +94,29 @@ broadcastClientUpdate('delete', { id });
 ## Security Checklist
 
 - Rate limit public endpoints (login: 5/15min, contact: 5/60s)
-- Validate all inputs with Zod
+- Validate all inputs with Zod (developer/development routes use `insertDeveloperSchema`/`insertDevelopmentSchema`)
 - Check role permissions before operations
 - Asesor can only access their own assigned clients
+- **Asesor is forced to own newly created clients** (`asesorId = req.user.id`)
 - Prevent self-deletion and admin deletion
 - Convert empty strings to null for numeric fields
-- Return error details only in development mode
+- Return error details only in development mode (global error handler returns generic message for 5xx in production)
+- **Validate role** on user create/update against built-in roles + custom roles
+- **Custom role collision prevention** — cannot create role with built-in name
+- **Notification ownership** — users can only read/delete their own notifications
+- **Session invalidation** — delete sessions on password change AND user deactivation via `deleteSessionsByUserId`
+- All ~130 catalog routes wrapped in try-catch
+- Admin password not logged to console
+
+## Batch Query Methods (N+1 fixes)
+
+Use these instead of per-record queries in loops:
+| Method | Purpose |
+|--------|---------|
+| `getTypologiesByPropertyIds(ids)` | Batch fetch typologies for multiple properties |
+| `getDocumentsByTypologyIds(ids)` | Batch fetch documents for multiple typologies |
+| `deleteSessionsByUserId(userId)` | Delete all sessions for a user |
+| `getNotification(id)` | Fetch single notification (for ownership check) |
 
 ## Before Making Changes
 

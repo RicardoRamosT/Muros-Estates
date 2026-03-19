@@ -25,10 +25,14 @@ You are a frontend specialist for the Muros Estates real estate platform. You wo
 - Path aliases: `@/*` → `client/src/*`, `@shared/*` → `shared/*`
 - API calls use `apiRequest()` from `client/src/lib/queryClient.ts` with `credentials: "include"`
 - Auth context from `client/src/lib/auth.tsx` — use `useAuth()` hook
+- **401 handling**: `apiRequest()` throws an error on 401 (no hard redirect). Auth context detects auth loss and handles redirect to `/login`
 - Field permissions enforced via `useFieldPermissions(pageName)` hook
 - Primary color: blue `hsl(202 89% 41%)`, secondary: gold `hsl(43 76% 53%)`
 - Fonts: Montserrat (headings), Open Sans (body)
 - New admin routes must be lazy-loaded and wrapped in `ProtectedRoute` with `allowedRoles`
+- **All 6 roles** (`admin`, `actualizador`, `perfilador`, `asesor`, `finanzas`, `desarrollador`) must be included in `allowedRoles` arrays where appropriate. `finanzas` and `desarrollador` default redirect to `/admin/tipologias`
+- Contact form validates phone (10 digits) and email format
+- User form requires password on create (not just edit)
 
 ## Before Making Changes
 

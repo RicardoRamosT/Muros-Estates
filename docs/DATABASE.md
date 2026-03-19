@@ -79,9 +79,11 @@ Active login sessions (7-day expiration).
 | Column | Type | Notes |
 |--------|------|-------|
 | id | UUID PK | Session token stored in cookie |
-| userId | VARCHAR FK → users.id | Cascade delete |
+| userId | VARCHAR FK → users.id | `onDelete: "cascade"` |
 | expiresAt | TIMESTAMP | 7 days from creation |
 | createdAt | TIMESTAMP | Auto-generated |
+
+**Indexes**: `userId`, `expiresAt`
 
 ---
 
@@ -192,9 +194,9 @@ Prospects and converted clients (CRM).
 | **documents** | File attachments for any entity | name, fileUrl, rootCategory, section, developerId/developmentId/typologyId/clientId (FK), shareable |
 | **developmentMedia** | Images/videos for typologies | typologyId (FK), type (image/video), url, order, isPrimary |
 | **sharedLinks** | Public document sharing tokens | token (unique), targetType, canView, canUpload, isPermanent, expiresAt, accessCount |
-| **clientFollowUps** | Client interaction history | clientId (FK), userId (FK), action, notes |
-| **developmentAssignments** | Asesor ↔ development mapping | developmentId (FK), asesorId (FK), assignedBy (FK) |
-| **notifications** | Duplicate detection alerts | userId (FK), type, title, message, targetIds[], read |
+| **clientFollowUps** | Client interaction history | clientId (FK, `onDelete: "cascade"`), userId (FK, `onDelete: "set null"`), action, notes |
+| **developmentAssignments** | Asesor ↔ development mapping | developmentId (FK → **developments.id**, corrected), asesorId (FK), assignedBy (FK) |
+| **notifications** | Duplicate detection alerts | userId (FK, `onDelete: "cascade"`), type, title, message, targetIds[], read |
 | **globalSettings** | Key-value config | key (unique), value, label |
 
 ---
@@ -289,6 +291,55 @@ Property create → Auto-creates corresponding typology
 Property update → Syncs to typology (city, zone, developer, development)
 Property delete → Cascades delete to typology
 ```
+
+---
+
+## Indexes
+
+Indexes are defined on 12 tables for query performance:
+
+| Table | Indexed Columns |
+|-------|----------------|
+| `sessions` | `userId`, `expiresAt` |
+| `clients` | `asesorId`, `deletedAt` |
+| `typologies` | `propertyId`, `deletedAt` |
+| `developers` | `deletedAt` |
+| `developments` | `developerId`, `deletedAt` |
+| `documents` | `developerId`, `developmentId`, `typologyId`, `clientId` |
+| `notifications` | `userId` |
+| `developmentMedia` | `typologyId` |
+| `catalogZones` | `cityId` |
+| `developmentAssignments` | `developmentId`, `asesorId` |
+| `rolePermissions` | Unique constraint on `(section, field, role)` |
+| `roleSectionAccess` | Unique constraint on `(section, role)` |
+
+---
+
+## Foreign Key onDelete Rules
+
+| Table.Column | References | onDelete |
+|-------------|------------|----------|
+| `sessions.userId` | users.id | `cascade` |
+| `clientFollowUps.clientId` | clients.id | `cascade` |
+| `notifications.userId` | users.id | `cascade` |
+| `clients.asesorId` | users.id | `set null` |
+| `clients.assignedTo` | users.id | `set null` |
+| `clientFollowUps.userId` | users.id | `set null` |
+| `typologies.createdBy` | users.id | `set null` |
+| `typologies.updatedBy` | users.id | `set null` |
+| `documents.uploadedBy` | users.id | `set null` |
+| `developmentMedia.uploadedBy` | users.id | `set null` |
+| `sharedLinks.createdBy` | users.id | `set null` |
+| `developmentAssignments.developmentId` | **developments.id** (corrected from properties.id) | — |
+
+---
+
+## Unique Constraints
+
+| Table | Columns | Purpose |
+|-------|---------|---------|
+| `rolePermissions` | `(section, field, role)` | Prevents duplicate permission entries |
+| `roleSectionAccess` | `(section, role)` | Prevents duplicate section access entries |
 
 ---
 

@@ -105,6 +105,12 @@ Key formulas:
 - `totalEnganche = initialAmount + duringConstructionAmount`
 - `mortgageMonthlyPayment = amortization(principal, rate, years)`
 
+### NaN/Infinity Guards
+All 19 formula fields use `safeNum()` and `safeFin()` helpers from `spreadsheet-utils.ts`:
+- **`safeNum(value)`** — Returns 0 for NaN/null/undefined/non-numeric
+- **`safeFin(value)`** — Returns 0 for NaN/Infinity/-Infinity
+These prevent cascading NaN through dependent calculations (e.g., division by zero).
+
 ## State Persistence
 
 All filter/sort/collapse state persisted in localStorage:
@@ -114,9 +120,31 @@ Debounce: 300ms writes via usePersistedState
 Serializers: filterConfigsSerializer, columnFiltersSerializer, setSerializer
 ```
 
+## Active Toggle Save Pattern
+
+Active toggles are standardized across all 4 spreadsheets to use `handleFieldChange` + immediate `saveRowById`. This ensures toggles persist immediately without relying on pending changes batch.
+
+## `flushPendingChanges` (page close safety)
+
+- Uses `credentials: "include"` on all fetch calls (httpOnly cookie auth)
+- `pending.clear()` called inside `.then()` (only after server confirms)
+- `.catch()` handler prevents silent data loss
+
+## Prospects Blur Equality Check
+
+The prospects spreadsheet checks value equality on blur — skips save if value unchanged.
+
+## Date Input Year Heuristic
+
+`parseDateInput()` two-digit year heuristic: years > currentYear+10 are treated as 1900s (e.g., `99` → `1999`).
+
+## Permissions
+
+All 4 spreadsheets use `useFieldPermissions(pageName)` hook. The typology spreadsheet was migrated from a hardcoded role check to `useFieldPermissions('tipologias')`.
+
 ## WebSocket Integration
 
-Each spreadsheet connects to `/ws` for real-time sync:
+Each spreadsheet connects to `/ws` for real-time sync (all 4 have WebSocket listeners, including developments):
 ```
 Cell edit → API mutation → Server broadcast → Other clients invalidate queries → UI updates
 ```

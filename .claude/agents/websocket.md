@@ -156,6 +156,10 @@ ws.onmessage = (event) => {
 };
 ```
 
+## Coverage Note
+
+All 4 entity spreadsheets (typologies, developers, developments, prospects) have WebSocket listeners implemented. An earlier audit incorrectly flagged developments as missing WebSocket support -- this was already in place.
+
 ## Known Limitations
 
 - **No rooms/channels**: All messages broadcast to all clients. Client-side filtering only.

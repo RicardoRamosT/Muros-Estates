@@ -94,15 +94,15 @@ client/src/
 ### Admin Routes (lazy-loaded, role-protected)
 | Path | Component | Allowed Roles |
 |------|-----------|---------------|
-| `/admin` | AdminRedirect | All authenticated |
+| `/admin` | AdminRedirect | All authenticated (`finanzas` → `/admin/tipologias`, `desarrollador` → `/admin/tipologias`) |
 | `/admin/users` | users.tsx | admin |
-| `/admin/desarrolladores` | developers-spreadsheet | admin, actualizador |
-| `/admin/desarrollos` | developments-spreadsheet | admin, actualizador |
-| `/admin/tipologias` | typology-spreadsheet | admin, actualizador |
-| `/admin/prospectos` | prospects-spreadsheet | admin, perfilador, asesor |
-| `/admin/clientes` | prospects-spreadsheet | admin, perfilador, asesor |
-| `/admin/documentos` | admin-documents | admin, actualizador, asesor, perfilador |
-| `/admin/catalogos` | catalogos.tsx | admin, actualizador |
+| `/admin/desarrolladores` | developers-spreadsheet | admin, actualizador, finanzas, desarrollador |
+| `/admin/desarrollos` | developments-spreadsheet | admin, actualizador, finanzas, desarrollador |
+| `/admin/tipologias` | typology-spreadsheet | admin, actualizador, finanzas, desarrollador |
+| `/admin/prospectos` | prospects-spreadsheet | admin, perfilador, asesor, finanzas, desarrollador |
+| `/admin/clientes` | prospects-spreadsheet | admin, perfilador, asesor, finanzas, desarrollador |
+| `/admin/documentos` | admin-documents | admin, actualizador, asesor, perfilador, finanzas, desarrollador |
+| `/admin/catalogos` | catalogos.tsx | admin, actualizador, finanzas, desarrollador |
 
 ### Route Protection
 ```tsx
@@ -127,7 +127,7 @@ client/src/
 2. If valid session cookie exists → sets user state
 3. Login: `POST /api/auth/login` → server sets `httpOnly` cookie (`muros_session`)
 4. All requests include `credentials: "include"` → cookie sent automatically
-5. 401 response → redirect to `/login`
+5. 401 response → throws error (no hard redirect); `AuthProvider` detects auth loss and redirects to `/login` via context. This preserves in-flight form data and avoids conflicting with React Query's error handling.
 
 ### Hook
 ```tsx
@@ -155,7 +155,7 @@ apiRequest(method, url, data?)
 // - Wraps fetch with credentials: "include"
 // - Auto-adds Content-Type: application/json
 // - Throws on non-OK responses
-// - Redirects to /login on 401
+// - On 401: throws error (auth context handles redirect — no hard window.location change)
 ```
 
 ### Pattern
@@ -271,7 +271,7 @@ Two-step file upload: request presigned URL → upload to storage. Supports prog
 | `formatDate(date)` | `19/03/26` |
 | `formatDateShort(str)` | `dd/mm/yy` from `YYYY-MM-DD` |
 | `maskDateInput(raw)` | Auto-formats as user types `dd/mm/yy` |
-| `parseDateInput(input)` | Converts `dd/mm/yy` → `YYYY-MM-DD` for storage |
+| `parseDateInput(input)` | Converts `dd/mm/yy` → `YYYY-MM-DD` for storage. Year heuristic: two-digit years > currentYear+10 are treated as 1900s (e.g., `99` → `1999`, not `2099`) |
 
 ### Input Filters (paste/type protection)
 - **phone**: digits, `+`, `-`, `()`, spaces
@@ -309,3 +309,31 @@ Custom serializers handle `Set<string>` and `Record<string, Set<string>>` types.
 | `useRef` | DOM refs to avoid re-renders |
 | Conditional rendering | Collapsed sections not rendered |
 | WebSocket invalidation | Surgical cache updates vs polling |
+
+---
+
+## Form Validation
+
+### User Form (`user-form.tsx`)
+- Password is **required** on user creation (not just edit)
+- Role selection includes all 6 built-in roles
+
+### Contact Form (`floating-contact-form.tsx`)
+- Phone: validated as 10 digits exactly
+- Email: validated with format check
+- All required fields enforced before submission
+
+---
+
+## Visual Alignment (March 2026)
+
+### Standardized Across All Spreadsheets
+- Calculated cells use golden tint (`rgb(255,241,220)` / `rgb(60,40,10)` dark)
+- Editable cell hover uses blue (`hover:bg-blue-50`)
+- Select triggers match Typology styling (consistent `w-full min-w-0` pattern)
+- Zoom popup uses dark translucent background with animation
+
+### UI Fixes
+- Footer links are functional: "Departamentos"/"Desarrollos" link to `/propiedades`, "Aviso de Privacidad" is a working link
+- Notification delete button is visible (parent element has `group` class)
+- 404 page includes "Volver al inicio" button for navigation back to home

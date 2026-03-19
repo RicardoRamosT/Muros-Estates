@@ -87,6 +87,7 @@ The hook fetches:
 ### Route-level
 ```typescript
 app.get('/api/users', requireAuth, requireRole('admin'), ...)
+// requireAuth middleware has try-catch, returns 401 on unexpected errors
 ```
 
 ### Logic-level
@@ -95,6 +96,24 @@ app.get('/api/users', requireAuth, requireRole('admin'), ...)
 if (user.role === 'asesor') {
   clients = clients.filter(c => c.asesorId === user.id);
 }
+
+// Asesor forced ownership on client creation
+if (user.role === 'asesor') {
+  data.asesorId = user.id;
+}
+
+// Notification ownership check
+const notification = await storage.getNotification(id);
+if (notification.userId !== req.user.id) return res.status(403)...
+
+// Role validation on user create/update
+// Validates against built-in roles + custom roles from DB
+
+// Custom role collision prevention
+// Cannot create custom role with built-in name (admin, actualizador, etc.)
+
+// Session invalidation on password change / user deactivation
+await storage.deleteSessionsByUserId(userId);
 
 // Document permission check
 if (!hasDocumentPermission(user, 'edit')) {
@@ -125,10 +144,15 @@ If you add a field to any entity that has permissions, you MUST:
 ## Special Access Rules
 
 - **Asesor isolation**: Asesores only see clients where `asesorId === user.id`
+- **Asesor ownership**: Asesor is forced to own newly created clients (`asesorId = req.user.id`)
 - **Admin self-protection**: Cannot delete themselves
 - **Admin deletion protection**: Cannot delete other admins
 - **Parent activation check**: Cannot activate entity if parent is inactive
 - **Completeness validation**: Cannot activate developer/development with missing required fields
+- **Notification ownership**: Users can only read/delete their own notifications
+- **Role validation**: User create/update validates role against built-in + custom roles
+- **Role collision prevention**: Custom roles cannot use built-in role names
+- **Session invalidation**: Sessions deleted on password change AND user deactivation
 
 ## Permission Sections
 

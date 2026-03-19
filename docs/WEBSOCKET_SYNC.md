@@ -43,6 +43,8 @@ Native `ws` WebSocket server enables multi-user real-time editing across all spr
 
 All broadcasts send to **every connected client** (no room/channel filtering).
 
+> **Note**: All 4 entity spreadsheets (including developments) have WebSocket listeners. An earlier audit incorrectly flagged developments as missing WebSocket support -- this was already implemented.
+
 ---
 
 ## Client Integration

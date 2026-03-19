@@ -58,7 +58,12 @@ const { canView, canEdit, isAdmin } = useFieldPermissions('tipologias');
 ### Backend Enforcement
 - `requireRole(...roles)` middleware on routes
 - Asesor-specific filtering: only sees their own clients
+- **Asesor client ownership**: Asesor is forced to own newly created clients (`asesorId = req.user.id`)
 - Document operations check `hasDocumentPermission(user, action)`
+- **Notification ownership**: Notification read/delete checks `notification.userId === req.user.id`
+- **Role validation on user create/update**: Validates role against built-in roles + custom roles from DB
+- **Custom role key collision prevention**: Cannot create a custom role with a name matching built-in roles ("admin", "actualizador", "perfilador", "asesor", "finanzas", "desarrollador")
+- **Session invalidation**: All user sessions are deleted on password change AND user deactivation via `deleteSessionsByUserId(userId)`
 
 ---
 
@@ -196,10 +201,16 @@ VALUES ('tipologias_mortgage', 'asesor', false);
 | Rule | Description |
 |------|-------------|
 | Asesor client isolation | Asesores can only view/edit clients assigned to them via `asesorId` |
+| Asesor client ownership | Asesor is forced to own newly created clients (`asesorId = req.user.id`) |
 | Admin self-protection | Admins cannot delete themselves |
 | Admin deletion protection | No user can delete another admin |
 | Parent activation check | Cannot activate entity if parent (developer/development) is inactive |
 | Completeness validation | Cannot activate developer/development if required fields are missing |
+| Notification ownership | Users can only mark as read / delete their own notifications |
+| Role validation | User create/update validates role against built-in + custom roles |
+| Role collision prevention | Custom roles cannot use built-in role names |
+| Session invalidation on password change | All sessions deleted when password is changed |
+| Session invalidation on deactivation | All sessions deleted when user is deactivated |
 
 ### Developer Completeness Requirements
 - tipo, name, tipos array, contratos array
