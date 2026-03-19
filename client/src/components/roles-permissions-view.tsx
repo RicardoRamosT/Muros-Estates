@@ -692,14 +692,14 @@ function PermissionSectionGrid({
             <div
               data-sticky-corner
               className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '2px solid rgba(0,0,0,0.3)' }}
+              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
             >
               <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
             </div>
             {/* Activo spacer */}
             <div
               className="flex-shrink-0"
-              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '2px solid rgba(0,0,0,0.3)' }}
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
             />
             {/* Group spans */}
             {groupRuns.map((group, i) => (
@@ -713,7 +713,7 @@ function PermissionSectionGrid({
                   height: ROW_H,
                   backgroundColor: group.color,
                   borderRight: '1px solid rgba(255,255,255,0.15)',
-                  borderBottom: '2px solid rgba(0,0,0,0.3)',
+                  borderBottom: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
                 {group.label}
@@ -725,14 +725,14 @@ function PermissionSectionGrid({
         <div className="flex sticky z-20" style={{ height: ROW_H, top: headerTop }}>
           <div
             className="flex-shrink-0 sticky left-0 z-30 flex items-center font-semibold text-xs text-white px-3"
-            style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
+            style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
           >
             Rol
           </div>
           {/* Activo column header */}
           <div
             className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
-            style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
+            style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
           >
             Activo
           </div>
@@ -741,7 +741,7 @@ function PermissionSectionGrid({
             <div
               key={`hdr-${field}`}
               className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
-              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: fieldGroupColors[i] || SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: fieldGroupColors[i] || SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.15)' }}
             >
               {!soloFields.has(i) && (
                 <span className="truncate px-1">{fieldLabels[field] || field}</span>
