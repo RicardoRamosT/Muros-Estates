@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema, insertCatalogAvisoSchema } from "@shared/schema";
+import { insertPropertySchema, insertClientSchema, loginSchema, contactFormSchema, insertUserSchema, insertTypologySchema, insertDocumentSchema, insertSharedLinkSchema, insertDeveloperSchema, insertDevelopmentSchema, insertCatalogCitySchema, insertCatalogZoneSchema, insertCatalogDevelopmentTypeSchema, insertCatalogAmenitySchema, insertCatalogEfficiencyFeatureSchema, insertCatalogOtherFeatureSchema, insertCatalogAcabadoSchema, insertCatalogNivelSchema, insertCatalogTorreSchema, insertCatalogRecamaraSchema, insertCatalogBanoSchema, insertCatalogCajonSchema, insertCatalogNivelMantenimientoSchema, insertCatalogTipoClienteSchema, insertCatalogPerfilSchema, insertCatalogFuenteSchema, insertCatalogStatusProspectoSchema, insertCatalogEtapaEmbudoSchema, insertCatalogComoPagaSchema, insertCatalogPositivoSchema, insertCatalogNegativoSchema, insertCatalogTipoContratoSchema, insertCatalogCesionDerechosSchema, insertCatalogPresentacionSchema, insertCatalogTipoProveedorSchema, insertCatalogIncluyeSchema, insertCatalogSiNoSchema, insertCatalogEtapaClientesSchema, insertCatalogAvisoSchema } from "@shared/schema";
 import { authenticateUser, createSession, validateSession, createUserWithHashedPassword, hashPassword, seedAdminUser } from "./auth";
 import type { User, Typology } from "@shared/schema";
 import multer from "multer";
@@ -1341,7 +1341,9 @@ export async function registerRoutes(
 
   app.post("/api/developers", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
-      const dev = await storage.createDeveloper(req.body);
+      const parsed = insertDeveloperSchema.partial().safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const dev = await storage.createDeveloper(parsed.data as any);
       broadcastDeveloperUpdate("create", dev);
       res.status(201).json(dev);
     } catch (error) {
@@ -1352,9 +1354,11 @@ export async function registerRoutes(
 
   app.put("/api/developers/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
+      const parsed = insertDeveloperSchema.partial().safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
       const id = req.params.id as string;
       // Convert date strings to Date objects for timestamp fields
-      const data = { ...req.body };
+      const data = { ...parsed.data } as Record<string, any>;
       if (data.fechaAntiguedad && typeof data.fechaAntiguedad === 'string') {
         data.fechaAntiguedad = new Date(data.fechaAntiguedad);
       }
@@ -1474,7 +1478,9 @@ export async function registerRoutes(
 
   app.post("/api/developments-entity", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
-      const dev = await storage.createDevelopmentEntity(req.body);
+      const parsed = insertDevelopmentSchema.partial().safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const dev = await storage.createDevelopmentEntity(parsed.data as any);
       broadcastDevelopmentUpdate("create", dev);
       res.status(201).json(dev);
     } catch (error) {
@@ -1485,6 +1491,9 @@ export async function registerRoutes(
 
   app.put("/api/developments-entity/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
+      const parsed = insertDevelopmentSchema.partial().safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const data = parsed.data as Record<string, any>;
       const id = req.params.id as string;
 
       // Fetch existing development for activation check and propagation
@@ -1494,8 +1503,8 @@ export async function registerRoutes(
       }
 
       // Prevent activating an incomplete development or one with inactive parent
-      if (req.body.active === true) {
-        const merged = { ...existing, ...req.body };
+      if (data.active === true) {
+        const merged = { ...existing, ...data };
         if (!isDevelopmentComplete(merged)) {
           return res.status(400).json({ error: "No se puede activar un desarrollo con datos incompletos" });
         }
@@ -1508,13 +1517,13 @@ export async function registerRoutes(
         }
       }
 
-      const dev = await storage.updateDevelopmentEntity(id, req.body);
+      const dev = await storage.updateDevelopmentEntity(id, data);
       if (!dev) {
         return res.status(404).json({ error: "Desarrollo no encontrado" });
       }
 
       // Propagate development name change to typologies
-      if ('name' in req.body && existing.name && dev.name && existing.name !== dev.name) {
+      if ('name' in data && existing.name && dev.name && existing.name !== dev.name) {
         try {
           const count = await storage.updateTypologyFieldByValue("development", existing.name, { development: dev.name });
           if (count > 0) {
@@ -1526,13 +1535,13 @@ export async function registerRoutes(
       }
 
       // Propagate city/zone changes to typologies that reference this development
-      if (('city' in req.body || 'zone' in req.body) && dev.name) {
+      if (('city' in data || 'zone' in data) && dev.name) {
         try {
           const updates: Record<string, string | null> = {};
-          if ('city' in req.body) updates.city = dev.city;
-          if ('zone' in req.body) updates.zone = dev.zone;
+          if ('city' in data) updates.city = dev.city;
+          if ('zone' in data) updates.zone = dev.zone;
           // Use the current development name (possibly just renamed above)
-          const matchName = 'name' in req.body && existing.name !== dev.name ? dev.name : (existing.name || dev.name);
+          const matchName = 'name' in data && existing.name !== dev.name ? dev.name : (existing.name || dev.name);
           if (matchName) {
             const count = await storage.updateTypologyFieldByValue("development", matchName, updates as any);
             if (count > 0) {
@@ -1545,9 +1554,9 @@ export async function registerRoutes(
       }
 
       // Propagate entregaProyectada to typologies
-      if ('entregaProyectada' in req.body && dev.name) {
+      if ('entregaProyectada' in data && dev.name) {
         try {
-          const deliveryDate = req.body.entregaProyectada || null;
+          const deliveryDate = data.entregaProyectada || null;
           const count = await storage.updateTypologyFieldByValue("development", dev.name, { deliveryDate } as any);
           if (count > 0) {
             console.log(`Propagated entregaProyectada to ${count} typologies for development ${dev.name}`);
@@ -2141,33 +2150,53 @@ export async function registerRoutes(
   
   // Cities
   app.get("/api/catalog/cities", requireAuth, async (req, res) => {
-    const cities = await storage.getCatalogCities();
-    res.json(cities);
+    try {
+      const cities = await storage.getCatalogCities();
+      res.json(cities);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/cities", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogCitySchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const city = await storage.createCatalogCity(result.data);
-    res.status(201).json(city);
+    try {
+      const result = insertCatalogCitySchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const city = await storage.createCatalogCity(result.data);
+      res.status(201).json(city);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/cities/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order, isaiPercent, notariaPercent } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number; isaiPercent?: string; notariaPercent?: string } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    if (isaiPercent !== undefined) updateData.isaiPercent = String(isaiPercent);
-    if (notariaPercent !== undefined) updateData.notariaPercent = String(notariaPercent);
-    const city = await storage.updateCatalogCity(req.params.id as string, updateData);
-    if (!city) return res.status(404).json({ error: "Ciudad no encontrada" });
-    res.json(city);
+    try {
+      const { name, active, order, isaiPercent, notariaPercent } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number; isaiPercent?: string; notariaPercent?: string } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      if (isaiPercent !== undefined) updateData.isaiPercent = String(isaiPercent);
+      if (notariaPercent !== undefined) updateData.notariaPercent = String(notariaPercent);
+      const city = await storage.updateCatalogCity(req.params.id as string, updateData);
+      if (!city) return res.status(404).json({ error: "Ciudad no encontrada" });
+      res.json(city);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/cities/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogCity(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogCity(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Global Settings
@@ -2180,897 +2209,1547 @@ export async function registerRoutes(
   ];
 
   app.get("/api/global-settings", requireAuth, async (req, res) => {
-    let settings = await storage.getGlobalSettings();
-    const existingKeys = new Set(settings.map(s => s.key));
-    for (const def of DEFAULT_GLOBAL_SETTINGS) {
-      if (!existingKeys.has(def.key)) {
-        await storage.upsertGlobalSetting(def.key, def.value, def.label);
+    try {
+      let settings = await storage.getGlobalSettings();
+      const existingKeys = new Set(settings.map(s => s.key));
+      for (const def of DEFAULT_GLOBAL_SETTINGS) {
+        if (!existingKeys.has(def.key)) {
+          await storage.upsertGlobalSetting(def.key, def.value, def.label);
+        }
       }
+      if (settings.length < DEFAULT_GLOBAL_SETTINGS.length) {
+        settings = await storage.getGlobalSettings();
+      }
+      res.json(settings);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
     }
-    if (settings.length < DEFAULT_GLOBAL_SETTINGS.length) {
-      settings = await storage.getGlobalSettings();
-    }
-    res.json(settings);
   });
 
   app.put("/api/global-settings/:key", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { value, label } = req.body;
-    if (typeof value !== "string") return res.status(400).json({ error: "Value is required" });
-    const setting = await storage.upsertGlobalSetting(req.params.key, value, label);
-    res.json(setting);
+    try {
+      const { value, label } = req.body;
+      if (typeof value !== "string") return res.status(400).json({ error: "Value is required" });
+      const setting = await storage.upsertGlobalSetting(req.params.key, value, label);
+      res.json(setting);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Zones
   app.get("/api/catalog/zones", requireAuth, async (req, res) => {
-    const cityId = req.query.cityId as string | undefined;
-    const zones = await storage.getCatalogZones(cityId);
-    res.json(zones);
+    try {
+      const cityId = req.query.cityId as string | undefined;
+      const zones = await storage.getCatalogZones(cityId);
+      res.json(zones);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/zones", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogZoneSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const zone = await storage.createCatalogZone(result.data);
-    res.status(201).json(zone);
+    try {
+      const result = insertCatalogZoneSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const zone = await storage.createCatalogZone(result.data);
+      res.status(201).json(zone);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/zones/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order, cityId } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number; cityId?: string } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    if (typeof cityId === "string") updateData.cityId = cityId;
-    const zone = await storage.updateCatalogZone(req.params.id as string, updateData);
-    if (!zone) return res.status(404).json({ error: "Zona no encontrada" });
-    res.json(zone);
+    try {
+      const { name, active, order, cityId } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number; cityId?: string } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      if (typeof cityId === "string") updateData.cityId = cityId;
+      const zone = await storage.updateCatalogZone(req.params.id as string, updateData);
+      if (!zone) return res.status(404).json({ error: "Zona no encontrada" });
+      res.json(zone);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/zones/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogZone(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogZone(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Development Types
   app.get("/api/catalog/development-types", requireAuth, async (req, res) => {
-    const types = await storage.getCatalogDevelopmentTypes();
-    res.json(types);
+    try {
+      const types = await storage.getCatalogDevelopmentTypes();
+      res.json(types);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/development-types", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogDevelopmentTypeSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const type = await storage.createCatalogDevelopmentType(result.data);
-    res.status(201).json(type);
+    try {
+      const result = insertCatalogDevelopmentTypeSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const type = await storage.createCatalogDevelopmentType(result.data);
+      res.status(201).json(type);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/development-types/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const type = await storage.updateCatalogDevelopmentType(req.params.id as string, updateData);
-    if (!type) return res.status(404).json({ error: "Tipo no encontrado" });
-    res.json(type);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const type = await storage.updateCatalogDevelopmentType(req.params.id as string, updateData);
+      if (!type) return res.status(404).json({ error: "Tipo no encontrado" });
+      res.json(type);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/development-types/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogDevelopmentType(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogDevelopmentType(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Amenities
   app.get("/api/catalog/amenities", requireAuth, async (req, res) => {
-    const amenities = await storage.getCatalogAmenities();
-    res.json(amenities);
+    try {
+      const amenities = await storage.getCatalogAmenities();
+      res.json(amenities);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/amenities", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogAmenitySchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const amenity = await storage.createCatalogAmenity(result.data);
-    res.status(201).json(amenity);
+    try {
+      const result = insertCatalogAmenitySchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const amenity = await storage.createCatalogAmenity(result.data);
+      res.status(201).json(amenity);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/amenities/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, icon, active, order } = req.body;
-    const updateData: { name?: string; icon?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof icon === "string") updateData.icon = icon;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const amenity = await storage.updateCatalogAmenity(req.params.id as string, updateData);
-    if (!amenity) return res.status(404).json({ error: "Amenidad no encontrada" });
-    res.json(amenity);
+    try {
+      const { name, icon, active, order } = req.body;
+      const updateData: { name?: string; icon?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof icon === "string") updateData.icon = icon;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const amenity = await storage.updateCatalogAmenity(req.params.id as string, updateData);
+      if (!amenity) return res.status(404).json({ error: "Amenidad no encontrada" });
+      res.json(amenity);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/amenities/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogAmenity(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogAmenity(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Efficiency Features
   app.get("/api/catalog/efficiency-features", requireAuth, async (req, res) => {
-    const features = await storage.getCatalogEfficiencyFeatures();
-    res.json(features);
+    try {
+      const features = await storage.getCatalogEfficiencyFeatures();
+      res.json(features);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/efficiency-features", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogEfficiencyFeatureSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const feature = await storage.createCatalogEfficiencyFeature(result.data);
-    res.status(201).json(feature);
+    try {
+      const result = insertCatalogEfficiencyFeatureSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const feature = await storage.createCatalogEfficiencyFeature(result.data);
+      res.status(201).json(feature);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/efficiency-features/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const feature = await storage.updateCatalogEfficiencyFeature(req.params.id as string, updateData);
-    if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
-    res.json(feature);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const feature = await storage.updateCatalogEfficiencyFeature(req.params.id as string, updateData);
+      if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
+      res.json(feature);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/efficiency-features/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogEfficiencyFeature(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogEfficiencyFeature(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Other Features
   app.get("/api/catalog/other-features", requireAuth, async (req, res) => {
-    const features = await storage.getCatalogOtherFeatures();
-    res.json(features);
+    try {
+      const features = await storage.getCatalogOtherFeatures();
+      res.json(features);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/other-features", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogOtherFeatureSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const feature = await storage.createCatalogOtherFeature(result.data);
-    res.status(201).json(feature);
+    try {
+      const result = insertCatalogOtherFeatureSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const feature = await storage.createCatalogOtherFeature(result.data);
+      res.status(201).json(feature);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/other-features/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const feature = await storage.updateCatalogOtherFeature(req.params.id as string, updateData);
-    if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
-    res.json(feature);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const feature = await storage.updateCatalogOtherFeature(req.params.id as string, updateData);
+      if (!feature) return res.status(404).json({ error: "Característica no encontrada" });
+      res.json(feature);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/other-features/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogOtherFeature(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogOtherFeature(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Acabados
   app.get("/api/catalog/acabados", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogAcabados();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogAcabados();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/acabados", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogAcabadoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogAcabado(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogAcabadoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogAcabado(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/acabados/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogAcabado(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Acabado no encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogAcabado(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Acabado no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/acabados/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogAcabado(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogAcabado(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   
   // Vistas catalog
   app.get("/api/catalog/vistas", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogVistas();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogVistas();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.post("/api/catalog/vistas", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, sortOrder } = req.body;
-    if (!name) return res.status(400).json({ error: "Nombre requerido" });
-    const item = await storage.createCatalogVista({ name, sortOrder });
-    res.status(201).json(item);
+    try {
+      const { name, sortOrder } = req.body;
+      if (!name) return res.status(400).json({ error: "Nombre requerido" });
+      const item = await storage.createCatalogVista({ name, sortOrder });
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.put("/api/catalog/vistas/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, sortOrder } = req.body;
-    const updateData: { name?: string; sortOrder?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
-    const item = await storage.updateCatalogVista(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Vista no encontrada" });
-    res.json(item);
+    try {
+      const { name, sortOrder } = req.body;
+      const updateData: { name?: string; sortOrder?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+      const item = await storage.updateCatalogVista(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Vista no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.delete("/api/catalog/vistas/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogVista(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogVista(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Areas catalog
   app.get("/api/catalog/areas", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogAreas();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogAreas();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.post("/api/catalog/areas", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, sortOrder } = req.body;
-    if (!name) return res.status(400).json({ error: "Nombre requerido" });
-    const item = await storage.createCatalogArea({ name, sortOrder });
-    res.status(201).json(item);
+    try {
+      const { name, sortOrder } = req.body;
+      if (!name) return res.status(400).json({ error: "Nombre requerido" });
+      const item = await storage.createCatalogArea({ name, sortOrder });
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.put("/api/catalog/areas/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, sortOrder } = req.body;
-    const updateData: { name?: string; sortOrder?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
-    const item = await storage.updateCatalogArea(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Área no encontrada" });
-    res.json(item);
+    try {
+      const { name, sortOrder } = req.body;
+      const updateData: { name?: string; sortOrder?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+      const item = await storage.updateCatalogArea(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Área no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.delete("/api/catalog/areas/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogArea(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogArea(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Tipologias catalog
   app.get("/api/catalog/tipologias", requireAuth, async (req, res) => {
-    const developmentId = req.query.developmentId as string | undefined;
-    const items = await storage.getCatalogTipologias(developmentId);
-    res.json(items);
+    try {
+      const developmentId = req.query.developmentId as string | undefined;
+      const items = await storage.getCatalogTipologias(developmentId);
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.post("/api/catalog/tipologias", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, developmentId, sortOrder } = req.body;
-    if (!name) return res.status(400).json({ error: "Nombre requerido" });
-    const item = await storage.createCatalogTipologia({ name, developmentId, sortOrder });
-    res.status(201).json(item);
+    try {
+      const { name, developmentId, sortOrder } = req.body;
+      if (!name) return res.status(400).json({ error: "Nombre requerido" });
+      const item = await storage.createCatalogTipologia({ name, developmentId, sortOrder });
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.put("/api/catalog/tipologias/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, developmentId, sortOrder, active } = req.body;
-    const updateData: { name?: string; developmentId?: string; sortOrder?: number; active?: boolean } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof developmentId === "string") updateData.developmentId = developmentId;
-    if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
-    if (typeof active === "boolean") updateData.active = active;
-    const item = await storage.updateCatalogTipologia(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Tipología no encontrada" });
-    res.json(item);
+    try {
+      const { name, developmentId, sortOrder, active } = req.body;
+      const updateData: { name?: string; developmentId?: string; sortOrder?: number; active?: boolean } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof developmentId === "string") updateData.developmentId = developmentId;
+      if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
+      if (typeof active === "boolean") updateData.active = active;
+      const item = await storage.updateCatalogTipologia(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Tipología no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.delete("/api/catalog/tipologias/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogTipologia(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogTipologia(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // ============ NEW PROPERTY CATALOGS ============
 
   // Niveles catalog
   app.get("/api/catalog/niveles", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogNiveles();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogNiveles();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/niveles", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogNivelSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogNivel(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogNivelSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogNivel(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/niveles/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogNivel(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Nivel no encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogNivel(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Nivel no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/niveles/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogNivel(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogNivel(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Torres catalog
   app.get("/api/catalog/torres", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogTorres();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogTorres();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/torres", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogTorreSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogTorre(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogTorreSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogTorre(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/torres/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogTorre(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Torre no encontrada" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogTorre(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Torre no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/torres/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogTorre(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogTorre(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Recámaras catalog
   app.get("/api/catalog/recamaras", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogRecamaras();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogRecamaras();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/recamaras", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogRecamaraSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogRecamara(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogRecamaraSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogRecamara(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/recamaras/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogRecamara(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Recámara no encontrada" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogRecamara(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Recámara no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/recamaras/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogRecamara(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogRecamara(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Baños catalog
   app.get("/api/catalog/banos", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogBanos();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogBanos();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/banos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogBanoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogBano(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogBanoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogBano(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/banos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogBano(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Baño no encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogBano(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Baño no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/banos/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogBano(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogBano(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Cajones catalog
   app.get("/api/catalog/cajones", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogCajones();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogCajones();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/cajones", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogCajonSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogCajon(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogCajonSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogCajon(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/cajones/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogCajon(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Cajón no encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogCajon(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Cajón no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/cajones/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogCajon(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogCajon(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Nivel Mantenimiento catalog (with valor field)
   app.get("/api/catalog/nivel-mantenimiento", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogNivelMantenimiento();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogNivelMantenimiento();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/nivel-mantenimiento", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogNivelMantenimientoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogNivelMantenimiento(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogNivelMantenimientoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogNivelMantenimiento(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/nivel-mantenimiento/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, valor, equipo, muebles, active, order } = req.body;
-    const updateData: { name?: string; valor?: number; equipo?: number; muebles?: number; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof valor === "number") updateData.valor = valor;
-    if (typeof equipo === "number") updateData.equipo = equipo;
-    if (typeof muebles === "number") updateData.muebles = muebles;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogNivelMantenimiento(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Nivel de mantenimiento no encontrado" });
-    res.json(item);
+    try {
+      const { name, valor, equipo, muebles, active, order } = req.body;
+      const updateData: { name?: string; valor?: number; equipo?: number; muebles?: number; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof valor === "number") updateData.valor = valor;
+      if (typeof equipo === "number") updateData.equipo = equipo;
+      if (typeof muebles === "number") updateData.muebles = muebles;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogNivelMantenimiento(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Nivel de mantenimiento no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/nivel-mantenimiento/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogNivelMantenimiento(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogNivelMantenimiento(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // ============ NEW PROSPECT CATALOGS ============
 
   // Tipo Cliente catalog (with color)
   app.get("/api/catalog/tipo-cliente", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogTipoCliente();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogTipoCliente();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/tipo-cliente", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogTipoClienteSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogTipoCliente(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogTipoClienteSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogTipoCliente(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/tipo-cliente/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogTipoCliente(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Tipo de cliente no encontrado" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogTipoCliente(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Tipo de cliente no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/tipo-cliente/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogTipoCliente(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogTipoCliente(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Perfil catalog (with color)
   app.get("/api/catalog/perfil", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogPerfil();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogPerfil();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/perfil", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogPerfilSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogPerfil(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogPerfilSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogPerfil(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/perfil/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogPerfil(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Perfil no encontrado" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogPerfil(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Perfil no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/perfil/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogPerfil(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogPerfil(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Fuente catalog (with color)
   app.get("/api/catalog/fuente", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogFuente();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogFuente();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/fuente", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogFuenteSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogFuente(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogFuenteSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogFuente(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/fuente/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogFuente(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Fuente no encontrada" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogFuente(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Fuente no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/fuente/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogFuente(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogFuente(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Status Prospecto catalog (with color)
   app.get("/api/catalog/status-prospecto", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogStatusProspecto();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogStatusProspecto();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/status-prospecto", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogStatusProspectoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogStatusProspecto(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogStatusProspectoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogStatusProspecto(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/status-prospecto/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogStatusProspecto(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Status no encontrado" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogStatusProspecto(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Status no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/status-prospecto/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogStatusProspecto(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogStatusProspecto(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Etapa Embudo catalog (with color)
   app.get("/api/catalog/etapa-embudo", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogEtapaEmbudo();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogEtapaEmbudo();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/etapa-embudo", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogEtapaEmbudoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogEtapaEmbudo(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogEtapaEmbudoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogEtapaEmbudo(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/etapa-embudo/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogEtapaEmbudo(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Etapa no encontrada" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogEtapaEmbudo(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Etapa no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/etapa-embudo/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogEtapaEmbudo(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogEtapaEmbudo(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Etapa Clientes catalog
   app.get("/api/catalog/etapa-clientes", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogEtapaClientes();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogEtapaClientes();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/etapa-clientes", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogEtapaClientesSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogEtapaClientes(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogEtapaClientesSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogEtapaClientes(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/etapa-clientes/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogEtapaClientes(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Etapa no encontrada" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogEtapaClientes(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Etapa no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/etapa-clientes/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogEtapaClientes(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogEtapaClientes(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Como Paga catalog
   app.get("/api/catalog/como-paga", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogComoPaga();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogComoPaga();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/como-paga", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogComoPagaSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogComoPaga(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogComoPagaSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogComoPaga(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/como-paga/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogComoPaga(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Opción de pago no encontrada" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogComoPaga(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Opción de pago no encontrada" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/como-paga/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogComoPaga(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogComoPaga(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Positivos catalog
   app.get("/api/catalog/positivos", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogPositivos();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogPositivos();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/positivos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogPositivoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogPositivo(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogPositivoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogPositivo(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/positivos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogPositivo(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Positivo no encontrado" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogPositivo(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Positivo no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/positivos/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogPositivo(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogPositivo(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Negativos catalog
   app.get("/api/catalog/negativos", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogNegativos();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogNegativos();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/negativos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogNegativoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogNegativo(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogNegativoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogNegativo(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/negativos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, color, active, order } = req.body;
-    const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof color === "string") updateData.color = color;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogNegativo(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "Negativo no encontrado" });
-    res.json(item);
+    try {
+      const { name, color, active, order } = req.body;
+      const updateData: { name?: string; color?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof color === "string") updateData.color = color;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogNegativo(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "Negativo no encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/negativos/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogNegativo(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogNegativo(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Asesor catalog
   app.get("/api/catalog/asesor", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogAsesor();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogAsesor();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/asesor", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const item = await storage.createCatalogAsesor(req.body);
-    res.status(201).json(item);
+    try {
+      const item = await storage.createCatalogAsesor(req.body);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/asesor/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const item = await storage.updateCatalogAsesor(req.params.id as string, req.body);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const item = await storage.updateCatalogAsesor(req.params.id as string, req.body);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/asesor/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogAsesor(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogAsesor(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Broker Externo catalog
   app.get("/api/catalog/broker-externo", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogBrokerExterno();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogBrokerExterno();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/broker-externo", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const item = await storage.createCatalogBrokerExterno(req.body);
-    res.status(201).json(item);
+    try {
+      const item = await storage.createCatalogBrokerExterno(req.body);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/broker-externo/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const item = await storage.updateCatalogBrokerExterno(req.params.id as string, req.body);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const item = await storage.updateCatalogBrokerExterno(req.params.id as string, req.body);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/broker-externo/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogBrokerExterno(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogBrokerExterno(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Tipo de Contrato
   app.get("/api/catalog/tipo-contrato", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogTipoContrato();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogTipoContrato();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/tipo-contrato", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogTipoContratoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogTipoContrato(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogTipoContratoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogTipoContrato(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/tipo-contrato/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogTipoContrato(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogTipoContrato(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/tipo-contrato/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogTipoContrato(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogTipoContrato(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Cesión de Derechos
   app.get("/api/catalog/cesion-derechos", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogCesionDerechos();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogCesionDerechos();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/cesion-derechos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogCesionDerechosSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogCesionDerechos(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogCesionDerechosSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogCesionDerechos(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/cesion-derechos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogCesionDerechos(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogCesionDerechos(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/cesion-derechos/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogCesionDerechos(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogCesionDerechos(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Presentación
   app.get("/api/catalog/presentacion", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogPresentacion();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogPresentacion();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.post("/api/catalog/presentacion", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogPresentacionSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogPresentacion(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogPresentacionSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogPresentacion(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.put("/api/catalog/presentacion/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: { name?: string; active?: boolean; order?: number } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogPresentacion(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: { name?: string; active?: boolean; order?: number } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogPresentacion(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
-  
+
   app.delete("/api/catalog/presentacion/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogPresentacion(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogPresentacion(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Tipo de Proveedor
   app.get("/api/catalog/tipo-proveedor", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogTipoProveedor();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogTipoProveedor();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/tipo-proveedor", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogTipoProveedorSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogTipoProveedor(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogTipoProveedorSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogTipoProveedor(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/tipo-proveedor/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: any = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogTipoProveedor(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: any = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogTipoProveedor(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/tipo-proveedor/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogTipoProveedor(req.params.id as string);
-    res.json({ success: true });
+    try {
+      await storage.deleteCatalogTipoProveedor(req.params.id as string);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Incluye
   app.get("/api/catalog/incluye", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogIncluye();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogIncluye();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/incluye", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogIncluyeSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogIncluye(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogIncluyeSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogIncluye(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/incluye/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: any = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogIncluye(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: any = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogIncluye(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/incluye/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogIncluye(req.params.id as string);
-    res.json({ success: true });
+    try {
+      await storage.deleteCatalogIncluye(req.params.id as string);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // Si/No
   app.get("/api/catalog/si-no", requireAuth, async (req, res) => {
-    const items = await storage.getCatalogSiNo();
-    res.json(items);
+    try {
+      const items = await storage.getCatalogSiNo();
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.post("/api/catalog/si-no", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogSiNoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogSiNo(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogSiNoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogSiNo(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.put("/api/catalog/si-no/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, active, order } = req.body;
-    const updateData: any = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof active === "boolean") updateData.active = active;
-    if (typeof order === "number") updateData.order = order;
-    const item = await storage.updateCatalogSiNo(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, active, order } = req.body;
+      const updateData: any = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof active === "boolean") updateData.active = active;
+      if (typeof order === "number") updateData.order = order;
+      const item = await storage.updateCatalogSiNo(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
   app.delete("/api/catalog/si-no/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogSiNo(req.params.id as string);
-    res.json({ success: true });
+    try {
+      await storage.deleteCatalogSiNo(req.params.id as string);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   // My permissions endpoint — returns DB overrides for current user's role
@@ -3093,37 +3772,57 @@ export async function registerRoutes(
   });
 
   app.get("/api/catalog/avisos", requireAuth, async (req, res) => {
-    let items = await storage.getCatalogAvisos();
-    // Auto-seed the fixed "Medios" aviso if it doesn't exist
-    if (!items.some(i => i.field === "media")) {
-      const seeded = await storage.createCatalogAviso({ name: "Medios", field: "media", minQuantity: 1 });
-      items = [...items, seeded];
+    try {
+      let items = await storage.getCatalogAvisos();
+      // Auto-seed the fixed "Medios" aviso if it doesn't exist
+      if (!items.some(i => i.field === "media")) {
+        const seeded = await storage.createCatalogAviso({ name: "Medios", field: "media", minQuantity: 1 });
+        items = [...items, seeded];
+      }
+      res.json(items);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
     }
-    res.json(items);
   });
 
   app.post("/api/catalog/avisos", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const result = insertCatalogAvisoSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
-    const item = await storage.createCatalogAviso(result.data);
-    res.status(201).json(item);
+    try {
+      const result = insertCatalogAvisoSchema.safeParse(req.body);
+      if (!result.success) return res.status(400).json({ error: "Datos inválidos", details: result.error.errors });
+      const item = await storage.createCatalogAviso(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.put("/api/catalog/avisos/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
-    const { name, field, minQuantity, active } = req.body;
-    const updateData: { name?: string; field?: string; minQuantity?: number; active?: boolean } = {};
-    if (typeof name === "string") updateData.name = name;
-    if (typeof field === "string") updateData.field = field;
-    if (typeof minQuantity === "number") updateData.minQuantity = minQuantity;
-    if (typeof active === "boolean") updateData.active = active;
-    const item = await storage.updateCatalogAviso(req.params.id as string, updateData);
-    if (!item) return res.status(404).json({ error: "No encontrado" });
-    res.json(item);
+    try {
+      const { name, field, minQuantity, active } = req.body;
+      const updateData: { name?: string; field?: string; minQuantity?: number; active?: boolean } = {};
+      if (typeof name === "string") updateData.name = name;
+      if (typeof field === "string") updateData.field = field;
+      if (typeof minQuantity === "number") updateData.minQuantity = minQuantity;
+      if (typeof active === "boolean") updateData.active = active;
+      const item = await storage.updateCatalogAviso(req.params.id as string, updateData);
+      if (!item) return res.status(404).json({ error: "No encontrado" });
+      res.json(item);
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.delete("/api/catalog/avisos/:id", requireAuth, requireRole("admin"), async (req, res) => {
-    await storage.deleteCatalogAviso(req.params.id as string);
-    res.status(204).send();
+    try {
+      await storage.deleteCatalogAviso(req.params.id as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
   });
 
   app.post("/api/role-permissions", requireAuth, requireRole("admin"), async (req, res) => {
