@@ -514,7 +514,7 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
     { key: "separacion", label: "Monto", width: "120px", type: "currency", group: "separacion" },
     { key: "fechaEnganche", label: "Fecha", width: "90px", type: "date", group: "enganche" },
     { key: "enganche", label: "Monto", width: "120px", type: "currency", group: "enganche" },
-    { key: "plazoNumero", label: "#", width: "70px", type: "plain-number", group: "plazo" },
+    { key: "plazoNumero", label: "No.", width: "70px", type: "plain-number", group: "plazo" },
     { key: "plazoMetro", label: "Metro", width: "90px", type: "plain-number", group: "plazo" },
     { key: "plazoMensualidades", label: "Mensualidades", width: "115px", type: "plain-number", group: "plazo" },
     { key: "plazoMonto", label: "Monto", width: "120px", type: "currency", group: "plazo" },
