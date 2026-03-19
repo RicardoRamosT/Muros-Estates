@@ -465,11 +465,21 @@ export async function registerRoutes(
         return validationError(res, validationResult.error);
       }
 
+      // Validate role
+      if (validationResult.data.role) {
+        const validRoles = ['admin', 'actualizador', 'perfilador', 'asesor', 'finanzas', 'desarrollador'];
+        const customRoles = await storage.getCustomRoles();
+        const allValidRoles = [...validRoles, ...customRoles.map(r => r.key)];
+        if (!allValidRoles.includes(validationResult.data.role)) {
+          return res.status(400).json({ message: "Rol inválido" });
+        }
+      }
+
       const existingUser = await storage.getUserByUsername(validationResult.data.username);
       if (existingUser) {
         return res.status(400).json({ error: "El usuario ya existe" });
       }
-      
+
       const user = await createUserWithHashedPassword(validationResult.data);
       res.status(201).json({
         id: user.id,
@@ -491,16 +501,31 @@ export async function registerRoutes(
       const id = req.params.id as string;
       const { password, ...otherData } = req.body;
       
+      // Validate role if provided
+      if (otherData.role) {
+        const validRoles = ['admin', 'actualizador', 'perfilador', 'asesor', 'finanzas', 'desarrollador'];
+        const customRoles = await storage.getCustomRoles();
+        const allValidRoles = [...validRoles, ...customRoles.map(r => r.key)];
+        if (!allValidRoles.includes(otherData.role)) {
+          return res.status(400).json({ message: "Rol inválido" });
+        }
+      }
+
       const updateData: any = { ...otherData };
       if (password) {
         updateData.password = await hashPassword(password);
       }
-      
+
       const user = await storage.updateUser(id, updateData);
       if (!user) {
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
-      
+
+      // Invalidate sessions when user is deactivated
+      if (updateData.active === false) {
+        await storage.deleteSessionsByUserId(id);
+      }
+
       res.json({
         id: user.id,
         username: user.username,
@@ -734,22 +759,34 @@ export async function registerRoutes(
   app.get("/api/public/typologies", async (req, res) => {
     try {
       const activeTypologies = await storage.getActiveTypologies();
-      
+
+      // Batch-fetch all documents for active typologies in a single query
+      const typologyIds = activeTypologies.map(t => t.id);
+      const allDocs = await storage.getDocumentsByTypologyIds(typologyIds);
+
+      // Group documents by typologyId
+      const docsByTypologyId = new Map<string, typeof allDocs>();
+      for (const doc of allDocs) {
+        if (doc.typologyId) {
+          const existing = docsByTypologyId.get(doc.typologyId) || [];
+          existing.push(doc);
+          docsByTypologyId.set(doc.typologyId, existing);
+        }
+      }
+
       // Enrich each typology with its media documents
-      const enrichedTypologies = await Promise.all(
-        activeTypologies.map(async (typology) => {
-          const typologyDocs = await storage.getDocumentsByTypology(typology.id);
-          const mediaUrls = typologyDocs
-            .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
-            .map(doc => doc.fileUrl);
-          
-          return {
-            ...typology,
-            images: mediaUrls.length > 0 ? mediaUrls : null,
-          };
-        })
-      );
-      
+      const enrichedTypologies = activeTypologies.map((typology) => {
+        const typologyDocs = docsByTypologyId.get(typology.id) || [];
+        const mediaUrls = typologyDocs
+          .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
+          .map(doc => doc.fileUrl);
+
+        return {
+          ...typology,
+          images: mediaUrls.length > 0 ? mediaUrls : null,
+        };
+      });
+
       res.json(enrichedTypologies);
     } catch (error) {
       console.error("Error fetching active typologies:", error);
@@ -761,29 +798,53 @@ export async function registerRoutes(
   
   app.get("/api/properties", async (req, res) => {
     try {
-      const properties = await storage.getAllProperties();
-      
+      const allProperties = await storage.getAllProperties();
+
+      // Batch-fetch all typologies for these properties in a single query
+      const propertyIds = allProperties.map(p => p.id);
+      const allTypologies = await storage.getTypologiesByPropertyIds(propertyIds);
+
+      // Build a map of propertyId -> typology
+      const typologyByPropertyId = new Map<string, typeof allTypologies[0]>();
+      for (const typology of allTypologies) {
+        if (typology.propertyId) {
+          typologyByPropertyId.set(typology.propertyId, typology);
+        }
+      }
+
+      // Batch-fetch all documents for typologies that have properties
+      const typologyIds = allTypologies.map(t => t.id);
+      const allDocs = await storage.getDocumentsByTypologyIds(typologyIds);
+
+      // Group documents by typologyId
+      const docsByTypologyId = new Map<string, typeof allDocs>();
+      for (const doc of allDocs) {
+        if (doc.typologyId) {
+          const existing = docsByTypologyId.get(doc.typologyId) || [];
+          existing.push(doc);
+          docsByTypologyId.set(doc.typologyId, existing);
+        }
+      }
+
       // Enrich each property with typology media
-      const enrichedProperties = await Promise.all(
-        properties.map(async (property) => {
-          const typology = await storage.getTypologyByPropertyId(property.id);
-          let images: string[] = property.images || [];
-          
-          if (typology) {
-            const typologyDocs = await storage.getDocumentsByTypology(typology.id);
-            const mediaUrls = typologyDocs
-              .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
-              .map(doc => doc.fileUrl);
-            
-            if (mediaUrls.length > 0) {
-              images = [...mediaUrls, ...images.filter(img => !mediaUrls.includes(img))];
-            }
+      const enrichedProperties = allProperties.map((property) => {
+        const typology = typologyByPropertyId.get(property.id);
+        let images: string[] = property.images || [];
+
+        if (typology) {
+          const typologyDocs = docsByTypologyId.get(typology.id) || [];
+          const mediaUrls = typologyDocs
+            .filter(doc => doc.mimeType?.startsWith("image/") || doc.mimeType?.startsWith("video/"))
+            .map(doc => doc.fileUrl);
+
+          if (mediaUrls.length > 0) {
+            images = [...mediaUrls, ...images.filter(img => !mediaUrls.includes(img))];
           }
-          
-          return { ...property, images };
-        })
-      );
-      
+        }
+
+        return { ...property, images };
+      });
+
       res.json(enrichedProperties);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -1213,7 +1274,7 @@ export async function registerRoutes(
   // ============ TYPOLOGY MEDIA ROUTES ============
   
   // Get all media (optionally filtered by typologyId)
-  app.get("/api/development-media", async (req, res) => {
+  app.get("/api/development-media", requireAuth, async (req, res) => {
     try {
       const { typologyId } = req.query;
       const media = await storage.getDevelopmentMedia(typologyId as string | undefined);
@@ -1295,7 +1356,7 @@ export async function registerRoutes(
 
   // ============ DEVELOPERS ROUTES ============
   
-  app.get("/api/developers", async (req, res) => {
+  app.get("/api/developers", requireAuth, async (req, res) => {
     try {
       const devs = await storage.getAllDevelopers();
       res.json(devs);
@@ -1326,7 +1387,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/developers/:id", async (req, res) => {
+  app.get("/api/developers/:id", requireAuth, async (req, res) => {
     try {
       const dev = await storage.getDeveloper(req.params.id);
       if (!dev) {
@@ -1426,7 +1487,7 @@ export async function registerRoutes(
 
   // ============ DEVELOPMENTS ENTITY ROUTES ============
   
-  app.get("/api/developments-entity", async (req, res) => {
+  app.get("/api/developments-entity", requireAuth, async (req, res) => {
     try {
       const { developerId } = req.query;
       let devs;
@@ -1463,7 +1524,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/developments-entity/:id", async (req, res) => {
+  app.get("/api/developments-entity/:id", requireAuth, async (req, res) => {
     try {
       const dev = await storage.getDevelopmentEntity(req.params.id);
       if (!dev) {

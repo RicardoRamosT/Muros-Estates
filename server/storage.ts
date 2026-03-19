@@ -54,7 +54,7 @@ import {
   notifications, type Notification, type InsertNotification,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, ilike, lte, sql, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, asc, and, or, ilike, lte, sql, isNull, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -70,6 +70,7 @@ export interface IStorage {
   createSession(session: InsertSession): Promise<Session>;
   getSession(id: string): Promise<Session | undefined>;
   deleteSession(id: string): Promise<boolean>;
+  deleteSessionsByUserId(userId: string): Promise<void>;
   deleteExpiredSessions(): Promise<void>;
   
   // Properties
@@ -214,8 +215,12 @@ export interface IStorage {
   
   // Additional document queries
   getDocumentsByTypology(typologyId: string): Promise<Document[]>;
+  getDocumentsByTypologyIds(typologyIds: string[]): Promise<Document[]>;
   getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]>;
   getDocumentCountsByEntityType(entityType: string): Promise<Record<string, number>>;
+
+  // Batch queries
+  getTypologiesByPropertyIds(propertyIds: string[]): Promise<Typology[]>;
   
   // Role Permissions
   getRolePermissions(): Promise<RolePermission[]>;
@@ -273,6 +278,7 @@ export interface IStorage {
   upsertGlobalSetting(key: string, value: string, label?: string): Promise<GlobalSetting>;
 
   // Notifications
+  getNotification(id: string): Promise<Notification | undefined>;
   getNotificationsByUser(userId: string): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationRead(id: string): Promise<Notification | undefined>;
@@ -331,6 +337,10 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
+  async deleteSessionsByUserId(userId: string): Promise<void> {
+    await db.delete(sessions).where(eq(sessions.userId, userId));
+  }
+
   async deleteExpiredSessions(): Promise<void> {
     await db.delete(sessions).where(lte(sessions.expiresAt, new Date()));
   }
@@ -386,7 +396,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClient(id: string): Promise<Client | undefined> {
-    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    const [client] = await db.select().from(clients).where(
+      and(eq(clients.id, id), isNull(clients.deletedAt))
+    );
     return client || undefined;
   }
 
@@ -468,7 +480,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTypology(id: string): Promise<Typology | undefined> {
-    const [typology] = await db.select().from(typologies).where(eq(typologies.id, id));
+    const [typology] = await db.select().from(typologies).where(
+      and(eq(typologies.id, id), isNull(typologies.deletedAt))
+    );
     return typology || undefined;
   }
 
@@ -502,6 +516,13 @@ export class DatabaseStorage implements IStorage {
   async getTypologyByPropertyId(propertyId: string): Promise<Typology | undefined> {
     const [typology] = await db.select().from(typologies).where(eq(typologies.propertyId, propertyId));
     return typology || undefined;
+  }
+
+  async getTypologiesByPropertyIds(propertyIds: string[]): Promise<Typology[]> {
+    if (propertyIds.length === 0) return [];
+    return db.select().from(typologies).where(
+      and(inArray(typologies.propertyId, propertyIds), isNull(typologies.deletedAt))
+    );
   }
 
   async deleteTypologyByPropertyId(propertyId: string): Promise<boolean> {
@@ -635,7 +656,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDeveloper(id: string): Promise<Developer | undefined> {
-    const [dev] = await db.select().from(developers).where(eq(developers.id, id));
+    const [dev] = await db.select().from(developers).where(
+      and(eq(developers.id, id), isNull(developers.deletedAt))
+    );
     return dev || undefined;
   }
 
@@ -969,7 +992,12 @@ export class DatabaseStorage implements IStorage {
   async getDocumentsByTypology(typologyId: string): Promise<Document[]> {
     return db.select().from(documents).where(eq(documents.typologyId, typologyId)).orderBy(asc(documents.sortOrder), desc(documents.createdAt));
   }
-  
+
+  async getDocumentsByTypologyIds(typologyIds: string[]): Promise<Document[]> {
+    if (typologyIds.length === 0) return [];
+    return db.select().from(documents).where(inArray(documents.typologyId, typologyIds)).orderBy(asc(documents.sortOrder), desc(documents.createdAt));
+  }
+
   async getDocumentsBySection(rootCategory: string, section: string): Promise<Document[]> {
     return db.select().from(documents).where(
       and(
@@ -1512,6 +1540,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Notifications
+  async getNotification(id: string): Promise<Notification | undefined> {
+    const [notif] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notif || undefined;
+  }
+
   async getNotificationsByUser(userId: string): Promise<Notification[]> {
     return db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt));
   }
