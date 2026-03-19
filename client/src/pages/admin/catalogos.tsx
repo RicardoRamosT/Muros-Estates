@@ -32,7 +32,9 @@ const BODY_HEIGHT = `${ROW_HEIGHT * VISIBLE_ROWS}px`;
 const BODY_HEIGHT_WITH_HEADER = `${ROW_HEIGHT * (VISIBLE_ROWS + 1)}px`;
 
 function CollapsibleSection({ title, testId, children }: { title: string; testId: string; children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const storageKey = `catalogos-collapsed-${testId}`;
+  const [collapsed, setCollapsed] = useState(() => sessionStorage.getItem(storageKey) === '1');
+  useEffect(() => { sessionStorage.setItem(storageKey, collapsed ? '1' : '0'); }, [collapsed, storageKey]);
   return (
     <section>
       <button

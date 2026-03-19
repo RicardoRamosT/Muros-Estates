@@ -346,7 +346,7 @@ export function DevelopersSpreadsheet() {
     { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "generales" },
     { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", cellType: "date", group: "antiguedad" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
-    { key: "tipos", label: "Tipos", width: "55px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "tipos", label: "Tipos", width: "65px", type: "multiselect", cellType: "dropdown", group: "tipos" },
     { key: "preventaCount", label: "Preventa", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "preventa" },
     { key: "obraCount", label: "Obra", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "obra" },
     { key: "entregadosCount", label: "Entregados", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
@@ -731,6 +731,14 @@ export function DevelopersSpreadsheet() {
       }
     }
 
+    if (field === 'contactEmail' && valueToSave) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valueToSave)) {
+        toast({ title: "Correo inválido. Debe incluir un dominio válido (ej. @gmail.com)", variant: "destructive" });
+        setEditingCell(null);
+        return;
+      }
+    }
+
     const existingValue = pendingChangesRef.current.get(id)?.[field as keyof Developer] ?? developers.find(d => d.id === id)?.[field as keyof Developer];
     if (String(existingValue ?? '') === String(valueToSave ?? '')) {
       setEditingCell(null);
@@ -743,6 +751,11 @@ export function DevelopersSpreadsheet() {
 
   const navigateToNextCell = useCallback((currentId: string, currentField: string, value: string) => {
     // Save current value
+    if (currentField === 'contactEmail' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast({ title: "Correo inválido. Debe incluir un dominio válido (ej. @gmail.com)", variant: "destructive" });
+      setEditingCell(null);
+      return;
+    }
     const existingValue = pendingChangesRef.current.get(currentId)?.[currentField as keyof Developer] ?? developers.find(d => d.id === currentId)?.[currentField as keyof Developer];
     if (String(existingValue ?? '') !== String(value ?? '')) {
       handleFieldChange(currentId, { [currentField]: value || null });
@@ -935,7 +948,9 @@ export function DevelopersSpreadsheet() {
                 "flex w-max border-b group",
                 isRowInactive
                   ? ""
-                  : index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  : isActiveRow
+                    ? ""
+                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-developer-${dev.id}`}

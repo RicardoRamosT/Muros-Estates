@@ -36,7 +36,7 @@ export function getCellStyle(config: CellStyleConfig): string {
   }
   
   if (isEditing) {
-    return cn(baseStyles, "bg-white dark:bg-gray-900 ring-2 ring-blue-500 rounded-sm z-10 relative");
+    return cn(baseStyles, "bg-white dark:bg-gray-900 ring-2 ring-blue-500 ring-inset z-10 relative");
   }
   
   switch (type) {

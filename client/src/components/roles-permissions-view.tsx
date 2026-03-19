@@ -29,11 +29,12 @@ const SECTION_LABELS: Record<string, string> = {
   documentos: "Documentos",
   catalogos: "Catálogos",
   usuarios: "Usuarios",
+  especial: "Especial",
 };
 
 const SECTION_ORDER = [
   'desarrolladores', 'desarrollos', 'tipologias', 'prospectos', 'clientes',
-  'documentos', 'catalogos', 'usuarios',
+  'documentos', 'catalogos', 'usuarios', 'especial',
 ];
 
 const FIELD_LABELS: Record<string, Record<string, string>> = {
@@ -342,6 +343,9 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     active: "Activo",
     permissions: "Permisos",
   },
+  especial: {
+    notificaciones: "Notificaciones",
+  },
 };
 
 /** Column group definitions per section (for ROW1 header) */
@@ -437,6 +441,9 @@ const SECTION_COLUMN_GROUPS: Record<string, { key: string; label: string; color:
   usuarios: [
     { key: 'informacion', label: 'INFORMACIÓN', color: SHEET_COLOR_DARK },
     { key: 'acceso', label: 'ACCESO', color: SHEET_COLOR_LIGHT },
+  ],
+  especial: [
+    { key: 'funciones', label: 'FUNCIONES', color: SHEET_COLOR_DARK },
   ],
 };
 
@@ -536,6 +543,9 @@ const FIELD_TO_GROUP: Record<string, Record<string, string>> = {
   usuarios: {
     name: 'informacion', username: 'informacion', email: 'informacion', password: 'informacion',
     role: 'acceso', active: 'acceso', permissions: 'acceso',
+  },
+  especial: {
+    notificaciones: 'funciones',
   },
 };
 
@@ -682,14 +692,14 @@ function PermissionSectionGrid({
             <div
               data-sticky-corner
               className="flex-shrink-0 sticky left-0 z-30 flex items-center justify-center"
-              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
             >
               <SpreadsheetSectionSearch groups={sectionGroups} scrollRef={scrollRef} />
             </div>
             {/* Activo spacer */}
             <div
               className="flex-shrink-0"
-              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
             />
             {/* Group spans */}
             {groupRuns.map((group, i) => (
@@ -703,6 +713,7 @@ function PermissionSectionGrid({
                   height: ROW_H,
                   backgroundColor: group.color,
                   borderRight: '1px solid rgba(255,255,255,0.15)',
+                  borderBottom: '1px solid rgba(255,255,255,0.25)',
                 }}
               >
                 {group.label}
@@ -714,14 +725,14 @@ function PermissionSectionGrid({
         <div className="flex sticky z-20" style={{ height: ROW_H, top: headerTop }}>
           <div
             className="flex-shrink-0 sticky left-0 z-30 flex items-center font-semibold text-xs text-white px-3"
-            style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ width: ROLE_COL_W, minWidth: ROLE_COL_W, height: ROW_H, backgroundColor: SHEET_COLOR_LIGHT, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
           >
             Rol
           </div>
           {/* Activo column header */}
           <div
             className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
-            style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
           >
             Activo
           </div>
@@ -730,7 +741,7 @@ function PermissionSectionGrid({
             <div
               key={`hdr-${field}`}
               className="flex-shrink-0 flex items-center justify-center font-medium text-[10px] text-white"
-              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: fieldGroupColors[i] || SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ width: CELL_W, minWidth: CELL_W, height: ROW_H, backgroundColor: fieldGroupColors[i] || SHEET_COLOR_DARK, borderRight: '1px solid rgba(255,255,255,0.15)', borderBottom: '1px solid rgba(255,255,255,0.25)' }}
             >
               {!soloFields.has(i) && (
                 <span className="truncate px-1">{fieldLabels[field] || field}</span>

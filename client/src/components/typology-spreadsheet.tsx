@@ -2266,7 +2266,7 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       };
       return (
         <div
-          className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 rounded-sm z-10 relative", cellBorderClass)}
+          className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 ring-inset z-10 relative", cellBorderClass)}
           style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
         >
           <MaskedDateInput
@@ -2294,8 +2294,8 @@ const EditableCell = React.memo(function EditableCell({ value, column, rowId, ci
       );
     }
     return (
-      <div 
-        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 rounded-sm z-10 relative", cellBorderClass)}
+      <div
+        className={cn("spreadsheet-cell px-1", !rowDisabledStyle && "bg-white dark:bg-gray-900", "ring-2 ring-blue-500 ring-inset z-10 relative", cellBorderClass)}
         style={{ width: (column.width || 100) + SORT_ICON_WIDTH, ...rowDisabledStyle }}
       >
         <Input
@@ -4724,7 +4724,9 @@ export function TypologySpreadsheet() {
                   "flex w-max border-b",
                   isRowGray
                     ? "cursor-default"
-                    : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
+                    : isActiveRow
+                      ? "cursor-pointer"
+                      : "cursor-pointer " + (rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10")
                 )}
                 style={{ height: '32px', maxHeight: '32px', ...(isRowGray ? { backgroundColor: '#9ca3af', cursor: 'default' } : {}) }}
                 onPointerDown={() => handleRowClick(row.id)}

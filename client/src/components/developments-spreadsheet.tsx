@@ -1229,7 +1229,9 @@ export function DevelopmentsSpreadsheet() {
                 "flex w-max border-b group",
                 isRowInactive
                   ? ""
-                  : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+                  : isActiveRow
+                    ? ""
+                    : rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-development-${dev.id}`}

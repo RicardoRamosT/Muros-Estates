@@ -602,6 +602,12 @@ export const PAGE_PERMISSIONS = {
       permissions: { admin: 'edit', actualizador: 'none', perfilador: 'none', finanzas: 'none', asesor: 'none', desarrollador: 'none' },
     } as Record<string, Record<string, PermissionLevel>>,
   },
+  especial: {
+    allowedRoles: ['admin', 'actualizador', 'perfilador', 'finanzas', 'asesor', 'desarrollador'],
+    fields: {
+      notificaciones: { admin: 'edit', actualizador: 'edit', perfilador: 'edit', finanzas: 'edit', asesor: 'edit', desarrollador: 'edit' },
+    } as Record<string, Record<string, PermissionLevel>>,
+  },
 } as const;
 
 // Helper function to get field permission for a role

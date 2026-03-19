@@ -389,6 +389,12 @@
     padding-right: 0.25rem;
     height: 100%;
   }
+  .spreadsheet-cell [role="combobox"] svg,
+  .spreadsheet-cell button[data-state]:not([data-phone-list]) svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex-shrink: 0;
+  }
   .spreadsheet-cell [role="combobox"] > span,
   .spreadsheet-cell button[data-state]:not([data-phone-list]) > span {
     flex: 1;

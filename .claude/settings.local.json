@@ -6,8 +6,11 @@
       "Bash(npx:*)",
       "Bash(npm install:*)",
       "Bash(curl:*)",
+      "Bash(__NEW_LINE_f7b489b712b32ef1__ echo:*)",
+      "Bash(__NEW_LINE_2ff7f0d8072ef824__ echo:*)",
       "Bash(node:*)",
       "Bash(npx kill-port:*)",
+      "Bash(__NEW_LINE_91cad47548f6924e__ echo:*)",
       "Bash(ls:*)",
       "Bash(wc:*)",
       "Bash(grep:*)",
@@ -24,11 +27,12 @@
       "Bash(npm audit:*)",
       "Bash(npm list:*)",
       "Bash(npm uninstall:*)",
-      "Bash(mv:*)",
-      "Bash(npm ls:*)",
-      "Bash(test:*)",
-      "Bash(tasklist:*)",
-      "Bash(git:*)"
+      "Bash(lsof:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/ricardoramos/Projects/Muros-Estates/**)",
+      "Bash(done)",
+      "Bash(echo:*)"
     ]
   }
 }

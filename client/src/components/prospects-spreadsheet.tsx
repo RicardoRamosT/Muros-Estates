@@ -1136,7 +1136,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
                   ? ""
                   : isHighlighted
                     ? "ring-2 ring-amber-400 bg-amber-50"
-                    : index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                    : isActiveRow
+                      ? ""
+                      : index % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
               style={{ height: '32px', maxHeight: '32px', ...(isRowInactive && !hasFullAccess ? { backgroundColor: '#9ca3af' } : {}) }}
               data-testid={`row-prospect-${prospect.id}`}
