@@ -41,6 +41,8 @@ const BUILT_IN_ROLES = [
   { value: "perfilador", label: "Perfilador" },
   { value: "asesor", label: "Asesor" },
   { value: "actualizador", label: "Actualizador" },
+  { value: "finanzas", label: "Finanzas" },
+  { value: "desarrollador", label: "Desarrollador" },
 ];
 
 export function UserForm({ user, onSubmit, isLoading, onCancel }: UserFormProps) {

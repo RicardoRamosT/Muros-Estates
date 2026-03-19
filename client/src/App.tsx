@@ -66,6 +66,7 @@ function AdminRedirect() {
   const role = user?.role;
   if (role === "admin" || role === "actualizador") return <Redirect to="/admin/desarrolladores" />;
   if (role === "perfilador" || role === "asesor") return <Redirect to="/admin/prospectos" />;
+  if (role === "finanzas" || role === "desarrollador") return <Redirect to="/admin/tipologias" />;
   return <Redirect to="/admin/desarrolladores" />;
 }
 
@@ -91,25 +92,25 @@ function Router() {
         {() => <ProtectedRoute component={AdminUsers} allowedRoles={["admin"]} />}
       </Route>
       <Route path="/admin/desarrolladores">
-        {() => <ProtectedRoute component={AdminDesarrolladores} allowedRoles={["admin", "actualizador"]} />}
+        {() => <ProtectedRoute component={AdminDesarrolladores} allowedRoles={["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"]} />}
       </Route>
       <Route path="/admin/desarrollos">
-        {() => <ProtectedRoute component={AdminDesarrollos} allowedRoles={["admin", "actualizador"]} />}
+        {() => <ProtectedRoute component={AdminDesarrollos} allowedRoles={["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"]} />}
       </Route>
       <Route path="/admin/tipologias">
-        {() => <ProtectedRoute component={AdminTypologies} allowedRoles={["admin", "actualizador"]} />}
+        {() => <ProtectedRoute component={AdminTypologies} allowedRoles={["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"]} />}
       </Route>
       <Route path="/admin/prospectos/resumen">
         {() => <ProtectedRoute component={ProspectosResumen} allowedRoles={["admin", "perfilador", "asesor"]} />}
       </Route>
       <Route path="/admin/prospectos">
-        {() => <ProtectedRoute component={AdminClients} allowedRoles={["admin", "perfilador", "asesor"]} />}
+        {() => <ProtectedRoute component={AdminClients} allowedRoles={["admin", "perfilador", "asesor", "finanzas", "desarrollador"]} />}
       </Route>
       <Route path="/admin/clientes">
-        {() => <ProtectedRoute component={AdminClients} allowedRoles={["admin", "perfilador", "asesor"]} />}
+        {() => <ProtectedRoute component={AdminClients} allowedRoles={["admin", "perfilador", "asesor", "finanzas", "desarrollador"]} />}
       </Route>
       <Route path="/admin/documentos">
-        {() => <ProtectedRoute component={AdminDocuments} allowedRoles={["admin", "actualizador", "asesor", "perfilador"]} />}
+        {() => <ProtectedRoute component={AdminDocuments} allowedRoles={["admin", "actualizador", "perfilador", "finanzas", "asesor", "desarrollador"]} />}
       </Route>
       <Route path="/admin/catalogos">
         {() => <ProtectedRoute component={AdminCatalogos} allowedRoles={["admin", "actualizador"]} />}
