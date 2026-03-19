@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -729,7 +729,7 @@ export type User = typeof users.$inferSelect;
 // Sessions for authentication
 export const sessions = pgTable("sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
@@ -934,7 +934,7 @@ export const clients = pgTable("clients", {
   updatedAt: timestamp("updated_at").defaultNow(),
   
   // Asesor assigned
-  asesorId: varchar("asesor_id").references(() => users.id),
+  asesorId: varchar("asesor_id").references(() => users.id, { onDelete: "set null" }),
   
   // Location
   ciudad: text("ciudad"),
@@ -1024,7 +1024,7 @@ export const clients = pgTable("clients", {
   notes: text("notes"),
   status: text("status"),
   source: text("source"),
-  assignedTo: varchar("assigned_to").references(() => users.id),
+  assignedTo: varchar("assigned_to").references(() => users.id, { onDelete: "set null" }),
   developmentInterest: text("development_interest"),
   deletedAt: timestamp("deleted_at"),
 }, (table) => [
@@ -1104,8 +1104,8 @@ export type DevelopmentAssignment = typeof developmentAssignments.$inferSelect;
 // Client follow-ups (asesor marks interest/status)
 export const clientFollowUps = pgTable("client_follow_ups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "set null" }),
   action: text("action").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1281,8 +1281,8 @@ export const typologies = pgTable("typologies", {
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: varchar("created_by").references(() => users.id),
-  updatedBy: varchar("updated_by").references(() => users.id),
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: "set null" }),
+  updatedBy: varchar("updated_by").references(() => users.id, { onDelete: "set null" }),
   deletedAt: timestamp("deleted_at"),
 }, (table) => [
   index("idx_typologies_property_id").on(table.propertyId),
@@ -1408,7 +1408,7 @@ export const documents = pgTable("documents", {
   
   // Meta
   description: text("description"),
-  uploadedBy: varchar("uploaded_by").references(() => users.id),
+  uploadedBy: varchar("uploaded_by").references(() => users.id, { onDelete: "set null" }),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1459,7 +1459,7 @@ export const sharedLinks = pgTable("shared_links", {
   requestedDocuments: text("requested_documents").array(),
   
   // Tracking
-  createdBy: varchar("created_by").references(() => users.id),
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
   accessCount: integer("access_count").default(0),
   lastAccessedAt: timestamp("last_accessed_at"),
@@ -1504,7 +1504,7 @@ export const developmentMedia = pgTable("development_media", {
   isPrimary: boolean("is_primary").default(false), // Primary image for cards
 
   // Meta
-  uploadedBy: varchar("uploaded_by").references(() => users.id),
+  uploadedBy: varchar("uploaded_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_development_media_typology_id").on(table.typologyId),
@@ -1705,6 +1705,7 @@ export const rolePermissions = pgTable("role_permissions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_role_permissions_section_field_role").on(table.section, table.field, table.role),
+  uniqueIndex("role_permissions_unique").on(table.section, table.field, table.role),
 ]);
 
 export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
@@ -1747,6 +1748,7 @@ export const roleSectionAccess = pgTable("role_section_access", {
   active: boolean("active").notNull().default(true),
 }, (table) => [
   index("idx_role_section_access_section_role").on(table.section, table.role),
+  uniqueIndex("role_section_access_unique").on(table.section, table.role),
 ]);
 
 export const insertRoleSectionAccessSchema = createInsertSchema(roleSectionAccess).omit({
@@ -2171,7 +2173,7 @@ export type CatalogAviso = typeof catalogAvisos.$inferSelect;
 // Notifications
 export const notifications = pgTable("notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // 'duplicate_phone' | 'duplicate_email'
   title: text("title").notNull(),
   message: text("message").notNull(),

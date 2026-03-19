@@ -119,6 +119,14 @@ export function FloatingContactForm({ propertyInterest, showInterestButton }: Fl
       });
       return;
     }
+    if (contactForm.phone && !/^\d{10}$/.test(contactForm.phone.replace(/\D/g, ''))) {
+      toast({ title: "Error", description: "El teléfono debe tener 10 dígitos", variant: "destructive" });
+      return;
+    }
+    if (contactForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email)) {
+      toast({ title: "Error", description: "El correo no es válido", variant: "destructive" });
+      return;
+    }
     contactMutation.mutate(contactForm);
   };
 

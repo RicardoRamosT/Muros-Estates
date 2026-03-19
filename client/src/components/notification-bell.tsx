@@ -115,7 +115,7 @@ export function NotificationBell() {
   const NotifItem = ({ notif, showDelete }: { notif: Notification; showDelete?: boolean }) => (
     <div
       className={cn(
-        "flex items-start gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors",
+        "group flex items-start gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors",
         !notif.read && "bg-primary/5"
       )}
       onClick={() => handleClick(notif)}

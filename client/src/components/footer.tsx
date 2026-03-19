@@ -1,3 +1,5 @@
+import { Link } from "wouter";
+
 interface FooterProps {
   variant?: "full" | "compact";
 }
@@ -27,16 +29,16 @@ export function Footer({ variant = "compact" }: FooterProps) {
             <div className="space-y-4">
               <h4 className="font-semibold">Enlaces</h4>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p className="hover:text-primary cursor-pointer">Departamentos</p>
-                <p className="hover:text-primary cursor-pointer">Desarrollos</p>
+                <Link href="/propiedades" className="block hover:text-primary cursor-pointer">Departamentos</Link>
+                <Link href="/propiedades" className="block hover:text-primary cursor-pointer">Desarrollos</Link>
                 <p className="hover:text-primary cursor-pointer">Nosotros</p>
               </div>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold">Legal</h4>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p className="hover:text-primary cursor-pointer">Aviso de Privacidad</p>
-                <p className="hover:text-primary cursor-pointer">Términos y Condiciones</p>
+                <a href="#" className="block hover:text-primary cursor-pointer">Aviso de Privacidad</a>
+                <a href="#" className="block hover:text-primary cursor-pointer">Términos y Condiciones</a>
               </div>
             </div>
           </div>
