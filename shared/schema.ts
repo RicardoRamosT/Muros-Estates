@@ -154,12 +154,15 @@ export const PAGE_PERMISSIONS = {
       // UNIDAD
       precioFinal:        { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       // SEPARACIÓN
+      porcentajeSeparacion: { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       fechaSeparacion:    { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       separacion:         { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       // ENGANCHE
+      porcentajeEnganche: { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       fechaEnganche:      { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       enganche:           { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       // A PLAZO
+      porcentajePlazo:    { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       plazoNumero:        { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       plazoMetro:         { admin: 'edit', perfilador: 'view', asesor: 'edit' },
       plazoMensualidades: { admin: 'edit', perfilador: 'view', asesor: 'edit' },
