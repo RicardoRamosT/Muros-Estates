@@ -346,7 +346,7 @@ export function DevelopersSpreadsheet() {
     { key: "representante", label: "Representante", width: "170px", cellType: "input", group: "generales" },
     { key: "fechaAntiguedad", label: "Fecha", width: "100px", type: "date", cellType: "date", group: "antiguedad" },
     { key: "antiguedadCalc", label: "Antigüedad", width: "100px", autoField: true, cellType: "readonly", group: "antiguedad" },
-    { key: "tipos", label: "Tipos", width: "65px", type: "multiselect", cellType: "dropdown", group: "tipos" },
+    { key: "tipos", label: "Tipos", width: "95px", type: "multiselect", cellType: "dropdown", group: "tipos" },
     { key: "preventaCount", label: "Preventa", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "preventa" },
     { key: "obraCount", label: "Obra", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "obra" },
     { key: "entregadosCount", label: "Entregados", width: "115px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
@@ -354,7 +354,7 @@ export function DevelopersSpreadsheet() {
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
     { key: "contactPhone", label: "Teléfono", width: "120px", type: "phone-list", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
-    { key: "legales", label: "Legales", width: "100px", type: "folder-link", cellType: "actions", group: "legales" },
+    { key: "legales", label: "Legales", width: "110px", type: "folder-link", cellType: "actions", group: "legales" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions", group: "docs" },
   ];
 
