@@ -396,9 +396,16 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
       return;
     }
 
+    // Skip save if value hasn't changed
+    const existingValue = pendingChangesRef.current.get(id)?.[field as keyof Client] ?? prospects.find(p => p.id === id)?.[field as keyof Client];
+    if (String(existingValue ?? '') === String(editVal ?? '')) {
+      setEditingCell(null);
+      return;
+    }
+
     handleFieldChange(id, { [field]: editVal || null } as any);
     setEditingCell(null);
-  }, [editingCell, editValue, handleFieldChange, toast]);
+  }, [editingCell, editValue, handleFieldChange, toast, prospects]);
 
   const handleSelectChange = useCallback((id: string, field: string, value: string) => {
     const actualValue = field === 'estatus' && (!value || value === '__unassigned__') ? 'Activo' : (value === '__unassigned__' ? null : (value || null));
