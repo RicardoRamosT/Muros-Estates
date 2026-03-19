@@ -1138,7 +1138,7 @@ export function DevelopersSpreadsheet() {
                             advanceFromSelect(dev.id, field);
                           }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1193,7 +1193,7 @@ export function DevelopersSpreadsheet() {
                             advanceFromSelect(dev.id, field);
                           }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1559,7 +1559,7 @@ export function DevelopersSpreadsheet() {
         </div>
       </div>
       {showZoomPopup && (
-        <div className="fixed bottom-12 right-4 z-50 bg-background border rounded-md shadow-md px-3 py-1 text-xs font-medium">
+        <div className="fixed bottom-4 right-12 z-[100] bg-black/80 text-white px-2 py-1 rounded-md text-[10px] font-medium animate-in fade-in slide-in-from-right-1 duration-200 shadow-sm border border-white/10">
           {zoomLevel}%
         </div>
       )}

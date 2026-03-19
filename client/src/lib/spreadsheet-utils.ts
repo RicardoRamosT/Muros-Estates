@@ -44,14 +44,14 @@ export function getCellStyle(config: CellStyleConfig): string {
     case "date":
     case "currency":
     case "percent":
-      return cn(baseStyles, "bg-white dark:bg-gray-900 cursor-text hover:bg-gray-50 dark:hover:bg-gray-800");
-    
+      return cn(baseStyles, "bg-white dark:bg-gray-900/50 cursor-text hover:bg-blue-50 dark:hover:bg-blue-950/30");
+
     case "dropdown":
     case "checkbox":
-      return cn(baseStyles, "bg-white dark:bg-gray-900 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800");
-    
+      return cn(baseStyles, "bg-white dark:bg-gray-900/50 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/30");
+
     case "calculated":
-      return cn(baseStyles, "bg-teal-50 dark:bg-teal-900/20 text-muted-foreground cursor-default font-medium");
+      return cn(baseStyles, "bg-[rgb(255,241,220)] dark:bg-[rgb(60,40,10)] text-muted-foreground cursor-default font-medium");
     
     case "readonly":
       return cn(baseStyles, "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-default");

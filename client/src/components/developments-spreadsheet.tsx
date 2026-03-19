@@ -1412,7 +1412,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value === true ? "si" : value === false ? "no" : ""}
                           onValueChange={(val) => handleCheckboxChange(dev.id, col.key, val === "si")}
                         >
-                          <SelectTrigger className={`h-6 text-xs border-0 bg-transparent relative ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
+                          <SelectTrigger className={`h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0 relative ${textColorClass}`} data-testid={`boolean-${col.key}-${dev.id}`}>
                             <SelectValue>
                               {value === true ? (
                                 <span className="text-center">Sí</span>
@@ -1461,7 +1461,7 @@ export function DevelopmentsSpreadsheet() {
                             advanceFromSelect(dev.id, col.key);
                           }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1528,7 +1528,7 @@ export function DevelopmentsSpreadsheet() {
                               advanceFromSelect(dev.id, col.key);
                             }}
                           >
-                            <SelectTrigger className="h-6 text-xs border-0 bg-transparent flex-1 min-w-0">
+                            <SelectTrigger className="h-6 w-full text-xs border-0 shadow-none bg-transparent flex-1 min-w-0 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                               <SelectValue placeholder="" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1563,7 +1563,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1597,7 +1597,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1638,7 +1638,7 @@ export function DevelopmentsSpreadsheet() {
                             handleFieldChange(dev.id, { tipos: newTipos });
                           }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-tipos-${dev.id}`}>
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0" data-testid={`select-tipos-${dev.id}`}>
                             <SelectValue>
                               <span>{selectedTipo || ''}</span>
                             </SelectValue>
@@ -1685,7 +1685,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value?.toString() || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1716,7 +1716,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value?.toString() || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v === "__unassigned__" ? "" : v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent className="max-h-60">
@@ -1915,7 +1915,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-recamaras-${dev.id}`}>
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0" data-testid={`select-recamaras-${dev.id}`}>
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1947,7 +1947,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent" data-testid={`select-banos-${dev.id}`}>
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0" data-testid={`select-banos-${dev.id}`}>
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -2122,7 +2122,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -2153,7 +2153,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -2184,7 +2184,7 @@ export function DevelopmentsSpreadsheet() {
                           value={value || "__unassigned__"}
                           onValueChange={(v) => { handleSelectChange(dev.id, col.key, v); advanceFromSelect(dev.id, col.key); }}
                         >
-                          <SelectTrigger className="h-6 text-xs border-0 bg-transparent">
+                          <SelectTrigger className="h-6 w-full min-w-0 text-xs border-0 shadow-none bg-transparent [&_svg]:h-3 [&_svg]:w-3 [&_svg]:shrink-0">
                             <SelectValue placeholder="" />
                           </SelectTrigger>
                           <SelectContent>
@@ -2422,7 +2422,7 @@ export function DevelopmentsSpreadsheet() {
         </DialogContent>
       </Dialog>
       {showZoomPopup && (
-        <div className="fixed bottom-12 right-4 z-50 bg-background border rounded-md shadow-md px-3 py-1 text-xs font-medium">
+        <div className="fixed bottom-4 right-12 z-[100] bg-black/80 text-white px-2 py-1 rounded-md text-[10px] font-medium animate-in fade-in slide-in-from-right-1 duration-200 shadow-sm border border-white/10">
           {zoomLevel}%
         </div>
       )}
