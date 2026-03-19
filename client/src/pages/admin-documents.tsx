@@ -156,16 +156,16 @@ export default function AdminDocuments() {
   const deepLinkProcessedRef = useRef(false);
   // Store URL params for later processing after data loads
   const [pendingDeepLink, setPendingDeepLink] = useState<{developmentId?: string, section?: string} | null>(null);
-  
+
   useEffect(() => {
     // Only process deep link params once per page load
     if (deepLinkProcessedRef.current) return;
-    
+
     const params = new URLSearchParams(window.location.search);
     const developerId = params.get("developerId");
     const developmentId = params.get("developmentId");
     const section = params.get("sectionType");
-    
+
     if (developerId) {
       deepLinkProcessedRef.current = true;
       // First set the tab, then the developer, then the section type
@@ -187,6 +187,27 @@ export default function AdminDocuments() {
       window.history.replaceState({}, '', '/admin/documentos');
     }
   }, []);
+
+  // Reset all selection state when the user clicks the "Documentos" nav link
+  // while already on /admin/documentos (same-path navigation).
+  // Since wouter does not re-trigger location changes for same-path navigation,
+  // we listen for click events on anchor elements pointing to the documentos route.
+  useEffect(() => {
+    const handleNavClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('a[href="/admin/documentos"]');
+      if (target && location === "/admin/documentos") {
+        setSelectedDeveloperId(null);
+        setSelectedDevelopmentId(null);
+        setSelectedTypologyId(null);
+        setSelectedSection(null);
+        setSectionType(null);
+        setSelectedClientId(null);
+        setActiveTab("desarrolladores");
+      }
+    };
+    document.addEventListener("click", handleNavClick);
+    return () => document.removeEventListener("click", handleNavClick);
+  }, [location]);
 
   // Shared links state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -746,71 +767,73 @@ export default function AdminDocuments() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-6 px-3 py-0">
-          {/* Desarrolladores column */}
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Desarrolladores</h3>
-            <div className="border rounded-md divide-y">
-              {developers.map(dev => (
-                <div
-                  key={dev.id}
-                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => { setActiveTab("desarrolladores"); setSelectedDeveloperId(dev.id); }}
-                  data-testid={`folder-developer-${dev.id}`}
-                >
-                  <span className="font-medium text-sm flex-1 truncate">{dev.name}</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                </div>
-              ))}
-              {developers.length === 0 && (
-                <p className="text-muted-foreground text-center py-8 text-sm">No hay desarrolladores</p>
-              )}
-            </div>
-          </div>
+        <div className="px-3 py-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="desarrolladores" data-testid="main-tab-desarrolladores">Desarrolladores</TabsTrigger>
+              <TabsTrigger value="clientes" data-testid="main-tab-clientes">Clientes</TabsTrigger>
+              <TabsTrigger value="trabajo" data-testid="main-tab-trabajo">De Trabajo</TabsTrigger>
+            </TabsList>
 
-          {/* Clientes column */}
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Clientes</h3>
-            <div className="border rounded-md divide-y">
-              {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).map(client => (
-                <div
-                  key={client.id}
-                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => { setActiveTab("clientes"); setSelectedClientId(client.id); }}
-                  data-testid={`folder-client-${client.id}`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium text-sm truncate block">{client.nombre} {client.apellido || ''}</span>
-                    {client.correo && (
-                      <span className="text-xs text-muted-foreground truncate block">{client.correo}</span>
-                    )}
+            <TabsContent value="desarrolladores">
+              <div className="border rounded-md divide-y max-w-md">
+                {developers.map(dev => (
+                  <div
+                    key={dev.id}
+                    className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => { setActiveTab("desarrolladores"); setSelectedDeveloperId(dev.id); }}
+                    data-testid={`folder-developer-${dev.id}`}
+                  >
+                    <span className="font-medium text-sm flex-1 truncate">{dev.name}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                </div>
-              ))}
-              {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).length === 0 && (
-                <p className="text-muted-foreground text-center py-8 text-sm">No hay clientes</p>
-              )}
-            </div>
-          </div>
+                ))}
+                {developers.length === 0 && (
+                  <p className="text-muted-foreground text-center py-8 text-sm">No hay desarrolladores</p>
+                )}
+              </div>
+            </TabsContent>
 
-          {/* De Trabajo column */}
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">De Trabajo</h3>
-            <div className="border rounded-md divide-y">
-              {DOCUMENT_SECTIONS.workFolders.map(section => (
-                <div
-                  key={section}
-                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => { setActiveTab("trabajo"); setSelectedSection(section); }}
-                  data-testid={`folder-work-${section}`}
-                >
-                  <span className="font-medium text-sm flex-1">{SECTION_LABELS[section]}</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                </div>
-              ))}
-            </div>
-          </div>
+            <TabsContent value="clientes">
+              <div className="border rounded-md divide-y max-w-md">
+                {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).map(client => (
+                  <div
+                    key={client.id}
+                    className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => { setActiveTab("clientes"); setSelectedClientId(client.id); }}
+                    data-testid={`folder-client-${client.id}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium text-sm truncate block">{client.nombre} {client.apellido || ''}</span>
+                      {client.correo && (
+                        <span className="text-xs text-muted-foreground truncate block">{client.correo}</span>
+                      )}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </div>
+                ))}
+                {(user?.role === "admin" ? clients : clients.filter(c => c.assignedTo === user?.id)).length === 0 && (
+                  <p className="text-muted-foreground text-center py-8 text-sm">No hay clientes</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="trabajo">
+              <div className="border rounded-md divide-y max-w-md">
+                {DOCUMENT_SECTIONS.workFolders.map(section => (
+                  <div
+                    key={section}
+                    className="flex items-center px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => { setActiveTab("trabajo"); setSelectedSection(section); }}
+                    data-testid={`folder-work-${section}`}
+                  >
+                    <span className="font-medium text-sm flex-1">{SECTION_LABELS[section]}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 
