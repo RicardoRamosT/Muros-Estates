@@ -4951,37 +4951,12 @@ export function TypologySpreadsheet() {
                           ? dbDevelopers.find(d => d.name === mergedRow.developer)
                           : null;
                         const developerIsIncomplete = selectedTypologyDeveloper ? !(
-                          (selectedTypologyDeveloper as any).tipo &&
-                          (selectedTypologyDeveloper as any).name &&
-                          (selectedTypologyDeveloper as any).razonSocial &&
-                          (selectedTypologyDeveloper as any).rfc &&
-                          (selectedTypologyDeveloper as any).domicilio &&
+                          (selectedTypologyDeveloper as any).tipo?.trim() &&
+                          (selectedTypologyDeveloper as any).name?.trim() &&
                           (selectedTypologyDeveloper as any).tipos?.length &&
-                          (selectedTypologyDeveloper as any).contratos?.length &&
-                          (selectedTypologyDeveloper as any).representante &&
-                          (selectedTypologyDeveloper as any).contactName &&
-                          (selectedTypologyDeveloper as any).contactPhone &&
-                          (selectedTypologyDeveloper as any).contactEmail
+                          (selectedTypologyDeveloper as any).contratos?.length
                         ) : false;
-                        const developerWarningText = (() => {
-                          if (!selectedTypologyDeveloper) return "";
-                          if (selectedTypologyDeveloper.active === null) return "Desarrollador deshabilitado";
-                          if (selectedTypologyDeveloper.active === false) return "Desarrollador inactivo";
-                          if (!developerIsIncomplete) return "";
-                          const missing: string[] = [];
-                          if (!(selectedTypologyDeveloper as any).tipo) missing.push("Tipo");
-                          if (!(selectedTypologyDeveloper as any).name) missing.push("Nombre");
-                          if (!(selectedTypologyDeveloper as any).razonSocial) missing.push("Razón Social");
-                          if (!(selectedTypologyDeveloper as any).rfc) missing.push("RFC");
-                          if (!(selectedTypologyDeveloper as any).domicilio) missing.push("Domicilio");
-                          if (!(selectedTypologyDeveloper as any).tipos?.length) missing.push("Tipos");
-                          if (!(selectedTypologyDeveloper as any).contratos?.length) missing.push("Contratos");
-                          if (!(selectedTypologyDeveloper as any).representante) missing.push("Representante");
-                          if (!(selectedTypologyDeveloper as any).contactName) missing.push("Ventas");
-                          if (!(selectedTypologyDeveloper as any).contactPhone) missing.push("Teléfono");
-                          if (!(selectedTypologyDeveloper as any).contactEmail) missing.push("Correo");
-                          return missing.length > 0 ? `Faltan datos del desarrollador:\n${missing.join('\n')}` : "";
-                        })();
+                        const developerWarningText = "";
                         const isDeveloperInactive = !!(selectedTypologyDeveloper && (
                           selectedTypologyDeveloper.active !== true || developerIsIncomplete
                         ));

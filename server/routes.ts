@@ -1414,7 +1414,11 @@ export async function registerRoutes(
 
   app.post("/api/developers", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
-      const parsed = insertDeveloperSchema.partial().safeParse(req.body);
+      const body = { ...req.body };
+      if (body.fechaAntiguedad && typeof body.fechaAntiguedad === 'string') {
+        body.fechaAntiguedad = new Date(body.fechaAntiguedad);
+      }
+      const parsed = insertDeveloperSchema.partial().safeParse(body);
       if (!parsed.success) return validationError(res, parsed.error);
       const dev = await storage.createDeveloper(parsed.data as any);
       broadcastDeveloperUpdate("create", dev);
@@ -1427,14 +1431,15 @@ export async function registerRoutes(
 
   app.put("/api/developers/:id", requireAuth, requireRole("admin", "actualizador"), async (req, res) => {
     try {
-      const parsed = insertDeveloperSchema.partial().safeParse(req.body);
-      if (!parsed.success) return validationError(res, parsed.error);
       const id = req.params.id as string;
-      // Convert date strings to Date objects for timestamp fields
-      const data = { ...parsed.data } as Record<string, any>;
-      if (data.fechaAntiguedad && typeof data.fechaAntiguedad === 'string') {
-        data.fechaAntiguedad = new Date(data.fechaAntiguedad);
+      // Convert date strings to Date objects BEFORE Zod validation (Zod expects Date for timestamp fields)
+      const body = { ...req.body };
+      if (body.fechaAntiguedad && typeof body.fechaAntiguedad === 'string') {
+        body.fechaAntiguedad = new Date(body.fechaAntiguedad);
       }
+      const parsed = insertDeveloperSchema.partial().safeParse(body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const data = { ...parsed.data } as Record<string, any>;
 
       // Fetch existing developer for activation check and name-change propagation
       const existing = await storage.getDeveloper(id);
