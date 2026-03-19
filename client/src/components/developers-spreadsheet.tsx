@@ -354,7 +354,7 @@ export function DevelopersSpreadsheet() {
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
     { key: "contactPhone", label: "Teléfono", width: "120px", type: "phone-list", cellType: "input", group: "contacto" },
     { key: "contactEmail", label: "Correo", width: "170px", cellType: "input", group: "contacto" },
-    { key: "legales", label: "Legales", width: "80px", type: "folder-link", cellType: "actions", group: "legales" },
+    { key: "legales", label: "Legales", width: "100px", type: "folder-link", cellType: "actions", group: "legales" },
     { key: "actions", label: "", width: "60px", type: "actions", cellType: "actions", group: "docs" },
   ];
 
