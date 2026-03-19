@@ -349,7 +349,7 @@ export function DevelopersSpreadsheet() {
     { key: "tipos", label: "Tipos", width: "65px", type: "multiselect", cellType: "dropdown", group: "tipos" },
     { key: "preventaCount", label: "Preventa", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "preventa" },
     { key: "obraCount", label: "Obra", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "obra" },
-    { key: "entregadosCount", label: "Entregados", width: "90px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
+    { key: "entregadosCount", label: "Entregados", width: "115px", type: "dev-count", autoField: true, cellType: "readonly", group: "entregados" },
     { key: "contratos", label: "Contratos", width: "120px", type: "multiselect", cellType: "dropdown", group: "contratos" },
     { key: "contactName", label: "Ventas", width: "170px", cellType: "input", group: "contacto" },
     { key: "contactPhone", label: "Teléfono", width: "120px", type: "phone-list", cellType: "input", group: "contacto" },
