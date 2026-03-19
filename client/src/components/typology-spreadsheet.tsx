@@ -625,13 +625,13 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
     : calculatedRemainingPercent;
   
   // Use existing initialAmount from row if available, otherwise calculate from percent
-  let initialAmount = parseFloat(row.initialAmount as string) || 0;
+  let initialAmount = safeNum(row.initialAmount);
   if (initialAmount === 0 && initialPercent > 0 && finalPrice > 0) {
     initialAmount = finalPrice * (initialPercent / 100);
   }
   
   // Use existing duringConstructionAmount from row if available, otherwise calculate from percent
-  let duringConstructionAmount = parseFloat(row.duringConstructionAmount as string) || 0;
+  let duringConstructionAmount = safeNum(row.duringConstructionAmount);
   if (duringConstructionAmount === 0 && duringConstructionPercent > 0 && finalPrice > 0) {
     duringConstructionAmount = finalPrice * (duringConstructionPercent / 100);
   }
@@ -641,53 +641,56 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   
   const isaPercentDefault = globalDefaults?.['isaPercent'] ?? 3.0;
   const notaryPercentDefault = globalDefaults?.['notaryPercent'] ?? 2.5;
-  const isaPercent = parseFloat(row.isaPercent as string) || isaPercentDefault;
-  const notaryPercent = parseFloat(row.notaryPercent as string) || notaryPercentDefault;
+  const isaPercent = safeNum(row.isaPercent, isaPercentDefault);
+  const notaryPercent = safeNum(row.notaryPercent, notaryPercentDefault);
   const nivelKey = row.nivelMantenimiento as string;
   const nivelData = nivelKey && nivelMantenimientoLookup ? nivelMantenimientoLookup[nivelKey] : null;
-  const storageSizeValue = row.hasStorage ? (parseFloat(row.storageSize as string) || 0) : 0;
+  const storageSizeValue = row.hasStorage ? safeNum(row.storageSize) : 0;
   const sizeFinal = size + storageSizeValue;
-  const equipmentCost = nivelData ? sizeFinal * nivelData.equipo : (parseFloat(row.equipmentCost as string) || 0);
-  const furnitureCost = nivelData ? sizeFinal * nivelData.muebles : (parseFloat(row.furnitureCost as string) || 0);
+  const equipmentCost = nivelData ? sizeFinal * nivelData.equipo : safeNum(row.equipmentCost);
+  const furnitureCost = nivelData ? sizeFinal * nivelData.muebles : safeNum(row.furnitureCost);
   const maintenanceM2FromNivel = nivelData ? nivelData.valor : 0;
   const isaAmount = finalPrice * (isaPercent / 100);
   const notaryAmount = finalPrice * (notaryPercent / 100);
   const totalPostDeliveryCosts = isaAmount + notaryAmount + equipmentCost + furnitureCost;
 
-  const mortgageAmount = parseFloat(row.mortgageAmount as string) || 0;
+  const mortgageAmount = safeNum(row.mortgageAmount);
   const mortgageYears = getDefault('mortgageYears', 15);
-  const mortgageInterestPercent = parseFloat(row.mortgageInterestPercent as string) || getDefault('mortgageInterestPercent', 10.5);
+  const mortgageInterestPercent = safeNum(row.mortgageInterestPercent, getDefault('mortgageInterestPercent', 10.5));
   const monthlyRate = mortgageInterestPercent / 100 / 12;
   const numPayments = mortgageYears * 12;
   let mortgageMonthlyPayment = 0;
   if (monthlyRate > 0 && numPayments > 0) {
-    mortgageMonthlyPayment = mortgageAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
-      (Math.pow(1 + monthlyRate, numPayments) - 1);
+    const powFactor = Math.pow(1 + monthlyRate, numPayments);
+    const denominator = powFactor - 1;
+    mortgageMonthlyPayment = denominator > 0
+      ? safeFin(mortgageAmount * (monthlyRate * powFactor) / denominator)
+      : 0;
   } else if (numPayments > 0) {
-    mortgageMonthlyPayment = mortgageAmount / numPayments;
+    mortgageMonthlyPayment = safeFin(mortgageAmount / numPayments);
   }
-  const mortgageTotal = mortgageMonthlyPayment * numPayments;
+  const mortgageTotal = safeFin(mortgageMonthlyPayment * numPayments);
   
-  const appreciationRate = parseFloat(row.appreciationRate as string) || getDefault('appreciationRate', 7.0);
+  const appreciationRate = safeNum(row.appreciationRate, getDefault('appreciationRate', 7.0));
 
-  const maintenanceM2 = maintenanceM2FromNivel || (parseFloat(row.maintenanceM2 as string) || 0);
+  const maintenanceM2 = maintenanceM2FromNivel || safeNum(row.maintenanceM2);
   const maintenanceInitialCalc = maintenanceM2 * sizeFinal;
-  const maintenanceInitial = maintenanceInitialCalc > 0 ? maintenanceInitialCalc : (parseFloat(row.maintenanceInitial as string) || 0);
+  const maintenanceInitial = maintenanceInitialCalc > 0 ? maintenanceInitialCalc : safeNum(row.maintenanceInitial);
   const maintRate = appreciationRate / 100;
-  const maintenanceFinal = maintenanceInitial * 12 * Math.pow(1 + maintRate, Math.max(0, mortgageYears - 1));
+  const maintenanceFinal = safeFin(maintenanceInitial * 12 * Math.pow(1 + maintRate, Math.max(0, mortgageYears - 1)));
   const maintenanceTotal = maintRate > 0
-    ? maintenanceInitial * 12 * ((Math.pow(1 + maintRate, mortgageYears) - 1) / maintRate)
-    : maintenanceInitial * 12 * mortgageYears;
+    ? safeFin(maintenanceInitial * 12 * ((Math.pow(1 + maintRate, mortgageYears) - 1) / maintRate))
+    : safeFin(maintenanceInitial * 12 * mortgageYears);
 
-  const rentInitial = parseFloat(row.rentInitial as string) || 0;
-  const rentRatePercent = parseFloat(row.rentRatePercent as string) || getDefault('rentRatePercent', 7.0);
-  const rentMonths = (row.rentMonths as number) || getDefault('rentMonths', 11);
+  const rentInitial = safeNum(row.rentInitial);
+  const rentRatePercent = safeNum(row.rentRatePercent, getDefault('rentRatePercent', 7.0));
+  const rentMonths = safeNum(row.rentMonths, getDefault('rentMonths', 11));
   const rentTotal = rentInitial * rentMonths;
   
-  const investmentTotal = finalPrice + totalPostDeliveryCosts;
-  const investmentNet = rentTotal - maintenanceTotal;
-  const investmentMonthly = rentMonths > 0 ? investmentNet / rentMonths : 0;
-  const investmentRate = investmentTotal > 0 ? (investmentNet / investmentTotal) * 100 : 0;
+  const investmentTotal = safeFin(finalPrice + totalPostDeliveryCosts);
+  const investmentNet = safeFin(rentTotal - maintenanceTotal);
+  const investmentMonthly = rentMonths > 0 ? safeFin(investmentNet / rentMonths) : 0;
+  const investmentRate = investmentTotal > 0 ? safeFin((investmentNet / investmentTotal) * 100) : 0;
   
   let appreciationTotalText = "";
   const now = new Date();
@@ -719,25 +722,25 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const totalYearsForAppreciation = entregaDate && !isNaN(entregaDate.getTime()) && entregaDate > now
     ? Math.floor((entregaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25))
     : 0;
-  const appreciationGain = finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice;
-  const finalValue = finalPrice + appreciationGain;
+  const appreciationGain = safeFin(finalPrice * Math.pow(1 + appreciationRate / 100, totalYearsForAppreciation) - finalPrice);
+  const finalValue = safeFin(finalPrice + appreciationGain);
   
   const result: Partial<Typology> = {
-    finalPrice: finalPrice.toFixed(2),
-    pricePerM2: pricePerM2.toFixed(2),
-    monthlyPayment: monthlyPayment.toFixed(2),
-    totalEnganche: totalEnganche.toFixed(2),
-    mortgageAmount: (finalPrice - totalEnganche).toFixed(2),
-    remainingPercent: remainingPercent.toFixed(2),
-    remainingAmount: (finalPrice * remainingPercent / 100).toFixed(2),
+    finalPrice: safeFin(finalPrice).toFixed(2),
+    pricePerM2: safeFin(pricePerM2).toFixed(2),
+    monthlyPayment: safeFin(monthlyPayment).toFixed(2),
+    totalEnganche: safeFin(totalEnganche).toFixed(2),
+    mortgageAmount: safeFin(finalPrice - totalEnganche).toFixed(2),
+    remainingPercent: safeFin(remainingPercent).toFixed(2),
+    remainingAmount: safeFin(finalPrice * remainingPercent / 100).toFixed(2),
     sizeFinal: sizeFinal.toFixed(2),
     isaPercent: row.isaPercent ?? isaPercent.toFixed(2),
-    isaAmount: isaAmount.toFixed(2),
+    isaAmount: safeFin(isaAmount).toFixed(2),
     notaryPercent: row.notaryPercent ?? notaryPercent.toFixed(2),
-    notaryAmount: notaryAmount.toFixed(2),
-    equipmentCost: equipmentCost.toFixed(2),
-    furnitureCost: furnitureCost.toFixed(2),
-    totalPostDeliveryCosts: totalPostDeliveryCosts.toFixed(2),
+    notaryAmount: safeFin(notaryAmount).toFixed(2),
+    equipmentCost: safeFin(equipmentCost).toFixed(2),
+    furnitureCost: safeFin(furnitureCost).toFixed(2),
+    totalPostDeliveryCosts: safeFin(totalPostDeliveryCosts).toFixed(2),
     mortgageInterestPercent: row.mortgageInterestPercent ?? mortgageInterestPercent.toFixed(2),
     mortgageYears: mortgageYears,
     mortgageMonthlyPayment: mortgageMonthlyPayment.toFixed(2),
