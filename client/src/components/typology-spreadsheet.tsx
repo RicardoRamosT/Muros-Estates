@@ -39,6 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { useFieldPermissions } from "@/hooks/use-field-permissions";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { spreadsheetKey, setSerializer, columnFiltersSerializer } from "@/lib/spreadsheet-persistence";
 import type { Typology, CatalogAviso } from "@shared/schema";
@@ -585,9 +586,15 @@ const SECTIONS: SectionDef[] = [
 buildGroupColorCache(SECTIONS);
 
 function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string, number>, nivelMantenimientoLookup?: Record<string, { valor: number; equipo: number; muebles: number }>, entregaDate?: Date): Partial<Typology> {
+  // Safety helpers: convert any value to a finite number or fallback to 0
+  const safeNum = (v: any, fallback = 0): number => {
+    const n = typeof v === 'string' ? parseFloat(v) : Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const safeFin = (v: number): number => Number.isFinite(v) ? v : 0;
   const getDefault = (key: string, fallback: number): number => globalDefaults?.[key] ?? fallback;
-  const price = parseFloat(row.price as string) || 0;
-  const size = parseFloat(row.size as string) || 0;
+  const price = safeNum(row.price);
+  const size = safeNum(row.size);
   
   // Respect hasDiscount: if false, no discount is applied
   const hasDiscount = row.hasDiscount === true;
@@ -2461,7 +2468,7 @@ function SectionSearchButton({ scrollRef, iconColor }: { scrollRef: React.RefObj
 export function TypologySpreadsheet() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const hasFullAccess = user?.role === "admin" || user?.role === "actualizador";
+  const { canView, canEdit, hasFullAccess } = useFieldPermissions('tipologias');
   const uid = user?.id ?? "anon";
   const [expandedSections, setExpandedSections] = usePersistedState<Set<string>>(
     spreadsheetKey(uid, "typologies", "expandedSections"),
@@ -3399,6 +3406,11 @@ export function TypologySpreadsheet() {
     }
     if (activeEditingRowId !== rowId) {
       setActiveEditingRowId(rowId);
+    }
+
+    // Immediately save when active toggle changes (match developers/developments pattern)
+    if (field === "active") {
+      saveRowByIdRef.current(rowId);
     }
   }, [typologies, dbDevelopments, dbDevelopers, catalogCities, typesByDevelopment, tipologiasConfigByDevelopment, activeEditingRowId]);
   
