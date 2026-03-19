@@ -40,10 +40,11 @@ interface User {
 interface AdminUserTableProps {
   users: User[];
   isLoading?: boolean;
-  onEdit: (user: User) => void;
+  onUpdateUser: (id: string, data: Partial<User>) => void;
   onDelete: (id: string) => void;
   onToggleActive: (id: string, active: boolean) => void;
   isDeleting?: boolean;
+  availableRoles?: { value: string; label: string }[];
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -68,10 +69,10 @@ const COLUMNS: SpreadsheetColumnDef[] = [
   { key: "active", label: "Activo", width: "80px", type: "toggle", cellType: "checkbox", group: "registro" },
   { key: "createdDate", label: "Fecha", width: "80px", type: "date-display", cellType: "readonly", group: "registro" },
   { key: "createdTime", label: "Hora", width: "65px", type: "time-display", cellType: "readonly", group: "registro" },
-  { key: "name", label: "Nombre", width: "150px", cellType: "readonly", group: "informacion" },
-  { key: "username", label: "Usuario", width: "130px", cellType: "readonly", group: "informacion" },
-  { key: "email", label: "Email", width: "200px", cellType: "readonly", group: "informacion" },
-  { key: "role", label: "Rol", width: "120px", type: "select", cellType: "readonly", group: "acceso" },
+  { key: "name", label: "Nombre", width: "150px", cellType: "input", group: "informacion" },
+  { key: "username", label: "Usuario", width: "130px", cellType: "input", group: "informacion" },
+  { key: "email", label: "Email", width: "200px", cellType: "input", group: "informacion" },
+  { key: "role", label: "Rol", width: "120px", type: "select", cellType: "dropdown", group: "acceso" },
   { key: "actions", label: "", width: "50px", type: "actions", cellType: "actions", group: "actions" },
 ];
 
@@ -85,8 +86,43 @@ function getColumnFilterType(type?: string): "boolean" | "number" | "select" | "
   return "text";
 }
 
-export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleActive, isDeleting }: AdminUserTableProps) {
+const EDITABLE_TEXT_FIELDS = new Set(["name", "username", "email"]);
+
+export function AdminUserTable({ users, isLoading, onUpdateUser, onDelete, onToggleActive, isDeleting, availableRoles }: AdminUserTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const editingCellRef = useRef<{ id: string; field: string } | null>(null);
+
+  const setEditing = useCallback((v: { id: string; field: string } | null) => {
+    editingCellRef.current = v;
+    setEditingCell(v);
+  }, []);
+
+  const handleCellClick = useCallback((id: string, field: string, currentValue: string) => {
+    setEditing({ id, field });
+    setEditValue(currentValue ?? "");
+  }, [setEditing]);
+
+  const handleCellBlur = useCallback((id: string, field: string, inputValue: string) => {
+    const ec = editingCellRef.current;
+    if (!ec || ec.id !== id || ec.field !== field) return;
+
+    const original = users.find(u => u.id === id);
+    const originalValue = original ? (original as any)[field] ?? "" : "";
+    if (inputValue !== String(originalValue)) {
+      onUpdateUser(id, { [field]: inputValue || null });
+    }
+    setEditing(null);
+  }, [users, onUpdateUser, setEditing]);
+
+  const handleRoleChange = useCallback((id: string, newRole: string) => {
+    const original = users.find(u => u.id === id);
+    if (original && original.role !== newRole) {
+      onUpdateUser(id, { role: newRole });
+    }
+    setEditing(null);
+  }, [users, onUpdateUser, setEditing]);
 
   // Prepare data with date/time split
   const tableData = useMemo(() =>
@@ -391,9 +427,39 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
                   );
                 }
                 if (col.key === "role") {
+                  const isEditing = editingCell?.id === user.id && editingCell?.field === "role";
+                  const roles = availableRoles && availableRoles.length > 0 ? availableRoles : Object.entries(ROLE_LABELS).filter(([k]) => k !== "admin").map(([value, label]) => ({ value, label }));
                   return (
-                    <div key={col.key} className={getCellStyle({ type: "readonly" })} style={{ width: col.width, minWidth: col.width, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {ROLE_LABELS[user.role] || user.role}
+                    <div
+                      key={col.key}
+                      className={cn("spreadsheet-cell flex-shrink-0", getCellStyle({ type: "dropdown", isEditing }))}
+                      style={{ width: col.width, minWidth: col.width }}
+                      onClick={() => !isEditing && setEditing({ id: user.id, field: "role" })}
+                      data-testid={`cell-role-${user.id}`}
+                    >
+                      {isEditing ? (
+                        <Select
+                          defaultValue={user.role}
+                          onValueChange={(v) => handleRoleChange(user.id, v)}
+                          open
+                          onOpenChange={(open) => { if (!open) setEditing(null); }}
+                        >
+                          <SelectTrigger className="h-6 w-full text-xs border-0 bg-transparent [&_svg]:h-3 [&_svg]:w-3 focus:ring-0 focus:ring-offset-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {roles.map((r) => (
+                              <SelectItem key={r.value} value={r.value} className="text-xs">
+                                {r.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center justify-center px-1 w-full cursor-pointer">
+                          <span className="truncate">{ROLE_LABELS[user.role] || user.role}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 }
@@ -407,10 +473,6 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="cursor-pointer" onClick={() => onEdit(originalUser)} data-testid={`action-edit-${user.id}`}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
                           <DropdownMenuItem className="cursor-pointer" onClick={() => onToggleActive(user.id, !user.active)} data-testid={`action-toggle-${user.id}`}>
                             {user.active ? (
                               <><UserX className="w-4 h-4 mr-2" />Desactivar</>
@@ -427,7 +489,39 @@ export function AdminUserTable({ users, isLoading, onEdit, onDelete, onToggleAct
                     </div>
                   );
                 }
-                // Text fields: name, username, email
+                // Editable text fields: name, username, email
+                if (EDITABLE_TEXT_FIELDS.has(col.key)) {
+                  const value = (user as any)[col.key] ?? "";
+                  const isEditing = editingCell?.id === user.id && editingCell?.field === col.key;
+                  return (
+                    <div
+                      key={col.key}
+                      className={cn("spreadsheet-cell flex-shrink-0 overflow-hidden", getCellStyle({ type: "input", isEditing }))}
+                      style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
+                      onClick={() => !isEditing && handleCellClick(user.id, col.key, value)}
+                      data-testid={`cell-${col.key}-${user.id}`}
+                    >
+                      {isEditing ? (
+                        <Input
+                          defaultValue={editValue}
+                          onBlur={(e) => handleCellBlur(user.id, col.key, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
+                            if (e.key === "Escape") { setEditing(null); }
+                          }}
+                          autoFocus
+                          className={CELL_INPUT_CLASS}
+                          data-testid={`input-${col.key}-${user.id}`}
+                        />
+                      ) : (
+                        <div className="flex items-center w-full cursor-pointer">
+                          <span className="truncate px-1">{value}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                // Fallback for any other readonly text fields
                 const value = (user as any)[col.key] ?? "";
                 return (
                   <div key={col.key} className={getCellStyle({ type: "readonly" })} style={{ width: col.width, minWidth: col.width, display: "flex", alignItems: "center" }}>

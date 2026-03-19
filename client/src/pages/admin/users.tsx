@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Header } from "@/components/header";
 import { AdminUserTable } from "@/components/admin-user-table";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { RolesPermissionsView } from "@/components/roles-permissions-view";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,14 +31,34 @@ interface User {
   createdAt: string | null;
 }
 
+const BUILT_IN_ROLES = [
+  { value: "perfilador", label: "Perfilador" },
+  { value: "asesor", label: "Asesor" },
+  { value: "actualizador", label: "Actualizador" },
+  { value: "finanzas", label: "Finanzas" },
+  { value: "desarrollador", label: "Desarrollador" },
+];
+
 export default function AdminUsers() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
+
+  const { data: customRoles = [] } = useQuery<{ id: number; name: string; key: string }[]>({
+    queryKey: ["/api/custom-roles"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/custom-roles");
+      return res.json();
+    },
+  });
+
+  const allRoles = useMemo(() => [
+    ...BUILT_IN_ROLES,
+    ...customRoles.map(r => ({ value: r.key, label: r.name })),
+  ], [customRoles]);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
@@ -86,9 +106,9 @@ export default function AdminUsers() {
     return users.filter(u => u.role !== "admin");
   }, [users]);
 
-  const handleEdit = (user: User) => {
-    setLocation(`/admin/users/${user.id}`);
-  };
+  const handleUpdateUser = useCallback((id: string, data: Partial<User>) => {
+    updateMutation.mutate({ id, data });
+  }, [updateMutation]);
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
@@ -125,10 +145,11 @@ export default function AdminUsers() {
       <AdminUserTable
         users={filteredUsers}
         isLoading={isLoading}
-        onEdit={handleEdit}
+        onUpdateUser={handleUpdateUser}
         onDelete={handleDelete}
         onToggleActive={handleToggleActive}
         isDeleting={deleteMutation.isPending}
+        availableRoles={allRoles}
       />
 
       <RolesPermissionsView />
