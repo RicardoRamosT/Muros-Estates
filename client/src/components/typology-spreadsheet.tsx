@@ -601,10 +601,10 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   let discountAmount = 0;
   if (hasDiscount) {
     // Use existing discountAmount from row if available
-    discountAmount = parseFloat(row.discountAmount as string) || 0;
+    discountAmount = safeNum(row.discountAmount);
     // Fallback: if discountAmount is 0 but discountPercent has a value, compute from percent
     if (discountAmount === 0) {
-      const discountPercent = parseFloat(row.discountPercent as string) || 0;
+      const discountPercent = safeNum(row.discountPercent);
       if (discountPercent > 0) {
         discountAmount = price * (discountPercent / 100);
       }
@@ -613,15 +613,15 @@ function calculateFields(row: Partial<Typology>, globalDefaults?: Record<string,
   const finalPrice = price - discountAmount;
   const pricePerM2 = size > 0 ? finalPrice / size : 0;
   
-  const initialPercent = parseFloat(row.initialPercent as string) || 0;
-  const duringConstructionPercent = parseFloat(row.duringConstructionPercent as string) || 0;
-  const paymentMonths = (row.paymentMonths as number) || 0;
+  const initialPercent = safeNum(row.initialPercent);
+  const duringConstructionPercent = safeNum(row.duringConstructionPercent);
+  const paymentMonths = safeNum(row.paymentMonths);
 
   // Calculate remainingPercent as a base value
   const calculatedRemainingPercent = 100 - initialPercent - duringConstructionPercent;
   // If the row has a value for remainingPercent, use it, otherwise use the calculated one
-  const remainingPercent = row.remainingPercent !== undefined && row.remainingPercent !== null 
-    ? parseFloat(row.remainingPercent as string) 
+  const remainingPercent = row.remainingPercent !== undefined && row.remainingPercent !== null
+    ? safeNum(row.remainingPercent, calculatedRemainingPercent)
     : calculatedRemainingPercent;
   
   // Use existing initialAmount from row if available, otherwise calculate from percent

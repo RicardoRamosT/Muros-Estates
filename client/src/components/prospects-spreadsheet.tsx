@@ -458,8 +458,9 @@ export function ProspectsSpreadsheet({ isClientView = false }: ProspectsSpreadsh
   }, [typologies, handleFieldChange]);
 
   const handleActiveToggle = useCallback((id: string, newValue: boolean | null) => {
-    updateMutation.mutate({ id, data: { active: newValue } });
-  }, [updateMutation]);
+    handleFieldChange(id, { active: newValue } as any);
+    saveRowByIdRef.current(id);
+  }, [handleFieldChange]);
 
   const handleCreateNew = () => {
     createMutation.mutate({
